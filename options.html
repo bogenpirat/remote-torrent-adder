@@ -1,0 +1,100 @@
+<html>
+<head>
+	<title>Options for Remote Torrent Adder</title>
+	<script type="text/javascript" src="miscapis/options.js"></script>
+	<link rel="stylesheet" type="text/css" href="options.css" />
+</head>
+<body onload="loadAllSettings();">
+	<h1><img src="icons/BitTorrent48.png" alt="BitTorrent!" /> Remote Torrent Adder Options</h1>
+	<table>
+		<tr>
+			<td colspan="2"><h2>WebUI</h2></td>
+		</tr>
+		<tr>
+			<td><span class="title">Client:</span></td>
+			<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text);">
+				<option>ruTorrent WebUI</option>
+				<option>Torrentflux WebUI</option>
+				<option>Transmission WebUI</option>
+				<option>uTorrent WebUI</option>
+				<option>Vuze SwingUI</option>
+			</select><br />
+				<span class="tip">Torrent client type</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Host:</span></td>
+			<td><input type="text" id="host" onkeyup="setSetting(this, this.value);"  /><br />
+				<span class="tip">The ip/host to connect to</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Port:</span></td>
+			<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
+				<span class="tip">The remote port</span></td>
+		</tr><!--
+		<tr>
+			<td><span class="title">SSL:</span></td>
+			<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+				<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>).</span></td>
+		</tr>-->
+		<tr>
+			<td><span class="title">Relative path:</span></td>
+			<td><input type="text" id="relativepath" onkeyup="setSetting(this, this.value);" /><br />
+				<span class="tip">This is used only for ruTorrent/Torrentflux, as those may have different WebUI location depending on web server hierarchy.<br/>
+					Enter only the text in quotation marks: http://someserver.com&quot;/some/path/to/webui&quot;/<br />
+					Note: this directory should contain the "php" directory (rutorrent) or the files "login.php"/"index.php" (torrentflux)</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Username:</span></td>
+			<td><input type="text" id="login" onkeyup="setSetting(this, this.value);" /><br />
+				<span class="tip">Login name of the WebUI</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Password:</span></td>
+			<td><input type="password" id="password" onkeyup="setSetting(this, this.value);" /><br />
+				<span class="tip">Password of the WebUI</span></td>
+		</tr>
+		<tr>
+			<td colspan="2"><br /><h2>Notifications</h2></td>
+		</tr>
+		<tr>
+			<td><span class="title">Address bar indicator</span></td>
+			<td><input type="checkbox" id="linksfoundindicator" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+				<span class="tip">Enabling this will cause an indicator icon to appear on every page where the extension found torrent links matching the below filters</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Popups:</span></td>
+			<td><input type="checkbox" id="showpopups" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'popupduration');" /><br />
+				<span class="tip">Enable this to view success/error messages as desktop notification popups</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Popup Duration:</span></td>
+			<td><input type="text" id="popupduration" onkeyup="setSetting(this, this.value);" /> msec<br />
+				<span class="tip">Duration of time until the popups are removed</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Test it:</span></td>
+			<td><button onclick="javascript:var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');notification.show();setTimeout(function(){notification.cancel();}, localStorage['popupduration']);">hit me</button></td>
+		</tr>
+		<tr>
+			<td colspan="2"><br /><h2>Link catching</h2></td>
+		</tr>
+		<tr>
+			<td><span class="title">Context menu</span></td>
+			<td><input type="checkbox" id="catchfromcontextmenu" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+				<span class="tip">Enable this to add a context menu entry for links</span></td>
+		</tr>
+		<tr>
+			<td><span class="title">Clicks on links</span></td>
+			<td><input type="checkbox" id="catchfrompage" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'linkmatches');" /><br />
+				<span class="tip">Enable this to intercept links from pages where torrent links were found and automatically send them to the WebUI instead of downloading them locally</span><br />
+				<div style="float:left;"><select id="linkmatches"></select></div>
+				<div style="position:relative; float:left;"><button onclick="addMatch();">+</button><br />
+				<button onclick="deleteMatches();">-</button><br /><button onclick="alert(localStorage['linkmatches']);">~</button></div><br style="clear:both;" />
+				<span class="tip">Creating new filters is easy: just look at a sample link that you want matched, remove parts of it as long as it still resembles a link scheme specific to your torrent site, then follow these rules:<br />
+					- escape (put a backslash in front of) every: &quot;.&quot;, &quot;/&quot;, &quot;?&quot;<br/>
+					- replace dynamic parts: (&quot;\d+&quot; matches any number, e.g. torrent ID, &quot;.+?&quot; matches any character, &quot;[:alpha:]&quot; matches any string containing letters or numbers)<br /><a href="http://www.regular-expressions.info/reference.html">more</a></span>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
