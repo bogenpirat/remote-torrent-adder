@@ -1,7 +1,6 @@
 function addTorrentToruTorrentWebUI(data) {
 	var xhr = new XMLHttpRequest();
-	//var url = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/rutorrent/php/addtorrent.php?";
-	var url = "http://"+localStorage["host"]+":"+localStorage["port"]+localStorage["relativepath"]+"/php/addtorrent.php?";
+	var url = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["relativepath"]+"/php/addtorrent.php?";
 	
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {

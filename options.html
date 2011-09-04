@@ -30,17 +30,17 @@
 			<td><span class="title">Port:</span></td>
 			<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
 				<span class="tip">The remote port</span></td>
-		</tr><!--
+		</tr>
 		<tr>
 			<td><span class="title">SSL:</span></td>
 			<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
-				<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>).</span></td>
-		</tr>-->
+				<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://).</span></td>
+		</tr>
 		<tr>
 			<td><span class="title">Relative path:</span></td>
 			<td><input type="text" id="relativepath" onkeyup="setSetting(this, this.value);" /><br />
 				<span class="tip">This is used only for ruTorrent/Torrentflux, as those may have different WebUI location depending on web server hierarchy.<br/>
-					Enter only the text in quotation marks: http://someserver.com&quot;/some/path/to/webui&quot;/<br />
+					Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
 					Note: this directory should contain the "php" directory (rutorrent) or the files "login.php"/"index.php" (torrentflux)</span></td>
 		</tr>
 		<tr>
