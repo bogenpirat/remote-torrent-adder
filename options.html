@@ -19,7 +19,7 @@
 		
 		<div id="tabs-1"><table>
 			<tr>
-				<td><span class="title">Client:</span></td>
+				<td><span class="title"><label for="client">Client:</label></span></td>
 				<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text);">
 					<option>ruTorrent WebUI</option>
 					<option>Torrentflux WebUI</option>
@@ -27,70 +27,70 @@
 					<option>uTorrent WebUI</option>
 					<option>Vuze SwingUI</option>
 				</select><br />
-					<span class="tip">Torrent client type</span></td>
+					<span class="tip">BitTorrent client type</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Host:</span></td>
+				<td><span class="title"><label for="host">Host</label></span></td>
 				<td><input type="text" id="host" onkeyup="setSetting(this, this.value);"  /><br />
-					<span class="tip">The ip/host to connect to</span></td>
+					<span class="tip">The ip/hostname to connect to</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Port:</span></td>
+				<td><span class="title"><label for="port">Port</label></span></td>
 				<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
 					<span class="tip">The remote port</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">SSL:</span></td>
+				<td><span class="title"><label for="hostsecure">SSL</label></span></td>
 				<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
 					<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://). Don't forget to set the Port to 443!</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Relative path:</span></td>
+				<td><span class="title"><label for="relativepath">Relative path</label></span></td>
 				<td><input type="text" id="relativepath" onkeyup="setSetting(this, this.value);" /><br />
 					<span class="tip">This is used only for ruTorrent/Torrentflux, as those may have different WebUI location depending on web server hierarchy.<br/>
 						Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
 						Note: this directory should contain the "php" directory (rutorrent) or the files "login.php"/"index.php" (torrentflux)</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Username:</span></td>
+				<td><span class="title"><label for="login">Username</label></span></td>
 				<td><input type="text" id="login" onkeyup="setSetting(this, this.value);" /><br />
 					<span class="tip">Login name of the WebUI</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Password:</span></td>
+				<td><span class="title"><label for="password">Password</label></span></td>
 				<td><input type="password" id="password" onkeyup="setSetting(this, this.value);" /><br />
 					<span class="tip">Password of the WebUI</span></td>
 			</tr>
 		</table></div>
 		<div id="tabs-2"><table>
 			<tr>
-				<td><span class="title">Address bar indicator</span></td>
+				<td><span class="title"><label for="linksfoundindicator">Address bar indicator</label></span></td>
 				<td><input type="checkbox" id="linksfoundindicator" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
-					<span class="tip">Enabling this will cause an indicator icon to appear on every page where the extension found torrent links matching the below filters</span></td>
+					<span class="tip">Enabling this will cause an indicator icon to appear in every page's address bar where the extension found torrent links matching the filters defined in &quot;Link Catching&quot;</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Popups:</span></td>
+				<td><span class="title"><label for="showpopups">Popups</label></span></td>
 				<td><input type="checkbox" id="showpopups" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'popupduration');" /><br />
 					<span class="tip">Enable this to view success/error messages as desktop notification popups</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Popup Duration:</span></td>
+				<td><span class="title"><label for="popupduration">Popup Duration</label></span></td>
 				<td><input type="text" id="popupduration" onkeyup="setSetting(this, this.value);" /> msec<br />
 					<span class="tip">Duration of time until the popups are removed</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Test it:</span></td>
-				<td><button onclick="javascript:var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');notification.show();setTimeout(function(){notification.cancel();}, localStorage['popupduration']);">hit me</button></td>
+				<td><span class="title"><label for="notificationtest">Test it</label></span></td>
+				<td><button id="notificationtest" onclick="javascript:var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');notification.show();setTimeout(function(){notification.cancel();}, localStorage['popupduration']);">hit me</button></td>
 			</tr>
 		</table></div>
 		<div id="tabs-3"><table>
 			<tr>
-				<td><span class="title">Context menu</span></td>
+				<td><span class="title"><label for="catchfromcontextmenu">Context menu</label></span></td>
 				<td><input type="checkbox" id="catchfromcontextmenu" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
-					<span class="tip">Enable this to add a context menu entry for links</span></td>
+					<span class="tip">Enable this to add a context menu entry for links. You must restart for this setting to take effect.</span></td>
 			</tr>
 			<tr>
-				<td><span class="title">Clicks on links</span></td>
+				<td><span class="title"><label for="catchfrompage">Clicks on links</label></span></td>
 				<td><input type="checkbox" id="catchfrompage" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'linkmatches');" /><br />
 					<span class="tip">Enable this to intercept links from pages where torrent links were found and automatically send them to the WebUI instead of downloading them locally</span><br />
 					<div style="float:left;"><select id="linkmatches"></select></div>
@@ -98,11 +98,17 @@
 					<button onclick="deleteMatches();">-</button><br /><button onclick="alert(localStorage['linkmatches']);">~</button></div><br style="clear:both;" />
 					<span class="tip">Creating new filters is easy; just look at a sample link that you want matched, remove parts of it as long as it still resembles a link scheme specific to your torrent site, then follow these rules:<br />
 						- escape (put a backslash in front of) every: &quot;.&quot;, &quot;/&quot;, &quot;?&quot;<br/>
-						- replace dynamic parts: (&quot;\d+&quot; matches any number, e.g. torrent ID, &quot;.+?&quot; matches any character, &quot;[:alpha:]&quot; matches any string containing letters or numbers)<br /><a href="http://www.regular-expressions.info/reference.html">more</a></span>
+						- replace dynamic parts: (&quot;\d+&quot; matches any number, e.g. torrent ID, &quot;.+?&quot; matches any character, &quot;[:alpha:]&quot; matches any string containing letters or numbers)<br />
+						<a target="_blank" href="http://www.regular-expressions.info/reference.html">more detailed information</a></span>
 				</td>
 			</tr>
 		</table></div>
 		<div id="tabs-4"><table>
+			<tr>
+				<td><span class="title">About the extension</span></td>
+				<td>This extension lets you silently add torrent files to a BitTorrent client's web interface, either running on a remote server, or on your local computer. It lets you manually add torrents from a link's context menu, or can automatically find links that have torrents in them, using configurable regular expression filters, so that you only have to click on such a link to automatically load it into the configured client.</td>
+			</tr>
+			<tr><td colspan="2">&nbsp;</td></tr>
 			<tr>
 				<td><span class="title">Info/FAQ/Changelog</span></td>
 				<td>Most non-bug related questions that arise in regard to this extension are about links that don't get caught. This extension finds these links through the use of regular expressions. A basic description on how to configure your own filters among other information can be found via this link:<br/>
@@ -112,7 +118,9 @@
 			<tr>
 				<td><span class="title">Problems/Bugs</span></td>
 				<td>If you find a bug, or have a feature request, please create an issue ticket on the project's BitBucket issue tracker. This is the best route of reaching me:<br/>
-				<a target="_blank" href="https://bitbucket.org/juliii/remote-torrent-adder/issues">Remote Torrent Adder BitBucket Issue Tracker</a></td>
+				<a target="_blank" href="https://bitbucket.org/juliii/remote-torrent-adder/issues">Remote Torrent Adder BitBucket Issue Tracker</a><br/><br/>
+				For bugs, please supply the Google Chrome version you're using as well as a description of your behavior, the extension's misbehavior, what you were expecting to happen.<br/>
+				For new web interface support requests, please supply a link to the client's web site or its web interface documentation (or an alternative open source remote adding implementation).</td>
 			</tr>
 			<tr><td colspan="2">&nbsp;</td></tr>
 			<tr>
@@ -137,13 +145,13 @@
 				<td><span class="title">About the Developer</span></td>
 				<td>My name is Julian and i study Computer Science in Germany's beautiful university town of Heidelberg.<br/><br/>
 				If you like this extension a lot and/or have too much money on your hands, please consider donating one or two beers worth of it to my Paypal account:<br/>
-				<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+				<form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="margin-bottom: 0px;">
 					<input type="hidden" name="cmd" value="_s-xclick">
 					<input type="hidden" name="hosted_button_id" value="Z92HR4U74XJ92">
 					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
 					<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
 				</form>
-				Be aware however that I may use it to buy a good movie, music album or pay tuition instead of fueling my liver's demise. All bets are off.
+				Be aware however that I may use it to buy a good bluray or pay tuition instead of fueling my liver's demise. All bets are off.
 			</td>
 			</tr>
 		</table></div>
