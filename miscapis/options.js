@@ -1,3 +1,11 @@
+$(document).ready(function(){ 
+	loadAllSettings();
+	
+	$(function() {
+		$("#tabs").tabs();
+	});
+});
+
 function loadAllSettings() {
 	var e = document.getElementsByTagName("input");
 	for (key in e) {
