@@ -1,6 +1,15 @@
 function addTorrentToruTorrentWebUI(data) {
 	var xhr = new XMLHttpRequest();
-	var url = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["relativepath"]+"/php/addtorrent.php?";
+	var firstslash;
+	var lastslash;
+	if(localStorage["relativepath"] != undefined || localStorage["relativepath"].length < 1) {
+		firstslash = (localStorage["relativepath"][0]=="/")?"":"/";
+		lastslash = (localStorage["relativepath"][localStorage["relativepath"].length-1]=="/")?"":"/";
+	} else {
+		firstslash = "/";
+		lastslash = "";
+	}
+	var url = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+firstslash+localStorage["relativepath"]+lastslash+"php/addtorrent.php?";
 	
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
@@ -11,6 +20,7 @@ function addTorrentToruTorrentWebUI(data) {
 				displayResponse("server didn't accept data:\n"+xhr.responseText);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
+			console.debug(xhr);
 			displayResponse(-2);
 		}
 	};

@@ -53,17 +53,15 @@ function displayResponse(code) {
 	var message; var title;
 	switch(code) {
 		case 0: title = "Torrent added"; message = "adding the torrent succeeded!"; break;
-		case -1: title = "Torrent fail"; message = "getting the torrent failed! ABORT!"; break;
-		case -2: title = "Torrent fail"; message = "sending the torrent failed! ABORT!"; break;
-		case -3: title = "Torrent fail"; message = "network error occurred! ABORT!"; break;
-		case -4: title = "Torrent fail"; message = "failed to log in! ABORT!"; break;
+		case -1: title = "Torrent fail"; message = "getting the torrent failed!"; break;
+		case -2: title = "Torrent fail"; message = "sending the torrent failed!"; break;
+		case -3: title = "Torrent fail"; message = "network error occurred!"; break;
+		case -4: title = "Torrent fail"; message = "failed to log in!"; break;
 		default: title = "hurr durr derp?"; message = code; break;
 	}
 	
 	if(localStorage["showpopups"] == "true") {
-	console.debug("hi");
 		var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', title, message);
-		console.debug(notification);
 		notification.show();
 		setTimeout(function(){notification.cancel();}, localStorage["popupduration"]);
 	}
