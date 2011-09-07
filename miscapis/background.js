@@ -39,8 +39,8 @@ function getTorrent(url) {
 	xhr.overrideMimeType("text/plain; charset=x-user-defined");
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(url.match(/\/([^\.]+.torrent)/)) {
-				name = url.match(/\/([^\.]+.torrent)/)[1];
+			if(url.match(/\/([^\/]+.torrent)/)) {
+				name = url.match(/\/([^\/]+.torrent)/)[1];
 			} else {
 				name = "torrent";
 			}
