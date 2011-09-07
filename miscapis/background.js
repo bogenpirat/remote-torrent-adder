@@ -39,7 +39,13 @@ function getTorrent(url) {
 	xhr.overrideMimeType("text/plain; charset=x-user-defined");
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-			dispatchTorrent(xhr.responseText, url.match(/\/([^\.]+.torrent)/)[1]);
+			if(url.match(/\/([^\.]+.torrent)/)) {
+				name = url.match(/\/([^\.]+.torrent)/)[1];
+			} else {
+				name = "torrent";
+			}
+			
+			dispatchTorrent(xhr.responseText, name);
 		} else if(xhr.readyState == 4 && xhr.status < 99) {
 			displayResponse(-3);
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
