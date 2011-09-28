@@ -126,3 +126,14 @@ if(localStorage["host"] == undefined &&
    localStorage["hostsecure"] == undefined) {
 	initialConfigValues();
 }
+
+
+
+// version-specific migration data
+if(localStorage["relativepath"] != undefined &&
+   localStorage["torrentfluxrelativepath"] == undefined &&
+   localStorage["ruTorrentrelativepath"] == undefined) {
+	localStorage["torrentfluxrelativepath"] = localStorage["relativepath"];
+	localStorage["ruTorrentrelativepath"] = localStorage["relativepath"];
+	localStorage.removeItem("relativepath");
+}

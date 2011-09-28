@@ -1,11 +1,11 @@
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Options for Remote Torrent Adder</title>
 	<script type="text/javascript" src="miscapis/jquery-1.6.2.min.js"></script>
 	<script type="text/javascript" src="miscapis/jquery-ui-1.8.16.custom.min.js"></script>
 	<script type="text/javascript" src="miscapis/options.js"></script>
 	<link rel="stylesheet" type="text/css" href="options.css" />
-	<link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.8.16.custom.css">
+	<link rel="stylesheet" type="text/css" href="themes/smoothness/jquery-ui-1.8.16.custom.css" />
 </head>
 <body>
 	<h1><img src="icons/BitTorrent48.png" alt="BitTorrent!" /> Remote Torrent Adder Options</h1>
@@ -18,50 +18,90 @@
 		</ul>
 		
 		<div id="tabs-1"><table>
-			<tr>
-				<td><span class="title"><label for="client">Client:</label></span></td>
-				<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text);">
-					<option>ruTorrent WebUI</option>
-					<option>Torrentflux WebUI</option>
-					<option>Transmission WebUI</option>
-					<option>uTorrent WebUI</option>
-					<option>Vuze SwingUI</option>
-				</select><br />
-					<span class="tip">BitTorrent client type</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="host">Host</label></span></td>
-				<td><input type="text" id="host" onkeyup="setSetting(this, this.value);"  /><br />
-					<span class="tip">The ip/hostname to connect to</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="port">Port</label></span></td>
-				<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
-					<span class="tip">The remote port</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="hostsecure">SSL</label></span></td>
-				<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
-					<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://). Don't forget to set the Port to 443!</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="relativepath">Relative path</label></span></td>
-				<td><input type="text" id="relativepath" onkeyup="setSetting(this, this.value);" /><br />
-					<span class="tip">This is used only for ruTorrent/Torrentflux, as those may have different WebUI location depending on web server hierarchy.<br/>
-						Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
-						Note: this directory should contain the "php" directory (rutorrent) or the files "login.php"/"index.php" (torrentflux)</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="login">Username</label></span></td>
-				<td><input type="text" id="login" onkeyup="setSetting(this, this.value);" /><br />
-					<span class="tip">Login name of the WebUI</span></td>
-			</tr>
-			<tr>
-				<td><span class="title"><label for="password">Password</label></span></td>
-				<td><input type="password" id="password" onkeyup="setSetting(this, this.value);" /><br />
-					<span class="tip">Password of the WebUI</span></td>
-			</tr>
+			<tbody>
+				<tr>
+					<td><span class="title"><label for="client">Client:</label></span></td>
+					<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text); activateSpecificsPage(this.options[this.selectedIndex].text);">
+							<option>ruTorrent WebUI</option>
+							<option>Torrentflux WebUI</option>
+							<option>Transmission WebUI</option>
+							<option>uTorrent WebUI</option>
+							<option>Vuze SwingUI</option>
+						</select><br />
+						<span class="tip">BitTorrent client type</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="host">Host</label></span></td>
+					<td><input type="text" id="host" onkeyup="setSetting(this, this.value);"  /><br />
+						<span class="tip">The ip/hostname to connect to</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="port">Port</label></span></td>
+					<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">The remote port</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="hostsecure">SSL</label></span></td>
+					<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+						<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://). Don't forget to set the Port to 443!</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="login">Username</label></span></td>
+					<td><input type="text" id="login" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Login name of the WebUI</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="password">Password</label></span></td>
+					<td><input type="password" id="password" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Password of the WebUI</span></td>
+				</tr>
+				<tr>
+					<td colspan="2"><br/><h3>WebUI Specifics</h3></td>
+				</tr>
+			</tbody>
+			<tbody id="rutorrentspecifics" class="specifics">
+				<tr>
+					<td><span class="title"><label for="ruTorrentrelativepath">Relative path</label></span></td>
+					<td><input type="text" id="ruTorrentrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
+							Note: this folder should contain the "php" directory.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="rutorrentlabel">Label</label></span></td>
+					<td><input type="text" id="rutorrentlabel" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Default label to use for added torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="rutorrentdirectory">Directory</label></span></td>
+					<td><input type="text" id="rutorrentdirectory" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Default directory to store added torrents in.</span></td>
+				</tr>
+			</tbody>
+			<tbody id="torrentfluxspecifics" class="specifics">
+				<tr>
+					<td><span class="title"><label for="torrentfluxrelativepath">Relative path</label></span></td>
+					<td><input type="text" id="torrentfluxrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
+							Note: this directory should contain the files "login.php"/"index.php"</span></td>
+				</tr>
+			</tbody>
+			<tbody id="transmissionspecifics" class="specifics">
+				<tr>
+					<td colspan="2">There are no specific settings for Transmission.</td>
+				</tr>
+			</tbody>
+			<tbody id="utorrentspecifics" class="specifics">
+				<tr>
+					<td colspan="2">There are no specific settings for uTorrent.</td>
+				</tr>
+			</tbody>
+			<tbody id="vuzeswingspecifics" class="specifics">
+				<tr>
+					<td colspan="2">There are no specific settings for Vuze SwingUI.</td>
+				</tr>
+			</tbody>
 		</table></div>
+		
 		<div id="tabs-2"><table>
 			<tr>
 				<td><span class="title"><label for="linksfoundindicator">Address bar indicator</label></span></td>
@@ -83,6 +123,7 @@
 				<td><button id="notificationtest" onclick="javascript:var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');notification.show();setTimeout(function(){notification.cancel();}, localStorage['popupduration']);">hit me</button></td>
 			</tr>
 		</table></div>
+		
 		<div id="tabs-3"><table>
 			<tr>
 				<td><span class="title"><label for="catchfromcontextmenu">Context menu</label></span></td>
@@ -103,6 +144,7 @@
 				</td>
 			</tr>
 		</table></div>
+		
 		<div id="tabs-4"><table>
 			<tr>
 				<td><span class="title">About the extension</span></td>
@@ -146,15 +188,16 @@
 				<td>My name is Julian and i study Computer Science in Germany's beautiful university town of Heidelberg.<br/><br/>
 				If you like this extension a lot and/or have too much money on your hands, please consider donating one or two beers worth of it to my Paypal account:<br/>
 				<form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="margin-bottom: 0px;">
-					<input type="hidden" name="cmd" value="_s-xclick">
-					<input type="hidden" name="hosted_button_id" value="Z92HR4U74XJ92">
-					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-					<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
+					<input type="hidden" name="cmd" value="_s-xclick" />
+					<input type="hidden" name="hosted_button_id" value="Z92HR4U74XJ92" />
+					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!" />
+					<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1" />
 				</form>
 				Be aware however that I may use it to buy a good bluray or pay tuition instead of fueling my liver's demise. All bets are off.
-			</td>
+				</td>
 			</tr>
 		</table></div>
+		
 	</div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
-	var loginurl = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["relativepath"]+"/login.php";
+	var loginurl = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["torrentfluxrelativepath"]+"/login.php";
 	
 	// log in to create a functioning session
 	var xhr = new XMLHttpRequest();
@@ -14,7 +14,7 @@ function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
 	
 	// send the torrent
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["relativepath"]+"/index.php", true);
+	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["torrentfluxrelativepath"]+"/index.php", true);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 		console.log(xhr.responseText);

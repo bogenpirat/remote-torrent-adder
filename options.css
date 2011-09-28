@@ -10,5 +10,8 @@ span.tip {
 	font-size: 10px;
 }
 td {
-	vertical-align:top;
+	vertical-align: top;
+}
+tr.specifics {
+	display: none;
 }

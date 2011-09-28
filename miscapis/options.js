@@ -22,6 +22,9 @@ function loadAllSettings() {
 	// load matches
 	loadMatches();
 	
+	// set visibility of client specific settings
+	activateSpecificsPage(localStorage["client"]);
+	
 	// set visibility
 	flipVisibility("showpopups", "popupduration");
 	flipVisibility("catchfrompage", "linkmatches");
@@ -29,6 +32,28 @@ function loadAllSettings() {
 
 function flipVisibility(checkname, changename) {
 	document.getElementById(changename).disabled = (document.getElementById(checkname).checked)?false:true;
+}
+
+function activateSpecificsPage(clientname) {
+	var divid;
+	
+	if(clientname == "ruTorrent WebUI")
+		divid = "rutorrentspecifics";
+	if(clientname == "Torrentflux WebUI")
+		divid = "torrentfluxspecifics";
+	if(clientname == "Transmission WebUI")
+		divid = "transmissionspecifics";
+	if(clientname == "uTorrent WebUI")
+		divid = "utorrentspecifics";
+	if(clientname == "Vuze SwingUI")
+		divid = "vuzeswingspecifics";
+	
+	$("#tabs-1 > table > tbody.specifics").each(function() {
+		if(divid == $(this).attr("id"))
+			$(this).css("display", "table-row-group");
+		else 
+			$(this).css("display", "none");
+	});
 }
 
 function setSetting(e, val) {
