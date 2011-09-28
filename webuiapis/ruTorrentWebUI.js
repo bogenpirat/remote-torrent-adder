@@ -1,15 +1,18 @@
 function addTorrentToruTorrentWebUI(data) {
 	var xhr = new XMLHttpRequest();
-	var firstslash;
-	var lastslash;
-	if(localStorage["relativepath"] != undefined || localStorage["relativepath"].length < 1) {
-		firstslash = (localStorage["relativepath"][0]=="/")?"":"/";
-		lastslash = (localStorage["relativepath"][localStorage["relativepath"].length-1]=="/")?"":"/";
-	} else {
-		firstslash = "/";
-		lastslash = "";
-	}
-	var url = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+firstslash+localStorage["relativepath"]+lastslash+"php/addtorrent.php?";
+	
+	var url = "http";
+	url += ((localStorage["hostsecure"]=='true')?"s":"");
+	url += "://";
+	url += localStorage["host"];
+	url += ":"+localStorage["port"];
+	if(localStorage["relativepath"] == undefined || localStorage["relativepath"][0] != "/")
+		url += "/"; // first slash
+	if(localStorage["relativepath"] != undefined)
+		url += localStorage["relativepath"];
+	if(localStorage["relativepath"] != undefined && localStorage["relativepath"].length != 0 && localStorage["relativepath"][localStorage["relativepath"].length-1] != "/")
+		url += "/";
+	url += "php/addtorrent.php?";
 	
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
