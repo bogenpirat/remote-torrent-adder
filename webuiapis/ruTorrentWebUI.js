@@ -18,7 +18,6 @@ function addTorrentToruTorrentWebUI(data) {
 	if(localStorage["rutorrentlabel"] != undefined && localStorage["rutorrentlabel"].length > 0)
 		url += "label="+encodeURIComponent(localStorage["rutorrentlabel"]);
 	
-	console.debug(url);
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
@@ -36,7 +35,7 @@ function addTorrentToruTorrentWebUI(data) {
 	// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 	var boundary = "AJAX-----------------------"+(new Date).getTime();
 	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-	var message;
+	var message="";
 	
 	if(localStorage["rutorrentdirectory"] != undefined && localStorage["rutorrentdirectory"].length > 0) {
 	   message += "--" + boundary + "\r\n";
