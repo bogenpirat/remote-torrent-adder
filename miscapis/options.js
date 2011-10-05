@@ -47,6 +47,8 @@ function activateSpecificsPage(clientname) {
 		divid = "utorrentspecifics";
 	if(clientname == "Vuze SwingUI")
 		divid = "vuzeswingspecifics";
+	if(clientname == "Vuze HTML WebUI")
+		divid = "vuzehtmlspecifics";
 	
 	$("#tabs-1 > table > tbody.specifics").each(function() {
 		if(divid == $(this).attr("id"))
