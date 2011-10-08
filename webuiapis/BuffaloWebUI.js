@@ -17,7 +17,7 @@ function addTorrentToBuffaloWebUI(data, torrentname) {
 	var boundary = "AJAX-----------------------"+(new Date).getTime();
 	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 	var message = "--" + boundary + "\r\n";
-	   message += "Content-Disposition: form-data; name=\"fileEl\"; filename=\""+((torrentname.length && torrentname.length>1) ? torrentname : (new Date).getTime())+".torrent\"\r\n";
+	   message += "Content-Disposition: form-data; name=\"fileEl\"; filename=\""+((torrentname.length && torrentname.length>1) ? torrentname : (new Date).getTime())+"\"\r\n";
 	   message += "Content-Type: application/x-bittorrent\r\n\r\n";
 	   message += data + "\r\n";
 	   message += "--" + boundary + "--\r\n";
