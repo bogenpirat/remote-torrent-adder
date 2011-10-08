@@ -49,6 +49,8 @@ function activateSpecificsPage(clientname) {
 		divid = "vuzeswingspecifics";
 	if(clientname == "Vuze HTML WebUI")
 		divid = "vuzehtmlspecifics";
+	if(clientname == "Buffalo WebUI")
+		divid = "buffalospecifics";
 	
 	$("#tabs-1 > table > tbody.specifics").each(function() {
 		if(divid == $(this).attr("id"))

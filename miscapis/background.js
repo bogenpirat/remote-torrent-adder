@@ -23,15 +23,17 @@ function dispatchTorrent(data, name) {
 		case "Vuze SwingUI":
 			addTorrentToVuzeSwingUI(data); break;
 		case "Torrentflux WebUI":
-			addTorrentToTorrentfluxWebUI(data); break;
+			addTorrentToTorrentfluxWebUI(data, name); break;
 		case "Transmission WebUI":
-			addTorrentToTransmissionWebUI(data, name); break;
+			addTorrentToTransmissionWebUI(data); break;
 		case "uTorrent WebUI":
 			addTorrentTouTorrentWebUI(data); break;
 		case "ruTorrent WebUI":
 			addTorrentToruTorrentWebUI(data); break;
 		case "Vuze HTML WebUI":
 			addTorrentToVuzeHTMLUI(data); break;
+		case "Buffalo WebUI":
+			addTorrentToBuffaloWebUI(data, name); break;
 	}
 }
 
@@ -41,8 +43,8 @@ function getTorrent(url) {
 	xhr.overrideMimeType("text/plain; charset=x-user-defined");
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(url.match(/\/([^\/]+.torrent)/)) {
-				name = url.match(/\/([^\/]+.torrent)/)[1];
+			if(url.match(/\/([^\/]+.torrent)$/)) {
+				name = url.match(/\/([^\/]+.torrent)$/)[1];
 			} else {
 				name = "torrent";
 			}
