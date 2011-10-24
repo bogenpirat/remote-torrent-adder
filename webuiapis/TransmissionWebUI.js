@@ -18,7 +18,7 @@ function sendXHRTransmissionWebUI(torrentdata, sessionid) {
 	var sessionid;
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/rpc", true, localStorage["login"], localStorage["password"]);
+	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/rpc", true, localStorage["login"], localStorage["password"]);
 	xhr.setRequestHeader("X-Transmission-Session-Id", sessionid);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
