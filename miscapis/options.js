@@ -47,6 +47,8 @@ function activateSpecificsPage(clientname) {
 		divid = "utorrentspecifics";
 	if(clientname == "Vuze SwingUI")
 		divid = "vuzeswingspecifics";
+	if(clientname == "Vuze Remote WebUI")
+		divid = "vuzeremotespecifics";
 	if(clientname == "Vuze HTML WebUI")
 		divid = "vuzehtmlspecifics";
 	if(clientname == "Buffalo WebUI")
