@@ -3,8 +3,7 @@ function addTorrentToVuzeRemoteUI(data) {
 	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/upload?paused=false", true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-		console.debug(xhr.responseText);
-			if(/.*Upload OK.*/.exec(xhr.responseText)) {
+			if(/.*<h1>200: OK<\/h1>.*/.exec(xhr.responseText)) {
 				displayResponse(0);
 			} else {
 				displayResponse("server didn't accept data:\n"+xhr.responseText);
