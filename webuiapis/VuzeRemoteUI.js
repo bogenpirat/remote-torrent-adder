@@ -14,8 +14,7 @@ function addTorrentToVuzeRemoteUI(data) {
 	};
 	
 	if(data.substring(0,7) == "magnet:") {
-		var jobj = {"method":"torrent-add", "arguments":{"paused":"false", "filename": data}};
-		var message = JSON.stringify(jobj);
+		var message = JSON.stringify({"method":"torrent-add", "arguments":{"paused":"false", "filename": data}});
 		xhr.send(message);
 	} else {
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js

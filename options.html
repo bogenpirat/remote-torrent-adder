@@ -23,6 +23,7 @@
 					<td><span class="title"><label for="client">Client:</label></span></td>
 					<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text); activateSpecificsPage(this.options[this.selectedIndex].text);">
 							<option>Buffalo WebUI</option>
+							<option>Deluge WebUI</option>
 							<option>qBittorrent WebUI</option>
 							<option>ruTorrent WebUI</option>
 							<option>Torrentflux WebUI</option>
@@ -121,6 +122,11 @@
 			<tbody id="qbittorrentspecifics" class="specifics">
 				<tr>
 					<td colspan="2">There are no specific settings for qBittorrent WebUI.</td>
+				</tr>
+			</tbody>
+			<tbody id="delugewebuispecifics" class="specifics">
+				<tr>
+					<td colspan="2">There are no specific settings for Deluge WebUI.</td>
 				</tr>
 			</tbody>
 		</table></div>

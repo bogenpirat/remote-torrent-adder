@@ -38,6 +38,8 @@ function dispatchTorrent(data, name) {
 			addTorrentToBuffaloWebUI(data, name); break;
 		case "qBittorrent WebUI":
 			addTorrentToqBittorrentWebUI(data, name); break;
+		case "Deluge WebUI":
+			addTorrentToDelugeWebUI(data, name); break;
 	}
 }
 
