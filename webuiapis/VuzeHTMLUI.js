@@ -13,14 +13,21 @@ function addTorrentToVuzeHTMLUI(data) {
 		}
 	};
 	
-	// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-	var boundary = "AJAX-----------------------"+(new Date).getTime();
-	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-	var message = "--" + boundary + "\r\n";
-	   message += "Content-Disposition: form-data; name=\"upfile_1\"; filename=\"file.torrent\"\r\n";
-	   message += "Content-Type: application/x-bittorrent\r\n\r\n";
-	   message += data + "\r\n";
-	   message += "--" + boundary + "--\r\n";
-	
-	xhr.sendAsBinary(message);
+	if(data.substring(0,6) == "magnet:") {
+		var mxhr = new XMLHttpRequest();
+		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&upurl="+encodeURIComponent(data), true, localStorage["login"], localStorage["password"]);
+		mxhr.onreadystatechange = xhr.onreadystatechange;
+		mxhr.send(message);
+	} else {
+		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
+		var boundary = "AJAX-----------------------"+(new Date).getTime();
+		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+		var message = "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"upfile_1\"; filename=\"file.torrent\"\r\n";
+		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
+		   message += data + "\r\n";
+		   message += "--" + boundary + "--\r\n";
+		
+		xhr.sendAsBinary(message);
+	}
 }
