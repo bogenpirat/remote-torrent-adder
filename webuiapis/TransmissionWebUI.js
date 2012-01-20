@@ -10,12 +10,7 @@ function sendXHRTransmissionWebUI(torrentdata, sessionid) {
 		ui8a[i] = (torrentdata.charCodeAt(i) & 0xff);
 	}
 	
-	var message = '{"method": "torrent-add",'
-		+'"arguments": {'
-		+'"metainfo":"'+b64_encode(ui8a)+'"'
-		+' }'
-		+' }';
-	var sessionid;
+	var message;
 	
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/rpc", true, localStorage["login"], localStorage["password"]);
@@ -33,5 +28,11 @@ function sendXHRTransmissionWebUI(torrentdata, sessionid) {
 			displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 		}
 	};
+	
+	if(torrentdata.substring(0,7) == "magnet:") {
+		message = JSON.stringify({"method":"torrent-add","arguments":{"paused":"false","filename":torrentdata}});
+	} else {
+		message = JSON.stringify({"method":"torrent-add","arguments":{"metainfo":b64_encode(ui8a)}});
+	}
 	xhr.send(message);
 }
