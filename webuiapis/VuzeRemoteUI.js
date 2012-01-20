@@ -13,7 +13,7 @@ function addTorrentToVuzeRemoteUI(data) {
 		}
 	};
 	
-	if(data.substring(0,6) == "magnet:") {
+	if(data.substring(0,7) == "magnet:") {
 		var jobj = {"method":"torrent-add", "arguments":{"paused":"false", "filename": data}};
 		var message = JSON.Stringify(jobj);
 		xhr.send(message);
