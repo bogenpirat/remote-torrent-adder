@@ -4,13 +4,12 @@ function addTorrentToqBittorrentWebUI(data, torrentname) {
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*window\.parent\.hideAll\(\);.*/.exec(xhr.responseText)) { // who knows if that is good
-				displayResponse(0);
-				console.debug(xhr.responseText);
+				displayResponse("Success", "Torrent added successfully.");
 			} else {
-				displayResponse("server didn't accept data:\n"+xhr.responseText);
+				displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse(-2);
+			displayResponse("Failure", "Server responded with an irregular HTTP error code:\n"+xhr.status+": "+xhr.responseText);
 		}
 	};
 	

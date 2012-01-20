@@ -23,14 +23,14 @@ function sendXHRTransmissionWebUI(torrentdata, sessionid) {
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*"result":"success".*/.exec(xhr.responseText)) {
-				displayResponse(0);
+				displayResponse("Success", "Torrent added successfully.");
 			} else {
-				displayResponse("server didn't accept data:\n"+xhr.responseText);
+				displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 			}
 		} else if(xhr.readyState == 4 && xhr.status == 409) {
 			sendXHRTransmissionWebUI(torrentdata, xhr.getResponseHeader('X-Transmission-Session-Id'));
 		} else if(xhr.readyState == 4 && xhr.status != 200 && xhr.status != 409) {
-			displayResponse(-2);
+			displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 		}
 	};
 	xhr.send(message);

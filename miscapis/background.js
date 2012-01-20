@@ -55,25 +55,15 @@ function getTorrent(url) {
 			
 			dispatchTorrent(xhr.responseText, name);
 		} else if(xhr.readyState == 4 && xhr.status < 99) {
-			displayResponse(-3);
+			displayResponse("Connection failed", "The server sent an irregular HTTP error code: "+xhr.status);
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse(-1);
+			displayResponse("Connection failed", "The server sent the following HTTP error code: "+xhr.status);
 		}
 	};
 	xhr.send(null);
 }
 
-function displayResponse(code) {
-	var message; var title;
-	switch(code) {
-		case 0: title = "Torrent added"; message = "adding the torrent succeeded!"; break;
-		case -1: title = "Torrent fail"; message = "getting the torrent failed!"; break;
-		case -2: title = "Torrent fail"; message = "sending the torrent failed!"; break;
-		case -3: title = "Torrent fail"; message = "network error occurred!"; break;
-		case -4: title = "Torrent fail"; message = "failed to log in!"; break;
-		default: title = "hurr durr derp?"; message = code; break;
-	}
-	
+function displayResponse(title, message) {
 	if(localStorage["showpopups"] == "true") {
 		var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', title, message);
 		notification.show();

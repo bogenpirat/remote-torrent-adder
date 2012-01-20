@@ -4,12 +4,12 @@ function addTorrentToVuzeRemoteUI(data) {
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*<h1>200: OK<\/h1>.*/.exec(xhr.responseText)) {
-				displayResponse(0);
+				displayResponse("Success", "Torrent added successfully.");
 			} else {
-				displayResponse("server didn't accept data:\n"+xhr.responseText);
+				displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse(-2);
+			displayResponse("Failure", "Server responded with an irregular HTTP error code:\n"+xhr.status+": "+xhr.responseText);
 		}
 	};
 	

@@ -8,7 +8,7 @@ function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
 	xhr.send("username="+localStorage["login"]+"&iamhim="+localStorage["password"]);
 	
 	if(/.*Password is required.*/.exec(xhr.responseText) || /.*Login failed.*/.exec(xhr.responseText)) {
-		displayResponse(-4); console.log(xhr.responseText);
+		displayResponse("Failure", "Credentials weren't accepted:\n"+xhr.responseText);
 		return;
 	}
 	
@@ -17,10 +17,9 @@ function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
 	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["torrentfluxrelativepath"]+"/index.php", true);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-		console.log(xhr.responseText);
-			displayResponse(0);
+			displayResponse("Success", "Torrent added successfully.");
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse(-2);
+			displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
 		}
 	};
 	
