@@ -13,7 +13,7 @@ function addTorrentToVuzeHTMLUI(data) {
 		}
 	};
 	
-	if(data.substring(0,6) == "magnet:") {
+	if(data.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
 		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&upurl="+encodeURIComponent(data), true, localStorage["login"], localStorage["password"]);
 		mxhr.onreadystatechange = xhr.onreadystatechange;
