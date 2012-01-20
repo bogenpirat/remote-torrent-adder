@@ -1,4 +1,9 @@
 function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
+	if(torrentdata.substring(0,7) == "magnet:") {
+		alert("sorry, but torrentflux doesn't support magnet links.");
+		return;
+	}
+	
 	var loginurl = "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+localStorage["torrentfluxrelativepath"]+"/login.php";
 	
 	// log in to create a functioning session
