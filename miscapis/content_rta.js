@@ -5,6 +5,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	var links = new Array();
 	var rL = document.getElementsByTagName('a');
 	res = response["linkmatches"].split("~");
+	res.push("magnet:");
 	if(response["linkmatches"] != "") {
 		for(lkey in rL) {
 		for(mkey in res) {

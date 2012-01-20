@@ -42,25 +42,29 @@ function dispatchTorrent(data, name) {
 }
 
 function getTorrent(url) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", url, true);
-	xhr.overrideMimeType("text/plain; charset=x-user-defined");
-	xhr.onreadystatechange = function(data) {
-		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(url.match(/\/([^\/]+.torrent)$/)) {
-				name = url.match(/\/([^\/]+.torrent)$/)[1];
-			} else {
-				name = "torrent";
+	if(url.substring(0,6) == "magnet:") {
+		dispatchTorrent(url);
+	} else {
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", url, true);
+		xhr.overrideMimeType("text/plain; charset=x-user-defined");
+		xhr.onreadystatechange = function(data) {
+			if(xhr.readyState == 4 && xhr.status == 200) {
+				if(url.match(/\/([^\/]+.torrent)$/)) {
+					name = url.match(/\/([^\/]+.torrent)$/)[1];
+				} else {
+					name = "torrent";
+				}
+				
+				dispatchTorrent(xhr.responseText, name);
+			} else if(xhr.readyState == 4 && xhr.status < 99) {
+				displayResponse("Connection failed", "The server sent an irregular HTTP error code: "+xhr.status);
+			} else if(xhr.readyState == 4 && xhr.status != 200) {
+				displayResponse("Connection failed", "The server sent the following HTTP error code: "+xhr.status);
 			}
-			
-			dispatchTorrent(xhr.responseText, name);
-		} else if(xhr.readyState == 4 && xhr.status < 99) {
-			displayResponse("Connection failed", "The server sent an irregular HTTP error code: "+xhr.status);
-		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse("Connection failed", "The server sent the following HTTP error code: "+xhr.status);
-		}
-	};
-	xhr.send(null);
+		};
+		xhr.send(null);
+	}
 }
 
 function displayResponse(title, message) {
