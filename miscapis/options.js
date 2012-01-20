@@ -53,6 +53,8 @@ function activateSpecificsPage(clientname) {
 		divid = "vuzehtmlspecifics";
 	if(clientname == "Buffalo WebUI")
 		divid = "buffalospecifics";
+	if(clientname == "qBittorrent WebUI")
+		divid = "qbittorrentspecifics";
 	
 	$("#tabs-1 > table > tbody.specifics").each(function() {
 		if(divid == $(this).attr("id"))
