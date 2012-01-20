@@ -13,7 +13,7 @@ function addTorrentToVuzeSwingUI(data) {
 		}
 	};
 	
-	if(data.substring(0,6) == "magnet:") {
+	if(data.substring(0,7) == "magnet:") {
 		alert("sorry, no magnet/link adding support from vuze swing ui. try the vuze remote plugin.");
 	} else {
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
