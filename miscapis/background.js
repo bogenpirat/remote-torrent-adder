@@ -31,7 +31,7 @@ function dispatchTorrent(data, name) {
 		case "ruTorrent WebUI":
 			addTorrentToruTorrentWebUI(data); break;
 		case "Vuze HTML WebUI":
-			addTorrentToruTorrentWebUI(data); break;
+			addTorrentToVuzeHTMLWebUI(data); break;
 		case "Vuze Remote WebUI":
 			addTorrentToVuzeRemoteUI(data); break;
 		case "Buffalo WebUI":
