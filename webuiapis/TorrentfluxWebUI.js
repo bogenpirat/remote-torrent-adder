@@ -1,6 +1,6 @@
 function addTorrentToTorrentfluxWebUI(torrentdata, torrentname) {
 	if(torrentdata.substring(0,7) == "magnet:") {
-		alert("sorry, but torrentflux doesn't support magnet links.");
+		displayResponse("Client Failure", "sorry, but torrentflux doesn't support magnet links.");
 		return;
 	}
 	
