@@ -1,6 +1,6 @@
 function addTorrentToruTorrentWebUI(data) {
 	if(data.substring(0,7) == "magnet:") {
-		alert("sorry, r(u)torrent doesn't support magnet");
+		displayResponse("Client Failure", "sorry, r(u)torrent doesn't support magnet");
 		return;
 	}
 	
