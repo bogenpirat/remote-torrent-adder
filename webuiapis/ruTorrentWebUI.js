@@ -1,4 +1,9 @@
 function addTorrentToruTorrentWebUI(data) {
+	if(data.substring(0,7) == "magnet:") {
+		alert("sorry, r(u)torrent doesn't support magnet");
+		return;
+	}
+	
 	var xhr = new XMLHttpRequest();
 	
 	var url = "http";
@@ -33,8 +38,9 @@ function addTorrentToruTorrentWebUI(data) {
 	
 	// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 	var boundary = "AJAX-----------------------"+(new Date).getTime();
-	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 	var message="";
+	
+	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 	
 	if(localStorage["rutorrentdirectory"] != undefined && localStorage["rutorrentdirectory"].length > 0) {
 	   message += "--" + boundary + "\r\n";
