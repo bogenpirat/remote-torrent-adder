@@ -14,7 +14,7 @@ function addTorrentToVuzeSwingUI(data) {
 	};
 	
 	if(data.substring(0,7) == "magnet:") {
-		alert("sorry, no magnet/link adding support from vuze swing ui. try the vuze remote plugin.");
+		displayResponse("Client Failure", "sorry, no magnet/link adding support from vuze swing ui. try the vuze remote plugin.");
 	} else {
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------"+(new Date).getTime();
