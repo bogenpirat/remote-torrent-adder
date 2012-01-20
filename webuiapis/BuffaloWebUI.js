@@ -1,4 +1,9 @@
 function addTorrentToBuffaloWebUI(data, torrentname) {
+	if(data.substring(0,7) == "magnet:") {
+		displayResponse("Client Failure", "Link sending not implemented (due to lack of testing equipment).");
+		return;
+	}
+	
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/api/torrent-add?start=yes", true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
