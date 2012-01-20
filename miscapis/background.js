@@ -42,7 +42,7 @@ function dispatchTorrent(data, name) {
 }
 
 function getTorrent(url) {
-	if(url.substring(0,6) == "magnet:") {
+	if(url.substring(0,7) == "magnet:") {
 		dispatchTorrent(url);
 	} else {
 		var xhr = new XMLHttpRequest();
