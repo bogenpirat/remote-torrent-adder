@@ -81,7 +81,6 @@ function initialConfigValues() {
 	localStorage["host"] = "127.0.0.1";
 	localStorage["port"] = "6883";
 	localStorage["hostsecure"] = "";
-	localStorage["relativepath"] = "/rutorrent";
 	localStorage["login"] = "login";
 	localStorage["password"] = "password";
 	localStorage["linksfoundindicator"] = "true";
@@ -116,8 +115,7 @@ if(localStorage["catchfromcontextmenu"] == "true")
 
 // if this is the first usage of the extension, register initial values
 if(localStorage["host"] == undefined && 
-   localStorage["port"] == undefined && 
-   localStorage["relativepath"] == undefined &&
+   localStorage["port"] == undefined &&
    localStorage["login"] == undefined && 
    localStorage["password"] == undefined && 
    localStorage["showpopups"] == undefined && 
@@ -129,15 +127,4 @@ if(localStorage["host"] == undefined &&
    localStorage["linksfoundindicator"] == undefined && 
    localStorage["hostsecure"] == undefined) {
 	initialConfigValues();
-}
-
-
-
-// version-specific migration data
-if(localStorage["relativepath"] != undefined &&
-   localStorage["torrentfluxrelativepath"] == undefined &&
-   localStorage["ruTorrentrelativepath"] == undefined) {
-	localStorage["torrentfluxrelativepath"] = localStorage["relativepath"];
-	localStorage["ruTorrentrelativepath"] = localStorage["relativepath"];
-	localStorage.removeItem("relativepath");
 }
