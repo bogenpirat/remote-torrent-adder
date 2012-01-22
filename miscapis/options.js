@@ -72,7 +72,7 @@ function setSetting(e, val) {
 
 function getSetting(e) {
 	if(e.type == "text" || e.type == "password") {
-		document.getElementById(e.id).value = localStorage[e.id];
+		document.getElementById(e.id).value = (localStorage[e.id]==undefined)?"":localStorage[e.id];
 	} else if(e.type == "checkbox") {
 		document.getElementById(e.id).checked = (localStorage[e.id]=="true")?true:false;
 	}
