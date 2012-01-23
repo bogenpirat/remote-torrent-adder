@@ -57,6 +57,8 @@ function activateSpecificsPage(clientname) {
 		divid = "qbittorrentspecifics";
 	if(clientname == "Deluge WebUI")
 		divid = "delugewebuispecifics";
+	if(clientname == "pyrt WebUI")
+		divid = "pyrtwebuispecifics";
 	
 	$("#tabs-1 > table > tbody.specifics").each(function() {
 		if(divid == $(this).attr("id"))

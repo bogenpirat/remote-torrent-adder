@@ -40,6 +40,8 @@ function dispatchTorrent(data, name) {
 			addTorrentToqBittorrentWebUI(data, name); break;
 		case "Deluge WebUI":
 			addTorrentToDelugeWebUI(data, name); break;
+		case "pyrt WebUI":
+			addTorrentTopyrtWebUI(data, name); break;
 	}
 }
 
@@ -55,7 +57,7 @@ function getTorrent(url) {
 				if(url.match(/\/([^\/]+.torrent)$/)) {
 					name = url.match(/\/([^\/]+.torrent)$/)[1];
 				} else {
-					name = "torrent";
+					name = "file.torrent";
 				}
 				
 				dispatchTorrent(xhr.responseText, name);
