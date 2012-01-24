@@ -40,6 +40,9 @@ function addTorrentTopyrtWebUI(data, filename) {
 	message += "Content-Disposition: form-data; name=\"request\"\r\n\r\n";
 	message += "upload_torrent\r\n";
 	message += "--" + boundary + "\r\n";
+	message += "Content-Disposition: form-data; name=\"start\"\r\n\r\n";
+	message += "on\r\n";
+	message += "--" + boundary + "\r\n";
 	message += "Content-Disposition: form-data; name=\"torrent\"; filename=\""+filename+"\"\r\n";
 	message += "Content-Type: application/x-bittorrent\r\n\r\n";
 	message += data + "\r\n";
