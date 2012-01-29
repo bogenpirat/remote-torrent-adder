@@ -124,3 +124,11 @@ function deleteMatches() {
 		}
 	saveMatches();
 }
+
+Storage.prototype.setObject = function(key, val) {
+	this.setItem(key, JSON.stringify(val));
+}
+Storage.prototype.getObject = function(key) {
+	var value = this.getItem(key);
+    return value && JSON.parse(value);
+}

@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Options for Remote Torrent Adder</title>
-	<script type="text/javascript" src="miscapis/jquery-1.6.2.min.js"></script>
+	<script type="text/javascript" src="miscapis/jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" src="miscapis/jquery-ui-1.8.16.custom.min.js"></script>
 	<script type="text/javascript" src="miscapis/options.js"></script>
 	<link rel="stylesheet" type="text/css" href="options.css" />
@@ -81,6 +81,11 @@
 					<td><span class="title"><label for="rutorrentdirectory">Directory</label></span></td>
 					<td><input type="text" id="rutorrentdirectory" onkeyup="setSetting(this, this.value);" /><br />
 						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your rtorrent configuration's default directory for torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title"><label for="rutorrentdirlabelask">Label/Directory<br/>interactivity</label></span></td>
+					<td><input type="checkbox" id="rutorrentdirlabelask" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
 				</tr>
 			</tbody>
 			<tbody id="torrentfluxspecifics" class="specifics">

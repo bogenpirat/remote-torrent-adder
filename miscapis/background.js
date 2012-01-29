@@ -18,7 +18,7 @@ function genericOnClick(info, tab) {
 	getTorrent(info.linkUrl);
 }
 
-function dispatchTorrent(data, name) {
+function dispatchTorrent(data, name, label, dir) {
 	switch (localStorage["client"]) {
 		case "Vuze SwingUI":
 			addTorrentToVuzeSwingUI(data); break;
@@ -29,7 +29,7 @@ function dispatchTorrent(data, name) {
 		case "uTorrent WebUI":
 			addTorrentTouTorrentWebUI(data); break;
 		case "ruTorrent WebUI":
-			addTorrentToruTorrentWebUI(data); break;
+			addTorrentToruTorrentWebUI(data, label, dir); break;
 		case "Vuze HTML WebUI":
 			addTorrentToVuzeHTMLUI(data); break;
 		case "Vuze Remote WebUI":
@@ -45,9 +45,9 @@ function dispatchTorrent(data, name) {
 	}
 }
 
-function getTorrent(url) {
+function getTorrent(url, label, dir) {
 	if(url.substring(0,7) == "magnet:") {
-		dispatchTorrent(url);
+		dispatchTorrent(url, "", label, dir);
 	} else {
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", url, true);
@@ -60,7 +60,7 @@ function getTorrent(url) {
 					name = "file.torrent";
 				}
 				
-				dispatchTorrent(xhr.responseText, name);
+				dispatchTorrent(xhr.responseText, name, label, dir);
 			} else if(xhr.readyState == 4 && xhr.status < 99) {
 				displayResponse("Connection failed", "The server sent an irregular HTTP error code: "+xhr.status);
 			} else if(xhr.readyState == 4 && xhr.status != 200) {
@@ -98,10 +98,14 @@ function initialConfigValues() {
 chrome.extension.onRequest.addListener(
 	function(request, sender, sendResponse) {
 		if(request.action == "addTorrent") {
-			getTorrent(request.url);
+			getTorrent(request.url, request.label, request.dir);
 			sendResponse({});
 		} else if(request.action == "getStorageData") {
 			sendResponse(localStorage);
+		} else if(request.action == "setStorageData") {
+			for(x in request.data)
+				localStorage[x] = request.data[x];
+			sendResponse({});
 		} else if(request.action == "pageActionToggle") {
 			chrome.pageAction.show(sender.tab.id);
 			sendResponse({});

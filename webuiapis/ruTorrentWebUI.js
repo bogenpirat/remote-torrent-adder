@@ -1,8 +1,11 @@
-function addTorrentToruTorrentWebUI(data) {
+function addTorrentToruTorrentWebUI(data, label, dir) {
 	if(data.substring(0,7) == "magnet:") {
 		displayResponse("Client Failure", "sorry, r(u)torrent doesn't support magnet");
 		return;
 	}
+	
+	if(label == undefined) label = localStorage["rutorrentlabel"];
+	if(dir == undefined) dir = localStorage["rutorrentdirectory"];
 	
 	var xhr = new XMLHttpRequest();
 	
@@ -18,10 +21,10 @@ function addTorrentToruTorrentWebUI(data) {
 	if(localStorage["ruTorrentrelativepath"] != undefined && localStorage["ruTorrentrelativepath"].length != 0 && localStorage["ruTorrentrelativepath"][localStorage["ruTorrentrelativepath"].length-1] != "/")
 		url += "/"; // trailing slash
 	url += "php/addtorrent.php?";
-	if(localStorage["rutorrentdirectory"] != undefined && localStorage["rutorrentdirectory"].length > 0)
-		url += "dir_edit="+encodeURIComponent(localStorage["rutorrentdirectory"])+"&";
-	if(localStorage["rutorrentlabel"] != undefined && localStorage["rutorrentlabel"].length > 0)
-		url += "label="+encodeURIComponent(localStorage["rutorrentlabel"]);
+	if(dir != undefined && dir.length > 0)
+		url += "dir_edit="+encodeURIComponent(dir)+"&";
+	if(label != undefined && label.length > 0)
+		url += "label="+encodeURIComponent(label);
 	
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
@@ -42,15 +45,15 @@ function addTorrentToruTorrentWebUI(data) {
 	
 	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 	
-	if(localStorage["rutorrentdirectory"] != undefined && localStorage["rutorrentdirectory"].length > 0) {
+	if(dir != undefined && dir.length > 0) {
 	   message += "--" + boundary + "\r\n";
 	   message += "Content-Disposition: form-data; name=\"dir_edit\"\r\n\r\n";
-	   message += localStorage["rutorrentdirectory"]+"\r\n";
+	   message += dir+"\r\n";
 	}
-	if(localStorage["rutorrentlabel"] != undefined && localStorage["rutorrentlabel"].length > 0) {
+	if(label != undefined && label.length > 0) {
 	   message += "--" + boundary + "\r\n";
 	   message += "Content-Disposition: form-data; name=\"tadd_label\"\r\n\r\n";
-	   message += localStorage["rutorrentlabel"]+"\r\n";
+	   message += label+"\r\n";
 	}
 	   message += "--" + boundary + "\r\n";
 	   message += "Content-Disposition: form-data; name=\"torrent_file\"; filename=\""+(new Date).getTime()+".torrent\"\r\n";

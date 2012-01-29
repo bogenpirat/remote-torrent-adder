@@ -9,9 +9,12 @@
 	"page_action": {
 		"default_icon": "icons/BitTorrent16.png"
 	},
-	"content_scripts": [{
+	"content_scripts": [
+		{
 		"matches": ["*://*/*"],
-		"js": ["miscapis/content_rta.js"],
+		"js": ["miscapis/jquery-1.7.1.min.js","miscapis/jquery-ui-1.8.16.custom.min.js","miscapis/jquery.fancybox.js","miscapis/content_rta.js"],
+		"css": ["themes/jquery.fancybox.css"],
 		"run_at": "document_end"
-	}]
+		}
+	]
 }
