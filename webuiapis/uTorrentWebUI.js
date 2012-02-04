@@ -1,5 +1,4 @@
 function ut_handleResponse(data) {
-	console.debug("hi");
 	if(this.readyState == 4 && this.status == 200) {
 		if(/\{"build":\d+\}/.test(this.responseText)) {
 			displayResponse("Success", "Torrent added successfully.");

@@ -8,7 +8,7 @@ function vhtml_handleResponse(data) {
 	} else if(this.readyState == 4 && this.status != 200) {
 		displayResponse("Failure", "Server responded with an irregular HTTP error code:\n"+this.status+": "+this.responseText);
 	}
-};
+}
 
 function addTorrentToVuzeHTMLUI(data) {
 	var xhr = new XMLHttpRequest();
