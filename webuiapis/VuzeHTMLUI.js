@@ -1,4 +1,4 @@
-function handleResponse(data) {
+function vhtml_handleResponse(data) {
 	if(this.readyState == 4 && this.status == 200) {
 		if(/.*loaded successfully.*/.exec(this.responseText)) {
 			displayResponse("Success", "Torrent added successfully.");
@@ -13,12 +13,12 @@ function handleResponse(data) {
 function addTorrentToVuzeHTMLUI(data) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&local=1", true, localStorage["login"], localStorage["password"]);
-	xhr.onreadystatechange = handleResponse;
+	xhr.onreadystatechange = vhtml_handleResponse;
 	
 	if(data.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
 		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&upurl="+encodeURIComponent(data), true, localStorage["login"], localStorage["password"]);
-		mxhr.onreadystatechange = handleResponse;
+		mxhr.onreadystatechange = vhtml_handleResponse;
 		mxhr.send(message);
 	} else {
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js

@@ -1,6 +1,7 @@
-function handleResponse(data) {
+function ut_handleResponse(data) {
+	console.debug("hi");
 	if(this.readyState == 4 && this.status == 200) {
-		if(/\{"build":\d+?\}/.test(this.responseText)) {
+		if(/\{"build":\d+\}/.test(this.responseText)) {
 			displayResponse("Success", "Torrent added successfully.");
 		} else {
 			displayResponse("Failure", "Server didn't accept data:\n"+this.status+": "+this.responseText);
@@ -8,7 +9,7 @@ function handleResponse(data) {
 	} else if(this.readyState == 4 && this.status != 200) {
 		displayResponse("Failure", "Server responded with an irregular HTTP error code:\n"+this.status+": "+this.responseText);
 	}
-};
+}
 
 function addTorrentTouTorrentWebUI(torrentdata) {
 	var xhr = new XMLHttpRequest();
@@ -16,17 +17,15 @@ function addTorrentTouTorrentWebUI(torrentdata) {
 	xhr.send(null);
 	var token = /<div.*?>(.*?)<\/div>/.exec(xhr.response)[1];
 	
-	var xhr = new XMLHttpRequest();
-	
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/gui/?token="+token+"&action=add-file", true, localStorage["login"], localStorage["password"]);
-	xhr.onreadystatechange = handleResponse;
-	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
 		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/gui/?token="+token+"&action=add-url&s="+encodeURIComponent(torrentdata), true, localStorage["login"], localStorage["password"]);
-		mxhr.onreadystatechange = handleResponse;
+		mxhr.onreadystatechange = ut_handleResponse;
 		mxhr.send(message);
 	} else {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/gui/?token="+token+"&action=add-file", true, localStorage["login"], localStorage["password"]);
+		xhr.onreadystatechange = ut_handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------"+(new Date).getTime();
 		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
