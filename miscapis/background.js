@@ -14,8 +14,12 @@ XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
 	this.send(blob);
 }
 
+// context menu action
 function genericOnClick(info, tab) {
-	getTorrent(info.linkUrl);
+	if(localStorage["rutorrentdirlabelask"]=="true" && localStorage["client"]=="ruTorrent WebUI")
+		chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage});
+	else
+		getTorrent(info.linkUrl);
 }
 
 function dispatchTorrent(data, name, label, dir) {
@@ -95,25 +99,21 @@ function initialConfigValues() {
 }
 
 // overwrite the click-event of links we want to grab
-chrome.extension.onRequest.addListener(
-	function(request, sender, sendResponse) {
-		if(request.action == "addTorrent") {
-			getTorrent(request.url, request.label, request.dir);
-			sendResponse({});
-		} else if(request.action == "getStorageData") {
-			sendResponse(localStorage);
-		} else if(request.action == "setStorageData") {
-			for(x in request.data)
-				localStorage[x] = request.data[x];
-			sendResponse({});
-		} else if(request.action == "pageActionToggle") {
-			chrome.pageAction.show(sender.tab.id);
-			sendResponse({});
-		} else {
-			sendResponse({});
-		}
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+	if(request.action == "addTorrent") {
+		getTorrent(request.url, request.label, request.dir);
+		sendResponse({});
+	} else if(request.action == "getStorageData") {
+		sendResponse(localStorage);
+	} else if(request.action == "setStorageData") {
+		for(x in request.data)
+			localStorage[x] = request.data[x];
+		sendResponse({});
+	} else if(request.action == "pageActionToggle") {
+		chrome.pageAction.show(sender.tab.id);
+		sendResponse({});
 	}
-);
+});
 
 // register a context menu on links
 if(localStorage["catchfromcontextmenu"] == "true")
