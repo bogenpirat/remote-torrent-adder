@@ -1,9 +1,4 @@
 function addTorrentToruTorrentWebUI(data, label, dir) {
-	if(data.substring(0,7) == "magnet:") {
-		displayResponse("Client Failure", "sorry, r(u)torrent doesn't support magnet");
-		return;
-	}
-	
 	if(label == undefined) label = localStorage["rutorrentlabel"];
 	if(dir == undefined) dir = localStorage["rutorrentdirectory"];
 	
@@ -43,23 +38,28 @@ function addTorrentToruTorrentWebUI(data, label, dir) {
 	var boundary = "AJAX-----------------------"+(new Date).getTime();
 	var message="";
 	
-	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-	
-	if(dir != undefined && dir.length > 0) {
-	   message += "--" + boundary + "\r\n";
-	   message += "Content-Disposition: form-data; name=\"dir_edit\"\r\n\r\n";
-	   message += dir+"\r\n";
+	if(data.substring(0,7) == "magnet:") {
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xhr.send("url="+encodeURIComponent(data));
+	} else {
+		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+		
+		if(dir != undefined && dir.length > 0) {
+		   message += "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"dir_edit\"\r\n\r\n";
+		   message += dir+"\r\n";
+		}
+		if(label != undefined && label.length > 0) {
+		   message += "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"tadd_label\"\r\n\r\n";
+		   message += label+"\r\n";
+		}
+		   message += "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"torrent_file\"; filename=\""+(new Date).getTime()+".torrent\"\r\n";
+		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
+		   message += data + "\r\n";
+		   message += "--" + boundary + "--\r\n";
+		
+		xhr.sendAsBinary(message);
 	}
-	if(label != undefined && label.length > 0) {
-	   message += "--" + boundary + "\r\n";
-	   message += "Content-Disposition: form-data; name=\"tadd_label\"\r\n\r\n";
-	   message += label+"\r\n";
-	}
-	   message += "--" + boundary + "\r\n";
-	   message += "Content-Disposition: form-data; name=\"torrent_file\"; filename=\""+(new Date).getTime()+".torrent\"\r\n";
-	   message += "Content-Type: application/x-bittorrent\r\n\r\n";
-	   message += data + "\r\n";
-	   message += "--" + boundary + "--\r\n";
-	
-	xhr.sendAsBinary(message);
 }
