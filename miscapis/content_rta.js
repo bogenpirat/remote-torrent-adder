@@ -41,13 +41,15 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 		for(key in links) {
 			if(links[key].addEventListener) {
 				links[key].addEventListener('click', function(e) {
-					e.preventDefault();
-					var url = this.href;
-					
-					if(response["rutorrentdirlabelask"]=="true" && response["client"]=="ruTorrent WebUI")
-						showLabelDirChooser(response, url);
-					else 
-						chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
+					if(!(e.ctrlKey || e.shiftKey || e.altKey)) {
+						e.preventDefault();
+						var url = this.href;
+						
+						if(response["rutorrentdirlabelask"]=="true" && response["client"]=="ruTorrent WebUI")
+							showLabelDirChooser(response, url);
+						else 
+							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
+					}
 				});
 			}
 		}
