@@ -173,7 +173,7 @@
 			<tr>
 				<td><span class="title"><label for="catchfrompage">Clicks on links</label></span></td>
 				<td><input type="checkbox" id="catchfrompage" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'linkmatches');" /><br />
-					<span class="tip">Enable this to intercept links from pages where torrent links were found and automatically send them to the WebUI instead of downloading them locally</span><br />
+					<span class="tip">Enable this to intercept links from pages where torrent links were found and automatically send them to the WebUI instead of downloading them locally (can be overridden by holding CTRL/ALT/SHIFT).</span><br />
 					<div style="float:left;"><select id="linkmatches"></select></div>
 					<div style="position:relative; float:left;"><button onclick="addMatch();">+</button><br />
 					<button onclick="deleteMatches();">-</button><br /><button onclick="alert(localStorage['linkmatches']);">~</button></div><br style="clear:both;" />
