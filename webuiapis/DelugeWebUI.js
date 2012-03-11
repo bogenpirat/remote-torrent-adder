@@ -1,11 +1,12 @@
 function addTorrentToDelugeWebUI(torrentdata, filename) {
 	var rnd = Math.floor(Math.random()*999999);
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/json", false);
+	var scheme = (localStorage["hostsecure"]=='true')?"https":"http";
+	xhr.open("POST", scheme+"://"+localStorage["host"]+":"+localStorage["port"]+"/json", false);
 	xhr.send(JSON.stringify({"id":rnd,"method": "auth.login", "params":[localStorage["password"]]}));
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/json", true);
+	xhr.open("POST", scheme+"://"+localStorage["host"]+":"+localStorage["port"]+"/json", true);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(JSON.parse(xhr.responseText)["error"] == null) {
