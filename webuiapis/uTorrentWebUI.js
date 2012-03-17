@@ -14,7 +14,12 @@ function addTorrentTouTorrentWebUI(torrentdata) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/gui/token.html", false, localStorage["login"], localStorage["password"]);
 	xhr.send(null);
-	var token = /<div.*?>(.*?)<\/div>/.exec(xhr.response)[1];
+	var token;
+	if(/<div.*?>(.*?)<\/div>/.exec(xhr.response)) {
+		token = /<div.*?>(.*?)<\/div>/.exec(xhr.response)[1];
+	} else {
+		displayResponse("Failure", "Problem getting the uTorrent XHR token. Is uTorrent running?");
+	}
 	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
