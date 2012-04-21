@@ -69,7 +69,7 @@ function activateSpecificsPage(clientname) {
 }
 
 function setSetting(e, val) {
-	localStorage[e.id] = val;
+	localStorage[e.id] = (val == undefined)?"":val;
 }
 
 function getSetting(e) {

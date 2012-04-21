@@ -102,7 +102,10 @@
 			</tbody>
 			<tbody id="utorrentspecifics" class="specifics">
 				<tr>
-					<td colspan="2">There are no specific settings for uTorrent.</td>
+					<td><span class="title"><label for="utorrentrelativepath">Relative path</label></span></td>
+					<td><input type="text" id="utorrentrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui/</strong>&quot;<br />
+							Note: Unless you're doing reverse-proxying, this field should be left empty</span></td>
 				</tr>
 			</tbody>
 			<tbody id="vuzeswingspecifics" class="specifics">
