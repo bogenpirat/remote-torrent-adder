@@ -5,8 +5,7 @@ function addTorrentToBuffaloWebUI(data, torrentname) {
 	}
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/api/torrent-add?start=yes", true);
-	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
+	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/api/torrent-add?start=yes", true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*apiTorrentAddFinishedOk.*/.exec(xhr.responseText)) {
