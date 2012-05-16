@@ -5,7 +5,8 @@ function addTorrentToVuzeSwingUI(data) {
 	}
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/upload.cgi", true, localStorage["login"], localStorage["password"]);
+	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/upload.cgi", true);
+	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*Upload OK.*/.exec(xhr.responseText)) {

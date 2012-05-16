@@ -6,7 +6,8 @@ function addTorrentToqBittorrentWebUI(data, torrentname) {
 		target = "upload";
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/command/"+target, true, localStorage["login"], localStorage["password"]);
+	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/command/"+target, true);
+	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			displayResponse("Success", "Torrent added successfully.");
