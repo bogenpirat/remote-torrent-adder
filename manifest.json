@@ -5,7 +5,23 @@
 	"manifest_version": 2,
 	"description": "Add torrents using several programs' WebUIs",
 	"permissions": ["*://*/*","contextMenus","notifications","tabs"],
-	"background": "background.html",
+	"background": {
+		"scripts": [
+			"miscapis/background.js",
+			"miscapis/base64.js",
+			"webuiapis/VuzeSwingUI.js",
+			"webuiapis/TorrentfluxWebUI.js",
+			"webuiapis/TransmissionWebUI.js",
+			"webuiapis/uTorrentWebUI.js",
+			"webuiapis/ruTorrentWebUI.js",
+			"webuiapis/VuzeHTMLUI.js",
+			"webuiapis/VuzeRemoteUI.js",
+			"webuiapis/BuffaloWebUI.js",
+			"webuiapis/qBittorrentWebUI.js",
+			"webuiapis/DelugeWebUI.js",
+			"webuiapis/pyrtWebUI.js"
+		]
+	},
 	"options_page": "options.html",
 	"page_action": {
 		"default_icon": "icons/BitTorrent16.png"
