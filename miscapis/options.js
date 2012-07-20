@@ -1,4 +1,6 @@
-$(document).ready(function(){ 
+$(document).ready(function(){
+	registerAllEvents();
+
 	loadAllSettings();
 	
 	$(function() {
@@ -131,4 +133,103 @@ Storage.prototype.setObject = function(key, val) {
 Storage.prototype.getObject = function(key) {
 	var value = this.getItem(key);
     return value && JSON.parse(value);
+}
+
+function registerAllEvents() {
+	document.querySelector("#client").onchange = function() {
+		setSetting(this, this.options[this.selectedIndex].text);
+		activateSpecificsPage(this.options[this.selectedIndex].text);
+	};
+	
+	document.querySelector("#host").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#port").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#hostsecure").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
+	document.querySelector("#login").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#password").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#ruTorrentrelativepath").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#rutorrentlabel").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#rutorrentdirectory").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#rutorrentdirlabelask").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
+	document.querySelector("#torrentfluxrelativepath").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#utorrentrelativepath").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#delugerelativepath").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#linksfoundindicator").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
+	document.querySelector("#showpopups").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	document.querySelector("#showpopups").onclick = function() {
+		flipVisibility(this.id, 'popupduration');
+	};
+	
+	document.querySelector("#popupduration").onkeyup = function() {
+		setSetting(this, this.value);
+	};
+	
+	document.querySelector("#notificationtest").onclick = function() {
+		var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');
+		notification.show();
+		setTimeout(function(){notification.cancel();}, localStorage['popupduration']);
+	};
+	
+	document.querySelector("#catchfromcontextmenu").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
+	document.querySelector("#catchfrompage").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	document.querySelector("#catchfrompage").onclick = function() {
+		flipVisibility(this.id, 'linkmatches');
+	};
+	
+	document.querySelector("#addfilterbtn").onclick = function() {
+		addMatch();
+	};
+	
+	document.querySelector("#delfilterbtn").onclick = function() {
+		deleteMatches();
+	};
+	
+	document.querySelector("#showfiltersbtn").onclick = function() {
+		alert(localStorage['linkmatches']);
+	};
 }

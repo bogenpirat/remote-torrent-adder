@@ -21,7 +21,7 @@
 			<tbody>
 				<tr>
 					<td><span class="title"><label for="client">Client:</label></span></td>
-					<td><select id="client" onchange="setSetting(this, this.options[this.selectedIndex].text); activateSpecificsPage(this.options[this.selectedIndex].text);">
+					<td><select id="client">
 							<option>Buffalo WebUI</option>
 							<option>Deluge WebUI</option>
 							<option>pyrt WebUI</option>
@@ -38,27 +38,27 @@
 				</tr>
 				<tr>
 					<td><span class="title"><label for="host">Host</label></span></td>
-					<td><input type="text" id="host" onkeyup="setSetting(this, this.value);"  /><br />
+					<td><input type="text" id="host" /><br />
 						<span class="tip">The ip/hostname to connect to</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="port">Port</label></span></td>
-					<td><input type="text" id="port" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="port" /><br />
 						<span class="tip">The remote port</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="hostsecure">SSL</label></span></td>
-					<td><input type="checkbox" id="hostsecure" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+					<td><input type="checkbox" id="hostsecure" /><br />
 						<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://). Don't forget to set the Port to 443!</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="login">Username</label></span></td>
-					<td><input type="text" id="login" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="login" /><br />
 						<span class="tip">Login name of the WebUI</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="password">Password</label></span></td>
-					<td><input type="password" id="password" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="password" id="password" /><br />
 						<span class="tip">Password of the WebUI</span></td>
 				</tr>
 				<tr>
@@ -68,30 +68,30 @@
 			<tbody id="rutorrentspecifics" class="specifics">
 				<tr>
 					<td><span class="title"><label for="ruTorrentrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="ruTorrentrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="ruTorrentrelativepath" /><br />
 						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
 							Note: this folder should contain the "php" directory.</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="rutorrentlabel">Label</label></span></td>
-					<td><input type="text" id="rutorrentlabel" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="rutorrentlabel" /><br />
 						<span class="tip">Default label to use for added torrents.</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="rutorrentdirectory">Directory</label></span></td>
-					<td><input type="text" id="rutorrentdirectory" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="rutorrentdirectory" /><br />
 						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your rtorrent configuration's default directory for torrents.</span></td>
 				</tr>
 				<tr>
 					<td><span class="title"><label for="rutorrentdirlabelask">Label/Directory<br/>interactivity</label></span></td>
-					<td><input type="checkbox" id="rutorrentdirlabelask" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+					<td><input type="checkbox" id="rutorrentdirlabelask" /><br />
 						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
 				</tr>
 			</tbody>
 			<tbody id="torrentfluxspecifics" class="specifics">
 				<tr>
 					<td><span class="title"><label for="torrentfluxrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="torrentfluxrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="torrentfluxrelativepath" /><br />
 						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
 							Note: this directory should contain the files "login.php"/"index.php"</span></td>
 				</tr>
@@ -103,8 +103,16 @@
 			<tbody id="utorrentspecifics" class="specifics">
 				<tr>
 					<td><span class="title"><label for="utorrentrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="utorrentrelativepath" onkeyup="setSetting(this, this.value);" /><br />
+					<td><input type="text" id="utorrentrelativepath" /><br />
 						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui/</strong>&quot;<br />
+							Note: Unless you're doing reverse-proxying, this field should be left empty</span></td>
+				</tr>
+			</tbody>
+			<tbody id="delugewebuispecifics" class="specifics">
+				<tr>
+					<td><span class="title"><label for="delugerelativepath">Relative path</label></span></td>
+					<td><input type="text" id="delugerelativepath" /><br />
+						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui</strong>&quot;/<br />
 							Note: Unless you're doing reverse-proxying, this field should be left empty</span></td>
 				</tr>
 			</tbody>
@@ -133,11 +141,6 @@
 					<td colspan="2">There are no specific settings for qBittorrent WebUI.</td>
 				</tr>
 			</tbody>
-			<tbody id="delugewebuispecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Deluge WebUI.</td>
-				</tr>
-			</tbody>
 			<tbody id="pyrtwebuispecifics" class="specifics">
 				<tr>
 					<td colspan="2">There are no specific settings for pyrt WebUI.</td>
@@ -148,38 +151,38 @@
 		<div id="tabs-2"><table>
 			<tr>
 				<td><span class="title"><label for="linksfoundindicator">Address bar indicator</label></span></td>
-				<td><input type="checkbox" id="linksfoundindicator" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+				<td><input type="checkbox" id="linksfoundindicator" /><br />
 					<span class="tip">Enabling this will cause an indicator icon to appear in every page's address bar where the extension found torrent links matching the filters defined in &quot;Link Catching&quot;</span></td>
 			</tr>
 			<tr>
 				<td><span class="title"><label for="showpopups">Popups</label></span></td>
-				<td><input type="checkbox" id="showpopups" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'popupduration');" /><br />
+				<td><input type="checkbox" id="showpopups" /><br />
 					<span class="tip">Enable this to view success/error messages as desktop notification popups</span></td>
 			</tr>
 			<tr>
 				<td><span class="title"><label for="popupduration">Popup Duration</label></span></td>
-				<td><input type="text" id="popupduration" onkeyup="setSetting(this, this.value);" /> msec<br />
+				<td><input type="text" id="popupduration" /> msec<br />
 					<span class="tip">Duration of time until the popups are removed</span></td>
 			</tr>
 			<tr>
 				<td><span class="title"><label for="notificationtest">Test it</label></span></td>
-				<td><button id="notificationtest" onclick="javascript:var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');notification.show();setTimeout(function(){notification.cancel();}, localStorage['popupduration']);">hit me</button></td>
+				<td><button id="notificationtest" >hit me</button></td>
 			</tr>
 		</table></div>
 		
 		<div id="tabs-3"><table>
 			<tr>
 				<td><span class="title"><label for="catchfromcontextmenu">Context menu</label></span></td>
-				<td><input type="checkbox" id="catchfromcontextmenu" onchange="setSetting(this, (this.checked)?'true':'false');" /><br />
+				<td><input type="checkbox" id="catchfromcontextmenu" /><br />
 					<span class="tip">Enable this to add a context menu entry for links. You must restart for this setting to take effect.</span></td>
 			</tr>
 			<tr>
 				<td><span class="title"><label for="catchfrompage">Clicks on links</label></span></td>
-				<td><input type="checkbox" id="catchfrompage" onchange="setSetting(this, (this.checked)?'true':'false');" onclick="flipVisibility(this.id, 'linkmatches');" /><br />
+				<td><input type="checkbox" id="catchfrompage" /><br />
 					<span class="tip">Enable this to intercept links from pages where torrent links were found and automatically send them to the WebUI instead of downloading them locally (can be overridden by holding CTRL/ALT/SHIFT).</span><br />
 					<div style="float:left;"><select id="linkmatches"></select></div>
-					<div style="position:relative; float:left;"><button onclick="addMatch();">+</button><br />
-					<button onclick="deleteMatches();">-</button><br /><button onclick="alert(localStorage['linkmatches']);">~</button></div><br style="clear:both;" />
+					<div style="position:relative; float:left;"><button id="addfilterbtn">+</button><br />
+					<button id="delfilterbtn">-</button><br /><button id="showfiltersbtn">~</button></div><br style="clear:both;" />
 					<span class="tip">Creating new filters is easy; just look at a sample link that you want matched, remove parts of it as long as it still resembles a link scheme specific to your torrent site, then follow these rules:<br />
 						- escape (put a backslash in front of) every: &quot;.&quot;, &quot;/&quot;, &quot;?&quot;<br/>
 						- replace dynamic parts: (&quot;\d+&quot; matches any number, e.g. torrent ID, &quot;.+?&quot; matches any character, &quot;[:alpha:]&quot; matches any string containing letters or numbers)<br />
