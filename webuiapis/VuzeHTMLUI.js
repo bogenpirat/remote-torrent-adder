@@ -12,14 +12,12 @@ function vhtml_handleResponse(data) {
 
 function addTorrentToVuzeHTMLUI(data) {
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&local=1", true);
-	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
+	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&local=1", true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = vhtml_handleResponse;
 	
 	if(data.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&upurl="+encodeURIComponent(data), true);
-		mxhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
+		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+"/index.tmpl?d=u&upurl="+encodeURIComponent(data), true, localStorage["login"], localStorage["password"]);
 		mxhr.onreadystatechange = vhtml_handleResponse;
 		mxhr.send(message);
 	} else {

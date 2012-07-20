@@ -21,8 +21,7 @@ function addTorrentToruTorrentWebUI(data, label, dir) {
 	if(label != undefined && label.length > 0)
 		url += "label="+encodeURIComponent(label);
 	
-	xhr.open("POST", url, true);
-	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(localStorage["login"]+':'+localStorage["password"]));
+	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*addTorrentSuccess.*/.exec(xhr.responseText)) {
