@@ -33,5 +33,6 @@
 		"css": ["themes/jquery.fancybox.css"],
 		"run_at": "document_end"
 		}
-	]
+	],
+	"web_accessible_resources": [ "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png" ]
 }
