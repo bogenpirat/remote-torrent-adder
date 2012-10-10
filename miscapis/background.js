@@ -1,16 +1,10 @@
 XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
-	var bb;
-	// workaround to get the extension working in old & new chrome versions: http://googlechromereleases.blogspot.com/2011/04/beta-channel-update_18.html
-	try { bb = new BlobBuilder(); }
-	catch(e) { bb = new WebKitBlobBuilder(); }
-	
 	var data = new ArrayBuffer(datastr.length);
 	var ui8a = new Uint8Array(data, 0);
 	for (var i=0; i<datastr.length; i++) {
 		ui8a[i] = (datastr.charCodeAt(i) & 0xff);
 	}
-	bb.append(data);
-	var blob = bb.getBlob();
+	var blob = new Blob([data]);
 	this.send(blob);
 }
 
