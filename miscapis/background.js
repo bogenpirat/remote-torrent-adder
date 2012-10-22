@@ -33,6 +33,7 @@ function dispatchTorrent(data, name, label, dir) {
 		case "Vuze Remote WebUI":
 			addTorrentToVuzeRemoteUI(data); break;
 		case "Buffalo WebUI":
+		case "Buffalo WebUI (OLD!)":
 			addTorrentToBuffaloWebUI(data, name); break;
 		case "qBittorrent WebUI":
 			addTorrentToqBittorrentWebUI(data, name); break;
