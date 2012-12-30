@@ -1,66 +1,73 @@
-chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
-	if(response["catchfrompage"] != "true") return;
-	
-	// handle common links
-	var links = new Array();
-	var rL = document.getElementsByTagName('a');
-	res = response["linkmatches"].split("~");
-	res.push("magnet:");
-	if(response["linkmatches"] != "") {
-		for(lkey in rL) {
-		for(mkey in res) {
-			if(rL[lkey].href && rL[lkey].href.match(new RegExp(res[mkey], "g"))) {
-				links.push(rL[lkey]);
-				break;
-			}
-		}}
-	}
-	
-	// handle forms
-	var rB1 = Array.prototype.slice.call(document.getElementsByTagName('button'));
-	var rB2 = Array.prototype.slice.call(document.getElementsByTagName('input'));
-	var rB = rB1.concat(rB2);
-	
-	var forms = new Array();
-	for (x in rB) { // get an index-parallel array of parent forms
-		forms.push(rB[x].form);
-	}
-	for (x in rB) {
-		for(mkey in res) {
-			if(forms[x] != null && forms[x].hasOwnProperty('action') && forms[x].action.match && forms[x].action.match(new RegExp(res[mkey], "g"))) {
-				rB[x].href = forms[x].action;
-				links.push(rB[x]);
-				break;
+function catchLinks() {
+	chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+		if(response["catchfrompage"] != "true") return;
+		
+		// handle common links
+		var links = new Array();
+		var rL = document.getElementsByTagName('a');
+		res = response["linkmatches"].split("~");
+		res.push("magnet:");
+		if(response["linkmatches"] != "") {
+			for(lkey in rL) {
+			for(mkey in res) {
+				if(rL[lkey].href && rL[lkey].href.match(new RegExp(res[mkey], "g"))) {
+					links.push(rL[lkey]);
+					break;
+				}
+			}}
+		}
+		
+		// handle forms
+		var rB1 = Array.prototype.slice.call(document.getElementsByTagName('button'));
+		var rB2 = Array.prototype.slice.call(document.getElementsByTagName('input'));
+		var rB = rB1.concat(rB2);
+		
+		var forms = new Array();
+		for (x in rB) { // get an index-parallel array of parent forms
+			forms.push(rB[x].form);
+		}
+		for (x in rB) {
+			for(mkey in res) {
+				if(forms[x] != null && forms[x].hasOwnProperty('action') && forms[x].action.match && forms[x].action.match(new RegExp(res[mkey], "g"))) {
+					rB[x].href = forms[x].action;
+					links.push(rB[x]);
+					break;
+				}
 			}
 		}
-	}
-	
-	// re-register actions
-	if(links.length != 0) {
-		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
-		for(key in links) {
-			if(links[key].addEventListener) {
-				links[key].addEventListener('click', function(e) {
-					if(!(e.ctrlKey || e.shiftKey || e.altKey)) {
-						e.preventDefault();
-						var url = this.href;
-						
-						if(response["rutorrentdirlabelask"]=="true" && response["client"]=="ruTorrent WebUI")
-							showLabelDirChooser(response, url);
-						else 
-							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
-					}
-				});
+		
+		// re-register actions
+		if(links.length != 0) {
+			if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
+			for(key in links) {
+				if(links[key].addEventListener) {
+					links[key].addEventListener('click', function(e) {
+						if(!(e.ctrlKey || e.shiftKey || e.altKey)) {
+							e.preventDefault();
+							var url = this.href;
+							
+							if(response["rutorrentdirlabelask"]=="true" && response["client"]=="ruTorrent WebUI")
+								showLabelDirChooser(response, url);
+							else 
+								chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
+						}
+					});
+				}
 			}
 		}
-	}
-});
+	});
+}
+
+// catch links once
+catchLinks();
 
 // register a listener that'll display the dir/label selection dialog
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	console.debug("content script says hi");
+chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
 		showLabelDirChooser(request.settings, request.url);
+		sendResponse({});
+	} else if(request.action == "catchLinks") {
+		catchLinks();
 		sendResponse({});
 	}
 });

@@ -110,6 +110,21 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	}
 });
 
+// create an api for other extensions to control specific parts of RTA's behavior
+chrome.extension.onMessageExternal.addListener(
+	function(request, sender, sendResponse) {
+		// catchLinks => re-evaluates links and forms via the content script
+		if(request.action == "catchLinks") {
+			chrome.tabs.getSelected(null, function(tab) {
+				chrome.tabs.sendMessage(tab.id, {action: "catchLinks"}, function(response) { 
+					console.debug(response);
+				});
+			});
+			sendResponse({status: "done"});
+		}
+	}
+);
+
 // register a context menu on links
 if(localStorage["catchfromcontextmenu"] == "true")
 	chrome.contextMenus.create({"title": "Add to Remote WebUI", "contexts": ["link"], "onclick": genericOnClick});
