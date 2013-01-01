@@ -85,8 +85,8 @@ function showLabelDirChooser(settings, url) {
 		var selectedDir = $("select#adddialog_directory").val();
 		var inputDir = $("input#adddialog_directory_new").val();
 		
-		var targetLabel = (inputLabel=="")? selectedLabel : inputLabel;
-		var targetDir = (inputDir=="")? selectedDir : inputDir;
+		var targetLabel = (inputLabel=="")? ((selectedLabel==null)? "" : selectedLabel) : inputLabel;
+		var targetDir = (inputDir=="")? ((selectedDir==null)? "" : selectedDir) : inputDir;
 		
 		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir});
 		
