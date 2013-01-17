@@ -12,9 +12,10 @@ function ut_handleResponse(data) {
 
 function addTorrentTouTorrentWebUI(torrentdata) {
 	var relpath = (localStorage["utorrentrelativepath"]==undefined || localStorage["utorrentrelativepath"]=="")?"/gui/":localStorage["utorrentrelativepath"];
+	var scheme = (localStorage["hostsecure"] == "true")? "https://" : "http://";
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+relpath+"token.html", false, localStorage["login"], localStorage["password"]);
+	xhr.open("GET", scheme+localStorage["host"]+":"+localStorage["port"]+relpath+"token.html", false, localStorage["login"], localStorage["password"]);
 	xhr.send(null);
 	var token;
 	if(/<div.*?>(.*?)<\/div>/.exec(xhr.response)) {
@@ -25,12 +26,12 @@ function addTorrentTouTorrentWebUI(torrentdata) {
 	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", "http://"+localStorage["host"]+":"+localStorage["port"]+relpath+"?token="+token+"&action=add-url&s="+encodeURIComponent(torrentdata), true, localStorage["login"], localStorage["password"]);
+		mxhr.open("GET", scheme+localStorage["host"]+":"+localStorage["port"]+relpath+"?token="+token+"&action=add-url&s="+encodeURIComponent(torrentdata), true, localStorage["login"], localStorage["password"]);
 		mxhr.onreadystatechange = ut_handleResponse;
 		mxhr.send(message);
 	} else {
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+relpath+"?token="+token+"&action=add-file", true, localStorage["login"], localStorage["password"]);
+		xhr.open("POST", scheme+localStorage["host"]+":"+localStorage["port"]+relpath+"?token="+token+"&action=add-file", true, localStorage["login"], localStorage["password"]);
 		xhr.onreadystatechange = ut_handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------"+(new Date).getTime();
