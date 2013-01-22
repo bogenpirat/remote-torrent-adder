@@ -89,7 +89,7 @@ function initialConfigValues() {
 	localStorage["popupduration"] = 2000;
 	localStorage["catchfromcontextmenu"] = "true";
 	localStorage["catchfrompage"] = "true";
-	localStorage["linkmatches"] = "([\\]\\[]|\\b)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download";
+	localStorage["linkmatches"] = "([\\]\\[]|\\b|\\.)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download";
 	localStorage["client"] = "Vuze SwingUI";
 }
 
