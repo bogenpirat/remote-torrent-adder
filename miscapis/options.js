@@ -61,6 +61,8 @@ function activateSpecificsPage(clientname) {
 		divid = "delugewebuispecifics";
 	if(clientname == "pyrt WebUI")
 		divid = "pyrtwebuispecifics";
+	if(clientname == "Tixati WebUI")
+		divid = "tixatiwebuispecifics";
 	
 	$("#tabs-1 > table > tbody.specifics").each(function() {
 		if(divid == $(this).attr("id"))
