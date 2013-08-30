@@ -19,7 +19,8 @@
 			"webuiapis/BuffaloWebUI.js",
 			"webuiapis/qBittorrentWebUI.js",
 			"webuiapis/DelugeWebUI.js",
-			"webuiapis/pyrtWebUI.js"
+			"webuiapis/pyrtWebUI.js",
+			"webuiapis/TixatiWebUI.js"
 		]
 	},
 	"options_page": "options.html",
