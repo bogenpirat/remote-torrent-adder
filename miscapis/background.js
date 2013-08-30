@@ -41,6 +41,8 @@ function dispatchTorrent(data, name, label, dir) {
 			addTorrentToDelugeWebUI(data, name); break;
 		case "pyrt WebUI":
 			addTorrentTopyrtWebUI(data, name); break;
+		case "Tixati WebUI":
+			addTorrentToTixatiWebUI(data, name); break;
 	}
 }
 
