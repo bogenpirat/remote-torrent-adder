@@ -30,10 +30,18 @@
 	"content_scripts": [
 		{
 		"matches": ["*://*/*"],
-		"js": ["miscapis/jquery-1.7.1.min.js","miscapis/jquery-ui-1.8.16.custom.min.js","miscapis/jquery.fancybox.js","miscapis/content_rta.js"],
-		"css": ["themes/jquery.fancybox.css"],
+		"js": [
+			"miscapis/jquery-2.0.3.min.js",
+			"miscapis/jquery.mousewheel-3.0.6.pack.js",
+			"miscapis/jquery-ui-1.10.3.custom.min.js",
+			"fancybox/jquery.fancybox.pack.js",
+			"miscapis/content_rta.js"
+		],
+		"css": [
+			"fancybox/jquery.fancybox.css"
+		],
 		"run_at": "document_end"
 		}
 	],
-	"web_accessible_resources": [ "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png" ]
+	"web_accessible_resources": [ "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
 }

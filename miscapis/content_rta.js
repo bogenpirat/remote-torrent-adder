@@ -76,8 +76,9 @@ function showLabelDirChooser(settings, url) {
 	for(x in labellist) adddialog += "<option value=\""+labellist[x]+"\">"+labellist[x]+"</option>";
 	adddialog += "</select> or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
 	adddialog += "<input id=\"adddialog_submit\" type=\"button\" value=\"Add Torrent\" />";
+	var style = "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } </style>"
 	
-	$.fancybox("<div id=\"adddialog\"><h2>Select label and directory for torrent adding</h2>"+adddialog+"</div>");
+	$.fancybox("<div id=\"adddialog\">"+style+"<h2>Select label and directory for torrent adding</h2>"+adddialog+"</div>");
 	
 	$("input#adddialog_submit").click(function() {
 		var selectedLabel = $("select#adddialog_label").val();
