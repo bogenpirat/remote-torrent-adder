@@ -207,9 +207,18 @@ function registerAllEvents() {
 	};
 	
 	document.querySelector("#notificationtest").onclick = function() {
-		var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', 'title', 'hi, this is a test message!');
-		notification.show();
-		setTimeout(function(){notification.cancel();}, localStorage['popupduration']);
+		var opts = { 
+					type: "basic", 
+					iconUrl: "icons/BitTorrent128.png", 
+					title: "This is a test notification",
+					priority: 0,
+					message: "This is a test message!"
+					};
+		var id = Math.floor(Math.random() * 99999) + "";
+		
+		chrome.notifications.create(id, opts, function(myId) { id = myId });
+		
+		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage['popupduration']);
 	};
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {

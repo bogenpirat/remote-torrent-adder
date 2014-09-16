@@ -74,9 +74,18 @@ function getTorrent(url, label, dir) {
 
 function displayResponse(title, message) {
 	if(localStorage["showpopups"] == "true") {
-		var notification = webkitNotifications.createNotification('icons/BitTorrent48.png', title, message);
-		notification.show();
-		setTimeout(function(){notification.cancel();}, localStorage["popupduration"]);
+		var opts = { 
+					type: "basic", 
+					iconUrl: "icons/BitTorrent128.png", 
+					title: title,
+					priority: 0,
+					message: message
+					};
+		var id = Math.floor(Math.random() * 99999) + "";
+		
+		chrome.notifications.create(id, opts, function(myId) { id = myId });
+		
+		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage['popupduration']);
 	}
 }
 
