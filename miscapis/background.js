@@ -16,6 +16,18 @@ function genericOnClick(info, tab) {
 		getTorrent(info.linkUrl);
 }
 
+// new tab 
+chrome.tabs.onCreated.addListener(function(tab) {
+	if(localStorage["catchfromnewtab"] != "true") return;
+	res = localStorage['linkmatches'].split('~');
+	for(mkey in res) {
+		if (tab.url.match(new RegExp(res[mkey], "g"))) {
+			getTorrent(tab.url);
+			break;
+		}
+	}
+});
+
 function dispatchTorrent(data, name, label, dir) {
 	switch (localStorage["client"]) {
 		case "Vuze SwingUI":
