@@ -20,6 +20,8 @@ function addTorrentToruTorrentWebUI(data, label, dir) {
 		url += "dir_edit="+encodeURIComponent(dir)+"&";
 	if(label != undefined && label.length > 0)
 		url += "label="+encodeURIComponent(label);
+	if(localStorage["rutorrentaddpaused"] == "true")
+		url += "&torrents_start_stopped=1";
 	
 	xhr.open("POST", url, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {

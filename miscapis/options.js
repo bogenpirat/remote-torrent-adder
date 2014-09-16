@@ -179,6 +179,10 @@ function registerAllEvents() {
 		setSetting(this, (this.checked)?'true':'false');
 	};
 	
+	document.querySelector("#rutorrentaddpaused").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
 	document.querySelector("#torrentfluxrelativepath").onkeyup = function() {
 		setSetting(this, this.value);
 	};
