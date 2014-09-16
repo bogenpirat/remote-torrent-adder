@@ -236,6 +236,10 @@ function registerAllEvents() {
 		flipVisibility(this.id, 'linkmatches');
 	};
 	
+	document.querySelector("#catchfromnewtab").onchange = function() {
+		setSetting(this, (this.checked)?'true':'false');
+	};
+	
 	document.querySelector("#addfilterbtn").onclick = function() {
 		addMatch();
 	};
