@@ -2,7 +2,13 @@ function addTorrentToVuzeRemoteUI(data) {
 	if(data.substring(0,7) == "magnet:") target = "rpc";
 	else target = "upload?paused=false";
 	
+	// fire off one unspecific request to get the proper CSRF header
+
 	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/"+target, false, localStorage["login"], localStorage["password"]);
+	xhr.send();
+
+	xhr = new XMLHttpRequest();
 	xhr.open("POST", "http"+((localStorage["hostsecure"]=='true')?"s":"")+"://"+localStorage["host"]+":"+localStorage["port"]+"/transmission/"+target, true, localStorage["login"], localStorage["password"]);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
