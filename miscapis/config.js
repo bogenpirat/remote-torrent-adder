@@ -6,7 +6,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"Deluge WebUI" : RTA.clients.config.deluge,
 	};
 	
-	var config = "<table >" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
+	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
 
 	if(clientMap.hasOwnProperty(client))
 		config += clientMap[client];
