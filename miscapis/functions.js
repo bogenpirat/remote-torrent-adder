@@ -57,9 +57,9 @@ RTA.getTorrent = function(server, url, label, dir) {
 				
 				RTA.dispatchTorrent(server, xhr.responseText, name, label, dir);
 			} else if(xhr.readyState == 4 && xhr.status < 99) {
-				RTA.displayResponse("Connection failed", "The server sent an irregular HTTP error code: " + xhr.status);
+				RTA.displayResponse("Connection failed", "The server sent an irregular HTTP error code: " + xhr.status, true);
 			} else if(xhr.readyState == 4 && xhr.status != 200) {
-				RTA.displayResponse("Connection failed", "The server sent the following HTTP error code: " + xhr.status);
+				RTA.displayResponse("Connection failed", "The server sent the following HTTP error code: " + xhr.status, true);
 			}
 		};
 		xhr.send(null);
@@ -67,11 +67,11 @@ RTA.getTorrent = function(server, url, label, dir) {
 }
 
 
-RTA.displayResponse = function(title, message) {
+RTA.displayResponse = function(title, message, error) {
 	if(localStorage.getItem("showpopups") == "true") {
 		var opts = { 
 					type: "basic", 
-					iconUrl: "icons/BitTorrent128.png", 
+					iconUrl: (error === true) ? "icons/BitTorrent128-red.png" : "icons/BitTorrent128.png", 
 					title: title,
 					priority: 0,
 					message: message
