@@ -20,12 +20,12 @@ function sendXHRTransmissionWebUI(server, torrentdata, sessionid) {
 			if(/.*"result":"success".*/.exec(xhr.responseText)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status == 409) {
 			sendXHRTransmissionWebUI(server, torrentdata, xhr.getResponseHeader('X-Transmission-Session-Id'));
 		} else if(xhr.readyState == 4 && xhr.status != 200 && xhr.status != 409) {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	

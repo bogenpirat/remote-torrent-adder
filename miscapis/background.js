@@ -89,5 +89,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	} else if(request.action == "pageActionToggle") {
 		chrome.pageAction.show(sender.tab.id);
 		sendResponse({});
+	} else if(request.action == "constructContextMenu") {
+		RTA.constructContextMenu();
+		sendResponse({});
 	}
 });

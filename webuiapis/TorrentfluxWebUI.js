@@ -13,7 +13,7 @@ RTA.clients.torrentfluxAdder = function(server, torrentdata, torrentname) {
 	xhr.send("username=" + server.login + "&iamhim=" + server.password);
 	
 	if(/.*Password is required.*/.exec(xhr.responseText) || /.*Login failed.*/.exec(xhr.responseText)) {
-		RTA.displayResponse("Failure", "Credentials weren't accepted:\n" + xhr.responseText);
+		RTA.displayResponse("Failure", "Credentials weren't accepted:\n" + xhr.responseText, true);
 		return;
 	}
 	
@@ -24,7 +24,7 @@ RTA.clients.torrentfluxAdder = function(server, torrentdata, torrentname) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	

@@ -3,10 +3,10 @@ function ut_handleResponse(server, data) {
 		if(/\{"build":\d+\}/.test(this.responseText)) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		} else {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + this.status + ": " + this.responseText);
+			RTA.displayResponse("Failure", "Server didn't accept data:\n" + this.status + ": " + this.responseText, true);
 		}
 	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + this.status + ": " + this.responseText);
+		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + this.status + ": " + this.responseText, true);
 	}
 }
 
@@ -21,7 +21,7 @@ RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	if(/<div.*?>(.*?)<\/div>/.exec(xhr.response)) {
 		token = /<div.*?>(.*?)<\/div>/.exec(xhr.response)[1];
 	} else {
-		RTA.displayResponse("Failure", "Problem getting the uTorrent XHR token. Is uTorrent running?");
+		RTA.displayResponse("Failure", "Problem getting the uTorrent XHR token. Is uTorrent running?", true);
 	}
 	
 	if(torrentdata.substring(0,7) == "magnet:") {

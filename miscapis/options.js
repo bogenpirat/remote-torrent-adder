@@ -20,6 +20,7 @@ $(document).ready(function(){
 			axis: "x",
 			stop: function() {
 				tabs.tabs("refresh");
+				saveServersSettings();
 			}
 		});
 
@@ -242,7 +243,6 @@ function registerGeneralSettingsEvents() {
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {
 		setSetting(this, (this.checked) ? 'true' : 'false');
-		console.debug("ret:"+RTA.constructContextMenu());
 	};
 	
 	document.querySelector("#catchfrompage").onchange = function() {
@@ -270,8 +270,15 @@ function registerGeneralSettingsEvents() {
 }
 
 function saveServersSettings() {
+	var order = {};
+	var links = $("a[href^=#servertabs-]").get();
+	for(var i in links) {
+		order[links[i].href.split('#')[1]] = i;
+	}
+
 	var servers = [];
 	$("div[id^=servertabs-]").each(function(i, el) {
+		var thisId = $(el).prop("id");
 		var server = {};
 		var elements = $(el).find("input").get();
 		for(var u in elements) {
@@ -285,12 +292,12 @@ function saveServersSettings() {
 					server[element.name] = $(element).val();
 			}
 		}
-		servers.push(server);
+		servers[order[thisId]] = server;
 	});
 
 	localStorage.setItem("servers", JSON.stringify(servers))
 
-	RTA.constructContextMenu();
+	chrome.extension.sendRequest({"action": "constructContextMenu"});
 	
 	return servers;
 }
