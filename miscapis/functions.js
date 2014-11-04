@@ -1,3 +1,5 @@
+var menuItemIndexToServerIndex = [];
+
 XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
 	var data = new ArrayBuffer(datastr.length);
 	var ui8a = new Uint8Array(data, 0);
@@ -24,6 +26,7 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 		case "Vuze HTML WebUI":
 			RTA.clients.vuzeHtmlAdder(server, data); break;
 		case "Vuze Remote WebUI":
+			console.debug(RTA.clients);
 			RTA.clients.vuzeRemoteAdder(server, data); break;
 		case "Buffalo WebUI":
 		case "Buffalo WebUI (OLD!)":
@@ -95,7 +98,7 @@ RTA.constructContextMenu = function() {
 			"contexts": [ "link" ],
 			"onclick": RTA.genericOnClick
 		});
-		RTA.menuItemIndexToServerIndex[contextMenuId] = 0;
+		menuItemIndexToServerIndex[contextMenuId] = 0;
 
 		// check if there's more than one entry and add them as sub-entries in the context menu
 		var servers = localStorage.getItem("servers") ? JSON.parse(localStorage.getItem("servers")) : [];
@@ -109,7 +112,7 @@ RTA.constructContextMenu = function() {
 					"parentId": contextMenuId,
 					"onclick": RTA.genericOnClick
 				});
-				RTA.menuItemIndexToServerIndex[thisId] = i;
+				menuItemIndexToServerIndex[thisId] = i;
 			}
 			chrome.contextMenus.create({"type" : "separator", "contexts": [ "link" ], "parentId": contextMenuId});
 			var allId = chrome.contextMenus.create({
@@ -118,7 +121,7 @@ RTA.constructContextMenu = function() {
 				"parentId": contextMenuId,
 				"onclick": RTA.genericOnClick
 			});
-			RTA.menuItemIndexToServerIndex[allId] = -1;
+			menuItemIndexToServerIndex[allId] = -1;
 		}
 	}
 }
@@ -126,7 +129,7 @@ RTA.constructContextMenu = function() {
 
 RTA.genericOnClick = function(info, tab) {
 	var servers = JSON.parse(localStorage.getItem("servers"));
-	var serverId = RTA.menuItemIndexToServerIndex[info.menuItemId];
+	var serverId = menuItemIndexToServerIndex[info.menuItemId];
 
 	if(serverId === -1) { // send to all servers
 		for(var i in servers) {

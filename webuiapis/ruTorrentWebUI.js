@@ -29,10 +29,10 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 			if(/.*addTorrentSuccess.*/.exec(xhr.responseText)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	

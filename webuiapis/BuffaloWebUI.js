@@ -1,6 +1,6 @@
 RTA.clients.buffaloAdder = function(server, data, torrentname) {
 	if(data.substring(0,7) == "magnet:") {
-		RTA.displayResponse("Client Failure", "Link sending not implemented (due to lack of testing equipment).");
+		RTA.displayResponse("Client Failure", "Link sending not implemented (due to lack of testing equipment).", true);
 		return;
 	}
 	
@@ -11,10 +11,10 @@ RTA.clients.buffaloAdder = function(server, data, torrentname) {
 			if(/.*apiTorrentAddFinishedOk.*/.exec(xhr.responseText)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	

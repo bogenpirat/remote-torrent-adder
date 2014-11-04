@@ -15,10 +15,10 @@ RTA.clients.delugeAdder = function(server, torrentdata, filename) {
 			if(JSON.parse(xhr.responseText)["error"] == null) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + " (" + xhr.statusText + "): " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + " (" + xhr.statusText + "): " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + " (" + xhr.statusText + "): " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + " (" + xhr.statusText + "): " + xhr.responseText, true);
 		}
 	};
 	

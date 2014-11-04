@@ -1,6 +1,6 @@
 RTA.clients.pyrtAdder = function(server, data, filename) {
 	if(data.substring(0,7) == "magnet:") {
-		displayResponse("Client Failure", "sorry, pyrt doesn't support magnet");
+		displayResponse("Client Failure", "sorry, pyrt doesn't support magnet", true);
 		return;
 	}
 
@@ -12,7 +12,7 @@ RTA.clients.pyrtAdder = function(server, data, filename) {
 	xhr.send("password=" + server.password);
 	
 	if(/.*Incorrect Password.*/.exec(xhr.responseText)) {
-		RTA.displayResponse("Failure", "Credentials weren't accepted:\n" + xhr.responseText);
+		RTA.displayResponse("Failure", "Credentials weren't accepted:\n" + xhr.responseText, true);
 		return;
 	}
 	
@@ -24,10 +24,10 @@ RTA.clients.pyrtAdder = function(server, data, filename) {
 			if(/.*Redirect.*/.exec(xhr.responseText)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	
