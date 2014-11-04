@@ -1,0 +1,52 @@
+{
+	"name": "Remote Torrent Adder",
+	"short_name": "RTA",
+	"icons": {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"},
+	"version": "1.2.0",
+	"manifest_version": 2,
+	"description": "Add torrents using several programs' WebUIs",
+	"permissions": ["*://*/*","contextMenus","notifications","tabs"],
+	"background": {
+		"scripts": [
+			"miscapis/RTAinit.js",
+			"miscapis/browser.js",
+			"miscapis/functions.js",
+			"miscapis/background.js",
+			"miscapis/config.js",
+			"miscapis/base64.js",
+			"webuiapis/VuzeSwingUI.js",
+			"webuiapis/TorrentfluxWebUI.js",
+			"webuiapis/TransmissionWebUI.js",
+			"webuiapis/uTorrentWebUI.js",
+			"webuiapis/ruTorrentWebUI.js",
+			"webuiapis/VuzeHTMLUI.js",
+			"webuiapis/VuzeRemoteUI.js",
+			"webuiapis/BuffaloWebUI.js",
+			"webuiapis/qBittorrentWebUI.js",
+			"webuiapis/DelugeWebUI.js",
+			"webuiapis/pyrtWebUI.js",
+			"webuiapis/TixatiWebUI.js"
+		]
+	},
+	"options_page": "options.html",
+	"page_action": {
+		"default_icon": "icons/BitTorrent16.png"
+	},
+	"content_scripts": [
+		{
+		"matches": ["*://*/*"],
+		"js": [
+			"miscapis/jquery-2.0.3.min.js",
+			"miscapis/jquery.mousewheel-3.0.6.pack.js",
+			"miscapis/jquery-ui-1.10.3.custom.min.js",
+			"fancybox/jquery.fancybox.pack.js",
+			"miscapis/content_rta.js"
+		],
+		"css": [
+			"fancybox/jquery.fancybox.css"
+		],
+		"run_at": "document_end"
+		}
+	],
+	"web_accessible_resources": [ "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
+}
