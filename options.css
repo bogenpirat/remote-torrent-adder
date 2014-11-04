@@ -1,0 +1,17 @@
+body, td {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 12px;
+}
+span.title {
+	font-weight: bold;
+}
+span.tip {
+	color: #555;
+	font-size: 10px;
+}
+td {
+	vertical-align: top;
+}
+tr.specifics {
+	display: none;
+}
