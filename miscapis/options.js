@@ -17,7 +17,6 @@ $(document).ready(function(){
 		var tabs = $("#serverstabs").tabs();
 
 		tabs.find(".ui-tabs-nav").sortable({
-			axis: "x",
 			stop: function() {
 				tabs.tabs("refresh");
 				saveServersSettings();
