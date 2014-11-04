@@ -243,7 +243,6 @@ function registerGeneralSettingsEvents() {
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {
 		setSetting(this, (this.checked) ? 'true' : 'false');
-		console.debug("ret:"+RTA.constructContextMenu());
 	};
 	
 	document.querySelector("#catchfrompage").onchange = function() {
@@ -298,7 +297,7 @@ function saveServersSettings() {
 
 	localStorage.setItem("servers", JSON.stringify(servers))
 
-	RTA.constructContextMenu();
+	chrome.extension.sendRequest({"action": "constructContextMenu"});
 	
 	return servers;
 }
