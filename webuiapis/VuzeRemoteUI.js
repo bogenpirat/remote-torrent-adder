@@ -15,10 +15,10 @@ RTA.clients.vuzeRemoteAdder = function(server, data) {
 			if(/.*<h1>200: OK<\/h1>.*/.exec(xhr.responseText) || JSON.parse(xhr.responseText)["result"] == "success") {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	

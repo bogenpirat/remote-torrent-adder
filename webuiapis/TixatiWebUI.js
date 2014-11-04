@@ -11,7 +11,7 @@ RTA.clients.tixatiAdder = function(server, data, torrentname) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			displayResponse("Success", "Torrent added successfully.");
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText);
+			displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	
