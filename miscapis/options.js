@@ -1,31 +1,139 @@
 $(document).ready(function(){
-	registerAllEvents();
+	var tabCounter = 1;
+	
+	registerGeneralSettingsEvents();
 
-	loadAllSettings();
+	loadGeneralSettings();
 	
 	$(function() {
-		$("#tabs").tabs();
+		$("#configtabs").tabs();
+	});
+
+	// new server type selection dialog // tab adding stuff
+	$(function() {
+		var tabTitle = $("#tab_title");
+		var tabClient = $("#tab_client");
+		var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
+		var tabs = $("#serverstabs").tabs();
+
+		tabs.find(".ui-tabs-nav").sortable({
+			stop: function() {
+				tabs.tabs("refresh");
+				saveServersSettings();
+			}
+		});
+
+		var dialog = $("#dialog").dialog({
+			autoOpen: false,
+			modal: true,
+			buttons: {
+				Add: function() {
+					if(addTab(tabTitle.val())) {
+						$(this).dialog("close");
+					}
+				},
+				Cancel: function() {
+					$(this).dialog("close");
+				}
+			},
+			close: function() {
+				form[0].reset();
+			}
+		});
+		
+		var form = dialog.find("form").submit(function() {
+			if(addTab(tabTitle.val())) {
+				dialog.dialog("close");
+			}
+			return false;
+		});
+
+		function addTab(name, client, oldload) {
+			// some input validation
+			var servers = JSON.parse(localStorage.getItem("servers"))
+			if(oldload !== true) {
+				for(var x in servers) {
+					if(servers[x].name == name || name === null || name === "") {
+						alert("This name is already in use by another server, or invalid.");
+						return false;
+					}
+				}
+			}
+
+			var id = "servertabs-" + tabCounter;
+			var li = $(tabTemplate.replace(/#\{href\}/g, "#" + id).replace(/#\{label\}/g, name));
+			var tabContentHtml = RTA.clients.config.getConfig(client || tabClient.val(), name);
+
+			tabs.find(".ui-tabs-nav").append(li);
+			tabs.append("<div id='" + id + "'><p>" + tabContentHtml + "</p></div>");
+			tabs.tabs("refresh");
+			if(oldload !== true) {
+				tabs.tabs("option", "active", -1);
+			} else {
+				tabs.tabs("option", "active", 0);
+			}
+			tabCounter++;
+
+			$("input").bind("change keyup", function(event) {
+				saveServersSettings();
+			});
+
+			return true;
+		}
+
+
+		$("#add_tab").button().click(function() {
+			dialog.dialog("open");
+		});
+
+		// close icon: removing the tab on click
+		tabs.delegate("span.ui-icon-close", "click", function() {
+			var panelId = $(this).closest("li").remove().attr("aria-controls");
+			$("#" + panelId).remove();
+			tabs.tabs("refresh");
+		});
+
+		tabs.bind("keyup", function(event) {
+			if (event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE) {
+				var panelId = tabs.find(".ui-tabs-active").remove().attr("aria-controls");
+				$("#" + panelId).remove();
+				tabs.tabs("refresh");
+			}
+		});
+
+
+		// load server configs
+		var servers = JSON.parse(localStorage.getItem("servers"));
+		for(var i in servers) {
+			var server = servers[i];
+
+			addTab(server.name, server.client, true);
+
+			var mySettingInputs = $("#servertabs-" + (parseInt(i) + 1)).find("input").get();
+			for(var u in mySettingInputs) {
+				var mySettingInput = mySettingInputs[u];
+				if(server.hasOwnProperty(mySettingInput.name)) {
+					switch(mySettingInput.type) {
+						case "checkbox":
+							$(mySettingInput).prop('checked', server[mySettingInput.name]);
+							break;
+						default:
+							$(mySettingInput).val(server[mySettingInput.name]);
+					}
+				}
+			}
+		}
 	});
 });
 
-function loadAllSettings() {
-	var e = document.getElementsByTagName("input");
+function loadGeneralSettings() {
+	var e = document.querySelectorAll("#linksfoundindicator,#showpopups,#popupduration,#catchfromcontextmenu,#catchfrompage,#linkmatches,#catchfromnewtab")
 	for (key in e) {
 		getSetting(e[key]);
 	}
-	// set client selection
-	var clientopts = document.getElementById("client").getElementsByTagName("option");
-	for (key in clientopts) {
-		if(clientopts[key].text == localStorage["client"]) {
-			clientopts[key].selected = true;
-			break;
-		}
-	}
+
 	// load matches
 	loadMatches();
-	
-	// set visibility of client specific settings
-	activateSpecificsPage(localStorage["client"]);
 	
 	// set visibility
 	flipVisibility("showpopups", "popupduration");
@@ -33,54 +141,18 @@ function loadAllSettings() {
 }
 
 function flipVisibility(checkname, changename) {
-	document.getElementById(changename).disabled = (document.getElementById(checkname).checked)?false:true;
-}
-
-function activateSpecificsPage(clientname) {
-	var divid;
-	
-	if(clientname == "ruTorrent WebUI")
-		divid = "rutorrentspecifics";
-	if(clientname == "Torrentflux WebUI")
-		divid = "torrentfluxspecifics";
-	if(clientname == "Transmission WebUI")
-		divid = "transmissionspecifics";
-	if(clientname == "uTorrent WebUI")
-		divid = "utorrentspecifics";
-	if(clientname == "Vuze SwingUI")
-		divid = "vuzeswingspecifics";
-	if(clientname == "Vuze Remote WebUI")
-		divid = "vuzeremotespecifics";
-	if(clientname == "Vuze HTML WebUI")
-		divid = "vuzehtmlspecifics";
-	if(clientname == "Buffalo WebUI")
-		divid = "buffalospecifics";
-	if(clientname == "qBittorrent WebUI")
-		divid = "qbittorrentspecifics";
-	if(clientname == "Deluge WebUI")
-		divid = "delugewebuispecifics";
-	if(clientname == "pyrt WebUI")
-		divid = "pyrtwebuispecifics";
-	if(clientname == "Tixati WebUI")
-		divid = "tixatiwebuispecifics";
-	
-	$("#tabs-1 > table > tbody.specifics").each(function() {
-		if(divid == $(this).attr("id"))
-			$(this).css("display", "table-row-group");
-		else 
-			$(this).css("display", "none");
-	});
+	document.getElementById(changename).disabled = (document.getElementById(checkname).checked) ? false : true;
 }
 
 function setSetting(e, val) {
-	localStorage[e.id] = (val == undefined)?"":val;
+	localStorage[e.id] = (val == undefined) ? "" : val;
 }
 
 function getSetting(e) {
 	if(e.type == "text" || e.type == "password") {
-		document.getElementById(e.id).value = (localStorage[e.id]==undefined)?"":localStorage[e.id];
+		document.getElementById(e.id).value = (localStorage[e.id] == undefined) ? "" : localStorage[e.id];
 	} else if(e.type == "checkbox") {
-		document.getElementById(e.id).checked = (localStorage[e.id]=="true")?true:false;
+		document.getElementById(e.id).checked = (localStorage[e.id] == "true") ? true : false;
 	}
 }
 
@@ -89,8 +161,8 @@ function saveMatches() {
 	var destStr = ""; var i=0;
 	for(key in opts)
 		if(opts[key].text) {
-			var sep = (i++==0)?"":"~";
-			destStr += sep+opts[key].text;
+			var sep = (i++ == 0) ? "" : "~";
+			destStr += sep + opts[key].text;
 		}
 	localStorage["linkmatches"] = destStr;
 }
@@ -137,70 +209,13 @@ Storage.prototype.getObject = function(key) {
     return value && JSON.parse(value);
 }
 
-function registerAllEvents() {
-	document.querySelector("#client").onchange = function() {
-		setSetting(this, this.options[this.selectedIndex].text);
-		activateSpecificsPage(this.options[this.selectedIndex].text);
-	};
-	
-	document.querySelector("#host").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#port").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#hostsecure").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
-	};
-	
-	document.querySelector("#login").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#password").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#ruTorrentrelativepath").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#rutorrentlabel").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#rutorrentdirectory").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#rutorrentdirlabelask").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
-	};
-	
-	document.querySelector("#rutorrentaddpaused").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
-	};
-	
-	document.querySelector("#torrentfluxrelativepath").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#utorrentrelativepath").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
-	document.querySelector("#delugerelativepath").onkeyup = function() {
-		setSetting(this, this.value);
-	};
-	
+function registerGeneralSettingsEvents() {
 	document.querySelector("#linksfoundindicator").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
+		setSetting(this, (this.checked) ? 'true' : 'false');
 	};
 	
 	document.querySelector("#showpopups").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
+		setSetting(this, (this.checked) ? 'true' : 'false');
 	};
 	document.querySelector("#showpopups").onclick = function() {
 		flipVisibility(this.id, 'popupduration');
@@ -226,18 +241,18 @@ function registerAllEvents() {
 	};
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
+		setSetting(this, (this.checked) ? 'true' : 'false');
 	};
 	
 	document.querySelector("#catchfrompage").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
+		setSetting(this, (this.checked) ? 'true' : 'false');
 	};
 	document.querySelector("#catchfrompage").onclick = function() {
 		flipVisibility(this.id, 'linkmatches');
 	};
 	
 	document.querySelector("#catchfromnewtab").onchange = function() {
-		setSetting(this, (this.checked)?'true':'false');
+		setSetting(this, (this.checked) ? 'true' : 'false');
 	};
 	
 	document.querySelector("#addfilterbtn").onclick = function() {
@@ -251,4 +266,37 @@ function registerAllEvents() {
 	document.querySelector("#showfiltersbtn").onclick = function() {
 		alert(localStorage['linkmatches']);
 	};
+}
+
+function saveServersSettings() {
+	var order = {};
+	var links = $("a[href^=#servertabs-]").get();
+	for(var i in links) {
+		order[links[i].href.split('#')[1]] = i;
+	}
+
+	var servers = [];
+	$("div[id^=servertabs-]").each(function(i, el) {
+		var thisId = $(el).prop("id");
+		var server = {};
+		var elements = $(el).find("input").get();
+		for(var u in elements) {
+			var element = elements[u];
+
+			switch(element.type) {
+				case "checkbox":
+					server[element.name] = $(element).prop('checked');
+					break;
+				default:
+					server[element.name] = $(element).val();
+			}
+		}
+		servers[order[thisId]] = server;
+	});
+
+	localStorage.setItem("servers", JSON.stringify(servers))
+
+	chrome.extension.sendRequest({"action": "constructContextMenu"});
+	
+	return servers;
 }

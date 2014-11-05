@@ -3,13 +3,42 @@
 	<title>Options for Remote Torrent Adder</title>
 	<script type="text/javascript" src="miscapis/jquery-2.0.3.min.js"></script>
 	<script type="text/javascript" src="miscapis/jquery-ui-1.10.3.custom.min.js"></script>
+	<script type="text/javascript" src="miscapis/RTAinit.js"></script>
+	<script type="text/javascript" src="miscapis/browser.js"></script>
+	<script type="text/javascript" src="miscapis/functions.js"></script>
+	<script type="text/javascript" src="miscapis/config.js"></script>
 	<script type="text/javascript" src="miscapis/options.js"></script>
-	<link rel="stylesheet" type="text/css" href="options.css" />
 	<link rel="stylesheet" type="text/css" href="themes/south-street/jquery-ui-1.10.3.custom.min.css" />
+	<link rel="stylesheet" type="text/css" href="options.css" />
 </head>
 <body id="rta">
 	<h1><img src="icons/BitTorrent48.png" alt="BitTorrent!" /> Remote Torrent Adder Options</h1>
-	<div id="tabs">
+
+	<div id="dialog" title="Add a server">
+		<form id="addserverform">
+			<fieldset class="ui-helper-reset">
+				<label for="tab_title">Server name:</label>
+				<input type="text" name="tab_title" id="tab_title" class="ui-widget-content ui-corner-all">
+				<label for="tab_client">Server type</label>
+				<select id="tab_client">
+					<option>Buffalo WebUI (OLD!)</option>
+					<option>Deluge WebUI</option>
+					<option>pyrt WebUI</option>
+					<option>qBittorrent WebUI</option>
+					<option>ruTorrent WebUI</option>
+					<option>Torrentflux WebUI</option>
+					<option>Transmission WebUI</option>
+					<option>uTorrent WebUI</option>
+					<option>Vuze SwingUI</option>
+					<option>Vuze HTML WebUI</option>
+					<option>Vuze Remote WebUI</option>
+					<option>Tixati WebUI</option>
+				</select>
+			</fieldset>
+		</form>
+	</div>
+
+	<div id="configtabs">
 		<ul>
 			<li><a href="#tabs-1">WebUI</a></li>
 			<li><a href="#tabs-2">Notifications</a></li>
@@ -17,146 +46,19 @@
 			<li><a href="#tabs-4">About/Support</a></li>
 		</ul>
 		
-		<div id="tabs-1"><table>
-			<tbody>
-				<tr>
-					<td><span class="title"><label for="client">Client:</label></span></td>
-					<td><select id="client">
-							<option>Buffalo WebUI (OLD!)</option>
-							<option>Deluge WebUI</option>
-							<option>pyrt WebUI</option>
-							<option>qBittorrent WebUI</option>
-							<option>ruTorrent WebUI</option>
-							<option>Torrentflux WebUI</option>
-							<option>Transmission WebUI</option>
-							<option>uTorrent WebUI</option>
-							<option>Vuze SwingUI</option>
-							<option>Vuze HTML WebUI</option>
-							<option>Vuze Remote WebUI</option>
-							<option>Tixati WebUI</option>
-						</select><br />
-						<span class="tip">BitTorrent client type</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="host">Host</label></span></td>
-					<td><input type="text" id="host" /><br />
-						<span class="tip">The ip/hostname to connect to</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="port">Port</label></span></td>
-					<td><input type="text" id="port" /><br />
-						<span class="tip">The remote port</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="hostsecure">SSL</label></span></td>
-					<td><input type="checkbox" id="hostsecure" /><br />
-						<span class="tip">Check if the WebUI runs on SSL (http<strong>s</strong>://). Don't forget to set the Port to 443!</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="login">Username</label></span></td>
-					<td><input type="text" id="login" /><br />
-						<span class="tip">Login name of the WebUI</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="password">Password</label></span></td>
-					<td><input type="password" id="password" /><br />
-						<span class="tip">Password of the WebUI</span></td>
-				</tr>
-				<tr>
-					<td colspan="2"><br/><h3>WebUI Specifics</h3></td>
-				</tr>
-			</tbody>
-			<tbody id="rutorrentspecifics" class="specifics">
-				<tr>
-					<td><span class="title"><label for="ruTorrentrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="ruTorrentrelativepath" /><br />
-						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
-							Note: this folder should contain the "php" directory.</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="rutorrentlabel">Label</label></span></td>
-					<td><input type="text" id="rutorrentlabel" /><br />
-						<span class="tip">Default label to use for added torrents.</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="rutorrentdirectory">Directory</label></span></td>
-					<td><input type="text" id="rutorrentdirectory" /><br />
-						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your rtorrent configuration's default directory for torrents.</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="rutorrentdirlabelask">Label/Directory<br/>interactivity</label></span></td>
-					<td><input type="checkbox" id="rutorrentdirlabelask" /><br />
-						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
-				</tr>
-				<tr>
-					<td><span class="title"><label for="rutorrentaddpaused">Add torrents paused?</label></span></td>
-					<td><input type="checkbox" id="rutorrentaddpaused" /></td>
-				</tr>
-			</tbody>
-			<tbody id="torrentfluxspecifics" class="specifics">
-				<tr>
-					<td><span class="title"><label for="torrentfluxrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="torrentfluxrelativepath" /><br />
-						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/some/path/to/webui</strong>&quot;/<br />
-							Note: this directory should contain the files "login.php"/"index.php"</span></td>
-				</tr>
-			<tbody id="transmissionspecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Transmission.</td>
-				</tr>
-			</tbody>
-			<tbody id="utorrentspecifics" class="specifics">
-				<tr>
-					<td><span class="title"><label for="utorrentrelativepath">Relative path</label></span></td>
-					<td><input type="text" id="utorrentrelativepath" /><br />
-						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui/</strong>&quot;<br />
-							Note: Unless you're doing reverse-proxying, this field should be left empty</span></td>
-				</tr>
-			</tbody>
-			<tbody id="delugewebuispecifics" class="specifics">
-				<tr>
-					<td><span class="title"><label for="delugerelativepath">Relative path</label></span></td>
-					<td><input type="text" id="delugerelativepath" /><br />
-						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui</strong>&quot;/<br />
-							Note: Unless you're doing reverse-proxying, this field should be left empty</span></td>
-				</tr>
-			</tbody>
-			<tbody id="vuzeswingspecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Vuze SwingUI.</td>
-				</tr>
-			</tbody>
-			<tbody id="vuzehtmlspecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Vuze HTML WebUI.</td>
-				</tr>
-			</tbody>
-			<tbody id="vuzeremotespecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Vuze Remote.</td>
-				</tr>
-			</tbody>
-			<tbody id="buffalospecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Buffalo WebUI.</td>
-				</tr>
-			</tbody>
-			<tbody id="qbittorrentspecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for qBittorrent WebUI.</td>
-				</tr>
-			</tbody>
-			<tbody id="pyrtwebuispecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for pyrt WebUI.</td>
-				</tr>
-			</tbody>
-			<tbody id="tixatiwebuispecifics" class="specifics">
-				<tr>
-					<td colspan="2">There are no specific settings for Tixati WebUI.</td>
-				</tr>
-			</tbody>
-		</table></div>
+		<div id="tabs-1">
+			<div id="serverstabs">
+				The leftmost server will be used as the <i>default</i> server for left-clicks, etc.
+				Drag 'n drop to rearrange them.
+				You can change the name after clicking on them.<br/>
+				<br/>
+				<button id="add_tab">Add Server</button> 
+				<br/><br/>
+				<ul>
+					
+				</ul>
+			</div>
+		</div>
 		
 		<div id="tabs-2"><table>
 			<tr>
@@ -252,7 +154,6 @@
 					<input type="hidden" name="cmd" value="_s-xclick" />
 					<input type="hidden" name="hosted_button_id" value="E7PGHLKHR4GJL" />
 					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!" />
-					<img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1" />
 				</form>
 				Bitcoin address: <a href="bitcoin:15VMf7nUNgCutmQrGKu2gSQaLYfG9VtH74?label=Remote%20Torrent%20Adder">15VMf7nUNgCutmQrGKu2gSQaLYfG9VtH74</a><br/>
 				Be aware however that I may use it to buy a good bluray or pay tuition instead of fueling my liver's demise. All bets are off.
