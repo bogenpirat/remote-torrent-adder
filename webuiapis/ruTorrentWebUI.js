@@ -5,7 +5,7 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	var xhr = new XMLHttpRequest();
 	
 	var url = "http";
-	url += ((server.hostsecure == 'true') ? "s" : "");
+	url += (server.hostsecure ? "s" : "");
 	url += "://";
 	url += server.host;
 	url += ":" + server.port;
@@ -20,7 +20,7 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 		url += "dir_edit=" + encodeURIComponent(dir) + "&";
 	if(label != undefined && label.length > 0)
 		url += "label=" + encodeURIComponent(label);
-	if(server.rutorrentaddpaused == "true")
+	if(server.rutorrentaddpaused)
 		url += "&torrents_start_stopped=1";
 	
 	xhr.open("POST", url, true, server.login, server.password);
@@ -37,7 +37,7 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	};
 	
 	// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-	var boundary = "AJAX-----------------------"+(new Date).getTime();
+	var boundary = "AJAX-----------------------" + (new Date).getTime();
 	var message = "";
 	
 	if(data.substring(0,7) == "magnet:") {

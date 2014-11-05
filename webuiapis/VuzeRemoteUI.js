@@ -5,11 +5,11 @@ RTA.clients.vuzeRemoteAdder = function(server, data) {
 	// fire off one unspecific request to get the proper CSRF header
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http" + ((server.hostsecure == 'true') ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, false, server.login, server.password);
+	xhr.open("GET", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, false, server.login, server.password);
 	xhr.send();
 
 	xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + ((server.hostsecure == 'true') ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, true, server.login, server.password);
+	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, true, server.login, server.password);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*<h1>200: OK<\/h1>.*/.exec(xhr.responseText) || JSON.parse(xhr.responseText)["result"] == "success") {

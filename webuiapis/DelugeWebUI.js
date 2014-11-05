@@ -4,7 +4,7 @@ RTA.clients.delugeAdder = function(server, torrentdata, filename) {
 	var relPath = (server.delugerelativepath == undefined) ? "" : server.delugerelativepath;
 	
 	var xhr = new XMLHttpRequest();
-	var scheme = (server.hostsecure == 'true') ? "https" : "http";
+	var scheme = server.hostsecure ? "https" : "http";
 	xhr.open("POST", scheme + "://" + server.host + ":" + server.port + relPath + "/json", false);
 	xhr.send(JSON.stringify({"id": rnd, "method": "auth.login", "params": [server.password]}));
 	
