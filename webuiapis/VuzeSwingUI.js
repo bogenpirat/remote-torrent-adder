@@ -1,25 +1,25 @@
-function addTorrentToVuzeSwingUI(data) {
+RTA.clients.vuzeSwingAdder = function(server, data) {
 	if(data.substring(0,7) == "magnet:") {
-		displayResponse("Client Failure", "sorry, no magnet/link adding support from vuze swing ui. try the vuze remote plugin.");
+		RTA.displayResponse("Client Failure", "sorry, no magnet/link adding support from vuze swing ui. try the vuze remote plugin.", true);
 		return;
 	}
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+localStorage["host"]+":"+localStorage["port"]+"/upload.cgi", true, localStorage["login"], localStorage["password"]);
+	xhr.open("POST", "http://" + server.host + ":" + server.port + "/upload.cgi", true, server.login, server.password);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*Upload OK.*/.exec(xhr.responseText)) {
-				displayResponse("Success", "Torrent added successfully.");
+				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
-				displayResponse("Failure", "Server didn't accept data:\n"+xhr.status+": "+xhr.responseText);
+				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
 		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			displayResponse("Failure", "Server responded with an irregular HTTP error code:\n"+xhr.status+": "+xhr.responseText);
+			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
 	
 	// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-	var boundary = "AJAX-----------------------"+(new Date).getTime();
+	var boundary = "AJAX-----------------------" + (new Date).getTime();
 	xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 	var message = "--" + boundary + "\r\n";
 	   message += "Content-Disposition: form-data; name=\"upfile\"; filename=\"file.torrent\"\r\n";
