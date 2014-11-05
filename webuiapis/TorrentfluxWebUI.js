@@ -4,7 +4,7 @@ RTA.clients.torrentfluxAdder = function(server, torrentdata, torrentname) {
 		return;
 	}
 	
-	var loginurl = "http" + ((server.hostsecure == 'true') ? "s" : "") + "://" + server.host + ":" + server.port + server.torrentfluxrelativepath + "/login.php";
+	var loginurl = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + server.torrentfluxrelativepath + "/login.php";
 	
 	// log in to create a functioning session
 	var xhr = new XMLHttpRequest();
@@ -19,7 +19,7 @@ RTA.clients.torrentfluxAdder = function(server, torrentdata, torrentname) {
 	
 	// send the torrent
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + ((server.hostsecure == 'true') ? "s" : "") + "://" + server.host + ":" + server.port + server.torrentfluxrelativepath + "/index.php", true);
+	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + server.torrentfluxrelativepath + "/index.php", true);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			RTA.displayResponse("Success", "Torrent added successfully.");

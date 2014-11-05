@@ -12,7 +12,7 @@ function ut_handleResponse(server, data) {
 
 RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	var relpath = (server.utorrentrelativepath == undefined || server.utorrentrelativepath == "") ? "/gui/" : server.utorrentrelativepath;
-	var scheme = (server.hostsecure == "true") ? "https://" : "http://";
+	var scheme = server.hostsecure ? "https://" : "http://";
 
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", scheme + server.host + ":" + server.port + relpath + "token.html", false, server.login, server.password);

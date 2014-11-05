@@ -6,7 +6,7 @@ RTA.clients.tixatiAdder = function(server, data, torrentname) {
 		target = "upload";
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://" + server.host + ":" + server.port + "/transfers/action", true, server.login, server.password);
+	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transfers/action", true, server.login, server.password);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			displayResponse("Success", "Torrent added successfully.");

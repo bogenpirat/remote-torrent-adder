@@ -4,7 +4,7 @@ RTA.clients.pyrtAdder = function(server, data, filename) {
 		return;
 	}
 
-	var url = "http" + ((server.hostsecure == 'true') ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+	var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
 	// log in to create a functioning session
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", url, false);
