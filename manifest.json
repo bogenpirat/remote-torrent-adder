@@ -48,5 +48,5 @@
 		"run_at": "document_end"
 		}
 	],
-	"web_accessible_resources": [ "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
+	"web_accessible_resources": [ "icons/White_X_in_red_background.svg", "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
 }
