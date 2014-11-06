@@ -76,14 +76,27 @@ function showLabelDirChooser(settings, url) {
 
 	var adddialog = "Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
-	adddialog += "</select> or new: <input id=\"adddialog_directory_new\" type=\"text\" /><br/>";
+	adddialog += "</select>";
+	adddialog += " <img id=\"dirremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
+	adddialog += "or new: <input id=\"adddialog_directory_new\" type=\"text\" /><br/>";
 	adddialog += "Label: <select id=\"adddialog_label\">";
 	for(x in labellist) adddialog += "<option value=\""+labellist[x]+"\">"+labellist[x]+"</option>";
-	adddialog += "</select> or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
+	adddialog += "</select>";
+	adddialog += " <img id=\"labelremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
+	adddialog += " or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
 	adddialog += "<input id=\"adddialog_submit\" type=\"button\" value=\"Add Torrent\" />";
-	var style = "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } </style>"
+	var style = "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>"
 	
 	$.fancybox("<div id=\"adddialog\">"+style+"<h2>Select label and directory for torrent adding</h2>"+adddialog+"</div>");
+
+	$("#dirremover").click(function() {
+		$("#adddialog_directory :selected").remove();
+		setNewSettings(settings, dirlist, labellist);
+	});
+	$("#labelremover").click(function() {
+		$("#adddialog_label :selected").remove();
+		setNewSettings(settings, dirlist, labellist);
+	});
 	
 	$("input#adddialog_submit").click(function() {
 		var selectedLabel = $("select#adddialog_label").val();
@@ -96,15 +109,27 @@ function showLabelDirChooser(settings, url) {
 		
 		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir});
 		
+		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel);
+		
+		$.fancybox.close();
+	});
+
+	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel) {
 		var newdirlist = new Array(); var newlabellist = new Array();
-		newdirlist.push(targetDir); newlabellist.push(targetLabel);
+		if(newDir) newdirlist.push(newDir); 
+		if(newLabel) newlabellist.push(newLabel);
+		dirlist = $("#adddialog_directory option").map(function() { return $(this).val() }).get();
 		for(x in dirlist) {
-			if(dirlist[x] != targetDir) newdirlist.push(dirlist[x]);
+			if(dirlist[x] != newDir) newdirlist.push(dirlist[x]);
 		}
+		labellist = $("#adddialog_label option").map(function() { return $(this).val() }).get();
 		for(x in labellist) {
-			if(labellist[x] != targetLabel) newlabellist.push(labellist[x]);
+			if(labellist[x] != newLabel) newlabellist.push(labellist[x]);
 		}
 		
+		var servers = JSON.parse(settings.servers);
+		var server = servers[0];
+
 		server["dirlist"] = JSON.stringify(newdirlist);
 		server["labellist"] = JSON.stringify(newlabellist);
 
@@ -112,6 +137,5 @@ function showLabelDirChooser(settings, url) {
 		settings.servers = JSON.stringify(servers);
 
 		chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
-		$.fancybox.close();
-	});
+	}
 }
