@@ -45,7 +45,10 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 						e.preventDefault();
 						var url = this.href;
 						
-						if(response["rutorrentdirlabelask"]=="true" && response["client"]=="ruTorrent WebUI")
+						var servers = JSON.parse(response.servers);
+						var server = servers[0];
+
+						if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI")
 							showLabelDirChooser(response, url);
 						else 
 							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
@@ -65,8 +68,11 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 });
 
 function showLabelDirChooser(settings, url) {
-	var dirlist = settings["dirlist"] && JSON.parse(settings["dirlist"]);
-	var labellist = settings["labellist"] && JSON.parse(settings["labellist"]);
+	var servers = JSON.parse(settings.servers);
+	var server = servers[0];
+
+	var dirlist = server["dirlist"] && JSON.parse(server["dirlist"]);
+	var labellist = server["labellist"] && JSON.parse(server["labellist"]);
 
 	var adddialog = "Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
@@ -99,9 +105,12 @@ function showLabelDirChooser(settings, url) {
 			if(labellist[x] != targetLabel) newlabellist.push(labellist[x]);
 		}
 		
-		settings["dirlist"] = JSON.stringify(newdirlist);
-		settings["labellist"] = JSON.stringify(newlabellist);
-		
+		server["dirlist"] = JSON.stringify(newdirlist);
+		server["labellist"] = JSON.stringify(newlabellist);
+
+		servers[0] = server;
+		settings.servers = JSON.stringify(servers);
+
 		chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
 		$.fancybox.close();
 	});
