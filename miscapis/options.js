@@ -91,6 +91,7 @@ $(document).ready(function(){
 			var panelId = $(this).closest("li").remove().attr("aria-controls");
 			$("#" + panelId).remove();
 			tabs.tabs("refresh");
+			saveServersSettings();
 		});
 
 		tabs.bind("keyup", function(event) {
@@ -98,6 +99,7 @@ $(document).ready(function(){
 				var panelId = tabs.find(".ui-tabs-active").remove().attr("aria-controls");
 				$("#" + panelId).remove();
 				tabs.tabs("refresh");
+				saveServersSettings();
 			}
 		});
 
