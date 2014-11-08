@@ -38,6 +38,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.pyrtAdder(server, data, name); break;
 		case "Tixati WebUI":
 			RTA.clients.tixatiAdder(server, data, name); break;
+		case "Hadouken WebUI":
+			RTA.clients.hadoukenAdder(server, data, name); break;
 	}
 }
 

@@ -4,6 +4,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"Torrentflux WebUI" : RTA.clients.config.torrentflux,
 		"uTorrent WebUI" : RTA.clients.config.utorrent,
 		"Deluge WebUI" : RTA.clients.config.deluge,
+		"Hadouken WebUI" : RTA.clients.config.hadouken,
 	};
 	
 	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
@@ -113,6 +114,27 @@ RTA.clients.config.utorrent = multiline(function(){/*
 					<td><input type="text" name="utorrentrelativepath" /><br />
 						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui/</strong>&quot;<br />
 							Note: Unless you are doing reverse-proxying, this field should be left empty</span></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.hadouken = multiline(function(){/*
+			<tbody name="hadoukenspecifics" class="specifics">
+				<tr>
+					<td><span class="title">Token</span></td>
+					<td><input type="text" name="hadoukentoken" /><br />
+						<span class="tip">Mandatory. Enter this instead of Username/Password which will be ignored.<br />
+						You can acquire it by clicking your username in the Hadouken WebUI, then API Keys and copying the text.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Label</span><br />(optional)</td>
+					<td><input type="text" name="hadoukenlabel" /><br />
+						<span class="tip"></span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Directory</span><br />(optional)</td>
+					<td><input type="text" name="hadoukendir" /><br />
+						<span class="tip"></span></td>
 				</tr>
 			</tbody>
 			*/});
