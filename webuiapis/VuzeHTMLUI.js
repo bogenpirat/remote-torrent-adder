@@ -1,4 +1,4 @@
-function vhtml_handleResponse(server, data) {
+function vhtml_handleResponse(data) {
 	if(this.readyState == 4 && this.status == 200) {
 		if(/.*loaded successfully.*/.exec(this.responseText)) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
@@ -10,7 +10,7 @@ function vhtml_handleResponse(server, data) {
 	}
 }
 
-RTA.clients.vuzeHtmlAdder = function(data) {
+RTA.clients.vuzeHtmlAdder = function(server, data) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://" + server.host + ":" + server.port + "/index.tmpl?d=u&local=1", true, server.login, server.password);
 	xhr.onreadystatechange = vhtml_handleResponse;
