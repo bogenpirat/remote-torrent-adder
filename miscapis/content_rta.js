@@ -62,14 +62,19 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 // register a listener that'll display the dir/label selection dialog
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
-		showLabelDirChooser(request.settings, request.url);
+		showLabelDirChooser(request.settings, request.url, request.server);
 		sendResponse({});
 	}
 });
 
-function showLabelDirChooser(settings, url) {
+function showLabelDirChooser(settings, url, theServer) {
 	var servers = JSON.parse(settings.servers);
-	var server = servers[0];
+	var server;
+	if(theServer == null) {
+		server = servers[0];
+	} else {
+		server = theServer;
+	}
 
 	var dirlist = server["dirlist"] && JSON.parse(server["dirlist"]);
 	var labellist = server["labellist"] && JSON.parse(server["labellist"]);
@@ -107,7 +112,7 @@ function showLabelDirChooser(settings, url) {
 		var targetLabel = (inputLabel=="")? ((selectedLabel==null)? "" : selectedLabel) : inputLabel;
 		var targetDir = (inputDir=="")? ((selectedDir==null)? "" : selectedDir) : inputDir;
 		
-		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir});
+		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server});
 		
 		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel);
 		
