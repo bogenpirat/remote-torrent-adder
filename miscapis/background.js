@@ -78,6 +78,9 @@ chrome.tabs.onCreated.addListener(function(tab) {
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
 	if(request.action == "addTorrent") {
+		if(request.server) {
+			server = request.server;
+		}
 		RTA.getTorrent(server, request.url, request.label, request.dir);
 		sendResponse({});
 	} else if(request.action == "getStorageData") {

@@ -138,7 +138,7 @@ RTA.genericOnClick = function(info, tab) {
 		var server = JSON.parse(localStorage.getItem("servers"))[serverId];
 
 		if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
-			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage});
+			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		} else {
 			RTA.getTorrent(server, info.linkUrl);
 		}
