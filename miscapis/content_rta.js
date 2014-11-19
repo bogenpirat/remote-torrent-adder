@@ -69,11 +69,16 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 
 function showLabelDirChooser(settings, url, theServer) {
 	var servers = JSON.parse(settings.servers);
-	var server;
+	var server, serverIndex = 0;
 	if(theServer == null) {
 		server = servers[0];
 	} else {
 		server = theServer;
+		for(var x in servers) {
+			if(servers[x].name == theServer.name) {
+				serverIndex = x;
+			}
+		}
 	}
 
 	var dirlist = server["dirlist"] && JSON.parse(server["dirlist"]);
@@ -96,11 +101,11 @@ function showLabelDirChooser(settings, url, theServer) {
 
 	$("#dirremover").click(function() {
 		$("#adddialog_directory :selected").remove();
-		setNewSettings(settings, dirlist, labellist);
+		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
 	});
 	$("#labelremover").click(function() {
 		$("#adddialog_label :selected").remove();
-		setNewSettings(settings, dirlist, labellist);
+		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
 	});
 	
 	$("input#adddialog_submit").click(function() {
@@ -114,12 +119,12 @@ function showLabelDirChooser(settings, url, theServer) {
 		
 		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server});
 		
-		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel);
+		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel, serverIndex);
 		
 		$.fancybox.close();
 	});
 
-	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel) {
+	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
 		var newdirlist = new Array(); var newlabellist = new Array();
 		if(newDir) newdirlist.push(newDir); 
 		if(newLabel) newlabellist.push(newLabel);
@@ -133,12 +138,16 @@ function showLabelDirChooser(settings, url, theServer) {
 		}
 		
 		var servers = JSON.parse(settings.servers);
-		var server = servers[0];
+		var server;
+		if(!serverIndex)
+			server = servers[0];
+		else
+			server = servers[serverIndex];
 
 		server["dirlist"] = JSON.stringify(newdirlist);
 		server["labellist"] = JSON.stringify(newlabellist);
 
-		servers[0] = server;
+		servers[serverIndex] = server;
 		settings.servers = JSON.stringify(servers);
 
 		chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
