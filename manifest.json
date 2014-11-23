@@ -25,7 +25,8 @@
 			"webuiapis/qBittorrentWebUI.js",
 			"webuiapis/DelugeWebUI.js",
 			"webuiapis/pyrtWebUI.js",
-			"webuiapis/TixatiWebUI.js"
+			"webuiapis/TixatiWebUI.js",
+			"webuiapis/HadoukenWebUI.js"
 		]
 	},
 	"options_page": "options.html",
