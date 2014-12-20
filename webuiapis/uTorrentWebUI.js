@@ -1,6 +1,6 @@
 function ut_handleResponse(server, data) {
 	if(this.readyState == 4 && this.status == 200) {
-		if(/\{"build":\d+\}/.test(this.responseText)) {
+		if(/\{\s*"build":\s*\d+\s*\}/.test(this.responseText)) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		} else {
 			RTA.displayResponse("Failure", "Server didn't accept data:\n" + this.status + ": " + this.responseText, true);
