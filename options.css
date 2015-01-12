@@ -1,0 +1,78 @@
+body, td {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 12px;
+}
+span.title {
+	font-weight: bold;
+}
+span.tip {
+	color: #555;
+	font-size: 10px;
+}
+td {
+	vertical-align: top;
+}
+tr.specifics {
+	display: none;
+}
+
+#dialog label, #dialog input { 
+	display:block; 
+}
+#dialog label { 
+	margin-top: 0.5em; 
+}
+#dialog input, #dialog textarea { 
+	width: 95%; 
+}
+
+
+
+#configtabs { 
+    padding: 0px; 
+    background: none; 
+    border-width: 0px; 
+} 
+
+#configtabs .ui-tabs-nav { 
+    padding-left: 0px; 
+    background: transparent; 
+    border-width: 0px 0px 1px 0px; 
+    -moz-border-radius: 0px; 
+    -webkit-border-radius: 0px; 
+    border-radius: 0px; 
+} 
+
+#configtabs .ui-tabs-panel { 
+    background: #f5f3e5 url(http://code.jquery.com/ui/1.8.23/themes/south-street/images/ui-bg_highlight-hard_100_f5f3e5_1x100.png) repeat-x scroll 50% top; 
+    border-width: 0px 1px 1px 1px; 
+}
+
+
+#serverstabs .ui-tabs-nav { 
+    padding: 0em; 
+    background: transparent; 
+    border-width: 0px; 
+} 
+#serverstabs .ui-tabs-nav li { 
+    position: static; 
+    margin: 0px; 
+    border-bottom: 1px solid #327e04 !important; 
+    -moz-border-radius: 0px; 
+    -webkit-border-radius: 0px; 
+    border-radius: 0px; 
+} 
+#serverstabs .ui-tabs-nav li:first-child { 
+    -moz-border-radius: 6px 0px 0px 6px; 
+    -webkit-border-radius: 6px 0px 0px 6px; 
+    border-radius: 6px 0px 0px 6px; 
+} 
+#serverstabs .ui-tabs-nav li:last-child { 
+    -moz-border-radius: 0px 6px 6px 0px; 
+    -webkit-border-radius: 0px 6px 6px 0px; 
+    border-radius: 0px 6px 6px 0px; 
+} 
+#serverstabs .ui-tabs-nav li.ui-tabs-selected { 
+    padding-bottom: 0px; 
+    border-bottom: 1px solid #d4ccb0 !important; 
+}
