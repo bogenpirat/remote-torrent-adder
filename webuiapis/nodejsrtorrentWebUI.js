@@ -4,7 +4,7 @@ function njs_handleResponse(server, data) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		}
 	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code.\nHTTP: " + xhr.status + " " + xhr.statusText + "\nContent:" + xhr.responseText, true);
+		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code.\nHTTP: " + this.status + " " + this.statusText + "\nContent:" + this.responseText, true);
 	}
 }
 
@@ -36,13 +36,14 @@ RTA.clients.nodeJSrTorrentAdder = function(server, torrentdata) {
 		mxhr.send(message);
 	} else {
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-file", true, server.login, server.password);
+		xhr.open("POST", scheme + server.host + ":" + server.port + "/torrents/load", true);
+		xhr.setRequestHeader("Authorization", "Bearer " + loginJson._id + ":" + loginJson.expires + ":" + loginJson.token);
 		xhr.onreadystatechange = njs_handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
 		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 		var message = "--" + boundary + "\r\n";
-		   message += "Content-Disposition: form-data; name=\"torrent_file\"; filename=\"file.torrent\"\r\n";
+		   message += "Content-Disposition: form-data; name=\"file\"; filename=\"file.torrent\"\r\n";
 		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
 		   message += torrentdata + "\r\n";
 		   message += "--" + boundary + "--\r\n";
