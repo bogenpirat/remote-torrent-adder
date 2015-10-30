@@ -1,13 +1,12 @@
 var menuItemIndexToServerIndex = [];
 
 XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
-	var data = new ArrayBuffer(datastr.length);
-	var ui8a = new Uint8Array(data, 0);
-	for (var i=0; i<datastr.length; i++) {
-		ui8a[i] = (datastr.charCodeAt(i) & 0xff);
+	function byteValue(x) {
+		return x.charCodeAt(0) & 0xff;
 	}
-	var blob = new Blob([data]);
-	this.send(blob);
+	var ords = Array.prototype.map.call(datastr, byteValue);
+	var ui8a = new Uint8Array(ords);
+	this.send(ui8a.buffer);
 }
 
 
