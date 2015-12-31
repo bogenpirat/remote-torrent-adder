@@ -7,7 +7,7 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname) {
 	
 	//check if webui is using cookie auth (v3.2+)
 	var xhr = new XMLHttpRequest();
-	var rootUrl = server.hostsecure ? "https" : "http" + "://" + server.host + ":" + server.port;
+	var rootUrl = (server.hostsecure ? "https" : "http") + "://" + server.host + ":" + server.port;
 	xhr.open("GET", rootUrl + "/version/qbittorrent", false, server.login, server.password);
 	xhr.send();
 	if (xhr.status == 200)
