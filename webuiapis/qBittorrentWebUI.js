@@ -5,6 +5,19 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname) {
 	else
 		target = "upload";
 	
+	//check if webui is using cookie auth (v3.2+)
+	var xhr = new XMLHttpRequest();
+	var rootUrl = (server.hostsecure ? "https" : "http") + "://" + server.host + ":" + server.port;
+	xhr.open("GET", rootUrl + "/version/qbittorrent", false, server.login, server.password);
+	xhr.send();
+	if (xhr.status == 200)
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", rootUrl + "/login", false);
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+		xhr.send("username=" + encodeURIComponent(server.login) + "&password=" + encodeURIComponent(server.password));
+	}
+
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/command/" + target, true, server.login, server.password);
 	xhr.onreadystatechange = function(data) {
