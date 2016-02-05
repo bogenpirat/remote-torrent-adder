@@ -41,6 +41,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.hadoukenAdder(server, data, name); break;
 		case "NodeJS-rTorrent WebUI":
 			RTA.clients.nodeJSrTorrentAdder(server, data, name); break;
+		case "Synology WebUI":
+			RTA.clients.synologyAdder(server, data, name); break;
 	}
 }
 
@@ -54,8 +56,8 @@ RTA.getTorrent = function(server, url, label, dir) {
 		xhr.overrideMimeType("text/plain; charset=x-user-defined");
 		xhr.onreadystatechange = function(data) {
 			if(xhr.readyState == 4 && xhr.status == 200) {
-				if(url.match(/\/([^\/]+.torrent)$/)) {
-					name = url.match(/\/([^\/]+.torrent)$/)[1];
+				if(this.responseURL.match(/\/([^\/]+.torrent)$/)) {
+					name = this.responseURL.match(/\/([^\/]+.torrent)$/)[1];
 				} else {
 					name = "file.torrent";
 				}

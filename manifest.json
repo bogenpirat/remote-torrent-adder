@@ -27,7 +27,8 @@
 			"webuiapis/pyrtWebUI.js",
 			"webuiapis/TixatiWebUI.js",
 			"webuiapis/HadoukenWebUI.js",
-			"webuiapis/nodejsrtorrentWebUI.js"
+			"webuiapis/nodejsrtorrentWebUI.js",
+			"webuiapis/SynologyWebUI.js"
 		]
 	},
 	"options_page": "options.html",
