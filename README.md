@@ -10,10 +10,12 @@ It supports the following BitTorrent clients:
   * Transmission
   * Deluge
   * qBittorrent
-  * rtorrent (ruTorrent, pyrt)
+  * rtorrent (ruTorrent, pyrt, NodeJS-rTorrent)
   * Torrentflux
   * Buffalo built-in torrent client
   * Tixati
+  * Hadouken
+  * Synology Downloadstation
 
 
 ## How do i get it running?
