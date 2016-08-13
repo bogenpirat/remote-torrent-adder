@@ -27,7 +27,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	}
 	for (x in rB) {
 		for(mkey in res) {
-			if(forms[x] != null && forms[x].hasOwnProperty('action') && forms[x].action.match && forms[x].action.match(new RegExp(res[mkey], "g"))) {
+			if(forms[x] != null && forms[x].hasAttribute('action') && forms[x].action.match && forms[x].action.match(new RegExp(res[mkey], "g"))) {
 				rB[x].href = forms[x].action;
 				links.push(rB[x]);
 				break;
