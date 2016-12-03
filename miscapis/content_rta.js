@@ -1,3 +1,4 @@
+var rta_modal_open, rta_modal_close;
 chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	if(response["catchfrompage"] != "true") return;
 	
@@ -38,6 +39,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	// re-register actions
 	if(links.length != 0) {
 		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
+		
 		for(key in links) {
 			if(links[key].addEventListener) {
 				links[key].addEventListener('click', function(e) {
@@ -56,6 +58,8 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 				});
 			}
 		}
+		
+		[rta_modal_open, rta_modal_close] = rta_modal_init();
 	}
 });
 
@@ -84,7 +88,10 @@ function showLabelDirChooser(settings, url, theServer) {
 	var dirlist = server["dirlist"] && JSON.parse(server["dirlist"]);
 	var labellist = server["labellist"] && JSON.parse(server["labellist"]);
 
-	var adddialog = "Directory: <select id=\"adddialog_directory\">";
+	var adddialog = "<div id=\"rta_modal_wrapper\"><div id=\"rta_modal_window\">";
+	adddialog += "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
+	adddialog += "<h2 style=\"color: rgb(68, 68, 68);\">Select label and directory for torrent adding</h2>";
+	adddialog += "Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
 	adddialog += "</select>";
 	adddialog += " <img id=\"dirremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
@@ -95,24 +102,25 @@ function showLabelDirChooser(settings, url, theServer) {
 	adddialog += " <img id=\"labelremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
 	adddialog += " or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
 	adddialog += "<input id=\"adddialog_submit\" type=\"button\" value=\"Add Torrent\" />";
-	var style = "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>"
 	
-	$.fancybox("<div id=\"adddialog\">"+style+"<h2>Select label and directory for torrent adding</h2>"+adddialog+"</div>");
+	document.querySelector("body").insertAdjacentHTML("beforeend", adddialog);
+	
+	rta_modal_open();
 
-	$("#dirremover").click(function() {
-		$("#adddialog_directory :selected").remove();
+	document.querySelector("#dirremover").onclick = function() {
+		document.querySelector("#adddialog_directory option:checked").remove();
 		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
-	});
-	$("#labelremover").click(function() {
-		$("#adddialog_label :selected").remove();
+	};
+	document.querySelector("#labelremover").onclick = function() {
+		document.querySelector("#adddialog_label option:checked").remove();
 		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
-	});
+	};
 	
-	$("input#adddialog_submit").click(function() {
-		var selectedLabel = $("select#adddialog_label").val();
-		var inputLabel = $("input#adddialog_label_new").val();
-		var selectedDir = $("select#adddialog_directory").val();
-		var inputDir = $("input#adddialog_directory_new").val();
+	document.querySelector("input#adddialog_submit").onclick = function() {
+		var selectedLabel = document.querySelector("select#adddialog_label").value;
+		var inputLabel = document.querySelector("input#adddialog_label_new").value;
+		var selectedDir = document.querySelector("select#adddialog_directory").value;
+		var inputDir = document.querySelector("input#adddialog_directory_new").value;
 		
 		var targetLabel = (inputLabel=="")? ((selectedLabel==null)? "" : selectedLabel) : inputLabel;
 		var targetDir = (inputDir=="")? ((selectedDir==null)? "" : selectedDir) : inputDir;
@@ -121,18 +129,22 @@ function showLabelDirChooser(settings, url, theServer) {
 		
 		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel, serverIndex);
 		
-		$.fancybox.close();
-	});
+		rta_modal_close();
+	};
 
 	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
 		var newdirlist = new Array(); var newlabellist = new Array();
 		if(newDir) newdirlist.push(newDir); 
 		if(newLabel) newlabellist.push(newLabel);
-		dirlist = $("#adddialog_directory option").map(function() { return $(this).val() }).get();
+		dirlist = Array.prototype.map.call(document.querySelectorAll("#adddialog_directory option"), function (el) {
+			return el.value;
+		});
 		for(x in dirlist) {
 			if(dirlist[x] != newDir) newdirlist.push(dirlist[x]);
 		}
-		labellist = $("#adddialog_label option").map(function() { return $(this).val() }).get();
+		labellist = Array.prototype.map.call(document.querySelectorAll("#adddialog_label option"), function (el) {
+			return el.value;
+		});
 		for(x in labellist) {
 			if(labellist[x] != newLabel) newlabellist.push(labellist[x]);
 		}

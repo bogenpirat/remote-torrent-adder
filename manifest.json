@@ -39,14 +39,11 @@
 		{
 		"matches": ["*://*/*"],
 		"js": [
-			"miscapis/jquery-2.0.3.min.js",
-			"miscapis/jquery.mousewheel-3.0.6.pack.js",
-			"miscapis/jquery-ui-1.10.3.custom.min.js",
-			"fancybox/jquery.fancybox.pack.js",
+			"miscapis/modal.js",
 			"miscapis/content_rta.js"
 		],
 		"css": [
-			"fancybox/jquery.fancybox.css"
+			"modal.css"
 		],
 		"run_at": "document_end",
 		"all_frames": true
