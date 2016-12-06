@@ -33,13 +33,9 @@ var rta_modal_init = function() {
 	};
 
 	if(document.addEventListener) {
-	  //document.getElementById("modal_open").addEventListener("click", openModal, false);
-	  //document.getElementById("modal_close").addEventListener("click", closeModal, false);
 	  document.addEventListener("click", clickHandler, false);
 	  document.addEventListener("keydown", keyHandler, false);
 	} else {
-	  //document.getElementById("modal_open").attachEvent("onclick", openModal);
-	  //document.getElementById("modal_close").attachEvent("onclick", closeModal);
 	  document.attachEvent("onclick", clickHandler);
 	  document.attachEvent("onkeydown", keyHandler);
 	}

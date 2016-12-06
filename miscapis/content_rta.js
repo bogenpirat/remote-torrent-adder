@@ -1,4 +1,5 @@
-var rta_modal_open, rta_modal_close;
+var [rta_modal_open, rta_modal_close] = rta_modal_init();
+
 chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	if(response["catchfrompage"] != "true") return;
 	
@@ -58,8 +59,6 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 				});
 			}
 		}
-		
-		[rta_modal_open, rta_modal_close] = rta_modal_init();
 	}
 });
 
