@@ -1,4 +1,4 @@
-var [rta_modal_open, rta_modal_close] = rta_modal_init();
+var rta_modal_open, rta_modal_close;
 
 chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	if(response["catchfrompage"] != "true") return;
@@ -39,6 +39,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	
 	// re-register actions
 	if(links.length != 0) {
+		[rta_modal_open, rta_modal_close] = rta_modal_init();
 		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
 		
 		for(key in links) {
@@ -65,6 +66,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 // register a listener that'll display the dir/label selection dialog
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
+		[rta_modal_open, rta_modal_close] = rta_modal_init();
 		showLabelDirChooser(request.settings, request.url, request.server);
 		sendResponse({});
 	}
