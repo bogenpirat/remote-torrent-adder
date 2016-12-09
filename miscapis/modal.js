@@ -18,7 +18,9 @@ var rta_modal_init = function() {
 	var closeModal = function()
 	{
 	  var modalWrapper = document.getElementById("rta_modal_wrapper");
-	  modalWrapper.className = "";
+	  if(modalWrapper) {
+		modalWrapper.className = "";
+	  }
 	};
 
 	var clickHandler = function(e) {
