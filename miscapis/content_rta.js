@@ -134,35 +134,43 @@ function showLabelDirChooser(settings, url, theServer) {
 	};
 
 	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
-		var newdirlist = new Array(); var newlabellist = new Array();
-		if(newDir) newdirlist.push(newDir); 
-		if(newLabel) newlabellist.push(newLabel);
-		dirlist = Array.prototype.map.call(document.querySelectorAll("#adddialog_directory option"), function (el) {
-			return el.value;
+		chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+			var servers = JSON.parse(response.servers);
+			var server;
+			if(!serverIndex) {
+				server = servers[0];
+			} else {
+				server = servers[serverIndex];
+			}
+			var labellist = JSON.parse(server["labellist"]);
+			var dirlist = JSON.parse(server["dirlist"]);
+			
+			var labelNew = true, dirNew = true;
+			for(var i in dirlist) {
+				if(newDir == dirlist[i]) {
+					dirNew = false;
+				}
+			}
+			if(dirNew) {
+				dirlist.unshift(newDir);
+			}
+			
+			for(var i in labellist) {
+				if(newLabel == labellist[i]) {
+					labelNew = false;
+				}
+			}
+			if(labelNew) {
+				labellist.unshift(newLabel);
+			}
+
+			server["dirlist"] = JSON.stringify(dirlist);
+			server["labellist"] = JSON.stringify(labellist);
+
+			servers[serverIndex] = server;
+			settings.servers = JSON.stringify(servers);
+
+			chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
 		});
-		for(x in dirlist) {
-			if(dirlist[x] != newDir) newdirlist.push(dirlist[x]);
-		}
-		labellist = Array.prototype.map.call(document.querySelectorAll("#adddialog_label option"), function (el) {
-			return el.value;
-		});
-		for(x in labellist) {
-			if(labellist[x] != newLabel) newlabellist.push(labellist[x]);
-		}
-		
-		var servers = JSON.parse(settings.servers);
-		var server;
-		if(!serverIndex)
-			server = servers[0];
-		else
-			server = servers[serverIndex];
-
-		server["dirlist"] = JSON.stringify(newdirlist);
-		server["labellist"] = JSON.stringify(newlabellist);
-
-		servers[serverIndex] = server;
-		settings.servers = JSON.stringify(servers);
-
-		chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
 	}
 }
