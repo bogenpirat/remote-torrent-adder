@@ -142,8 +142,9 @@ function showLabelDirChooser(settings, url, theServer) {
 			} else {
 				server = servers[serverIndex];
 			}
-			var labellist = JSON.parse(server["labellist"]);
-			var dirlist = JSON.parse(server["dirlist"]);
+			console.log(server["labellist"]);
+			var labellist = server["labellist"] ? JSON.parse(server["labellist"]) : [];
+			var dirlist = server["dirlist"] ? JSON.parse(server["dirlist"]) : [];
 			
 			var labelNew = true, dirNew = true;
 			for(var i in dirlist) {
