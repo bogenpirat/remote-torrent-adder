@@ -90,7 +90,7 @@ function showLabelDirChooser(settings, url, theServer) {
 	var labellist = server["labellist"] && JSON.parse(server["labellist"]);
 
 	var adddialog = "<div id=\"rta_modal_wrapper\"><div id=\"rta_modal_window\">";
-	adddialog += "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
+	adddialog += "<style>#rta_modal_wrapper { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
 	adddialog += "<h2 style=\"color: rgb(68, 68, 68);\">Select label and directory for torrent adding</h2>";
 	adddialog += "<form id=\"rta_addform\">Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
