@@ -92,7 +92,7 @@ function showLabelDirChooser(settings, url, theServer) {
 	var adddialog = "<div id=\"rta_modal_wrapper\"><div id=\"rta_modal_window\">";
 	adddialog += "<style>#adddialog * { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
 	adddialog += "<h2 style=\"color: rgb(68, 68, 68);\">Select label and directory for torrent adding</h2>";
-	adddialog += "Directory: <select id=\"adddialog_directory\">";
+	adddialog += "<form id=\"rta_addform\">Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
 	adddialog += "</select>";
 	adddialog += " <img id=\"dirremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
@@ -102,7 +102,7 @@ function showLabelDirChooser(settings, url, theServer) {
 	adddialog += "</select>";
 	adddialog += " <img id=\"labelremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
 	adddialog += " or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
-	adddialog += "<input id=\"adddialog_submit\" type=\"button\" value=\"Add Torrent\" />";
+	adddialog += "<input id=\"adddialog_submit\" type=\"submit\" value=\"Add Torrent\" /></form>";
 	
 	document.querySelector("body").insertAdjacentHTML("beforeend", adddialog);
 	
@@ -117,7 +117,7 @@ function showLabelDirChooser(settings, url, theServer) {
 		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
 	};
 	
-	document.querySelector("input#adddialog_submit").onclick = function() {
+	document.querySelector("#rta_addform").onsubmit = function() {
 		var selectedLabel = document.querySelector("select#adddialog_label").value;
 		var inputLabel = document.querySelector("input#adddialog_label_new").value;
 		var selectedDir = document.querySelector("select#adddialog_directory").value;
@@ -131,6 +131,8 @@ function showLabelDirChooser(settings, url, theServer) {
 		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel, serverIndex);
 		
 		rta_modal_close();
+		
+		return false;
 	};
 
 	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
