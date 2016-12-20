@@ -146,24 +146,16 @@ function showLabelDirChooser(settings, url, theServer) {
 			var labellist = server["labellist"] ? JSON.parse(server["labellist"]) : [];
 			var dirlist = server["dirlist"] ? JSON.parse(server["dirlist"]) : [];
 			
-			var labelNew = true, dirNew = true;
-			for(var i in dirlist) {
-				if(newDir == dirlist[i]) {
-					dirNew = false;
-				}
+			var labelOldPos, dirOldPos;
+			while((labelOldPos = labellist.indexOf(newLabel)) != -1) {
+				labellist.splice(labelOldPos, 1);
 			}
-			if(dirNew) {
-				dirlist.unshift(newDir);
+			while((dirOldPos = dirlist.indexOf(newDir)) != -1) {
+				dirlist.splice(dirOldPos, 1);
 			}
 			
-			for(var i in labellist) {
-				if(newLabel == labellist[i]) {
-					labelNew = false;
-				}
-			}
-			if(labelNew) {
-				labellist.unshift(newLabel);
-			}
+			dirlist.unshift(newDir);
+			labellist.unshift(newLabel);
 
 			server["dirlist"] = JSON.stringify(dirlist);
 			server["labellist"] = JSON.stringify(labellist);
