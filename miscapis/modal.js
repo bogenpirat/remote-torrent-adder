@@ -19,7 +19,7 @@ var rta_modal_init = function() {
 	{
 	  var modalWrapper = document.getElementById("rta_modal_wrapper");
 	  if(modalWrapper) {
-		modalWrapper.className = "";
+		modalWrapper.remove();
 	  }
 	};
 

@@ -86,8 +86,8 @@ function showLabelDirChooser(settings, url, theServer) {
 		}
 	}
 
-	var dirlist = server["dirlist"] && JSON.parse(server["dirlist"]);
-	var labellist = server["labellist"] && JSON.parse(server["labellist"]);
+	var dirlist = server["dirlist"] ? JSON.parse(server["dirlist"]) : [];
+	var labellist = server["labellist"] ? JSON.parse(server["labellist"]) : [];
 
 	var adddialog = "<div id=\"rta_modal_wrapper\"><div id=\"rta_modal_window\">";
 	adddialog += "<style>#rta_modal_wrapper { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
@@ -109,12 +109,30 @@ function showLabelDirChooser(settings, url, theServer) {
 	rta_modal_open();
 
 	document.querySelector("#dirremover").onclick = function() {
-		document.querySelector("#adddialog_directory option:checked").remove();
-		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
+		var toRemove = document.querySelector("#adddialog_directory option:checked")
+		if(toRemove) {
+			var index;
+			if(-1 != (index = dirlist.indexOf(toRemove.value))) {
+				dirlist.splice(index, 1);
+				
+				toRemove.remove();
+				
+				setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
+			}
+		}
 	};
 	document.querySelector("#labelremover").onclick = function() {
-		document.querySelector("#adddialog_label option:checked").remove();
-		setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
+		var toRemove = document.querySelector("#adddialog_label option:checked");
+		if(toRemove) {
+			var index;
+			if(-1 != (index = labellist.indexOf(toRemove.value))) {
+				labellist.splice(index, 1);
+				
+				toRemove.remove();
+				
+				setNewSettings(settings, dirlist, labellist, null, null, serverIndex);
+			}
+		}
 	};
 	
 	document.querySelector("#rta_addform").onsubmit = function() {
@@ -145,9 +163,9 @@ function showLabelDirChooser(settings, url, theServer) {
 				server = servers[serverIndex];
 			}
 			
-			var labellist = server["labellist"] ? JSON.parse(server["labellist"]) : [];
-			var dirlist = server["dirlist"] ? JSON.parse(server["dirlist"]) : [];
-			
+			var labellist = baseLabels;
+			var dirlist = baseDirs;
+
 			var labelOldPos, dirOldPos;
 			while((labelOldPos = labellist.indexOf(newLabel)) != -1) {
 				labellist.splice(labelOldPos, 1);
@@ -156,8 +174,12 @@ function showLabelDirChooser(settings, url, theServer) {
 				dirlist.splice(dirOldPos, 1);
 			}
 			
-			dirlist.unshift(newDir);
-			labellist.unshift(newLabel);
+			if(newDir !== null) {
+				dirlist.unshift(newDir);
+			}
+			if(newLabel !== null) {
+				labellist.unshift(newLabel);
+			}
 
 			server["dirlist"] = JSON.stringify(dirlist);
 			server["labellist"] = JSON.stringify(labellist);
