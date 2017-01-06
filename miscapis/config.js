@@ -93,6 +93,22 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="rutorrentaddpaused" /></td>
 				</tr>
+				<tr>
+					<td><span class="title">Directory list</span><br />(optional)</td>
+					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="adddirbutton">+</button><br />
+						<button name="deldirbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Directories to use for adding torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Labellist</span><br />(optional)</td>
+					<td><div style="float: left"><select name="labellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addlabelbutton">+</button><br />
+						<button name="dellabelbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Labels to use for adding torrents.</span></td>
+				</tr>
 			</tbody>
 			*/});
 

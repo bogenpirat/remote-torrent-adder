@@ -74,7 +74,7 @@ $(document).ready(function(){
 			}
 			tabCounter++;
 
-			$("input").bind("change keyup", function(event) {
+			$("input, select").bind("change keyup", function(event) {
 				saveServersSettings();
 			});
 
@@ -111,7 +111,7 @@ $(document).ready(function(){
 
 			addTab(server.name, server.client, true);
 
-			var mySettingInputs = $("#servertabs-" + (parseInt(i) + 1)).find("input").get();
+			var mySettingInputs = $("#servertabs-" + (parseInt(i) + 1)).find("input, select").get();
 			for(var u in mySettingInputs) {
 				var mySettingInput = mySettingInputs[u];
 				if(server.hasOwnProperty(mySettingInput.name)) {
@@ -119,8 +119,53 @@ $(document).ready(function(){
 						case "checkbox":
 							$(mySettingInput).prop('checked', server[mySettingInput.name]);
 							break;
+						case "select-multiple":
+							var optionlist = JSON.parse(server[mySettingInput.name]);
+							for(var k in optionlist) {
+								$(mySettingInput).append($("<option>", {
+									text: optionlist[k]
+								}));
+							}
+							break;
 						default:
 							$(mySettingInput).val(server[mySettingInput.name]);
+					}
+				}
+				
+				if(mySettingInput.type == "select-multiple") {
+					switch(mySettingInput.name) {
+						case "dirlist":
+							var thisTd = $(mySettingInput).parents("td");
+							thisTd.find("button[name=adddirbutton]").click(function() {
+								var answer = prompt("enter a new directory");
+								if(answer !== null) {
+									$(this).parents("td").find("select[name=dirlist]").append($("<option>", {
+										text: answer
+									}));
+									saveServersSettings();
+								}
+							});
+							thisTd.find("button[name=deldirbutton]").click(function() {
+								$(this).parents("td").find("select[name=dirlist] option:selected").remove();
+								saveServersSettings();
+							});
+							break;
+						case "labellist":
+							var thisTd = $(mySettingInput).parents("td");
+							thisTd.find("button[name=addlabelbutton]").click(function() {
+								var answer = prompt("enter a new directory");
+								if(answer !== null) {
+									$(this).parents("td").find("select[name=labellist]").append($("<option>", {
+										text: answer
+									}));
+									saveServersSettings();
+								}
+							});
+							thisTd.find("button[name=dellabelbutton]").click(function() {
+								$(this).parents("td").find("select[name=labellist] option:selected").remove();
+								saveServersSettings();
+							});
+						break;
 					}
 				}
 			}
@@ -281,13 +326,16 @@ function saveServersSettings() {
 	$("div[id^=servertabs-]").each(function(i, el) {
 		var thisId = $(el).prop("id");
 		var server = {};
-		var elements = $(el).find("input").get();
+		var elements = $(el).find("input, select").get();
 		for(var u in elements) {
 			var element = elements[u];
 
 			switch(element.type) {
 				case "checkbox":
 					server[element.name] = $(element).prop('checked');
+					break;
+				case "select-multiple":
+					server[element.name] = JSON.stringify(Array.prototype.map.call(element.options, function(x) { return x.value }));
 					break;
 				default:
 					server[element.name] = $(element).val();
