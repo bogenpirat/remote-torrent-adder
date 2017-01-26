@@ -43,6 +43,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.nodeJSrTorrentAdder(server, data, name); break;
 		case "Synology WebUI":
 			RTA.clients.synologyAdder(server, data, name); break;
+		case "flood WebUI":
+			RTA.clients.floodAdder(server, data, name); break;
 	}
 }
 

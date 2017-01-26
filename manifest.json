@@ -28,7 +28,8 @@
 			"webuiapis/TixatiWebUI.js",
 			"webuiapis/HadoukenWebUI.js",
 			"webuiapis/nodejsrtorrentWebUI.js",
-			"webuiapis/SynologyWebUI.js"
+			"webuiapis/SynologyWebUI.js",
+			"webuiapis/floodWebUI.js"
 		]
 	},
 	"options_page": "options.html",

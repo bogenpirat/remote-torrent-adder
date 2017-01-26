@@ -5,6 +5,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"uTorrent WebUI" : RTA.clients.config.utorrent,
 		"Deluge WebUI" : RTA.clients.config.deluge,
 		"Hadouken WebUI" : RTA.clients.config.hadouken,
+		"flood WebUI" : RTA.clients.config.flood,
 	};
 	
 	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
@@ -151,6 +152,20 @@ RTA.clients.config.hadouken = multiline(function(){/*
 					<td><span class="title">Directory</span><br />(optional)</td>
 					<td><input type="text" name="hadoukendir" /><br />
 						<span class="tip"></span></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.flood = multiline(function(){/*
+			<tbody name="floodspecifics" class="specifics">
+				<tr>
+					<td><span class="title">Directory</span><br />(optional)</td>
+					<td><input type="text" name="flooddirectory" /><br />
+						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your default directory for torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Add torrents paused?</span></td>
+					<td><input type="checkbox" name="floodaddpaused" /></td>
 				</tr>
 			</tbody>
 			*/});
