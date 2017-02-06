@@ -39,7 +39,9 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 	
 	// re-register actions
 	if(links.length != 0) {
-		[rta_modal_open, rta_modal_close] = rta_modal_init();
+		var modals = rta_modal_init();
+		rta_modal_open = modals[0];
+		rta_modal_close = modals[1];
 		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
 		
 		for(key in links) {
