@@ -68,7 +68,9 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 // register a listener that'll display the dir/label selection dialog
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
-		[rta_modal_open, rta_modal_close] = rta_modal_init();
+		var modals = rta_modal_init();
+		rta_modal_open = modals[0];
+		rta_modal_close = modals[1];
 		showLabelDirChooser(request.settings, request.url, request.server);
 		sendResponse({});
 	}
