@@ -47,6 +47,10 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 			message += "Content-Type: application/octet-stream\r\n\r\n";
 			message += torrentdata + "\r\n";
 		
+			message += "--" + boundary + "\r\n";
+			message += "Content-Disposition: form-data; name=\"tags\"\r\n\r\n";
+			message += "" + "\r\n"; // TODO: labels here, comma separated
+		
 		if(dir != undefined && dir.length > 0) {
 			message += "--" + boundary + "\r\n";
 			message += "Content-Disposition: form-data; name=\"destination\"\r\n\r\n";
