@@ -1,6 +1,14 @@
 var rta_modal_open, rta_modal_close;
 
 chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+	var delay = 0;
+	if(response["registerDelay"] > 0) {
+		delay = response["registerDelay"];
+	}
+	setTimeout(function() { registerLinks(response); }, delay);
+});
+
+function registerLinks(response) {
 	if(response["catchfrompage"] != "true") return;
 	
 	// handle common links
@@ -63,7 +71,7 @@ chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
 			}
 		}
 	}
-});
+}
 
 // register a listener that'll display the dir/label selection dialog
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {

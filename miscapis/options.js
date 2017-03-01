@@ -174,7 +174,7 @@ $(document).ready(function(){
 });
 
 function loadGeneralSettings() {
-	var e = document.querySelectorAll("#linksfoundindicator,#showpopups,#popupduration,#catchfromcontextmenu,#catchfrompage,#linkmatches,#catchfromnewtab")
+	var e = document.querySelectorAll("#linksfoundindicator,#showpopups,#popupduration,#catchfromcontextmenu,#catchfrompage,#linkmatches,#catchfromnewtab,#registerDelay")
 	for (key in e) {
 		getSetting(e[key]);
 	}
@@ -312,6 +312,10 @@ function registerGeneralSettingsEvents() {
 	
 	document.querySelector("#showfiltersbtn").onclick = function() {
 		alert(localStorage['linkmatches']);
+	};
+
+	document.querySelector("#registerDelay").onkeyup = function() {
+		setSetting(this, this.value);
 	};
 }
 
