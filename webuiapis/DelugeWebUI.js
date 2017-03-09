@@ -6,10 +6,12 @@ RTA.clients.delugeAdder = function(server, torrentdata, filename) {
 	var xhr = new XMLHttpRequest();
 	var scheme = server.hostsecure ? "https" : "http";
 	xhr.open("POST", scheme + "://" + server.host + ":" + server.port + relPath + "/json", false);
+	xhr.setRequestHeader("Content-Type", "application/json");
 	xhr.send(JSON.stringify({"id": rnd, "method": "auth.login", "params": [server.password]}));
 	
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", scheme + "://" + server.host + ":" + server.port + relPath + "/json", true);
+	xhr.setRequestHeader("Content-Type", "application/json");
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(JSON.parse(xhr.responseText)["error"] == null) {
