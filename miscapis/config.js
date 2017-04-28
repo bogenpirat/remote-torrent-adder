@@ -6,6 +6,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"Deluge WebUI" : RTA.clients.config.deluge,
 		"Hadouken WebUI" : RTA.clients.config.hadouken,
 		"flood WebUI" : RTA.clients.config.flood,
+		"QNAP DownloadStation" : RTA.clients.config.qnap,
 	};
 	
 	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
@@ -166,6 +167,21 @@ RTA.clients.config.flood = multiline(function(){/*
 				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="floodaddpaused" /></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.qnap = multiline(function(){/*
+			<tbody name="qnapspecifics" class="specifics">
+				<tr>
+					<td><span class="title">Temp Directory</span><br /></td>
+					<td><input type="text" name="qnaptemp" /><br />
+						<span class="tip">Directory used while downloading/seeding.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Destination Directory</span><br /></td>
+					<td><input type="text" name="qnapmove" /><br />
+						<span class="tip">After torrent has completed it will be move to this directory.</span></td>
 				</tr>
 			</tbody>
 			*/});
