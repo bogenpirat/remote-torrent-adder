@@ -181,7 +181,7 @@ RTA.clients.config.qnap = multiline(function(){/*
 				<tr>
 					<td><span class="title">Destination Directory</span><br /></td>
 					<td><input type="text" name="qnapmove" /><br />
-						<span class="tip">After torrent has completed it will be move to this directory.</span></td>
+						<span class="tip">After torrent has completed it will be moved to this directory.</span></td>
 				</tr>
 			</tbody>
 			*/});
