@@ -16,6 +16,7 @@ It supports the following BitTorrent clients:
   * Tixati
   * Hadouken
   * Synology Downloadstation
+  * QNAP DownloadStation
 
 
 ## How do i get it running?
