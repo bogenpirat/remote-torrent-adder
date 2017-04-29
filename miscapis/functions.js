@@ -45,6 +45,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.synologyAdder(server, data, name); break;
 		case "flood WebUI":
 			RTA.clients.floodAdder(server, data, name); break;
+		case "QNAP DownloadStation":
+			RTA.clients.qnapDownloadStationAdder(server, data, name); break;
 	}
 }
 
