@@ -1,4 +1,4 @@
-RTA.clients.qBittorrentAdder = function(server, data, torrentname) {
+RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
 	var target;
 	if(data.substring(0,7) == "magnet:")
 		target = "download";
@@ -40,6 +40,12 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname) {
 		   message += "Content-Disposition: form-data; name=\"torrentfile\"; filename=\"" + ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime()) + "\"\r\n";
 		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
 		   message += data + "\r\n";
+		   message += "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"savepath\"\r\n\r\n"
+		   message += dir + "\r\n";
+		   message += "--" + boundary + "\r\n";
+		   message += "Content-Disposition: form-data; name=\"category\"\r\n\r\n"
+		   message += label + "\r\n";
 		   message += "--" + boundary + "--\r\n";
 		
 		xhr.sendAsBinary(message);

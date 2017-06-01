@@ -22,6 +22,7 @@ if(localStorage.getItem("servers") == undefined) {
 			"rutorrentlabel": localStorage.getItem("rutorrentlabel"),
 			"rutorrentdirectory": localStorage.getItem("rutorrentdirectory"),
 			"rutorrentdirlabelask": localStorage.getItem("rutorrentdirlabelask") === "true",
+			"qbittorrentdirlabelask": localStorage.getItem("qbittorrenttorrentdirlabelask") === "true",
 			"rutorrentaddpaused": localStorage.getItem("rutorrentaddpaused") === "true",
 			"torrentfluxrelativepath": localStorage.getItem("torrentfluxrelativepath"),
 			"utorrentrelativepath": localStorage.getItem("utorrentrelativepath")
