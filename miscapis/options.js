@@ -137,7 +137,7 @@ $(document).ready(function(){
 						case "dirlist":
 							var thisTd = $(mySettingInput).parents("td");
 							thisTd.find("button[name=adddirbutton]").click(function() {
-								var answer = prompt("enter a new directory");
+								var answer = prompt("Enter a new directory");
 								if(answer !== null) {
 									$(this).parents("td").find("select[name=dirlist]").append($("<option>", {
 										text: answer
@@ -153,7 +153,7 @@ $(document).ready(function(){
 						case "labellist":
 							var thisTd = $(mySettingInput).parents("td");
 							thisTd.find("button[name=addlabelbutton]").click(function() {
-								var answer = prompt("enter a new directory");
+								var answer = prompt("Enter a new label");
 								if(answer !== null) {
 									$(this).parents("td").find("select[name=labellist]").append($("<option>", {
 										text: answer
