@@ -62,10 +62,15 @@ function registerLinks(response) {
 						var servers = JSON.parse(response.servers);
 						var server = servers[0];
 
-						if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI")
+						if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI") {
 							showLabelDirChooser(response, url);
-						else 
+						}
+						else if (server["client"]=="qBittorrent WebUI") {
+							showLabelDirChooser(response, url);
+						}
+						else {
 							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
+						}
 					}
 				});
 			}

@@ -30,7 +30,7 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 		case "Buffalo WebUI (OLD!)":
 			RTA.clients.buffaloAdder(server, data, name); break;
 		case "qBittorrent WebUI":
-			RTA.clients.qBittorrentAdder(server, data, name); break;
+			RTA.clients.qBittorrentAdder(server, data, name, label, dir); break;
 		case "Deluge WebUI":
 			RTA.clients.delugeAdder(server, data, name); break;
 		case "pyrt WebUI":
@@ -148,7 +148,11 @@ RTA.genericOnClick = function(info, tab) {
 
 		if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
-		} else {
+		}
+		else if (server.qbittorrentlabelask == true && server.client == "qBittorrent WebUI") {
+			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
+		} 
+		else {
 			RTA.getTorrent(server, info.linkUrl);
 		}
 	}
