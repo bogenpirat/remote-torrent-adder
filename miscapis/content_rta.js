@@ -65,7 +65,7 @@ function registerLinks(response) {
 						if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI") {
 							showLabelDirChooser(response, url);
 						}
-						else if (server["client"]=="qBittorrent WebUI") {
+						else if (server["qbittorrentdirlabelask"] && server["client"]=="qBittorrent WebUI") {
 							showLabelDirChooser(response, url);
 						}
 						else {
