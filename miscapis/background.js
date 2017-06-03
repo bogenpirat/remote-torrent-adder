@@ -16,16 +16,7 @@ if(localStorage.getItem("servers") == undefined) {
 			"port": parseInt(localStorage.getItem("port")),
 			"hostsecure": localStorage.getItem("hostsecure") === "true",
 			"login": localStorage.getItem("login"),
-			"password": localStorage.getItem("password"),
-			"client": localStorage.getItem("client"),
-			"ruTorrentrelativepath": localStorage.getItem("ruTorrentrelativepath"),
-			"rutorrentlabel": localStorage.getItem("rutorrentlabel"),
-			"rutorrentdirectory": localStorage.getItem("rutorrentdirectory"),
-			"rutorrentdirlabelask": localStorage.getItem("rutorrentdirlabelask") === "true",
-			"qbittorrentdirlabelask": localStorage.getItem("qbittorrenttorrentdirlabelask") === "true",
-			"rutorrentaddpaused": localStorage.getItem("rutorrentaddpaused") === "true",
-			"torrentfluxrelativepath": localStorage.getItem("torrentfluxrelativepath"),
-			"utorrentrelativepath": localStorage.getItem("utorrentrelativepath")
+			"password": localStorage.getItem("password")
 		});
 	} else { // otherwise, use standard values
 		servers.push({
