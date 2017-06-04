@@ -352,5 +352,7 @@ function saveServersSettings() {
 
 	chrome.extension.sendRequest({"action": "constructContextMenu"});
 	
+	chrome.extension.sendRequest({"action": "registerRefererListeners"});
+	
 	return servers;
 }

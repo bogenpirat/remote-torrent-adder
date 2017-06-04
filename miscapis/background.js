@@ -87,5 +87,66 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	} else if(request.action == "constructContextMenu") {
 		RTA.constructContextMenu();
 		sendResponse({});
-	}
+	} else if(request.action == "registerRefererListeners") {
+		registerReferrerHeaderListeners();
+	} 
 });
+
+//////////////////////////////////////////////////////////
+// CATCH LINKS WHOSE CSRF PROTECTION WE NEED TO CIRCUMVENT
+//////////////////////////////////////////////////////////
+var listeners = [];
+function registerReferrerHeaderListeners() {
+	// unregister old listeners
+	while(listeners.length > 0) {
+		chrome.webRequest.onBeforeSendHeaders.removeListener(listeners.pop());
+	}
+	
+	// register new listeners
+	var servers = JSON.parse(localStorage.getItem("servers"));
+	for(var i in servers) {
+		var server = servers[i];
+		if(server && server.client && server.client == "qBittorrent WebUI") {
+			var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+			
+			var listener = function(details) {
+				var foundReferer = false;
+				var foundOrigin = false;
+				for (var i = 0; i < details.requestHeaders.length; ++i) {
+					if (details.requestHeaders[i].name === 'Referer') {
+						foundReferer = true;
+						details.requestHeaders[i].value = url;
+					}
+					
+					if (details.requestHeaders[i].name === 'Origin') {
+						foundOrigin = true;
+						details.requestHeaders[i].value = url;
+					}
+					
+					if(foundReferer && foundOrigin) {
+						break;
+					}
+				}
+				
+				if(!foundReferer) {
+					details.requestHeaders.push({'name': 'Referer', 'value': url});
+				}
+				
+				if(!foundOrigin) {
+					details.requestHeaders.push({'name': 'Origin', 'value': url});
+				}
+				
+				console.log(details); // TODO
+				return {requestHeaders: details.requestHeaders};
+			}
+			
+			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
+				"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
+			]}, ["blocking", "requestHeaders"]);
+			
+			listeners.push(listener);
+		}
+	}
+}
+
+registerReferrerHeaderListeners();

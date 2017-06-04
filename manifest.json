@@ -5,7 +5,7 @@
 	"version": "1.2.14",
 	"manifest_version": 2,
 	"description": "Add torrents using several programs' WebUIs",
-	"permissions": ["*://*/*","contextMenus","notifications","tabs"],
+	"permissions": ["*://*/*","contextMenus","notifications","tabs","webRequest","webRequestBlocking"],
 	"background": {
 		"scripts": [
 			"miscapis/RTAinit.js",
