@@ -54,6 +54,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 RTA.getTorrent = function(server, url, label, dir) {
 	if(url.substring(0,7) == "magnet:") {
 		RTA.dispatchTorrent(server, url, "", label, dir);
+	} else if (url.split('.').pop() == 'rss') { 
+		RTA.dispatchTorrent(server, url, "", label, dir);
 	} else {
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", url, true);

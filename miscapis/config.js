@@ -97,6 +97,15 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 					<td><input type="checkbox" name="rutorrentaddpaused" /></td>
 				</tr>
 				<tr>
+					<td><span class="title">Automatic RSS Manager rule generation on RSS add?</span></td>
+					<td><input type="checkbox" name="rutorrentautoRSSManagerRule" /></td>
+				</tr>
+				<tr>
+					<td><span class="title">RSS Manager Directory</span><br />(optional)</td>
+					<td><input type="text" name="rutorrentRSSManagerdirectory" /><br />
+					<span class="tip">Directory to store added torrents from RSS. This should be an absolute path, NO trailing slash '/'. It should be inside your default directory for torrents.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Directory list</span><br />(optional)</td>
 					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
 						</select></div>
