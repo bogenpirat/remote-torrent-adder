@@ -267,24 +267,17 @@ function registerGeneralSettingsEvents() {
 	document.querySelector("#showpopups").onclick = function() {
 		flipVisibility(this.id, 'popupduration');
 	};
+
+	document.querySelector("#hearpopups").onchange = function() {
+		setSetting(this, (this.checked) ? 'true' : 'false');
+	};
 	
 	document.querySelector("#popupduration").onkeyup = function() {
 		setSetting(this, this.value);
 	};
 	
 	document.querySelector("#notificationtest").onclick = function() {
-		var opts = { 
-					type: "basic", 
-					iconUrl: "icons/BitTorrent128.png", 
-					title: "This is a test notification",
-					priority: 0,
-					message: "This is a test message!"
-					};
-		var id = Math.floor(Math.random() * 99999) + "";
-		
-		chrome.notifications.create(id, opts, function(myId) { id = myId });
-		
-		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage['popupduration']);
+		RTA.displayResponse("This is a test notification","This is a test message!",false)
 	};
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {

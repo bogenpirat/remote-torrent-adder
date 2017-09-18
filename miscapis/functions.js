@@ -78,6 +78,20 @@ RTA.getTorrent = function(server, url, label, dir) {
 }
 
 
+RTA.audioNotification = function(error) {
+	switch(error) {
+		case false:
+			var sound = new Audio('sounds/success.ogg');
+			break;
+		case true:
+			var sound = new Audio('sounds/failure.ogg');
+			break;
+	}
+
+	sound.play();
+}
+
+
 RTA.displayResponse = function(title, message, error) {
 	if(localStorage.getItem("showpopups") == "true") {
 		var opts = { 
@@ -92,6 +106,9 @@ RTA.displayResponse = function(title, message, error) {
 		chrome.notifications.create(id, opts, function(myId) { id = myId });
 		
 		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage.getItem('popupduration'));
+	}
+	if(localStorage.getItem("hearpopups") == "true") {
+		RTA.audioNotification(error);
 	}
 }
 
