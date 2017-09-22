@@ -30,7 +30,8 @@
 			"webuiapis/HadoukenWebUI.js",
 			"webuiapis/nodejsrtorrentWebUI.js",
 			"webuiapis/SynologyWebUI.js",
-			"webuiapis/floodWebUI.js"
+			"webuiapis/floodWebUI.js",
+			"webuiapis/tTorrentWebUI.js"
 		]
 	},
 	"options_page": "options.html",
