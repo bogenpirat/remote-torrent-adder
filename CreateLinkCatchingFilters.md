@@ -29,7 +29,7 @@ Alternatively: `somesite.com/torrents.php?action=download&id=\d+&authkey=.+?`
 
 ---
 
-As a last step, we will have to make this pattern actually work: some of the characters that were part of the original url are characters that have a specific meaning in regular expressions, those are for the most part "." (dot), "/" (forward slash) and "?" (question mark). To render them inert, we place a "\" (backslash) in front of them - we "escape" them:
+As a last step, we will have to make this pattern actually work: some of the characters that were part of the original url are characters that have a specific meaning in regular expressions, those are for the most part "." (dot), "/" (forward slash) and "?" (question mark). To render them inert, we place a "\\" (backslash) in front of them - we "escape" them:
 
 Finally: `somesite\.com\/torrents\.php\?action=download&id=\d+`
 
