@@ -50,7 +50,7 @@ RTA.constructContextMenu();
 ////////////////////
 // GRAB FROM NEW TAB
 ////////////////////
-chrome.tabs.onCreated.addListener(function(tab) {
+browser.tabs.onCreated.addListener(function(tab) {
 	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
 	if(localStorage.getItem("catchfromnewtab") != "true") return;
 	res = localStorage.getItem('linkmatches').split('~');
@@ -67,7 +67,7 @@ chrome.tabs.onCreated.addListener(function(tab) {
 /////////////////////////////////////////////////////
 // OVERWRITE THE CLICK-EVENT OF LINKS WE WANT TO GRAB
 /////////////////////////////////////////////////////
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
 	if(request.action == "addTorrent") {
 		if(request.server) {
@@ -82,7 +82,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			localStorage.setItem(x, request.data[x]);
 		sendResponse({});
 	} else if(request.action == "pageActionToggle") {
-		chrome.pageAction.show(sender.tab.id);
+		browser.pageAction.show(sender.tab.id);
 		sendResponse({});
 	} else if(request.action == "constructContextMenu") {
 		RTA.constructContextMenu();
@@ -99,7 +99,7 @@ var listeners = [];
 function registerReferrerHeaderListeners() {
 	// unregister old listeners
 	while(listeners.length > 0) {
-		chrome.webRequest.onBeforeSendHeaders.removeListener(listeners.pop());
+		browser.webRequest.onBeforeSendHeaders.removeListener(listeners.pop());
 	}
 	
 	// register new listeners
@@ -140,7 +140,7 @@ function registerReferrerHeaderListeners() {
 				return {requestHeaders: details.requestHeaders};
 			}
 			
-			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
+			browser.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
 				"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
 			]}, ["blocking", "requestHeaders"]);
 			
