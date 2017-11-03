@@ -8,12 +8,12 @@
 	"permissions": ["*://*/*","contextMenus","notifications","tabs","webRequest","webRequestBlocking"],
 	"background": {
 		"scripts": [
-			"miscapis/RTAinit.js",
-			"miscapis/browser.js",
-			"miscapis/functions.js",
-			"miscapis/background.js",
-			"miscapis/config.js",
-			"miscapis/base64.js",
+			"appapis/RTAinit.js",
+			"appapis/browser.js",
+			"appapis/functions.js",
+			"appapis/background.js",
+			"appapis/config.js",
+			"appapis/base64.js",
 			"webuiapis/VuzeSwingUI.js",
 			"webuiapis/TorrentfluxWebUI.js",
 			"webuiapis/TransmissionWebUI.js",
@@ -34,7 +34,9 @@
 			"webuiapis/tTorrentWebUI.js"
 		]
 	},
-	"options_page": "options.html",
+	"options_ui": {
+		"page": "options.html"
+	},
 	"page_action": {
 		"default_icon": "icons/BitTorrent16.png"
 	},
