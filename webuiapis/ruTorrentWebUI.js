@@ -27,7 +27,7 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*addTorrentSuccess.*/.exec(xhr.responseText)) {
-				RTA.displayResponse("Success", "Torrent added successfully.");
+				RTA.displayResponse("Success", "Torrent successfully added.");
 			} else {
 				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
 			}
