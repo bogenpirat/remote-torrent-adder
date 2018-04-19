@@ -44,8 +44,8 @@
 		{
 		"matches": ["*://*/*"],
 		"js": [
-			"miscapis/modal.js",
-			"miscapis/content_rta.js"
+			"appapis/modal.js",
+			"appapis/content_rta.js"
 		],
 		"css": [
 			"modal.css"
@@ -54,5 +54,5 @@
 		"all_frames": true
 		}
 	],
-	"web_accessible_resources": [ "icons/White_X_in_red_background.svg", "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
+	"web_accessible_resources": [ "icons/White_X_in_red_background.svg", "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "shared/jquery-2.0.3.min.map", "fancybox/*" ]
 }
