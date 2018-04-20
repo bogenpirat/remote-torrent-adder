@@ -1,6 +1,9 @@
 ///////////////////////////////////////////////////////
 // TAKE CARE OF EXTENSION SETTINGS. VIRGIN/OLD INSTALL?
 ///////////////////////////////////////////////////////
+
+// TODO: Port this to storage API.
+// 
 if(localStorage.getItem("servers") == undefined) {
 	var servers = [];
 
@@ -46,11 +49,10 @@ if(localStorage.getItem("servers") == undefined) {
 RTA.constructContextMenu();
 
 
-
 ////////////////////
 // GRAB FROM NEW TAB
 ////////////////////
-browser.tabs.onCreated.addListener(function(tab) {
+chrome.tabs.onCreated.addListener(function(tab) {
 	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
 	if(localStorage.getItem("catchfromnewtab") != "true") return;
 	res = localStorage.getItem('linkmatches').split('~');
@@ -67,7 +69,7 @@ browser.tabs.onCreated.addListener(function(tab) {
 /////////////////////////////////////////////////////
 // OVERWRITE THE CLICK-EVENT OF LINKS WE WANT TO GRAB
 /////////////////////////////////////////////////////
-browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
 	if(request.action == "addTorrent") {
 		if(request.server) {
@@ -82,7 +84,7 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			localStorage.setItem(x, request.data[x]);
 		sendResponse({});
 	} else if(request.action == "pageActionToggle") {
-		browser.pageAction.show(sender.tab.id);
+		chrome.pageAction.show(sender.tab.id);
 		sendResponse({});
 	} else if(request.action == "constructContextMenu") {
 		RTA.constructContextMenu();
@@ -99,7 +101,7 @@ var listeners = [];
 function registerReferrerHeaderListeners() {
 	// unregister old listeners
 	while(listeners.length > 0) {
-		browser.webRequest.onBeforeSendHeaders.removeListener(listeners.pop());
+		chrome.webRequest.onBeforeSendHeaders.removeListener(listeners.pop());
 	}
 	
 	// register new listeners
@@ -140,7 +142,7 @@ function registerReferrerHeaderListeners() {
 				return {requestHeaders: details.requestHeaders};
 			}
 			
-			browser.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
+			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
 				"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
 			]}, ["blocking", "requestHeaders"]);
 			

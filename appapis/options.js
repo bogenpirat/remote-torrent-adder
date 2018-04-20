@@ -282,9 +282,9 @@ function registerGeneralSettingsEvents() {
 					};
 		var id = Math.floor(Math.random() * 99999) + "";
 		
-		browser.notifications.create(id, opts, function(myId) { id = myId });
+		chrome.notifications.create(id, opts, function(myId) { id = myId });
 		
-		setTimeout(function(){browser.notifications.clear(id, function() {});}, localStorage['popupduration']);
+		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage['popupduration']);
 	};
 	
 	document.querySelector("#catchfromcontextmenu").onchange = function() {
@@ -350,9 +350,9 @@ function saveServersSettings() {
 
 	localStorage.setItem("servers", JSON.stringify(servers))
 
-	browser.runtime.sendMessage({"action": "constructContextMenu"});
+	chrome.runtime.sendReuqest({"action": "constructContextMenu"});
 	
-	browser.runtime.sendMessage({"action": "registerRefererListeners"});
+	chrome.runtime.sendReuqest({"action": "registerRefererListeners"});
 	
 	return servers;
 }
