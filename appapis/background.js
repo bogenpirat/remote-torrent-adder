@@ -2,17 +2,39 @@
 // TAKE CARE OF EXTENSION SETTINGS. VIRGIN/OLD INSTALL?
 ///////////////////////////////////////////////////////
 
-// TODO: Port this to storage API.
-// 
-if(localStorage.getItem("servers") == undefined) {
-	var servers = [];
 
-	// check if there's an old configuration, convert it to the new style
+function checkStorage() {
+	let temp;
+	let i;
+	let brokenflag = false;
+
+	temp = JSON.parse(localStorage.getItem("servers"));
+
+	//legacy 
 	if(localStorage.getItem("host") != undefined &&
-	   localStorage.getItem("port") != undefined &&
-	   localStorage.getItem("login") != undefined &&
-	   localStorage.getItem("password") != undefined &&
-	   localStorage.getItem("client") != undefined) {
+		localStorage.getItem("port") != undefined &&
+		localStorage.getItem("login") != undefined &&
+		localStorage.getItem("password") != undefined &&
+		localStorage.getItem("client") != undefined) {
+		return 1;
+	}
+	//current
+	else if(localStorage.getItem("servers") != undefined){
+		for(num in temp){
+			for(key in temp[num]){
+				if(key == undefined)
+					if(!brokenflag)
+						brokenflag = true}
+				}
+			if(!brokenflag)
+				return 2;
+		}
+}
+
+chrome.storage.sync.get(['servers'], (result) => {
+	var servers = [];
+	switch(checkStorage()){
+		case 1:
 		servers.push({
 			"name": "primary host",
 			"host": localStorage.getItem("host"),
@@ -21,27 +43,56 @@ if(localStorage.getItem("servers") == undefined) {
 			"login": localStorage.getItem("login"),
 			"password": localStorage.getItem("password")
 		});
-	} else { // otherwise, use standard values
-		servers.push({
-			"name": "PRIMARY SERVER",
-			"host": "127.0.0.1",
-			"port": 6883,
-			"hostsecure": "",
-			"login": "login",
-			"password": "password",
-			"client": "Vuze SwingUI"
-		});
-		localStorage.setItem("linksfoundindicator", "true");
-		localStorage.setItem("showpopups", "true");
-		localStorage.setItem("popupduration", "2000");
-		localStorage.setItem("catchfromcontextmenu", "true");
-		localStorage.setItem("catchfrompage", "true");
-		localStorage.setItem("linkmatches", "([\\]\\[]|\\b|\\.)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download");
+		for(key in servers[0])
+			localStorage.removeItem(key);
+		chrome.storage.sync.set({"servers":servers});
+		break;
+
+		case 2:
+		let temp = JSON.parse(localStorage.getItem("servers"));
+		if(!result.servers.length)
+			servers = temp
+		else
+			for(i in result.servers)
+				for(num in temp)
+					if(temp[num].name != result.servers[i].name)
+						servers = temp[num];
+		localStorage.removeItem("servers");
+		chrome.storage.sync.set({"servers":servers});
+		break;
+
+		default:
+		if(!servers.length && !Array.isArray(result.servers) || !result.servers.length){
+			servers.push({
+				"name": "Default",
+				"host": "127.0.0.1",
+				"port": 80,
+				"hostsecure": "true",
+				"login": "user",
+				"password": "password",
+				"client": "ruTorrent WebUI"
+			});
+			chrome.storage.sync.set({"servers":servers});
+		}
+		break;
 	}
-	localStorage.setItem("servers", JSON.stringify(servers));
-}
+});
 
+chrome.storage.sync.get(['global'], (result) => {
+	let global = result.global;
 
+	if(!global || Object.keys(global).length === 0){
+		global = {
+			linksfoundindicator:"true",
+			showpopups: "true",
+			popupduration: "2000",
+			catchfromcontextmenu:"true",
+			catchfrompage: "true",
+			linkmatches: "([\\]\\[]|\\b|\\.)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download"
+		};
+		chrome.storage.sync.set({'global':global});
+	}
+});
 
 //////////////////////////////////////////////////////
 // REGISTER CONTEXT (RIGHT-CLICK) MENU ITEMS FOR LINKS
@@ -144,7 +195,7 @@ function registerReferrerHeaderListeners() {
 			
 			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
 				"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
-			]}, ["blocking", "requestHeaders"]);
+				]}, ["blocking", "requestHeaders"]);
 			
 			listeners.push(listener);
 		}
