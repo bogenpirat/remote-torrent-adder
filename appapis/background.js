@@ -104,15 +104,20 @@ RTA.constructContextMenu();
 // GRAB FROM NEW TAB
 ////////////////////
 chrome.tabs.onCreated.addListener(function(tab) {
-	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
-	if(localStorage.getItem("catchfromnewtab") != "true") return;
-	res = localStorage.getItem('linkmatches').split('~');
-	for(mkey in res) {
-		if (tab.url.match(new RegExp(res[mkey], "g"))) {
-			RTA.getTorrent(server, tab.url);
-			break;
-		}
-	}
+	chrome.storage.sync.get(['servers'], (result) => {
+		server = result.servers[0]; // primary server
+		chrome.storage.sync.get(['global'], (result) => {
+			global = result.global
+			if(global["catchfromnewtab"] != "true") return;
+			res = global['linkmatches'].split('~');
+			for(mkey in res) {
+				if (tab.url.match(new RegExp(res[mkey], "g"))) {
+					RTA.getTorrent(server, tab.url);
+					break;
+				}
+			}
+		});
+	});
 });
 
 
@@ -121,28 +126,32 @@ chrome.tabs.onCreated.addListener(function(tab) {
 // OVERWRITE THE CLICK-EVENT OF LINKS WE WANT TO GRAB
 /////////////////////////////////////////////////////
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
-	if(request.action == "addTorrent") {
-		if(request.server) {
-			server = request.server;
-		}
-		RTA.getTorrent(server, request.url, request.label, request.dir);
-		sendResponse({});
-	} else if(request.action == "getStorageData") {
-		sendResponse(localStorage);
-	} else if(request.action == "setStorageData") {
-		for(x in request.data)
-			localStorage.setItem(x, request.data[x]);
-		sendResponse({});
-	} else if(request.action == "pageActionToggle") {
-		chrome.pageAction.show(sender.tab.id);
-		sendResponse({});
-	} else if(request.action == "constructContextMenu") {
-		RTA.constructContextMenu();
-		sendResponse({});
-	} else if(request.action == "registerRefererListeners") {
-		registerReferrerHeaderListeners();
-	} 
+	chrome.storage.sync.get(['servers'], (result) => {
+		server = result.servers[0]; // primary server
+		if(request.action == "addTorrent") {
+			if(request.server) {
+				server = request.server;
+			}
+			RTA.getTorrent(server, request.url, request.label, request.dir);
+			sendResponse({});
+		} else if(request.action == "getStorageData") {
+			let settings = result.global;
+			settings.servers = servers;
+			sendResponse(settings);
+		} else if(request.action == "setStorageData") {
+			for(x in request.data)
+				chrome.storage.sync.set({x, request.data[x]});
+			sendResponse({});
+		} else if(request.action == "pageActionToggle") {
+			chrome.pageAction.show(sender.tab.id);
+			sendResponse({});
+		} else if(request.action == "constructContextMenu") {
+			RTA.constructContextMenu();
+			sendResponse({});
+		} else if(request.action == "registerRefererListeners") {
+			registerReferrerHeaderListeners();
+		} 
+	});
 });
 
 //////////////////////////////////////////////////////////
@@ -156,39 +165,40 @@ function registerReferrerHeaderListeners() {
 	}
 	
 	// register new listeners
-	var servers = JSON.parse(localStorage.getItem("servers"));
-	for(var i in servers) {
-		var server = servers[i];
-		if(server && server.client && server.client == "qBittorrent WebUI") {
-			var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
-			
-			var listener = function(details) {
-				var foundReferer = false;
-				var foundOrigin = false;
-				for (var i = 0; i < details.requestHeaders.length; ++i) {
-					if (details.requestHeaders[i].name === 'Referer') {
-						foundReferer = true;
-						details.requestHeaders[i].value = url;
+	chrome.storage.sync.get(['servers'], (result) => {
+		servers = result.servers;
+		for(var i in servers) {
+			var server = servers[i];
+			if(server && server.client && server.client == "qBittorrent WebUI") {
+				var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+
+				var listener = function(details) {
+					var foundReferer = false;
+					var foundOrigin = false;
+					for (var i = 0; i < details.requestHeaders.length; ++i) {
+						if (details.requestHeaders[i].name === 'Referer') {
+							foundReferer = true;
+							details.requestHeaders[i].value = url;
+						}
+
+						if (details.requestHeaders[i].name === 'Origin') {
+							foundOrigin = true;
+							details.requestHeaders[i].value = url;
+						}
+
+						if(foundReferer && foundOrigin) {
+							break;
+						}
 					}
-					
-					if (details.requestHeaders[i].name === 'Origin') {
-						foundOrigin = true;
-						details.requestHeaders[i].value = url;
+
+					if(!foundReferer) {
+						details.requestHeaders.push({'name': 'Referer', 'value': url});
 					}
-					
-					if(foundReferer && foundOrigin) {
-						break;
+
+					if(!foundOrigin) {
+						details.requestHeaders.push({'name': 'Origin', 'value': url});
 					}
-				}
-				
-				if(!foundReferer) {
-					details.requestHeaders.push({'name': 'Referer', 'value': url});
-				}
-				
-				if(!foundOrigin) {
-					details.requestHeaders.push({'name': 'Origin', 'value': url});
-				}
-				
+
 				console.log(details); // TODO
 				return {requestHeaders: details.requestHeaders};
 			}
@@ -200,6 +210,8 @@ function registerReferrerHeaderListeners() {
 			listeners.push(listener);
 		}
 	}
+});
+
 }
 
 registerReferrerHeaderListeners();
