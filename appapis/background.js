@@ -128,6 +128,7 @@ chrome.tabs.onCreated.addListener(function(tab) {
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	chrome.storage.sync.get(['servers'], (result) => {
 		server = result.servers[0]; // primary server
+		var servers = result.servers;
 		if(request.action == "addTorrent") {
 			if(request.server) {
 				server = request.server;
@@ -135,12 +136,14 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			RTA.getTorrent(server, request.url, request.label, request.dir);
 			sendResponse({});
 		} else if(request.action == "getStorageData") {
-			let settings = result.global;
-			settings.servers = servers;
-			sendResponse(settings);
+			chrome.storage.sync.get(['global'], (result) => {
+				let settings = result.global;
+				settings.servers = servers;
+				sendResponse(settings);
+			});
 		} else if(request.action == "setStorageData") {
-			for(x in request.data)
-				chrome.storage.sync.set({x, request.data[x]});
+			for(let x in request.data)
+				chrome.storage.sync.set({x:request.data[x]});
 			sendResponse({});
 		} else if(request.action == "pageActionToggle") {
 			chrome.pageAction.show(sender.tab.id);
