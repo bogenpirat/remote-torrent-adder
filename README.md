@@ -20,11 +20,8 @@ It supports the following BitTorrent clients:
 
 
 ## How do i get it running?
-Given that this is a fork, it does not exist on chrome's extension store, you have to do it like this:
-1. Download the source - Either via the web/download utility or via git
-2. Unzip
-3. Go to extensions in chrome/chromium-like browser 
-4. Enable Developer mode 
-5. Then there should be: "Load unpacked extension" - Click that and locate your extension folder
+To get this set up, follow these steps:
 
-It should now be loaded.
+1. Get the extension added to your Chrome Browser by visiting https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci.
+2. Open the extension's options through Chrome's wrench menu and set your server's info
+3. If just clicking a link doesn't add the torrent to your client, but downloads it locally to your disk, also look at the "Link Catching" tab in the settings page and consult this project's wiki for a short tutorial on how to fix it.
