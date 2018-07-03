@@ -6,7 +6,7 @@ var rta_modal_init = function() {
 	{
 	  var modalWrapper = document.getElementById("rta_modal_wrapper");
 	  var modalWindow  = document.getElementById("rta_modal_window");
-	  modalWrapper.className = "overlay";
+	  modalWrapper.className = "overlay_rta";
 	  var overflow = modalWindow.offsetHeight - document.documentElement.clientHeight;
 	  if(overflow > 0) {
 		modalWindow.style.maxHeight = (parseInt(window.getComputedStyle(modalWindow).height) - overflow) + "px";
