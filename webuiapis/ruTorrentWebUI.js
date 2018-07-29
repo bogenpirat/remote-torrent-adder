@@ -23,10 +23,14 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	if(server.rutorrentaddpaused)
 		url += "&torrents_start_stopped=1";
 	
+	// ruTorrent seems to have different authentication methods sometimes - add both
 	xhr.open("POST", url, true, server.login, server.password);
+	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
+
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(/.*addTorrentSuccess.*/.exec(xhr.responseText)) {
+			// Some hosts override the response page, but the url contains the success code
+			if(/.*addTorrentSuccess.*/.exec(xhr.responseText) || /.*result\[\]=Success.*/.exec(xhr.responseURL)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
 				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
