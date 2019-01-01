@@ -1,21 +1,14 @@
 RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
-	var target;
-	if(data.substring(0,7) == "magnet:")
-		target = "download";
-	else
-		target = "upload";
-	
-	
 	var rootUrl = (server.hostsecure ? "https" : "http") + "://" + server.host + ":" + server.port;
 	
 	var loginXhr = new XMLHttpRequest();
-	loginXhr.open("POST", rootUrl + "/login", true);
+	loginXhr.open("POST", rootUrl + "/api/v2/auth/login", true);
 	loginXhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
 	loginXhr.send("username=" + encodeURIComponent(server.login) + "&password=" + encodeURIComponent(server.password));
 	loginXhr.onreadystatechange = function() {
 		if(loginXhr.readyState == 4) {
 			xhr = new XMLHttpRequest();
-			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/command/" + target, true, server.login, server.password);
+			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/api/v2/torrents/add", true, server.login, server.password);
 			xhr.onreadystatechange = function(data) {
 				if(xhr.readyState == 4 && xhr.status == 200) {
 					RTA.displayResponse("Success", "Torrent added successfully.");
