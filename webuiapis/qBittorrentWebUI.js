@@ -51,7 +51,7 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
 
 			xhr.sendAsBinary(message);
 		}
-		else
+		else if(loginXhr.readyState == 4 && loginXhr.status != 200)
 		{
 		 	RTA.displayResponse("Failure", "Unable to Authenticate with Server. HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
