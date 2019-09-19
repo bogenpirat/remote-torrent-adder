@@ -165,7 +165,39 @@ $(document).ready(function(){
 								$(this).parents("td").find("select[name=labellist] option:selected").remove();
 								saveServersSettings();
 							});
-						break;
+							break;
+						case "autolabellist":
+							var thisTd = $(mySettingInput).parents("td");
+							thisTd.find("button[name=addautolabelbutton]").click(function() {
+								var answer = prompt("Enter a new tracker url / label combination like this:\nSOMETRACKER.COM,SOMELABEL");
+								if(answer !== null) {
+									$(this).parents("td").find("select[name=autolabellist]").append($("<option>", {
+										text: answer
+									}));
+									saveServersSettings();
+								}
+							});
+							thisTd.find("button[name=delautolabelbutton]").click(function() {
+								$(this).parents("td").find("select[name=autolabellist] option:selected").remove();
+								saveServersSettings();
+							});
+							break;
+						case "autodirlist":
+							var thisTd = $(mySettingInput).parents("td");
+							thisTd.find("button[name=addautodirbutton]").click(function() {
+								var answer = prompt("Enter a new tracker url / directory combination like this:\nSOMETRACKER.COM,SOMEDIRECTORY");
+								if(answer !== null) {
+									$(this).parents("td").find("select[name=autodirlist]").append($("<option>", {
+										text: answer
+									}));
+									saveServersSettings();
+								}
+							});
+							thisTd.find("button[name=delautodirbutton]").click(function() {
+								$(this).parents("td").find("select[name=autodirlist] option:selected").remove();
+								saveServersSettings();
+							});
+							break;
 					}
 				}
 			}

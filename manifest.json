@@ -10,6 +10,8 @@
 		"scripts": [
 			"miscapis/RTAinit.js",
 			"miscapis/browser.js",
+			"miscapis/safe-buffer.js",
+			"miscapis/bencode.js",
 			"miscapis/functions.js",
 			"miscapis/background.js",
 			"miscapis/config.js",
@@ -30,7 +32,8 @@
 			"webuiapis/HadoukenWebUI.js",
 			"webuiapis/nodejsrtorrentWebUI.js",
 			"webuiapis/SynologyWebUI.js",
-			"webuiapis/floodWebUI.js"
+			"webuiapis/floodWebUI.js",
+			"webuiapis/tTorrentWebUI.js"
 		]
 	},
 	"options_page": "options.html",
