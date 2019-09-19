@@ -159,3 +159,38 @@ RTA.genericOnClick = function(info, tab) {
 		}
 	}
 }
+
+
+RTA.extractTorrentInfo = function(data) {
+	var info = {};
+
+	var buf = Buffer.Buffer.from(data, 'ascii');
+	var decoded = Bencode.decode(buf, 'utf8');
+
+	info.trackers = new Set();
+	info.trackers.add(decoded["announce"]);
+	if(!!decoded["announce-list"] && !!decoded["announce-list"].length > 0) {
+		for(var i = 0; i < decoded["announce-list"].length; i++) {
+			if(Array.isArray(decoded["announce-list"][i])) {
+				for(var j = 0; j < decoded["announce-list"][i].length; j++) {
+					info.trackers.add(decoded["announce-list"][i][j]);
+				}
+			}
+		}
+	}
+
+	info.name = decoded["info"]["name"];
+	info.files = [];
+	if(decoded["info"]["files"]) {
+		for(var i = 0; i < decoded["info"]["files"].length; i++) {
+			var thisFilePath = decoded["info"]["files"][i]["path"];
+			info.files.push(thisFilePath[thisFilePath.length - 1]);
+		}
+	} else {
+		info.files.push(info.name);
+	}
+
+	info.private = decoded["info"]["private"] === 1 ? true : false;
+
+	return info;
+}

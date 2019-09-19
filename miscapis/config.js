@@ -112,6 +112,28 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 						<button name="dellabelbutton">-</button></div><br style="clear:both;" />
 						<span class="tip">Labels to use for adding torrents.</span></td>
 				</tr>
+				<tr>
+					<td><span class="title">Auto-Labelling</span><br />(optional)</td>
+					<td><div style="float: left"><select name="autolabellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addautolabelbutton">+</button><br />
+						<button name="delautolabelbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Define labels to be automatically assigned by parsing tracker <strong>Announce URLs</strong>. These are not the domain on the web, but the one set inside the .torrent file. You can find out about them by checking the details of a .torrent file in your torrent client. Format is as follows:</span><br />
+						<span class="tip" style="font-family: Courier New;">&lt;tracker url&gt;,&lt;label to assign&gt;</span><br />
+						<span class="tip">e.g.:</span><br />
+						<span class="tip" style="font-family: Courier New;">torrent.ubuntu.com,Linux Distros</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Auto-Directory</span><br />(optional)</td>
+					<td><div style="float: left"><select name="autodirlist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addautodirbutton">+</button><br />
+						<button name="delautodirbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Define directories to be automatically assigned by parsing tracker <strong>Announce URLs</strong>. These are not the domain on the web, but the one set inside the .torrent file. You can find out about them by checking the details of a .torrent file in your torrent client. Format is as follows:</span><br />
+						<span class="tip" style="font-family: Courier New;">&lt;tracker url&gt;,&lt;directory to assign&gt;</span><br />
+						<span class="tip">e.g.:</span><br />
+						<span class="tip" style="font-family: Courier New;">torrent.ubuntu.com,/media/library/linux-distros/</span></td>
+				</tr>
 			</tbody>
 			*/});
 

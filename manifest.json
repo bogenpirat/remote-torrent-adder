@@ -10,6 +10,8 @@
 		"scripts": [
 			"miscapis/RTAinit.js",
 			"miscapis/browser.js",
+			"miscapis/safe-buffer.js",
+			"miscapis/bencode.js",
 			"miscapis/functions.js",
 			"miscapis/background.js",
 			"miscapis/config.js",
