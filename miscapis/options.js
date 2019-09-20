@@ -206,7 +206,7 @@ $(document).ready(function(){
 });
 
 function loadGeneralSettings() {
-	var e = document.querySelectorAll("#linksfoundindicator,#showpopups,#popupduration,#catchfromcontextmenu,#catchfrompage,#linkmatches,#catchfromnewtab,#registerDelay")
+	var e = document.querySelectorAll("#linksfoundindicator,#showpopups,#popupduration,#hearpopups,#catchfromcontextmenu,#catchfrompage,#linkmatches,#catchfromnewtab,#registerDelay")
 	for (key in e) {
 		getSetting(e[key]);
 	}
