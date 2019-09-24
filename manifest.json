@@ -25,6 +25,7 @@
 			"webuiapis/VuzeRemoteUI.js",
 			"webuiapis/BuffaloWebUI.js",
 			"webuiapis/qBittorrentWebUI.js",
+			"webuiapis/qBittorrentWebUI-v2.js",
 			"webuiapis/QnapDownloadStation.js",
 			"webuiapis/DelugeWebUI.js",
 			"webuiapis/pyrtWebUI.js",

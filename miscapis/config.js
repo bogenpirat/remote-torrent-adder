@@ -7,7 +7,8 @@ RTA.clients.config.getConfig = function(client, name) {
 		"Hadouken WebUI" : RTA.clients.config.hadouken,
 		"flood WebUI" : RTA.clients.config.flood,
 		"QNAP DownloadStation" : RTA.clients.config.qnap,
-		"qBittorrent WebUI" : RTA.clients.config.qbittorrent
+		"qBittorrent WebUI" : RTA.clients.config.qbittorrent,
+		"qBittorrent v4.1+ WebUI" : RTA.clients.config.qbittorrentv2
 	};
 	
 	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
@@ -214,6 +215,16 @@ RTA.clients.config.qbittorrent = multiline(function(){/*
 				<tr>
 					<td><span class="title">Label/Directory<br/>interactivity</span></td>
 					<td><input type="checkbox" name="qbittorrentdirlabelask" /><br />
+						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.qbittorrentv2 = multiline(function(){/*
+			<tbody name="qbittorrentv2specifics" class="specifics">
+				<tr>
+					<td><span class="title">Label/Directory<br/>interactivity</span></td>
+					<td><input type="checkbox" name="qbittorrentv2dirlabelask" /><br />
 						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
 				</tr>
 			</tbody>

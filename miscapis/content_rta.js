@@ -68,6 +68,9 @@ function registerLinks(response) {
 						else if (server["qbittorrentdirlabelask"] && server["client"]=="qBittorrent WebUI") {
 							showLabelDirChooser(response, url);
 						}
+						else if (server["qbittorrentv2dirlabelask"] && server["client"]=="qBittorrent v4.1+ WebUI") {
+							showLabelDirChooser(response, url);
+						}
 						else {
 							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined});
 						}

@@ -49,6 +49,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.qnapDownloadStationAdder(server, data, name); break;
 		case "tTorrent WebUI":
 			RTA.clients.tTorrentAdder(server, data, name); break;
+		case "qBittorrent v4.1+ WebUI":
+			RTA.clients.qBittorrentV2Adder(server, data, name, label, dir); break;
 	}
 }
 
@@ -172,6 +174,9 @@ RTA.genericOnClick = function(info, tab) {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		}
 		else if (server.qbittorrentlabelask == true && server.client == "qBittorrent WebUI") {
+			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
+		} 
+		else if (server.qbittorrentv2labelask == true && server.client == "qBittorrent v4.1+ WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		} 
 		else {

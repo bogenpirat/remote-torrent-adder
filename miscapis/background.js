@@ -106,7 +106,7 @@ function registerReferrerHeaderListeners() {
 	var servers = JSON.parse(localStorage.getItem("servers"));
 	for(var i in servers) {
 		var server = servers[i];
-		if(server && server.client && server.client == "qBittorrent WebUI") {
+		if(server && server.client && (server.client == "qBittorrent WebUI" || server.client == "qBittorrent v4.1+ WebUI")) {
 			var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
 			
 			var listener = function(details) {
@@ -136,13 +136,14 @@ function registerReferrerHeaderListeners() {
 					details.requestHeaders.push({'name': 'Origin', 'value': url});
 				}
 				
-				console.log(details); // TODO
 				return {requestHeaders: details.requestHeaders};
 			}
 			
-			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
-				"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
-			]}, ["blocking", "requestHeaders"]);
+			if(server.host && server.port) {
+				chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
+					"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
+				]}, ["blocking", "requestHeaders"]);
+			}
 			
 			listeners.push(listener);
 		}
