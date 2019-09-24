@@ -73,7 +73,7 @@ autoDirectory:
 	xhr.open("POST", url, true, server.login, server.password);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(/.*addTorrentSuccess.*/.exec(xhr.responseText)) {
+			if(/.*addTorrentSuccess.*/.exec(xhr.responseText) || /.*result\[\]=Success.*/.exec(xhr.responseURL)) {
 				RTA.displayResponse("Success", "Torrent added successfully.");
 			} else {
 				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
