@@ -13,9 +13,12 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 	var dir = server.flooddirectory;
 	var paused = server.floodaddpaused;
 
+	scheme += server.host ? server.host : "";
+	scheme += server.port ? (":" + server.port) : "";
+
 	// run the login first
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", scheme + server.host + ":" + server.port + "/auth/authenticate", false);
+	xhr.open("POST", scheme + "/auth/authenticate", false);
 	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 	var loginMsg = JSON.stringify({"username": server.login, "password": server.password});
 	xhr.send(loginMsg);
@@ -30,14 +33,14 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
-		mxhr.open("POST", scheme + server.host + ":" + server.port + "/api/client/add", true);
+		mxhr.open("POST", scheme + "/api/client/add", true);
 		mxhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
 		mxhr.onreadystatechange = flood_handleResponse;
 		var message = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir: undefined) });
 		mxhr.send(message);
 	} else {
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + "/api/client/add-files", true);
+		xhr.open("POST", scheme + "/api/client/add-files", true);
 		xhr.onreadystatechange = flood_handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
