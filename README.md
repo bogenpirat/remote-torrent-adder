@@ -25,3 +25,22 @@ To get this set up, follow these steps:
 1. Get the extension added to your Chrome Browser by visiting https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci.
 2. Open the extension's options through Chrome's wrench menu and set your server's info
 3. If just clicking a link doesn't add the torrent to your client, but downloads it locally to your disk, also look at the "Link Catching" tab in the settings page and consult this project's wiki for a short tutorial on how to fix it.
+
+V2 Fix
+go to chrome://extensions and in RTA's field click on inspect views: background page, you can use the console tab to run the following command to duplicate/convert all current qBt v1 server configs to qBt v2 configs:
+
+var oldServers = JSON.parse(localStorage.getItem("servers"));
+for(var i = 0; i < oldServers.length; i++) {
+  var server = oldServers[i];
+  if(server["client"] == "qBittorrent WebUI") {
+    var newServer = Object.assign({}, server);
+
+    newServer["client"] = "qBittorrent v4.1+ WebUI";
+    newServer["name"] += " v2";
+    newServer["qbittorrentv2dirlabelask"] = newServer["qbittorrentdirlabelask"];
+
+    oldServers.push(newServer);
+
+    localStorage.setItem("servers", JSON.stringify(oldServers));
+  }
+}
