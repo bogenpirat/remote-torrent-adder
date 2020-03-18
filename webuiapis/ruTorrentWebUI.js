@@ -70,7 +70,8 @@ autoDirectory:
 	if(server.rutorrentaddpaused)
 		url += "&torrents_start_stopped=1";
 	
-	xhr.open("POST", url, true, server.login, server.password);
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader('Authorization', 'Basic ' + btoa(server.login + ":" + server.password));
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(/.*addTorrentSuccess.*/.exec(xhr.responseText) || /.*result\[\]=Success.*/.exec(xhr.responseURL)) {
