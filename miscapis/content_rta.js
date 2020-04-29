@@ -62,13 +62,16 @@ function registerLinks(response) {
 						var servers = JSON.parse(response.servers);
 						var server = servers[0];
 
-						if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI") {
+						if(server["flooddirtagask"] && server["client"]=="flood WebUI") {
 							showLabelDirChooser(response, url);
 						}
-						else if (server["qbittorrentdirlabelask"] && server["client"]=="qBittorrent WebUI") {
+						else if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI") {
 							showLabelDirChooser(response, url);
 						}
-						else if (server["qbittorrentv2dirlabelask"] && server["client"]=="qBittorrent v4.1+ WebUI") {
+						else if(server["qbittorrentdirlabelask"] && server["client"]=="qBittorrent WebUI") {
+							showLabelDirChooser(response, url);
+						}
+						else if(server["qbittorrentv2dirlabelask"] && server["client"]=="qBittorrent v4.1+ WebUI") {
 							showLabelDirChooser(response, url);
 						}
 						else {

@@ -1,5 +1,7 @@
-RTA.clients.floodAdder = function(server, torrentdata) {
-	var dir = server.flooddirectory;
+RTA.clients.floodAdder = function(server, data, tags, dir) {
+	if(tags == undefined) tags = server.floodtags;
+	if(dir == undefined) dir = server.flooddirectory;
+
 	var paused = server.floodaddpaused;
 
 	var apiUrl = (server.hostsecure ? "https://" : "http://") + server.host + ":" + server.port;
@@ -23,7 +25,7 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 			if(torrentdata.substring(0,7) == "magnet:") {
 				apiUrl += "/api/client/add";
 				fetchOpts.headers = { "Content-Type": "application/json; charset=UTF-8" };
-				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir: undefined) });
+				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "tags": (!!tags ? tags: undefined), "destination": (!!dir ? dir: undefined) });
 			} else {
 				const dataBlob = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
 
@@ -31,7 +33,9 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 
 				fetchOpts.body = new FormData();
 				fetchOpts.body.append("torrents", dataBlob, "file.torrent");
-				fetchOpts.body.append("tags", "");
+				if(tags != undefined && tags.length > 0) {
+					fetchOpts.body.append("tags", tags);
+				}
 				if(dir != undefined && dir.length > 0) {
 					fetchOpts.body.append("destination", dir);
 				}
