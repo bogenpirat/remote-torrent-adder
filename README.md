@@ -17,6 +17,7 @@ It supports the following BitTorrent clients:
   * Hadouken
   * Synology Downloadstation
   * QNAP DownloadStation
+  * tTorrent (Android)
 
 
 ## How do i get it running?
