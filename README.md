@@ -13,7 +13,7 @@ It supports the following BitTorrent clients:
   * rtorrent (ruTorrent, pyrt, NodeJS-rTorrent, flood)
   * Torrentflux
   * Buffalo built-in torrent client
-  * Tixati
+  * ~~Tixati~~ (broken - Chrome abandoned HTTP Digest Auth)
   * Hadouken
   * Synology Downloadstation
   * QNAP DownloadStation
