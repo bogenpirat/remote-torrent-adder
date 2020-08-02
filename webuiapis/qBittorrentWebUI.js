@@ -15,7 +15,8 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
 	loginXhr.onreadystatechange = function() {
 		if(loginXhr.readyState == 4) {
 			xhr = new XMLHttpRequest();
-			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/command/" + target, true, server.login, server.password);
+			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/command/" + target, true);
+			xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 			xhr.onreadystatechange = function(data) {
 				if(xhr.readyState == 4 && xhr.status == 200) {
 					RTA.displayResponse("Success", "Torrent added successfully.");
