@@ -99,7 +99,7 @@ RTA.audioNotification = function(error) {
 }
 
 
-RTA.displayResponse = function(title, message, error) {
+RTA.displayResponse = function(title, message, error=false) {
 	if(localStorage.getItem("showpopups") == "true") {
 		var opts = { 
 					type: "basic", 
