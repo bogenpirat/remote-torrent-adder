@@ -25,6 +25,7 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 		case "Vuze HTML WebUI":
 			RTA.clients.vuzeHtmlAdder(server, data); break;
 		case "Vuze Remote WebUI":
+		case "Bigly/Vuze Remote WebUI":
 			RTA.clients.vuzeRemoteAdder(server, data); break;
 		case "Buffalo WebUI":
 		case "Buffalo WebUI (OLD!)":
