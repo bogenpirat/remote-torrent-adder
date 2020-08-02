@@ -106,49 +106,47 @@ function registerReferrerHeaderListeners() {
 	var servers = JSON.parse(localStorage.getItem("servers"));
 	for(var i in servers) {
 		var server = servers[i];
-		if(server && server.client && (server.client == "qBittorrent WebUI" || server.client == "qBittorrent v4.1+ WebUI")) {
-			const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
-			
-			const listener = (function(arg) {
-				const myUrl = arg;
+		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+		
+		const listener = (function(arg) {
+			const myUrl = arg;
 
-				return function(details) {
-					var foundReferer = false;
-					var foundOrigin = false;
-					for (var j = 0; j < details.requestHeaders.length; ++j) {
-						if (details.requestHeaders[j].name === 'Referer') {
-							foundReferer = true;
-							details.requestHeaders[j].value = myUrl;
-						}
-						
-						if (details.requestHeaders[j].name === 'Origin') {
-							foundOrigin = true;
-							details.requestHeaders[j].value = myUrl;
-						}
-						
-						if(foundReferer && foundOrigin) {
-							break;
-						}
+			return function(details) {
+				var foundReferer = false;
+				var foundOrigin = false;
+				for (var j = 0; j < details.requestHeaders.length; ++j) {
+					if (details.requestHeaders[j].name === 'Referer') {
+						foundReferer = true;
+						details.requestHeaders[j].value = myUrl;
 					}
 					
-					if(!foundReferer) {
-						details.requestHeaders.push({'name': 'Referer', 'value': myUrl});
+					if (details.requestHeaders[j].name === 'Origin') {
+						foundOrigin = true;
+						details.requestHeaders[j].value = myUrl;
 					}
 					
-					if(!foundOrigin) {
-						details.requestHeaders.push({'name': 'Origin', 'value': myUrl});
+					if(foundReferer && foundOrigin) {
+						break;
 					}
-	
-					return {requestHeaders: details.requestHeaders};
-				};
-			})(url);
-			
-			if(server.host && server.port) {
-				chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [ url + "*" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
-			}
-			
-			listeners.push(listener);
+				}
+				
+				if(!foundReferer) {
+					details.requestHeaders.push({'name': 'Referer', 'value': myUrl});
+				}
+				
+				if(!foundOrigin) {
+					details.requestHeaders.push({'name': 'Origin', 'value': myUrl});
+				}
+
+				return {requestHeaders: details.requestHeaders};
+			};
+		})(url);
+		
+		if(server.host && server.port) {
+			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [ url + "*" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
 		}
+		
+		listeners.push(listener);
 	}
 }
 
