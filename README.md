@@ -5,7 +5,7 @@ A handy Chrome extension to add torrent files to torrent clients.
 The Chrome Web Browser - albeit an excellent browsing tool - does not permit its extensions a lot of access into its functionality. Hence, an extension that would download a .torrent file and automatically open it in the user's BitTorrent client locally can't be easily implemented. *Remote Torrent Adder* utilizes the WebUIs of modern BitTorrent clients to implement the functionality required for this scenario - and it works locally as well as for BitTorrent clients on other machines!
 
 It supports the following BitTorrent clients:
-  * Vuze (through plugins: Vuze Remote, SwingUI, HTML WebUI)
+  * Bigly/Vuze (through plugins: Vuze Remote, SwingUI, HTML WebUI)
   * uTorrent (including uTorrent Server, uTorrent for Mac and newer Buffalo Linkstations)
   * Transmission
   * Deluge
