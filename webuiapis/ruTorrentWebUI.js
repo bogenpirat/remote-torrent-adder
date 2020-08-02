@@ -4,7 +4,7 @@ RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	
 	var autolabellist = server.autolabellist;
 autoLabelling:
-	if(autolabellist !== null) {
+	if(autolabellist !== null && data.substring(0,7) != "magnet:") {
 		autolabellist = JSON.parse(autolabellist);
 		var torrentData = RTA.extractTorrentInfo(data);
 
@@ -27,7 +27,7 @@ autoLabelling:
 
 	var autodirlist = server.autodirlist;
 autoDirectory:
-	if(autodirlist !== null) {
+	if(autodirlist !== null && data.substring(0,7) != "magnet:") {
 		autodirlist = JSON.parse(autodirlist);
 		var torrentData = RTA.extractTorrentInfo(data);
 
