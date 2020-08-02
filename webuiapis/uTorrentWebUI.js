@@ -15,7 +15,8 @@ RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	var scheme = server.hostsecure ? "https://" : "http://";
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", scheme + server.host + ":" + server.port + relpath + "token.html", false, server.login, server.password);
+	xhr.open("GET", scheme + server.host + ":" + server.port + relpath + "token.html", false);
+	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 	xhr.send(null);
 	var token;
 	if(/<div.*?>(.*?)<\/div>/.exec(xhr.response)) {
@@ -26,12 +27,14 @@ RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-url&s=" + encodeURIComponent(torrentdata), true, server.login, server.password);
+		mxhr.open("GET", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-url&s=" + encodeURIComponent(torrentdata), true);
+		mxhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 		mxhr.onreadystatechange = ut_handleResponse;
 		mxhr.send(message);
 	} else {
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-file", true, server.login, server.password);
+		xhr.open("POST", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-file", true);
+		xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 		xhr.onreadystatechange = ut_handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
