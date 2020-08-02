@@ -163,12 +163,6 @@ RTA.clients.config.utorrent = multiline(function(){/*
 RTA.clients.config.hadouken = multiline(function(){/*
 			<tbody name="hadoukenspecifics" class="specifics">
 				<tr>
-					<td><span class="title">Token</span></td>
-					<td><input type="text" name="hadoukentoken" /><br />
-						<span class="tip">Mandatory. Enter this instead of Username/Password which will be ignored.<br />
-						You can acquire it by clicking your username in the Hadouken WebUI, then API Keys and copying the text.</span></td>
-				</tr>
-				<tr>
 					<td><span class="title">Label</span><br />(optional)</td>
 					<td><input type="text" name="hadoukenlabel" /><br />
 						<span class="tip"></span></td>

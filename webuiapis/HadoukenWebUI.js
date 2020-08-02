@@ -1,8 +1,8 @@
 RTA.clients.hadoukenAdder = function(server, torrentdata, name) {
 	var xhr = new XMLHttpRequest();
 	
-	xhr.open("POST", "http://" + server.host + ":" + server.port + "/jsonrpc", false);
-	xhr.setRequestHeader("Authorization", "Token " + server.hadoukentoken);
+	xhr.open("POST", "http://" + server.host + ":" + server.port + "/api", false);
+	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
 			if(JSON.parse(xhr.responseText).result == null) {
@@ -21,7 +21,7 @@ RTA.clients.hadoukenAdder = function(server, torrentdata, name) {
 		message = JSON.stringify({
 			"id": 1,
 			"jsonrpc": "2.0",
-			"method": "torrents.addUrl",
+			"method": "webui.addTorrent",
 			"params": [
 				torrentdata,
 				{
@@ -40,7 +40,7 @@ RTA.clients.hadoukenAdder = function(server, torrentdata, name) {
 		message = JSON.stringify({
 			"id": 1,
 			"jsonrpc": "2.0",
-			"method": "torrents.addFile",
+			"method": "webui.addTorrent",
 			"params": [
 				b64_encode(ui8a),
 				{
@@ -49,6 +49,6 @@ RTA.clients.hadoukenAdder = function(server, torrentdata, name) {
 				}
 			]
 		});
-	}console.debug(message);
+	}
 	xhr.send(message)
 }
