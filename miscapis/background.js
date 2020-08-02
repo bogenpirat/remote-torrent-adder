@@ -107,42 +107,44 @@ function registerReferrerHeaderListeners() {
 	for(var i in servers) {
 		var server = servers[i];
 		if(server && server.client && (server.client == "qBittorrent WebUI" || server.client == "qBittorrent v4.1+ WebUI")) {
-			var url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+			const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
 			
-			var listener = function(details) {
-				var foundReferer = false;
-				var foundOrigin = false;
-				for (var i = 0; i < details.requestHeaders.length; ++i) {
-					if (details.requestHeaders[i].name === 'Referer') {
-						foundReferer = true;
-						details.requestHeaders[i].value = url;
+			const listener = (function(arg) {
+				const myUrl = arg;
+
+				return function(details) {
+					var foundReferer = false;
+					var foundOrigin = false;
+					for (var j = 0; j < details.requestHeaders.length; ++j) {
+						if (details.requestHeaders[j].name === 'Referer') {
+							foundReferer = true;
+							details.requestHeaders[j].value = myUrl;
+						}
+						
+						if (details.requestHeaders[j].name === 'Origin') {
+							foundOrigin = true;
+							details.requestHeaders[j].value = myUrl;
+						}
+						
+						if(foundReferer && foundOrigin) {
+							break;
+						}
 					}
 					
-					if (details.requestHeaders[i].name === 'Origin') {
-						foundOrigin = true;
-						details.requestHeaders[i].value = url;
+					if(!foundReferer) {
+						details.requestHeaders.push({'name': 'Referer', 'value': myUrl});
 					}
 					
-					if(foundReferer && foundOrigin) {
-						break;
+					if(!foundOrigin) {
+						details.requestHeaders.push({'name': 'Origin', 'value': myUrl});
 					}
-				}
-				
-				if(!foundReferer) {
-					details.requestHeaders.push({'name': 'Referer', 'value': url});
-				}
-				
-				if(!foundOrigin) {
-					details.requestHeaders.push({'name': 'Origin', 'value': url});
-				}
-				
-				return {requestHeaders: details.requestHeaders};
-			}
+	
+					return {requestHeaders: details.requestHeaders};
+				};
+			})(url);
 			
 			if(server.host && server.port) {
-				chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [
-					"http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/*"
-				]}, ["blocking", "requestHeaders"]);
+				chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [ url + "*" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
 			}
 			
 			listeners.push(listener);
