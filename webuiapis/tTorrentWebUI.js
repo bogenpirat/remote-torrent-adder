@@ -7,11 +7,12 @@ RTA.clients.tTorrentAdder = function(server, data, torrentname) {
 	}
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/cmd/" + target, true, server.login, server.password);
+	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/cmd/" + target, true);
+	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 	xhr.onreadystatechange = function(data) {
-		if(xhr.readyState == 4 && xhr.status == 302) {
+		if(xhr.readyState == 4 && xhr.status == 200) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
-		} else if(xhr.readyState == 4 && xhr.status != 302) {
+		} else if(xhr.readyState == 4 && xhr.status != 200) {
 			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 		}
 	};
