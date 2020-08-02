@@ -173,10 +173,10 @@ RTA.genericOnClick = function(info, tab) {
 		if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		}
-		else if (server.qbittorrentlabelask == true && server.client == "qBittorrent WebUI") {
+		else if (server.qbittorrentdirlabelask == true && server.client == "qBittorrent WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		} 
-		else if (server.qbittorrentv2labelask == true && server.client == "qBittorrent v4.1+ WebUI") {
+		else if (server.qbittorrentv2dirlabelask == true && server.client == "qBittorrent v4.1+ WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		} 
 		else {
