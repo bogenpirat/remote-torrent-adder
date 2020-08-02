@@ -50,7 +50,8 @@
 			<li><a href="#tabs-1">WebUI</a></li>
 			<li><a href="#tabs-2">Notifications</a></li>
 			<li><a href="#tabs-3">Link Catching</a></li>
-			<li><a href="#tabs-4">About/Support</a></li>
+			<li><a href="#tabs-4">Import/Export Settings</a></li>
+			<li><a href="#tabs-5">About/Support</a></li>
 		</ul>
 		
 		<div id="tabs-1">
@@ -126,6 +127,17 @@
 		</table></div>
 		
 		<div id="tabs-4"><table>
+			<tr>
+				<td><span class="title">Create a backup</span></td>
+				<td><button id="createBackupButton">Export settings</button></td>
+			</tr>
+			<tr>
+				<td><span class="title">Import a backup</span></td>
+				<td><input id="importBackupSelector" type="file" /><br/><div id="importResultField"></div></td>
+			</tr>
+		</table></div>
+		
+		<div id="tabs-5"><table>
 			<tr>
 				<td><span class="title">About the extension</span></td>
 				<td>This extension lets you silently add torrent files to a BitTorrent client's web interface, either running on a remote server, or on your local computer. It lets you manually add torrents from a link's context menu, or can automatically find links that have torrents in them, using configurable regular expression filters, so that you only have to click on such a link to automatically load it into the configured client.</td>

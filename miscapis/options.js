@@ -342,6 +342,42 @@ function registerGeneralSettingsEvents() {
 	document.querySelector("#registerDelay").onkeyup = function() {
 		setSetting(this, this.value);
 	};
+
+	document.querySelector("#createBackupButton").onclick = function() {
+		const text = JSON.stringify(localStorage);
+
+		var el = document.createElement("a");
+		el.setAttribute("href", "data:application/json;charset=utf-8," + encodeURIComponent(text));
+		el.setAttribute("download", "RTA-settings.json");
+		el.style.display = "none";
+		document.body.appendChild(el);
+		el.click();
+		document.body.removeChild(el);
+	};
+
+	document.querySelector("#importBackupSelector").onchange = function() {
+		if (this.files.length === 0) {
+			return;
+		} else {
+			const reader = new FileReader();
+			reader.onload = function() {
+				const resultField = document.querySelector("#importResultField");
+				try {
+					const settings = JSON.parse(reader.result);
+
+					for(const key in settings) {
+						localStorage.setItem(key, settings[key]);
+					}
+
+					resultField.innerHTML = "Result: &#x2714; Settings imported";
+				} catch(ex) {
+					resultField.innerHTML = "Result: &#x274C; Couldn't parse the input file.";
+				}
+				
+			};
+			reader.readAsText(this.files[0]);
+		}
+	};
 }
 
 function saveServersSettings() {
