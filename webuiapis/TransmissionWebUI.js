@@ -13,7 +13,8 @@ function sendXHRTransmissionWebUI(server, torrentdata, sessionid) {
 	var message;
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/rpc", true, server.login, server.password);
+	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/rpc", true);
+	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
 	xhr.setRequestHeader("X-Transmission-Session-Id", sessionid);
 	xhr.onreadystatechange = function(data) {
 		if(xhr.readyState == 4 && xhr.status == 200) {
