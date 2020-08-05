@@ -15,41 +15,36 @@ RTA.clients.qBittorrentV2Adder = function(server, data, torrentname, label, dir)
 			xhr = new XMLHttpRequest();
 			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/api/v2/torrents/add");
 			xhr.onreadystatechange = function(data) {
-				if(xhr.readyState == 4 && xhr.status == 200) {
+				if(xhr.readyState == 4 && xhr.status == 200 && xhr.responseText == "Ok.") {
 					RTA.displayResponse("Success", "Torrent added successfully.");
 				} else if(xhr.readyState == 4 && xhr.status != 200) {
 					RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
 				}
 			};
 
-			var boundary = "AJAX-----------------------" + (new Date).getTime();
-			xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-			var message = "--" + boundary + "\r\n";
+			var message = new FormData();
 
 			if(data.substring(0,7) == "magnet:") {
-				message += "Content-Disposition: form-data; name=\"urls\"\r\n\r\n";
-				message += data + "\r\n";
-				message += "--" + boundary + "\r\n";
+				message.append("urls", data)
 			} else {
-				message += "Content-Disposition: form-data; name=\"fileselect[]\"; filename=\"" + ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime()) + "\"\r\n";
-				message += "Content-Type: application/x-bittorrent\r\n\r\n";
-				message += data + "\r\n";
-				message += "--" + boundary + "\r\n";
+				const ords = Array.prototype.map.call(data, function byteValue(x) {
+					return x.charCodeAt(0) & 0xff;
+				});
+				const ui8a = new Uint8Array(ords);
+				const dataBlob = new Blob([ui8a.buffer], {type: "application/x-bittorrent"});
+				const myName = ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime());
+				message.append("fileselect[]", dataBlob, myName);
 			}
 
 			if(dir) {
-				message += "Content-Disposition: form-data; name=\"savepath\"\r\n\r\n"
-				message += dir + "\r\n";
-				message += "--" + boundary + "\r\n";
+				message.append("savepath", dir);
 			}
 
 			if(label) {
-				message += "Content-Disposition: form-data; name=\"category\"\r\n\r\n"
-				message += label + "\r\n";
-				message += "--" + boundary + "--\r\n";
+				message.append("category", label);
 			}
-
-			xhr.sendAsBinary(message);
+			
+			xhr.send(message);
 		}
 		else if(loginXhr.readyState == 4 && loginXhr.status != 200)
 		{
