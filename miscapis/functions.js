@@ -110,9 +110,13 @@ RTA.displayResponse = function(title, message, error=false) {
 					};
 		var id = Math.floor(Math.random() * 99999) + "";
 		
-		chrome.notifications.create(id, opts, function(myId) { id = myId });
+		chrome.notifications.create(id, opts, function(myId) { 
+			setTimeout(function() {
+				chrome.notifications.clear(myId, function() {});
+			}, localStorage.getItem('popupduration'));
+		});
 		
-		setTimeout(function(){chrome.notifications.clear(id, function() {});}, localStorage.getItem('popupduration'));
+		
 		
 		if(localStorage.getItem("hearpopups") == "true") {
 			RTA.audioNotification(error);
