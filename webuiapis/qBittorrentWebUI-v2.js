@@ -21,11 +21,7 @@ RTA.clients.qBittorrentV2Adder = function(server, data, torrentname, label, dir)
 			if(data.substring(0,7) == "magnet:") {
 				message.append("urls", data)
 			} else {
-				const ords = Array.prototype.map.call(data, function byteValue(x) {
-					return x.charCodeAt(0) & 0xff;
-				});
-				const ui8a = new Uint8Array(ords);
-				const dataBlob = new Blob([ui8a.buffer], {type: "application/x-bittorrent"});
+				const dataBlob = RTA.convertToBlob(data, "application/x-bittorrent");
 				const myName = ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime());
 				message.append("fileselect[]", dataBlob, myName);
 			}
