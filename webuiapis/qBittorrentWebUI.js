@@ -7,52 +7,68 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
 	
 	
 	var rootUrl = (server.hostsecure ? "https" : "http") + "://" + server.host + ":" + server.port;
-	
-	var loginXhr = new XMLHttpRequest();
-	loginXhr.open("POST", rootUrl + "/login", true);
-	loginXhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
-	loginXhr.send("username=" + encodeURIComponent(server.login) + "&password=" + encodeURIComponent(server.password));
-	loginXhr.onreadystatechange = function() {
-		if(loginXhr.readyState == 4) {
-			xhr = new XMLHttpRequest();
-			xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/command/" + target, true);
-			xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-			xhr.onreadystatechange = function(data) {
-				if(xhr.readyState == 4 && xhr.status == 200) {
-					RTA.displayResponse("Success", "Torrent added successfully.");
-				} else if(xhr.readyState == 4 && xhr.status != 200) {
-					RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
-				}
-			};
-			
-			var boundary = "AJAX-----------------------" + (new Date).getTime();
-			xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-			var message = "--" + boundary + "\r\n";
+
+	// execute login request
+	fetch(rootUrl + "/login", {
+		method: 'POST',
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+		},
+		body: "username=" + encodeURIComponent(server.login) + "&password=" + encodeURIComponent(server.password)
+	})
+	.then(RTA.handleFetchError)
+	.then(response => response.text())
+	.then(text => {
+		if(text != "Ok.") {
+			RTA.displayResponse("Failure", "Login to " + server.name + "'s WebUI failed.", true);
+		} else {
+			// prepre post body
+			var message = new FormData();
 
 			if(data.substring(0,7) == "magnet:") {
-				message += "Content-Disposition: form-data; name=\"urls\"\r\n\r\n";
-				message += data + "\r\n";
-				message += "--" + boundary + "\r\n";
+				message.append("urls", data)
 			} else {
-				message += "Content-Disposition: form-data; name=\"fileselect[]\"; filename=\"" + ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime()) + "\"\r\n";
-				message += "Content-Type: application/x-bittorrent\r\n\r\n";
-				message += data + "\r\n";
-				message += "--" + boundary + "\r\n";
+				const ords = Array.prototype.map.call(data, function byteValue(x) {
+					return x.charCodeAt(0) & 0xff;
+				});
+				const ui8a = new Uint8Array(ords);
+				const dataBlob = new Blob([ui8a.buffer], {type: "application/x-bittorrent"});
+				const myName = ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime());
+				message.append("fileselect[]", dataBlob, myName);
 			}
-			
+
 			if(dir) {
-				message += "Content-Disposition: form-data; name=\"savepath\"\r\n\r\n"
-				message += dir + "\r\n";
-				message += "--" + boundary + "\r\n";
+				message.append("savepath", dir);
 			}
-			
+
 			if(label) {
-				message += "Content-Disposition: form-data; name=\"category\"\r\n\r\n"
-				message += label + "\r\n";
-				message += "--" + boundary + "--\r\n";
+				message.append("category", label);
 			}
-			
-			xhr.sendAsBinary(message);
+
+			// add the torrent
+			fetch(rootUrl + "/command/" + target, {
+				method: 'POST',
+				headers: {
+					"Authorization": "Basic " + btoa(server.login + ":" + server.password)
+				},
+				body: message
+			})
+			.then(RTA.handleFetchError)
+			.then(response => response.text())
+			.then(addText => {
+				if(addText != "" && addText != "Ok.") {
+					RTA.displayResponse("Failure", "Adding the torrent failed:\n" + addText, true);
+				} else {
+					RTA.displayResponse("Success", "Torrent added successfully to " + server.name + ".");
+				}
+			})
+			.catch(error => {
+				RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+			});
 		}
-	};
-}
+	})
+	.catch(error => {
+		RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+	});
+
+};
