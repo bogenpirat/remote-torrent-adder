@@ -224,3 +224,11 @@ RTA.extractTorrentInfo = function(data) {
 
 	return info;
 }
+
+
+RTA.handleFetchError = function(response) {
+	if(!response.ok) {
+		throw Error(response.statusText);
+	}
+	return response;
+};
