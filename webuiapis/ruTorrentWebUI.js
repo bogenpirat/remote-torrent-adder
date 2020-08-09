@@ -77,7 +77,10 @@ autoDirectory:
 		url += "&torrents_start_stopped=1";
 
 
-	var message, headers = {};
+	var message;
+	var headers = {
+		"Authorization": "Basic " + btoa(server.login + ":" + server.password)
+	};
 	if(data.substring(0,7) == "magnet:") {
 		headers["Content-Type"] = "application/x-www-form-urlencoded";
 		message = "url=" + encodeURIComponent(data);
