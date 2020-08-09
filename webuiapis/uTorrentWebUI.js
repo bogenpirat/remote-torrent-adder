@@ -1,50 +1,60 @@
-function ut_handleResponse(server, data) {
-	if(this.readyState == 4 && this.status == 200) {
-		if(/\{\s*"build":\s*\d+\s*\}/.test(this.responseText)) {
-			RTA.displayResponse("Success", "Torrent added successfully.");
-		} else {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + this.status + ": " + this.responseText, true);
-		}
-	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + this.status + ": " + this.responseText, true);
-	}
-}
-
 RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	var relpath = (server.utorrentrelativepath == undefined || server.utorrentrelativepath == "") ? "/gui/" : server.utorrentrelativepath;
 	var scheme = server.hostsecure ? "https://" : "http://";
 
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", scheme + server.host + ":" + server.port + relpath + "token.html", false);
-	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-	xhr.send(null);
-	var token;
-	if(/<div.*?>(.*?)<\/div>/.exec(xhr.response)) {
-		token = /<div.*?>(.*?)<\/div>/.exec(xhr.response)[1];
-	} else {
-		RTA.displayResponse("Failure", "Problem getting the uTorrent XHR token. Is uTorrent running?", true);
-	}
-	
-	if(torrentdata.substring(0,7) == "magnet:") {
-		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-url&s=" + encodeURIComponent(torrentdata), true);
-		mxhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-		mxhr.onreadystatechange = ut_handleResponse;
-		mxhr.send(message);
-	} else {
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + relpath + "?token=" + token + "&action=add-file", true);
-		xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-		xhr.onreadystatechange = ut_handleResponse;
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-		var boundary = "AJAX-----------------------" + (new Date).getTime();
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-		var message = "--" + boundary + "\r\n";
-		   message += "Content-Disposition: form-data; name=\"torrent_file\"; filename=\"file.torrent\"\r\n";
-		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
-		   message += torrentdata + "\r\n";
-		   message += "--" + boundary + "--\r\n";
-		
-		xhr.sendAsBinary(message);
-	}
-}
+	var tokenUrl = scheme + server.host + ":" + server.port + relpath + "token.html";
+	fetch(tokenUrl, {
+		headers: {
+			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
+		}
+	})
+	.then(RTA.handleFetchError)
+	.then(response => response.text())
+	.then(response => {
+		if(/<div.*?>(.*?)<\/div>/.exec(response)) {
+			const token = /<div.*?>(.*?)<\/div>/.exec(response)[1];
+			var postUrl = scheme + server.host + ":" + server.port + relpath + "?token=" + token;
+			var message;
+			var fetchOpts = {
+				headers: {
+					"Authorization": "Basic " + btoa(server.login + ":" + server.password)
+				}
+			}
+
+			if(torrentdata.substring(0,7) == "magnet:") {
+				postUrl += "&action=add-url&s=" + encodeURIComponent(torrentdata);
+
+				fetchOpts["method"] = 'GET';
+			} else {
+				postUrl += "&action=add-file";
+				
+				const data = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
+				message = new FormData();
+				message.append("torrent_file", data, "file.torrent");
+				
+				fetchOpts["method"] = 'POST';
+				fetchOpts["body"] = message;
+			}
+
+			fetch(postUrl, fetchOpts)
+			.then(RTA.handleFetchError)
+			.then(response => response.json())
+			.then(json => {
+				if(!json.error) {
+					RTA.displayResponse("Success", "Torrent added successfully to " + server.name + ".");
+				} else {
+					RTA.displayResponse("Failure", "Torrent not added successfully.\n" + response.error, true);
+				}
+			})
+			.catch(error => {
+				RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+			});
+		} else {
+			throw new Error("Couldn't get csrf token");
+		}
+	})
+	.catch(error => {
+		RTA.displayResponse("Failure", "Could not connect to " + server.name + "\nError: " + error.message, true);
+	});
+
+};
