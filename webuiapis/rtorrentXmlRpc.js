@@ -10,6 +10,18 @@ function sendXhrRtorrentXmlRpc(server, torrentdata) {
 		ui8a[i] = (torrentdata.charCodeAt(i) & 0xff);
 	}
 
+	var methodName;
+	var encodedData;
+	if(torrentdata.substring(0,7) == "magnet:") {
+		encodedData = '<![CDATA[' + torrentdata + ']]>';
+		methodName = server.rtorrentaddpaused ? 'load.normal' : 'load.start';
+	} else {
+		encodedData = '<base64>' + b64_encode(ui8a) + '</base64>';
+		methodName = server.rtorrentaddpaused ? 'load.raw_verbose' : 'load.raw_start_verbose';
+	}
+	
+	
+
 	var message;
 
 	var xhr = new XMLHttpRequest();
@@ -32,7 +44,6 @@ function sendXhrRtorrentXmlRpc(server, torrentdata) {
 		}
 	};
 
-	const methodName = server.rtorrentaddpaused ? 'load.raw_verbose' : 'load.raw_start_verbose';
 	message = '<?xml version="1.0" encoding="UTF-8"?>';
 	message += '<methodCall>';
 	message +=  '<methodName>';
@@ -41,9 +52,9 @@ function sendXhrRtorrentXmlRpc(server, torrentdata) {
 	message +=  '<params>';
 	message +=   '<param><value><string>';
 	message +=   '</string></value></param>';
-	message +=   '<param><value><base64>';
-	message +=    b64_encode(ui8a);
-	message +=   '</base64></value></param>';
+	message +=   '<param><value>';
+	message +=    encodedData;
+	message +=   '</value></param>';
 	message +=  '</params>';
 	message += '</methodCall>';
 	xhr.send(message);
