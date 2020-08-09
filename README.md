@@ -10,7 +10,7 @@ It supports the following BitTorrent clients:
   * Transmission
   * Deluge
   * qBittorrent
-  * rtorrent (ruTorrent, pyrt, NodeJS-rTorrent, flood)
+  * rtorrent (ruTorrent, pyrt, NodeJS-rTorrent, flood, direct XMLRPC interface)
   * Torrentflux
   * Buffalo built-in torrent client
   * ~~Tixati~~ (broken - Chrome abandoned HTTP Digest Auth)
