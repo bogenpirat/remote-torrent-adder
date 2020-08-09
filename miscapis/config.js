@@ -9,7 +9,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"QNAP DownloadStation" : RTA.clients.config.qnap,
 		"qBittorrent WebUI" : RTA.clients.config.qbittorrent,
 		"qBittorrent v4.1+ WebUI" : RTA.clients.config.qbittorrentv2,
-		"rTorrent XML-RPC" : RTA.clients.config.rtorrent
+		"rTorrent XML-RPC" : RTA.clients.config.rtorrentxmlrpc
 	};
 	
 	var config = "<table>" + RTA.clients.config.generalsettings.replace(/\{clienttype\}/g, client).replace(/\{name\}/g, name);
@@ -176,8 +176,13 @@ RTA.clients.config.hadouken = multiline(function(){/*
 			</tbody>
 			*/});
 
-RTA.clients.config.rtorrent = multiline(function(){/*
-			<tbody name="rtorrentspecifics" class="specifics">
+RTA.clients.config.rtorrentxmlrpc = multiline(function(){/*
+			<tbody name="rtorrentxmlrpcspecifics" class="specifics">
+				<tr>
+					<td><span class="title">Relative path</span><br />(optional)</td>
+					<td><input type="text" name="rtorrentxmlrpcrelativepath" /><br />
+						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/RPC2</strong>&quot;/</span></td>
+				</tr>
 				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="rtorrentaddpaused" /></td>

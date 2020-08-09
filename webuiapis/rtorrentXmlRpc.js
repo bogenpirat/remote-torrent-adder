@@ -1,8 +1,4 @@
 RTA.clients.rtorrentXmlRpcAdder = function(server, torrentdata) {
-	sendXhrRtorrentXmlRpc(server, torrentdata);
-}
-
-function sendXhrRtorrentXmlRpc(server, torrentdata) {
 	// for proper base64 encoding, this needs to be shifted into a 8 byte integer array
 	var data = new ArrayBuffer(torrentdata.length);
 	var ui8a = new Uint8Array(data, 0);
@@ -20,12 +16,12 @@ function sendXhrRtorrentXmlRpc(server, torrentdata) {
 		methodName = server.rtorrentaddpaused ? 'load.raw_verbose' : 'load.raw_start_verbose';
 	}
 	
-	
-
-	var message;
+	const relPath = server.rtorrentxmlrpcrelativepath || "";
+	const slash = relPath.startsWith("/") ? "" : "/";
+	const apiUrl = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + slash + relPath;
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/RPC2", true);
+	xhr.open("POST", apiUrl, true);
 	xhr.onreadystatechange = function(data) {
 		if (xhr.readyState != 4) {
 			return;
@@ -44,6 +40,7 @@ function sendXhrRtorrentXmlRpc(server, torrentdata) {
 		}
 	};
 
+	var message;
 	message = '<?xml version="1.0" encoding="UTF-8"?>';
 	message += '<methodCall>';
 	message +=  '<methodName>';
