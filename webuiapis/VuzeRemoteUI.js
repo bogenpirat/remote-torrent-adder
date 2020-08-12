@@ -1,42 +1,52 @@
 RTA.clients.vuzeRemoteAdder = function(server, data) {
 	if(data.substring(0,7) == "magnet:") target = "rpc";
 	else target = "upload?paused=false";
-	
-	// fire off one unspecific request to get the proper CSRF header
-
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, false);
-	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-	xhr.send();
-
-	xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target, true);
-	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-	xhr.onreadystatechange = function(data) {
-		if(xhr.readyState == 4 && xhr.status == 200) {
-			if(/.*<h1>200: OK<\/h1>.*/.exec(xhr.responseText) || JSON.parse(xhr.responseText)["result"] == "success") {
-				RTA.displayResponse("Success", "Torrent added successfully.");
-			} else {
-				RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
-			}
-		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
-		}
+	const apiUrl = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/transmission/" + target;
+	const headers = {
+		"Authorization": "Basic " + btoa(server.login + ":" + server.password)
 	};
-	
-	if(data.substring(0,7) == "magnet:") {
-		var message = JSON.stringify({"method": "torrent-add", "arguments": {"paused": "false", "filename": data}});
-		xhr.send(message);
-	} else {
-		var boundary = "AJAX-----------------------" + (new Date).getTime();
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-		var message = "--" + boundary + "\r\n";
-		    message += "Content-Disposition: form-data; name=\"torrent_files[]\"; filename=\"file.torrent\"\r\n";
-		    message += "Content-Type: application/x-bittorrent\r\n\r\n";
-		    message += data + "\r\n";
-		    message += "--" + boundary + "--\r\n";
+
+	// poke it a little so it gives us a sessionid cookie
+	fetch(apiUrl, {
+		headers: headers
+	})
+	.then(response => {
+		if(response.status != 200 && response.status != 409) {
+			throw new Error("Unexpected status: " + response.statusText);
+		}
+	})
+	.then(() => {
+		// construct and run the adding request
+		var message;
+		if(data.substring(0,7) == "magnet:") {
+			message = JSON.stringify({"method": "torrent-add", "arguments": {"paused": "false", "filename": data}});
+		} else {
+			const blobData = RTA.convertToBlob(data, "application/x-bittorrent");
+
+			message = new FormData();
+			message.append("torrent_files[]", blobData, "file.torrent");
+		}
 		
-		xhr.sendAsBinary(message);
-	}
-}
+		fetch(apiUrl, {
+			method: 'POST',
+			headers: headers,
+			body: message
+		})
+		.then(RTA.handleFetchError)
+		.then(response => response.text())
+		.then(text => {
+			if(/.*<h1>200: OK<\/h1>.*/.exec(text) || JSON.parse(text)["result"] == "success") {
+				RTA.displayResponse("Success", "Torrent added successfully to " + server.name + ".");
+			} else {
+				RTA.displayResponse("Failure", "Torrent not added successfully.\n" + json.error, true);
+			}
+		})
+		.catch(error => {
+			RTA.displayResponse("Failure", "Could not connect to " + server.name + "\nError: " + error.message, true);
+		});
+	})
+	.catch(error => {
+		RTA.displayResponse("Failure", "Could not connect to " + server.name + "\nError: " + error.message, true);
+	});
+
+};

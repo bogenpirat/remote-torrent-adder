@@ -1,68 +1,60 @@
-function flood_handleResponse(server, data) {
-	if(this.readyState == 4 && this.status == 200) {
-		if(this.responseText == "[[0]]") {
-			RTA.displayResponse("Success", "Torrent added successfully.");
-		}
-	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code.\nHTTP: " + this.status + " " + this.statusText + "\nContent:" + this.responseText, true);
-	}
-}
-
 RTA.clients.floodAdder = function(server, torrentdata) {
-	var scheme = server.hostsecure ? "https://" : "http://";
 	var dir = server.flooddirectory;
 	var paused = server.floodaddpaused;
 
-	// run the login first
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", scheme + server.host + ":" + server.port + "/auth/authenticate", false);
-	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-	var loginMsg = JSON.stringify({"username": server.login, "password": server.password});
-	xhr.send(loginMsg);
-
-	var loginJson;
-	if(xhr.status == 200) {
-		loginJson = JSON.parse(xhr.response);
-	} else {
-		RTA.displayResponse("Failure", "Problem logging into flood. HTTP code " + xhr.status + " " + xhr.statusText + "\nContent:" + xhr.responseText, true);
-		return;
-	}
+	var apiUrl = (server.hostsecure ? "https://" : "http://") + server.host + ":" + server.port;
 	
-	if(torrentdata.substring(0,7) == "magnet:") {
-		var mxhr = new XMLHttpRequest();
-		mxhr.open("POST", scheme + server.host + ":" + server.port + "/api/client/add", true);
-		mxhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-		mxhr.onreadystatechange = flood_handleResponse;
-		var message = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir: undefined) });
-		mxhr.send(message);
-	} else {
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + "/api/client/add-files", true);
-		xhr.onreadystatechange = flood_handleResponse;
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-		var boundary = "AJAX-----------------------" + (new Date).getTime();
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-		var message = "--" + boundary + "\r\n";
-			message += "Content-Disposition: form-data; name=\"torrents\"; filename=\"file.torrent\"\r\n";
-			message += "Content-Type: application/octet-stream\r\n\r\n";
-			message += torrentdata + "\r\n";
-		
-			message += "--" + boundary + "\r\n";
-			message += "Content-Disposition: form-data; name=\"tags\"\r\n\r\n";
-			message += "" + "\r\n"; // TODO: labels here, comma separated
-		
-		if(dir != undefined && dir.length > 0) {
-			message += "--" + boundary + "\r\n";
-			message += "Content-Disposition: form-data; name=\"destination\"\r\n\r\n";
-			message += dir + "\r\n";
+	fetch(apiUrl + "/auth/authenticate", {
+		method: 'POST',
+		headers: {
+			"Content-Type": "application/json; charset=UTF-8"
+		},
+		body: JSON.stringify({"username": server.login, "password": server.password})
+	})
+	.then(RTA.handleFetchError)
+	.then(response => response.json())
+	.then(json => {
+		if(!json.success) {
+			RTA.displayResponse("Failure", "Login to " + server.name + "'s WebUI failed.", true);
+		} else {
+			var fetchOpts = {
+				method: 'POST'
+			};
+			if(torrentdata.substring(0,7) == "magnet:") {
+				apiUrl += "/api/client/add";
+				fetchOpts.headers = { "Content-Type": "application/json; charset=UTF-8" };
+				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir: undefined) });
+			} else {
+				const dataBlob = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
+
+				apiUrl += "/api/client/add-files";
+
+				fetchOpts.body = new FormData();
+				fetchOpts.body.append("torrents", dataBlob, "file.torrent");
+				fetchOpts.body.append("tags", "");
+				if(dir != undefined && dir.length > 0) {
+					fetchOpts.body.append("destination", dir);
+				}
+				fetchOpts.body.append("start", !paused);
+			}
+
+			fetch(apiUrl, fetchOpts)
+			.then(RTA.handleFetchError)
+			.then(response => response.text())
+			.then(text => {
+				if(text == '[["0"]]') {
+					RTA.displayResponse("Success", "Torrent added successfully.");
+				} else {
+					RTA.displayResponse("Failure", "Torrent not added successfully:\n" + text);
+				}
+			})
+			.catch(error => {
+				RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+			});
 		}
-		
-			message += "--" + boundary + "\r\n";
-			message += "Content-Disposition: form-data; name=\"start\"\r\n\r\n";
-			message += (!paused) + "\r\n";
-		
-			message += "--" + boundary + "--\r\n";
-		
-		xhr.sendAsBinary(message);
-	}
-}
+	})
+	.catch(error => {
+		RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+	});
+
+};

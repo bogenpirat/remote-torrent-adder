@@ -5,31 +5,36 @@ RTA.clients.tTorrentAdder = function(server, data, torrentname) {
 	} else {
 		target = "downloadTorrent";
 	}
-	
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/cmd/" + target, true);
-	xhr.setRequestHeader("Authorization", "Basic " + btoa(server.login + ":" + server.password));
-	xhr.onreadystatechange = function(data) {
-		if(xhr.readyState == 4 && xhr.status == 200) {
-			RTA.displayResponse("Success", "Torrent added successfully.");
-		} else if(xhr.readyState == 4 && xhr.status != 200) {
-			RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + xhr.status + ": " + xhr.responseText, true);
-		}
-	};
-	
-	var boundary = "AJAX-----------------------" + (new Date).getTime();
+	const apiUrl = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/cmd/" + target;
+
+	var message;
 	if(data.substring(0,7) == "magnet:") {
-		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		var message = "url=" + encodeURIComponent(data);
-		xhr.send(message);
+		message = "url=" + encodeURIComponent(data);
 	} else {
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-		var message = "--" + boundary + "\r\n";
-			message += "Content-Disposition: form-data; name=\"torrentfile\"; filename=\"" + ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime()) + "\"\r\n";
-			message += "Content-Type: application/octet-stream\r\n\r\n";
-			message += data + "\r\n";
-			message += "--" + boundary + "\r\n";
-		xhr.sendAsBinary(message);
+		const filename = ((torrentname.length && torrentname.length > 1) ? torrentname : (new Date).getTime());
+		const dataBlob = RTA.convertToBlob(data);
+
+		message = new FormData();
+		message.append("torrentfile", dataBlob, filename);
 	}
-}
+
+	fetch(apiUrl, {
+		method: 'POST',
+		headers: {
+			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
+		},
+		body: message
+	})
+	.then(RTA.handleFetchError)
+	.then(response => {
+		if(response.redirected) {
+			RTA.displayResponse("Success", "Torrent added successfully to " + server.name + ".");
+		} else {
+			RTA.displayResponse("Failure", "Torrent not added successfully.\n" + response.statusText, true);
+		}
+	})
+	.catch(error => {
+		RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
+	});
+
+};
