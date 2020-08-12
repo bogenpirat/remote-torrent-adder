@@ -89,6 +89,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		sendResponse({});
 	} else if(request.action == "registerRefererListeners") {
 		registerReferrerHeaderListeners();
+	} else if(request.action == "registerAuthenticationListeners") {
+		registerAuthenticationListeners();
 	} 
 });
 
@@ -151,3 +153,49 @@ function registerReferrerHeaderListeners() {
 }
 
 registerReferrerHeaderListeners();
+
+////////////////////////////////////////////////////
+// SUPPLY DIGEST AUTHENTICATION TO WEB UIS WE MANAGE
+////////////////////////////////////////////////////
+var onAuthListeners = [];
+var triedRequestIds = new Set();
+function registerAuthenticationListeners() {
+	// unregister old listeners
+	while(onAuthListeners.length > 0) {
+		chrome.webRequest.onAuthRequired.removeListener(onAuthListeners.pop());
+	}
+	
+	// register new listeners
+	var servers = JSON.parse(localStorage.getItem("servers"));
+	for(var i in servers) {
+		var server = servers[i];
+		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+		
+		const listener = (function(user, pass, url) {
+			return function(details) {
+				var authStuff;
+				console.log("requestId", details.requestId);
+				console.log("tabId", details.tabId);
+				console.log("trying to contact " + url + ", tried:" + triedRequestIds.has(details.requestId)); // TODO
+				if(triedRequestIds.has(details.requestId)) {
+					authStuff = {  }; // cause the browser to resume default behavior
+				} else {
+					RTA.displayResponse("testing", details.tabId + ""); // TODO
+					authStuff = { authCredentials: { username: user, password: pass } };
+					triedRequestIds.add(details.requestId);
+				}
+				
+				return authStuff;
+			};
+		})(server.login, server.password, url);
+		
+		if(server.host && server.port) {
+			console.log("adding listener", url); // TODO
+			chrome.webRequest.onAuthRequired.addListener(listener, { urls: [ url + "*" ], tabId: -1 }, ["blocking"]);
+		}
+		
+		onAuthListeners.push(listener);
+	}
+}
+
+registerAuthenticationListeners();

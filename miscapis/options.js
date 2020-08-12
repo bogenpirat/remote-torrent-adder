@@ -415,5 +415,7 @@ function saveServersSettings() {
 	
 	chrome.extension.sendRequest({"action": "registerRefererListeners"});
 	
+	chrome.extension.sendRequest({"action": "registerAuthenticationListeners"});
+	
 	return servers;
 }
