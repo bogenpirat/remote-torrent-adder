@@ -44,7 +44,7 @@
 	},
 	"content_scripts": [
 		{
-		"matches": ["*://*/*"],
+		"matches": ["<all_urls>"],
 		"js": [
 			"miscapis/modal.js",
 			"miscapis/content_rta.js"
