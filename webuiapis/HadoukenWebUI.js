@@ -32,9 +32,6 @@ RTA.clients.hadoukenAdder = async function(server, torrentdata, name) {
 
 	fetch("http://" + server.host + ":" + server.port + "/api", {
 		method: 'POST',
-		headers: {
-			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-		},
 		body: message
 	}).then(RTA.handleFetchError)
 	.then(response => response.json())

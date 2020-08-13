@@ -3,11 +3,7 @@ RTA.clients.uTorrentAdder = function(server, torrentdata) {
 	var scheme = server.hostsecure ? "https://" : "http://";
 
 	var tokenUrl = scheme + server.host + ":" + server.port + relpath + "token.html";
-	fetch(tokenUrl, {
-		headers: {
-			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-		}
-	})
+	fetch(tokenUrl)
 	.then(RTA.handleFetchError)
 	.then(response => response.text())
 	.then(response => {
@@ -16,10 +12,8 @@ RTA.clients.uTorrentAdder = function(server, torrentdata) {
 			var postUrl = scheme + server.host + ":" + server.port + relpath + "?token=" + token;
 			var message;
 			var fetchOpts = {
-				headers: {
-					"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-				}
-			}
+				headers: {  }
+			};
 
 			if(torrentdata.substring(0,7) == "magnet:") {
 				postUrl += "&action=add-url&s=" + encodeURIComponent(torrentdata);

@@ -3,9 +3,6 @@ RTA.clients.transmissionAdder = function(server, torrentdata) {
 
 	fetch(apiUrl, {
 		method: 'POST',
-		headers: {
-			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-		},
 		body: ""
 	})
 	.then(async response => {
@@ -23,7 +20,6 @@ RTA.clients.transmissionAdder = function(server, torrentdata) {
 			fetch(apiUrl, {
 				method: 'POST',
 				headers: {
-					"Authorization": "Basic " + btoa(server.login + ":" + server.password),
 					"X-Transmission-Session-Id": sessionId,
 					"Content-Type": "application/json; charset=UTF-8"
 				},

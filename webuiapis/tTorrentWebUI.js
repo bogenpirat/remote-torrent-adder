@@ -20,9 +20,6 @@ RTA.clients.tTorrentAdder = function(server, data, torrentname) {
 
 	fetch(apiUrl, {
 		method: 'POST',
-		headers: {
-			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-		},
 		body: message
 	})
 	.then(RTA.handleFetchError)

@@ -78,9 +78,7 @@ autoDirectory:
 
 
 	var message;
-	var headers = {
-		"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-	};
+	var headers = {  };
 	if(data.substring(0,7) == "magnet:") {
 		headers["Content-Type"] = "application/x-www-form-urlencoded";
 		message = "url=" + encodeURIComponent(data);

@@ -48,9 +48,6 @@ RTA.clients.qBittorrentAdder = function(server, data, torrentname, label, dir) {
 			// add the torrent
 			fetch(rootUrl + "/command/" + target, {
 				method: 'POST',
-				headers: {
-					"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-				},
 				body: message
 			})
 			.then(RTA.handleFetchError)

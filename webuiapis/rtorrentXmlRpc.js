@@ -31,9 +31,6 @@ RTA.clients.rtorrentXmlRpcAdder = async function(server, torrentdata) {
 
 	fetch(apiUrl, {
 		method: 'POST',
-		headers: {
-			"Authorization": "Basic " + btoa(server.login + ":" + server.password)
-		},
 		body: message
 	})
 	.then(RTA.handleFetchError)
@@ -52,42 +49,4 @@ RTA.clients.rtorrentXmlRpcAdder = async function(server, torrentdata) {
 		RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
 	});
 
-}
-
-foo=function() {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", apiUrl, true);
-	xhr.onreadystatechange = function(data) {
-		if (xhr.readyState != 4) {
-			return;
-		}
-		if (xhr.status == 200) {
-			if(!/.*fault.*/.exec(xhr.responseText)) {
-				RTA.displayResponse("Success", "Torrent added successfully.");
-			} else {
-				const members = new DOMParser().parseFromString(xhr.responseText, 'text/xml').getElementsByTagName('member');
-				RTA.displayResponse("Failure", "Server didn't accept data:\n"
-					+ members[0].lastChild.firstChild.textContent + ": "
-					+ members[1].lastChild.firstChild.textContent, true);
-			}
-		} else {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + xhr.status + ": " + xhr.responseText, true);
-		}
-	};
-
-	var message;
-	message = '<?xml version="1.0" encoding="UTF-8"?>';
-	message += '<methodCall>';
-	message +=  '<methodName>';
-	message +=   methodName;
-	message +=  '</methodName>';
-	message +=  '<params>';
-	message +=   '<param><value><string>';
-	message +=   '</string></value></param>';
-	message +=   '<param><value>';
-	message +=    encodedData;
-	message +=   '</value></param>';
-	message +=  '</params>';
-	message += '</methodCall>';
-	xhr.send(message);
 };
