@@ -174,13 +174,13 @@ function registerAuthenticationListeners() {
 		const listener = (function(user, pass, url) {
 			return function(details) {
 				var authStuff;
-				console.log("requestId", details.requestId);
-				console.log("tabId", details.tabId);
-				console.log("trying to contact " + url + ", tried:" + triedRequestIds.has(details.requestId)); // TODO
+				
 				if(triedRequestIds.has(details.requestId)) {
 					authStuff = {  }; // cause the browser to resume default behavior
+					triedRequestIds.remove(details.requestId);
+				} else if(details.tabId != -1) {
+					authStuff = {  };
 				} else {
-					RTA.displayResponse("testing", details.tabId + ""); // TODO
 					authStuff = { authCredentials: { username: user, password: pass } };
 					triedRequestIds.add(details.requestId);
 				}
@@ -190,7 +190,6 @@ function registerAuthenticationListeners() {
 		})(server.login, server.password, url);
 		
 		if(server.host && server.port) {
-			console.log("adding listener", url); // TODO
 			chrome.webRequest.onAuthRequired.addListener(listener, { urls: [ url + "*" ], tabId: -1 }, ["blocking"]);
 		}
 		
