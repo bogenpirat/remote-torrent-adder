@@ -177,7 +177,7 @@ function registerAuthenticationListeners() {
 				
 				if(triedRequestIds.has(details.requestId)) {
 					authStuff = {  }; // cause the browser to resume default behavior
-					triedRequestIds.remove(details.requestId);
+					triedRequestIds.delete(details.requestId);
 				} else if(details.tabId != -1) {
 					authStuff = {  };
 				} else {
