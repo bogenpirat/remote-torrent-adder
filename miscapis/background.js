@@ -94,9 +94,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	} 
 });
 
-//////////////////////////////////////////////////////////
-// CATCH LINKS WHOSE CSRF PROTECTION WE NEED TO CIRCUMVENT
-//////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+// CATCH WEBUI REQUESTS WHOSE CSRF PROTECTION WE NEED TO CIRCUMVENT
+///////////////////////////////////////////////////////////////////
 var listeners = [];
 function registerReferrerHeaderListeners() {
 	// unregister old listeners
@@ -153,6 +153,52 @@ function registerReferrerHeaderListeners() {
 }
 
 registerReferrerHeaderListeners();
+
+/////////////////////////////////////////////////////
+// CATCH TORRENT LINKS AND ALTER THEIR REFERER/ORIGIN
+/////////////////////////////////////////////////////
+RTA.getTorrentLink = "";
+const headersListener = function(details) {
+	var output = { };
+	console.log("details:", details.url);
+	console.log("getTorrentLink:", RTA.getTorrentLink);
+	if(details.url == RTA.getTorrentLink) {
+		var foundReferer = false;
+		var foundOrigin = false;
+		for (var j = 0; j < details.requestHeaders.length; ++j) {
+			if (details.requestHeaders[j].name === 'Referer') {
+				foundReferer = true;
+				details.requestHeaders[j].value = details.url;
+			}
+			
+			if (details.requestHeaders[j].name === 'Origin') {
+				foundOrigin = true;
+				details.requestHeaders[j].value = details.url;
+			}
+			
+			if(foundReferer && foundOrigin) {
+				break;
+			}
+		}
+		
+		if(!foundReferer) {
+			details.requestHeaders.push({'name': 'Referer', 'value': details.url});
+		}
+		
+		if(!foundOrigin) {
+			details.requestHeaders.push({'name': 'Origin', 'value': details.url});
+		}
+
+		output = { requestHeaders: details.requestHeaders };
+
+		RTA.getTorrentLink = "";
+	}
+
+	return output;
+};
+
+chrome.webRequest.onBeforeSendHeaders.addListener(headersListener, {urls: [ "<all_urls>" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
+
 
 ////////////////////////////////////////////////////
 // SUPPLY DIGEST AUTHENTICATION TO WEB UIS WE MANAGE

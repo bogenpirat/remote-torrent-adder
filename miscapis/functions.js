@@ -62,6 +62,8 @@ RTA.getTorrent = function(server, url, label, dir) {
 	if(url.substring(0,7) == "magnet:") {
 		RTA.dispatchTorrent(server, url, "", label, dir);
 	} else {
+		RTA.getTorrentLink = url;
+		
 		fetch(url)
 		.then(RTA.handleFetchError)
 		.then(async function(response) {
