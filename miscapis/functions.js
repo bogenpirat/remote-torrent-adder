@@ -62,25 +62,25 @@ RTA.getTorrent = function(server, url, label, dir) {
 	if(url.substring(0,7) == "magnet:") {
 		RTA.dispatchTorrent(server, url, "", label, dir);
 	} else {
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", url, true);
-		xhr.overrideMimeType("text/plain; charset=x-user-defined");
-		xhr.onreadystatechange = function(data) {
-			if(xhr.readyState == 4 && xhr.status == 200) {
-				if(this.responseURL.match(/\/([^\/]+.torrent)$/)) {
-					name = this.responseURL.match(/\/([^\/]+.torrent)$/)[1];
-				} else {
-					name = "file.torrent";
-				}
-				
-				RTA.dispatchTorrent(server, xhr.responseText, name, label, dir);
-			} else if(xhr.readyState == 4 && xhr.status < 99) {
-				RTA.displayResponse("Connection failed", "The server sent an irregular HTTP error code: " + xhr.status, true);
-			} else if(xhr.readyState == 4 && xhr.status != 200) {
-				RTA.displayResponse("Connection failed", "The server sent the following HTTP error code: " + xhr.status, true);
+		fetch(url)
+		.then(RTA.handleFetchError)
+		.then(async function(response) {
+			var name = "file.torrent";
+			if(response.url.match(/\/([^\/]+.torrent)$/)) {
+				name = response.url.match(/\/([^\/]+.torrent)$/)[1];
 			}
-		};
-		xhr.send(null);
+
+			// mangling it as text so it works with the older (xhr-reliant) code.
+			// could probably modernize the webui parts at some point.
+			const fileDataBlob = await response.blob();
+			const buf = await fileDataBlob.arrayBuffer();
+			const fileData = String.fromCharCode.apply(null, new Uint8Array(buf));
+			
+			RTA.dispatchTorrent(server, fileData, name, label, dir);
+		})
+		.catch(error => {
+			RTA.displayResponse("Failure", "Could not download torrent file.\nError: " + error.message, true);
+		});
 	}
 }
 
