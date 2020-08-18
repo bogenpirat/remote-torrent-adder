@@ -160,8 +160,7 @@ registerReferrerHeaderListeners();
 RTA.getTorrentLink = "";
 const headersListener = function(details) {
 	var output = { };
-	console.log("details:", details.url);
-	console.log("getTorrentLink:", RTA.getTorrentLink);
+	
 	if(details.url == RTA.getTorrentLink) {
 		var foundReferer = false;
 		var foundOrigin = false;
