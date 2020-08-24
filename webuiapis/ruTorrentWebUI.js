@@ -1,10 +1,10 @@
 RTA.clients.ruTorrentAdder = function(server, data, label, dir) {
 	if(label == undefined) label = server.rutorrentlabel;
 	if(dir == undefined) dir = server.rutorrentdirectory;
-	
+
 	var autolabellist = server.autolabellist || "[]";
 autoLabelling:
-	if(autolabellist !== null && data.substring(0,7) != "magnet:") {
+	if(autolabellist !== null && data.substring(0,7) != "magnet:" && !server.rutorrentalwaysurl) {
 		autolabellist = JSON.parse(autolabellist);
 		try {
 			var torrentData = RTA.extractTorrentInfo(data);
@@ -15,7 +15,7 @@ autoLabelling:
 				if(tokens.length > 1) {
 					var urlBit = tokens[0];
 					var labelBit = tokens.slice(1).join(",");
-					
+
 					for(var it = torrentData.trackers.values(), val = null; val = it.next().value; ) {
 						if(val.indexOf(urlBit) != -1) {
 							label = labelBit;
@@ -31,7 +31,7 @@ autoLabelling:
 
 	var autodirlist = server.autodirlist || "[]";
 autoDirectory:
-	if(autodirlist !== null && data.substring(0,7) != "magnet:") {
+	if(autodirlist !== null && data.substring(0,7) != "magnet:" && !server.rutorrentalwaysurl) {
 		autodirlist = JSON.parse(autodirlist);
 		try {
 			var torrentData = RTA.extractTorrentInfo(data);
@@ -42,7 +42,7 @@ autoDirectory:
 				if(tokens.length > 1) {
 					var urlBit = tokens[0];
 					var dirBit = tokens.slice(1).join(",");
-					
+
 					for(var it = torrentData.trackers.values(), val = null; val = it.next().value; ) {
 						if(val.indexOf(urlBit) != -1) {
 							dir = dirBit;
@@ -79,22 +79,22 @@ autoDirectory:
 
 	var message;
 	var headers = {  };
-	if(data.substring(0,7) == "magnet:") {
+	if(data.substring(0,7) == "magnet:" || server.rutorrentalwaysurl) {
 		headers["Content-Type"] = "application/x-www-form-urlencoded";
 		message = "url=" + encodeURIComponent(data);
 	} else {
 		message = new FormData();
-		
+
 		if(dir != undefined && dir.length > 0) {
-		   message.append("dir_edit", dir);
+			message.append("dir_edit", dir);
 		}
 		if(label != undefined && label.length > 0) {
-		   message.append("tadd_label", label);
+			message.append("tadd_label", label);
 		}
-		
+
 		const blobData = RTA.convertToBlob(data, "application/x-bittorrent");
 		const filename = (new Date).getTime() + ".torrent";
-		
+
 		message.append("torrent_file", blobData, filename);
 	}
 
@@ -124,5 +124,4 @@ autoDirectory:
 			RTA.displayResponse("Failure", "Could not contact " + server.name + "\nError: " + error.message, true);
 		}
 	});
-	
 }
