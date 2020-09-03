@@ -99,6 +99,11 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 					<td><input type="checkbox" name="rutorrentaddpaused" /></td>
 				</tr>
 				<tr>
+					<td><span class="title">Always send URLs</span></td>
+					<td><input type="checkbox" name="rutorrentalwaysurl" /><br />
+						<span class="tip">Enable this to always send URLs for adding torrents (never try to get a torrent file to send).</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Directory list</span><br />(optional)</td>
 					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
 						</select></div>

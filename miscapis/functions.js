@@ -59,7 +59,7 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 
 
 RTA.getTorrent = function(server, url, label, dir) {
-	if(url.substring(0,7) == "magnet:") {
+	if(url.substring(0,7) == "magnet:" || server.rutorrentalwaysurl) {
 		RTA.dispatchTorrent(server, url, "", label, dir);
 	} else {
 		RTA.getTorrentLink = url;
