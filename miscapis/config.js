@@ -1,6 +1,7 @@
 RTA.clients.config.getConfig = function(client, name) {
 	var clientMap = {
 		"ruTorrent WebUI" : RTA.clients.config.rutorrent,
+		"Transmission WebUI" : RTA.clients.config.transmission,
 		"Torrentflux WebUI" : RTA.clients.config.torrentflux,
 		"uTorrent WebUI" : RTA.clients.config.utorrent,
 		"Deluge WebUI" : RTA.clients.config.deluge,
@@ -140,6 +141,15 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 						<span class="tip" style="font-family: Courier New;">&lt;tracker url&gt;,&lt;directory to assign&gt;</span><br />
 						<span class="tip">e.g.:</span><br />
 						<span class="tip" style="font-family: Courier New;">torrent.ubuntu.com,/media/library/linux-distros/</span></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.transmission = multiline(function(){/*
+			<tbody name="transmissionwebuispecifics" class="specifics">
+				<tr>
+					<td><span class="title">Path</span><br />(optional)</td>
+					<td><input type="text" name="transmissionpath" /></td>
 				</tr>
 			</tbody>
 			*/});

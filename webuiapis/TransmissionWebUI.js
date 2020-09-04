@@ -12,10 +12,13 @@ RTA.clients.transmissionAdder = function(server, torrentdata) {
 			
 			var message;
 			if(torrentdata.substring(0,7) == "magnet:") {
-				message = JSON.stringify({"method": "torrent-add", "arguments": {"paused": "false", "filename": torrentdata}});
+				message = {"method": "torrent-add", "arguments": {"paused": "false", "filename": torrentdata}};
 			} else {
-				message = JSON.stringify({"method": "torrent-add", "arguments": {"metainfo": b64_encode(data)}});
+				message = {"method": "torrent-add", "arguments": {"metainfo": b64_encode(data)}};
 			}
+
+			if (server.transmissionpath && server.transmissionpath.length > 0)
+				message["arguments"]["download-dir"] = server.transmissionpath;
 			
 			fetch(apiUrl, {
 				method: 'POST',
@@ -23,7 +26,7 @@ RTA.clients.transmissionAdder = function(server, torrentdata) {
 					"X-Transmission-Session-Id": sessionId,
 					"Content-Type": "application/json; charset=UTF-8"
 				},
-				body: message
+				body: JSON.stringify(message)
 			})
 			.then(RTA.handleFetchError)
 			.then(response => response.json())
