@@ -76,7 +76,13 @@ RTA.getTorrent = function(server, url, label, dir) {
 			// could probably modernize the webui parts at some point.
 			const fileDataBlob = await response.blob();
 			const buf = await fileDataBlob.arrayBuffer();
-			const fileData = String.fromCharCode.apply(null, new Uint8Array(buf));
+			const ui8a = new Uint8Array(buf);
+			const chunksize = 0x8000;
+			const chunks = [];
+			for(let i = 0; i < ui8a.length; i += chunksize) {
+				chunks.push(String.fromCharCode.apply(null, ui8a.subarray(i, i + chunksize)));
+			}
+			const fileData = chunks.join("");
 			
 			RTA.dispatchTorrent(server, fileData, name, label, dir);
 		})
