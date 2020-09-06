@@ -243,3 +243,17 @@ function registerAuthenticationListeners() {
 }
 
 registerAuthenticationListeners();
+
+
+/////////////////////////////////////////////////////////
+// register browser action for opening a tab to the webui
+/////////////////////////////////////////////////////////
+chrome.browserAction.onClicked.addListener(function(tab) {
+	const servers = JSON.parse(localStorage.getItem("servers"));
+	if(servers.length > 0) {
+		const server = servers[0];
+		const relativePath = server.ruTorrentrelativepath || server.utorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || "/";
+		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + relativePath;
+		chrome.tabs.create({ url: url });
+	}
+});
