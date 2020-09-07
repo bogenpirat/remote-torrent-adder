@@ -40,7 +40,7 @@
 	},
 	"options_page": "options.html",
 	"browser_action": {
-		"default_icon": {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"},
+		"default_icon": {"16":"icons/BitTorrent16-gray.png", "48":"icons/BitTorrent48-gray.png", "128":"icons/BitTorrent128-gray.png"},
 		"default_title": "Remote Torrent Adder"
 	},
 	"content_scripts": [

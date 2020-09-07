@@ -82,7 +82,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			localStorage.setItem(x, request.data[x]);
 		sendResponse({});
 	} else if(request.action == "pageActionToggle") {
-		chrome.pageAction.show(sender.tab.id);
+		chrome.browserAction.setIcon({path: {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"}, tabId: sender.tab.id });
 		sendResponse({});
 	} else if(request.action == "constructContextMenu") {
 		RTA.constructContextMenu();
