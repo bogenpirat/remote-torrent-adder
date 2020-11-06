@@ -198,9 +198,17 @@ RTA.clients.config.rtorrentxmlrpc = multiline(function(){/*
 RTA.clients.config.flood = multiline(function(){/*
 			<tbody name="floodspecifics" class="specifics">
 				<tr>
-					<td><span class="title">Directory</span><br />(optional)</td>
+					<td><span class="title">Directory</span></td>
 					<td><input type="text" name="flooddirectory" /><br />
-						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your default directory for torrents.</span></td>
+						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It must be allowed by the Flood server.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Tags</span><br />(optional)</td>
+					<td><div style="float: left"><select name="labellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addlabelbutton">+</button><br />
+						<button name="dellabelbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Tags to add to torrents.</span></td>
 				</tr>
 				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
