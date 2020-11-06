@@ -5,7 +5,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"uTorrent WebUI" : RTA.clients.config.utorrent,
 		"Deluge WebUI" : RTA.clients.config.deluge,
 		"Hadouken WebUI" : RTA.clients.config.hadouken,
-		"flood WebUI" : RTA.clients.config.flood,
+		"Flood WebUI" : RTA.clients.config.flood,
 		"QNAP DownloadStation" : RTA.clients.config.qnap,
 		"qBittorrent WebUI" : RTA.clients.config.qbittorrent,
 		"qBittorrent v4.1+ WebUI" : RTA.clients.config.qbittorrentv2,

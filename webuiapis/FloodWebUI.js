@@ -4,7 +4,7 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 
 	var apiUrl = (server.hostsecure ? "https://" : "http://") + server.host + ":" + server.port;
 	
-	fetch(apiUrl + "/auth/authenticate", {
+	fetch(apiUrl + "/api/auth/authenticate", {
 		method: 'POST',
 		headers: {
 			"Content-Type": "application/json; charset=UTF-8"
@@ -13,7 +13,7 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 	})
 	.then(RTA.handleFetchError)
 	.then(response => response.json())
-	.then(json => {
+	.then(async json => {
 		if(!json.success) {
 			RTA.displayResponse("Failure", "Login to " + server.name + "'s WebUI failed.", true);
 		} else {
@@ -21,21 +21,16 @@ RTA.clients.floodAdder = function(server, torrentdata) {
 				method: 'POST'
 			};
 			if(torrentdata.substring(0,7) == "magnet:") {
-				apiUrl += "/api/client/add";
+				apiUrl += "/api/torrents/add-urls";
 				fetchOpts.headers = { "Content-Type": "application/json; charset=UTF-8" };
 				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir: undefined) });
 			} else {
-				const dataBlob = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
+				// for proper base64 encoding, this needs to be shifted into a 8 byte integer array
+				const data = new Uint8Array(await RTA.convertToBlob(torrentdata).arrayBuffer());
 
-				apiUrl += "/api/client/add-files";
-
-				fetchOpts.body = new FormData();
-				fetchOpts.body.append("torrents", dataBlob, "file.torrent");
-				fetchOpts.body.append("tags", "");
-				if(dir != undefined && dir.length > 0) {
-					fetchOpts.body.append("destination", dir);
-				}
-				fetchOpts.body.append("start", !paused);
+				apiUrl += "/api/torrents/add-files";
+				fetchOpts.headers = { "Content-Type": "application/json; charset=UTF-8" };
+				fetchOpts.body = JSON.stringify({ "files": [ b64_encode(data) ], "start": !paused, "destination": (!!dir ? dir: undefined) });
 			}
 
 			fetch(apiUrl, fetchOpts)
