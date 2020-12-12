@@ -46,6 +46,8 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.synologyAdder(server, data, name); break;
 		case "flood WebUI":
 			RTA.clients.floodAdder(server, data, name); break;
+		case "flood-jesec WebUI":
+			RTA.clients.floodJesecAdder(server, data, name); break;
 		case "QNAP DownloadStation":
 			RTA.clients.qnapDownloadStationAdder(server, data, name); break;
 		case "tTorrent WebUI":
@@ -252,4 +254,15 @@ RTA.convertToBlob = function(data, myType="text/plain") {
 	const dataBlob = new Blob([ui8a.buffer], {type: myType});
 
 	return dataBlob;
+};
+
+
+RTA.blobToBase64 = function(blob) {
+	const reader = new FileReader();
+	reader.readAsDataURL(blob);
+	return new Promise(resolve => {
+		reader.onloadend = () => {
+			resolve(reader.result);
+		};
+	});
 };

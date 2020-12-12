@@ -6,6 +6,7 @@ RTA.clients.config.getConfig = function(client, name) {
 		"Deluge WebUI" : RTA.clients.config.deluge,
 		"Hadouken WebUI" : RTA.clients.config.hadouken,
 		"flood WebUI" : RTA.clients.config.flood,
+		"flood-jesec WebUI" : RTA.clients.config.floodJesec,
 		"QNAP DownloadStation" : RTA.clients.config.qnap,
 		"qBittorrent WebUI" : RTA.clients.config.qbittorrent,
 		"qBittorrent v4.1+ WebUI" : RTA.clients.config.qbittorrentv2,
@@ -205,6 +206,20 @@ RTA.clients.config.flood = multiline(function(){/*
 				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="floodaddpaused" /></td>
+				</tr>
+			</tbody>
+			*/});
+
+RTA.clients.config.floodJesec = multiline(function(){/*
+			<tbody name="floodJesecspecifics" class="specifics">
+				<tr>
+					<td><span class="title">Directory</span><br />(optional)</td>
+					<td><input type="text" name="floodjesecdirectory" /><br />
+						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your default directory for torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Add torrents paused?</span></td>
+					<td><input type="checkbox" name="floodjesecaddpaused" /></td>
 				</tr>
 			</tbody>
 			*/});

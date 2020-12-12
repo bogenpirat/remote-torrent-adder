@@ -34,6 +34,7 @@
 			"webuiapis/nodejsrtorrentWebUI.js",
 			"webuiapis/SynologyWebUI.js",
 			"webuiapis/floodWebUI.js",
+			"webuiapis/flood-jesecWebUI.js",
 			"webuiapis/tTorrentWebUI.js",
 			"webuiapis/rtorrentXmlRpc.js"
 		]
