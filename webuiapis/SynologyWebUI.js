@@ -15,7 +15,7 @@ RTA.clients.synologyAdder = function(server, torrentdata, torrentname) {
 	var scheme = server.hostsecure ? "https://" : "http://";
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/auth.cgi?api=SYNO.API.Auth&version=2&method=login&account=" + server.login + "&passwd=" + server.password + "&session=DownloadStation&format=sid", false);
+	xhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=" + server.login + "&passwd=" + server.password + "&session=DownloadStation&format=sid", false);
 	xhr.send(null);
 	var sid;
 	var json = JSON.parse(xhr.response);
@@ -27,14 +27,14 @@ RTA.clients.synologyAdder = function(server, torrentdata, torrentname) {
 	
 	if(torrentdata.substring(0,7) == "magnet:") {
 		console.log("DATA: " + torrentdata);
-		console.log("GET: " + scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata));
+		console.log("GET: " + scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=3&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata));
 		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata), true);
+		mxhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=3&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata), true);
 		mxhr.onreadystatechange = handleResponse;
 		mxhr.send(message);
 	} else {
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid, true);
+		xhr.open("POST", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=3&method=create&_sid=" + sid, true);
 		xhr.onreadystatechange = handleResponse;
 		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
