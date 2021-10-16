@@ -65,12 +65,9 @@ RTA.getTorrent = function(server, url, label, dir, referer) {
 		RTA.dispatchTorrent(server, url, "", label, dir);
 	} else {
 		RTA.getTorrentLink = url;
+		RTA.getTorrentLinkReferer = referer;
 		
-		fetch(url, { 
-			headers: {
-				'Referer': referer
-			}
-		})
+		fetch(url)
 		.then(RTA.handleFetchError)
 		.then(async function(response) {
 			var name = "file.torrent";

@@ -158,6 +158,7 @@ registerReferrerHeaderListeners();
 // CATCH TORRENT LINKS AND ALTER THEIR REFERER/ORIGIN
 /////////////////////////////////////////////////////
 RTA.getTorrentLink = "";
+RTA.getTorrentLinkReferer = "";
 const headersListener = function(details) {
 	var output = { };
 	
@@ -167,12 +168,12 @@ const headersListener = function(details) {
 		for (var j = 0; j < details.requestHeaders.length; ++j) {
 			if (details.requestHeaders[j].name === 'Referer') {
 				foundReferer = true;
-				details.requestHeaders[j].value = details.url;
+				details.requestHeaders[j].value = RTA.getTorrentLinkReferer || details.url;
 			}
 			
 			if (details.requestHeaders[j].name === 'Origin') {
 				foundOrigin = true;
-				details.requestHeaders[j].value = details.url;
+				details.requestHeaders[j].value = RTA.getTorrentLinkReferer || details.url;
 			}
 			
 			if(foundReferer && foundOrigin) {
@@ -181,16 +182,17 @@ const headersListener = function(details) {
 		}
 		
 		if(!foundReferer) {
-			details.requestHeaders.push({'name': 'Referer', 'value': details.url});
+			details.requestHeaders.push({'name': 'Referer', 'value': RTA.getTorrentLinkReferer || details.url});
 		}
 		
 		if(!foundOrigin) {
-			details.requestHeaders.push({'name': 'Origin', 'value': details.url});
+			details.requestHeaders.push({'name': 'Origin', 'value': RTA.getTorrentLinkReferer || details.url});
 		}
 
 		output = { requestHeaders: details.requestHeaders };
 
 		RTA.getTorrentLink = "";
+		RTA.getTorrentLinkReferer = "";
 	}
 
 	return output;
