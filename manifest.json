@@ -36,7 +36,8 @@
 			"webuiapis/floodWebUI.js",
 			"webuiapis/flood-jesecWebUI.js",
 			"webuiapis/tTorrentWebUI.js",
-			"webuiapis/rtorrentXmlRpc.js"
+			"webuiapis/rtorrentXmlRpc.js",
+			"webuiapis/elementumWebUi.js"
 		]
 	},
 	"options_page": "options.html",
