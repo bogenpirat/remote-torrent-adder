@@ -57,7 +57,6 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 		case "Elementum WebUI":
 			RTA.clients.elementumAdder(server, data, name); break;
 	}
-	console.log(server.client);
 }
 
 
