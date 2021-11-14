@@ -54,9 +54,10 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 			RTA.clients.tTorrentAdder(server, data, name); break;
 		case "qBittorrent v4.1+ WebUI":
 			RTA.clients.qBittorrentV2Adder(server, data, name, label, dir); break;
-		case "rTorrent XML-RPC":
-			RTA.clients.rtorrentXmlRpcAdder(server, data); break;
+		case "Elementum WebUI":
+			RTA.clients.elementumAdder(server, data, name); break;
 	}
+	console.log(server.client);
 }
 
 

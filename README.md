@@ -18,6 +18,7 @@ It supports the following BitTorrent clients:
   * Synology Downloadstation
   * QNAP DownloadStation
   * tTorrent (Android)
+  * KODI Elementum (ex Quasar, ex Pulsar) 
 
 
 ## How do i get it running?
