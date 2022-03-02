@@ -65,6 +65,9 @@ function registerLinks(response) {
 						if(server["flooddirtagask"] && server["client"]=="flood WebUI") {
 							showLabelDirChooser(response, url);
 						}
+						else if(server["floodjesecdirtagask"] && server["client"]=="flood-jesec WebUI") {
+							showLabelDirChooser(response, url);
+						}
 						else if(server["rutorrentdirlabelask"] && server["client"]=="ruTorrent WebUI") {
 							showLabelDirChooser(response, url);
 						}

@@ -1,5 +1,7 @@
-RTA.clients.floodJesecAdder = function(server, torrentdata) {
-	var dir = server.floodjesecdirectory;
+RTA.clients.floodJesecAdder = function(server, torrentdata, tags, dir) {
+	if (tags == undefined) tags = server.floodjesectags;
+	if (dir == undefined) dir = server.floodjesecdirectory;
+	
 	var paused = server.floodjesecaddpaused;
 
 	var apiUrl = (server.hostsecure ? "https://" : "http://") + server.host + ":" + server.port;
@@ -23,7 +25,7 @@ RTA.clients.floodJesecAdder = function(server, torrentdata) {
 			};
 			if(torrentdata.substring(0,7) == "magnet:") {
 				apiUrl += "/api/torrents/add-urls";
-				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "destination": (!!dir ? dir : undefined), "isBasePath": false, "isCompleted": false });
+				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "tags": (!!tags ? tags.split(',') : []), "destination": (!!dir ? dir : undefined), "isBasePath": false, "isCompleted": false });
 			} else {
 				const dataBlob = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
 
@@ -33,8 +35,8 @@ RTA.clients.floodJesecAdder = function(server, torrentdata) {
 				b64file = b64file.substr(b64file.lastIndexOf(',') + 1);
 
 				fetchOpts.body = JSON.stringify({
-					tags: [],
 					"start": !paused,
+					"tags": (!!tags ? tags.split(',') : []),
 					"destination": (!!dir ? dir : undefined), 
 					"isBasePath": false, 
 					"isCompleted": false,

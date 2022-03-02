@@ -25,7 +25,7 @@ RTA.clients.floodAdder = function(server, data, tags, dir) {
 			if(torrentdata.substring(0,7) == "magnet:") {
 				apiUrl += "/api/client/add";
 				fetchOpts.headers = { "Content-Type": "application/json; charset=UTF-8" };
-				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "tags": (!!tags ? tags: undefined), "destination": (!!dir ? dir: undefined) });
+				fetchOpts.body = JSON.stringify({ "urls": [ torrentdata ], "start": !paused, "tags": (!!tags ? tags.split(',') : undefined), "destination": (!!dir ? dir: undefined) });
 			} else {
 				const dataBlob = RTA.convertToBlob(torrentdata, "application/x-bittorrent");
 
