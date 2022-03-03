@@ -12,7 +12,7 @@
 
 #rta_modal_window {
 	display: none;
-	z-index: 1000;
+	z-index: 999999999;
 	position: fixed;
 	left: 50%;
 	top: 50%;
