@@ -97,6 +97,11 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 						<span class="tip">Enable this to always ask for a label/directory combination upon adding torrents.</span></td>
 				</tr>
 				<tr>
+				<td><span class="title">Don't add torrent name to path</span></td>
+					<td><input type="checkbox" name="rutorrentdontaddnamepath" /><br />
+						<span class="tip">Won't create folder with the torrent name.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="rutorrentaddpaused" /></td>
 				</tr>
