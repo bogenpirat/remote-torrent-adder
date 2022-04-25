@@ -75,7 +75,8 @@ autoDirectory:
 		url += "label=" + encodeURIComponent(label);
 	if(server.rutorrentaddpaused)
 		url += "&torrents_start_stopped=1";
-
+	if(server.rutorrentdontaddnamepath)
+		url += "&not_add_path=1";
 
 	var message;
 	var headers = {  };
