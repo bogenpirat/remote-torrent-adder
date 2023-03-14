@@ -111,15 +111,7 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 						<span class="tip">Enable this to always send URLs for adding torrents (never try to get a torrent file to send).</span></td>
 				</tr>
 				<tr>
-					<td><span class="title">Directory list</span><br />(optional)</td>
-					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
-						</select></div>
-						<div style="position:relative; float:left;"><button name="adddirbutton">+</button><br />
-						<button name="deldirbutton">-</button></div><br style="clear:both;" />
-						<span class="tip">Directories to use for adding torrents.</span></td>
-				</tr>
-				<tr>
-					<td><span class="title">Labellist</span><br />(optional)</td>
+					<td><span class="title">Label List</span><br />(optional)</td>
 					<td><div style="float: left"><select name="labellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
 						</select></div>
 						<div style="position:relative; float:left;"><button name="addlabelbutton">+</button><br />
@@ -127,7 +119,15 @@ RTA.clients.config.rutorrent = multiline(function(){/*
 						<span class="tip">Labels to use for adding torrents.</span></td>
 				</tr>
 				<tr>
-					<td><span class="title">Auto-Labelling</span><br />(optional)</td>
+					<td><span class="title">Directory List</span><br />(optional)</td>
+					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="adddirbutton">+</button><br />
+						<button name="deldirbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Directories to use for adding torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Auto-Labeling</span><br />(optional)</td>
 					<td><div style="float: left"><select name="autolabellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
 						</select></div>
 						<div style="position:relative; float:left;"><button name="addautolabelbutton">+</button><br />
@@ -214,13 +214,39 @@ RTA.clients.config.rtorrentxmlrpc = multiline(function(){/*
 RTA.clients.config.flood = multiline(function(){/*
 			<tbody name="floodspecifics" class="specifics">
 				<tr>
+					<td><span class="title">Tags</span><br />(optional)</td>
+					<td><input type="text" name="floodtags" /><br />
+						<span class="tip">Default tags to use for added torrents.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Directory</span><br />(optional)</td>
 					<td><input type="text" name="flooddirectory" /><br />
 						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your default directory for torrents.</span></td>
 				</tr>
 				<tr>
+					<td><span class="title">Tag/Directory<br/>interactivity</span></td>
+					<td><input type="checkbox" name="flooddirtagask" /><br />
+						<span class="tip">Enable this to always ask for a tag/directory combination upon adding torrents.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="floodaddpaused" /></td>
+				</tr>
+				<tr>
+					<td><span class="title">Tag List</span><br />(optional)</td>
+					<td><div style="float: left"><select name="labellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addlabelbutton">+</button><br />
+						<button name="dellabelbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Tags to use for adding torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Directory List</span><br />(optional)</td>
+					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="adddirbutton">+</button><br />
+						<button name="deldirbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Directories to use for adding torrents.</span></td>
 				</tr>
 			</tbody>
 			*/});
@@ -228,13 +254,39 @@ RTA.clients.config.flood = multiline(function(){/*
 RTA.clients.config.floodJesec = multiline(function(){/*
 			<tbody name="floodJesecspecifics" class="specifics">
 				<tr>
+					<td><span class="title">Tags</span><br />(optional)</td>
+					<td><input type="text" name="floodjesectags" /><br />
+						<span class="tip">Default tags to use for added torrents.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Directory</span><br />(optional)</td>
 					<td><input type="text" name="floodjesecdirectory" /><br />
 						<span class="tip">Default directory to store added torrents in. This should be an absolute path. It should be inside your default directory for torrents.</span></td>
 				</tr>
 				<tr>
+					<td><span class="title">Tag/Directory<br/>interactivity</span></td>
+					<td><input type="checkbox" name="floodjesecdirtagask" /><br />
+						<span class="tip">Enable this to always ask for a tag/directory combination upon adding torrents.</span></td>
+				</tr>
+				<tr>
 					<td><span class="title">Add torrents paused?</span></td>
 					<td><input type="checkbox" name="floodjesecaddpaused" /></td>
+				</tr>
+				<tr>
+					<td><span class="title">Tag List</span><br />(optional)</td>
+					<td><div style="float: left"><select name="labellist" multiple="multiple" size="5" style="min-width: 300px" style="float:left;">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="addlabelbutton">+</button><br />
+						<button name="dellabelbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Tags to use for adding torrents.</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Directory List</span><br />(optional)</td>
+					<td><div style="float: left"><select name="dirlist" multiple="multiple" size="5" style="min-width: 300px">
+						</select></div>
+						<div style="position:relative; float:left;"><button name="adddirbutton">+</button><br />
+						<button name="deldirbutton">-</button></div><br style="clear:both;" />
+						<span class="tip">Directories to use for adding torrents.</span></td>
 				</tr>
 			</tbody>
 			*/});
@@ -273,4 +325,3 @@ RTA.clients.config.qbittorrentv2 = multiline(function(){/*
 				</tr>
 			</tbody>
 			*/});
-
