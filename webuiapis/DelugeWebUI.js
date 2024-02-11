@@ -2,7 +2,7 @@ RTA.clients.delugeAdder = function (server, torrentdata, filename) {
 	const rnd = Math.floor(Math.random() * 999999);
 
 	const relPath = (server.delugerelativepath == undefined) ? "" : server.delugerelativepath;
-	const label = (server.delugelabel == undefined) ? "remote-torrent-adder" : (server.delugelabel).toLocaleLowerCase();
+	const label = (server.delugelabel == "") ? "remote-torrent-adder" : (server.delugelabel).toLocaleLowerCase();
 	const scheme = server.hostsecure ? "https" : "http";
 	const apiUrl = scheme + "://" + server.host + ":" + server.port + relPath + "/json";
 
