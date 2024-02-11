@@ -62,10 +62,15 @@ RTA.clients.config.generalsettings = multiline(function(){/*
 
 
 
-RTA.clients.config.deluge = multiline(function(){/*
+RTA.clients.config.deluge = multiline(function () {/*
 			<tbody name="delugewebuispecifics" class="specifics">
 				<tr>
-					<td><span class="title">Relative path</span><br />(optional)</td>
+					<td><span class="title">Label</span><br />(optional)</td>
+					<td><input type="text" name="delugelabel"/><br />
+						<span class="tip">Default label to use for added torrents. If field left black then label will defult to "remote-torrent-adder"</span></td>
+				</tr>
+				<tr>
+					<td><span class="title">Relative path</span><br />(optional)</td><br />
 					<td><input type="text" name="delugerelativepath" /><br />
 						<span class="tip">Enter only the text in quotation marks: http://someserver.com&quot;<strong>/gui</strong>&quot;/<br />
 							Note: Unless you are doing reverse-proxying, this field should be left empty</span></td>
