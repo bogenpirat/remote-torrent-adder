@@ -88,6 +88,20 @@ RTA.getTorrent = function(server, url, label, dir, referer) {
 				chunks.push(String.fromCharCode.apply(null, ui8a.subarray(i, i + chunksize)));
 			}
 			const fileData = chunks.join("");
+
+			// Real .torrent files will start "d8:announce" and no whitepace
+			const peek = fileData.slice(0, 11);
+
+			if (!peek || !peek.startsWith("d8:announce")) {
+				let contentType = response.headers.get("Content-Type");
+				if (contentType) {
+					const semicolonPos = contentType.indexOf(";");
+					contentType = contentType.slice(0, semicolonPos).trim();
+				} else {
+					contentType = "unknown"
+				}
+				throw new Error("Received " + contentType + " content instead of a .torrent file");
+			}
 			
 			RTA.dispatchTorrent(server, fileData, name, label, dir);
 		})
