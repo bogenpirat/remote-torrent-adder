@@ -102,7 +102,8 @@ autoDirectory:
 	fetch(url, {
 		method: 'POST',
 		headers: headers,
-		body: message
+		body: message,
+		mode: 'no-cors',
 	}).then(RTA.handleFetchError)
 	.then(response => {
 		if(/.*result\[\]=Success.*/.exec(response.url)) {
