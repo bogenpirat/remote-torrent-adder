@@ -45,9 +45,9 @@ RTA.dispatchTorrent = function(server, data, name, label, dir) {
 		case "Synology WebUI":
 			RTA.clients.synologyAdder(server, data, name); break;
 		case "flood WebUI":
-			RTA.clients.floodAdder(server, data, name); break;
+			RTA.clients.floodAdder(server, data, label, dir); break;
 		case "flood-jesec WebUI":
-			RTA.clients.floodJesecAdder(server, data, name); break;
+			RTA.clients.floodJesecAdder(server, data, label, dir); break;
 		case "QNAP DownloadStation":
 			RTA.clients.qnapDownloadStationAdder(server, data, name); break;
 		case "tTorrent WebUI":
@@ -204,7 +204,13 @@ RTA.genericOnClick = function(info, tab) {
 	} else { // only one server specified
 		var server = JSON.parse(localStorage.getItem("servers"))[serverId];
 
-		if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
+		if (server.flooddirtagask == true && server.client == "flood WebUI") {
+			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
+		}
+		else if (server.floodjesecdirtagask == true && server.client == "flood-jesec WebUI") {
+			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
+		}
+		else if (server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
 			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
 		}
 		else if (server.qbittorrentdirlabelask == true && server.client == "qBittorrent WebUI") {
