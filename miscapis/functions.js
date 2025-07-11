@@ -1,14 +1,5 @@
 var menuItemIndexToServerIndex = [];
 
-XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
-	function byteValue(x) {
-		return x.charCodeAt(0) & 0xff;
-	}
-	var ords = Array.prototype.map.call(datastr, byteValue);
-	var ui8a = new Uint8Array(ords);
-	this.send(ui8a.buffer);
-}
-
 
 RTA.dispatchTorrent = function(server, data, name, label, dir) {
 	switch (server.client) {
@@ -129,94 +120,123 @@ RTA.audioNotification = function(error) {
 
 
 RTA.displayResponse = function(title, message, error=false) {
-	if(localStorage.getItem("showpopups") == "true") {
-		var opts = { 
-					type: "basic", 
-					iconUrl: (error === true) ? "icons/BitTorrent128-red.png" : "icons/BitTorrent128.png", 
-					title: title,
-					priority: 0,
-					message: message
-					};
-		var id = Math.floor(Math.random() * 99999) + "";
-		
-		chrome.notifications.create(id, opts, function(myId) { 
-			setTimeout(function() {
-				chrome.notifications.clear(myId, function() {});
-			}, localStorage.getItem('popupduration'));
-		});
-		
-		
-		
-		if(localStorage.getItem("hearpopups") == "true") {
-			RTA.audioNotification(error);
+	chrome.storage.local.get(["showpopups", "popupduration", "hearpopups"], function(data) {
+		if(data.showpopups == "true") {
+			var opts = { 
+						type: "basic", 
+						iconUrl: (error === true) ? "icons/BitTorrent128-red.png" : "icons/BitTorrent128.png", 
+						title: title,
+						priority: 0,
+						message: message
+						};
+			var id = Math.floor(Math.random() * 99999) + "";
+			
+			chrome.notifications.create(id, opts, function(myId) { 
+				setTimeout(function() {
+					chrome.notifications.clear(myId, function() {});
+				}, data.popupduration || "2000");
+			});
+			
+			
+			
+			if(data.hearpopups == "true") {
+				RTA.audioNotification(error);
+			}
 		}
-	}
+	});
 }
 
 
 RTA.constructContextMenu = function() {
-	chrome.contextMenus.removeAll();
+	// Clear all existing context menus first
+	chrome.contextMenus.removeAll(function() {
+		chrome.storage.local.get(["catchfromcontextmenu", "servers"], function(data) {
+			if(data.catchfromcontextmenu == "true") {
+				// for if there's only one entry
+				chrome.contextMenus.create({
+					"id": "rta-main",
+					"title": "Add to Remote WebUI",
+					"contexts": [ "link" ]
+				}, function() {
+					menuItemIndexToServerIndex["rta-main"] = 0;
 
-	if(localStorage.getItem("catchfromcontextmenu") == "true") {
-		// for if there's only one entry
-		var contextMenuId = chrome.contextMenus.create({
-			"title": "Add to Remote WebUI",
-			"contexts": [ "link" ],
-			"onclick": RTA.genericOnClick
-		});
-		menuItemIndexToServerIndex[contextMenuId] = 0;
+					// check if there's more than one entry and add them as sub-entries in the context menu
+					var servers = data.servers ? JSON.parse(data.servers) : [];
+					var numServers = servers.length;
 
-		// check if there's more than one entry and add them as sub-entries in the context menu
-		var servers = localStorage.getItem("servers") ? JSON.parse(localStorage.getItem("servers")) : [];
-		var numServers = servers.length;
-
-		if(numServers > 1) {
-			for(var i = 0; i < numServers; i++) {
-				var thisId = chrome.contextMenus.create({
-					"title": servers[i].name,
-					"contexts": [ "link" ],
-					"parentId": contextMenuId,
-					"onclick": RTA.genericOnClick
+					if(numServers > 1) {
+						for(var i = 0; i < numServers; i++) {
+							var thisId = "rta-server-" + i;
+							chrome.contextMenus.create({
+								"id": thisId,
+								"title": servers[i].name,
+								"contexts": [ "link" ],
+								"parentId": "rta-main"
+							}, function() {
+								menuItemIndexToServerIndex[thisId] = i;
+							});
+						}
+						chrome.contextMenus.create({
+							"id": "rta-separator",
+							"type" : "separator", 
+							"contexts": [ "link" ], 
+							"parentId": "rta-main"
+						});
+						chrome.contextMenus.create({
+							"id": "rta-all",
+							"title": "send to all",
+							"contexts": [ "link" ],
+							"parentId": "rta-main"
+						}, function() {
+							menuItemIndexToServerIndex["rta-all"] = -1;
+						});
+					}
 				});
-				menuItemIndexToServerIndex[thisId] = i;
 			}
-			chrome.contextMenus.create({"type" : "separator", "contexts": [ "link" ], "parentId": contextMenuId});
-			var allId = chrome.contextMenus.create({
-				"title": "send to all",
-				"contexts": [ "link" ],
-				"parentId": contextMenuId,
-				"onclick": RTA.genericOnClick
-			});
-			menuItemIndexToServerIndex[allId] = -1;
-		}
-	}
+		});
+	});
 }
 
 
 RTA.genericOnClick = function(info, tab) {
-	var servers = JSON.parse(localStorage.getItem("servers"));
-	var serverId = menuItemIndexToServerIndex[info.menuItemId];
+	chrome.storage.local.get("servers", function(result) {
+		var servers = result.servers ? JSON.parse(result.servers) : [];
+		
+		// Check if servers array exists and has data
+		if (!servers || servers.length === 0) {
+			RTA.displayResponse("Error", "No servers configured. Please add a server in the options.", true);
+			return;
+		}
+		
+		var serverId = menuItemIndexToServerIndex[info.menuItemId];
 
-	if(serverId === -1) { // send to all servers
-		for(var i in servers) {
-			RTA.getTorrent(servers[i], info.linkUrl, null, null, tab.url);
-		}
-	} else { // only one server specified
-		var server = JSON.parse(localStorage.getItem("servers"))[serverId];
+		if(serverId === -1) { // send to all servers
+			for(var i in servers) {
+				RTA.getTorrent(servers[i], info.linkUrl, null, null, tab.url);
+			}
+		} else { // only one server specified
+			var server = servers[serverId];
+			
+			// Check if server exists and is valid
+			if (!server) {
+				RTA.displayResponse("Error", "Server configuration not found. Please check your settings.", true);
+				return;
+			}
 
-		if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
-			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
+			if(server.rutorrentdirlabelask == true && server.client == "ruTorrent WebUI") {
+				chrome.tabs.sendMessage(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": result, "server": server});
+			}
+			else if (server.qbittorrentdirlabelask == true && server.client == "qBittorrent WebUI") {
+				chrome.tabs.sendMessage(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": result, "server": server});
+			} 
+			else if (server.qbittorrentv2dirlabelask == true && server.client == "qBittorrent v4.1+ WebUI") {
+				chrome.tabs.sendMessage(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": result, "server": server});
+			} 
+			else {
+				RTA.getTorrent(server, info.linkUrl, null, null, tab.url);
+			}
 		}
-		else if (server.qbittorrentdirlabelask == true && server.client == "qBittorrent WebUI") {
-			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
-		} 
-		else if (server.qbittorrentv2dirlabelask == true && server.client == "qBittorrent v4.1+ WebUI") {
-			chrome.tabs.sendRequest(tab.id, {"action": "showLabelDirChooser", "url": info.linkUrl, "settings": localStorage, "server": server});
-		} 
-		else {
-			RTA.getTorrent(server, info.linkUrl, null, null, tab.url);
-		}
-	}
+	});
 }
 
 

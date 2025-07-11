@@ -1,35 +1,37 @@
-function vhtml_handleResponse(data) {
-	if(this.readyState == 4 && this.status == 200) {
-		if(/.*loaded successfully.*/.exec(this.responseText)) {
+function vhtml_handleResponse(response, text) {
+	if(response.ok) {
+		if(/.*loaded successfully.*/.exec(text)) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		} else {
-			RTA.displayResponse("Failure", "Server didn't accept data:\n" + this.status + ": " + this.responseText, true);
+			RTA.displayResponse("Failure", "Server didn't accept data:\n" + response.status + ": " + text, true);
 		}
-	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + this.status + ": " + this.responseText, true);
+	} else {
+		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + response.status + ": " + text, true);
 	}
 }
 
-RTA.clients.vuzeHtmlAdder = function(server, data) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://" + server.host + ":" + server.port + "/index.tmpl?d=u&local=1", true);
-	xhr.onreadystatechange = vhtml_handleResponse;
-	
+RTA.clients.vuzeHtmlAdder = async function(server, data) {
 	if(data.substring(0,7) == "magnet:") {
-		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", "http://" + server.host + ":" + server.port + "/index.tmpl?d=u&upurl=" + encodeURIComponent(data), true);
-		mxhr.onreadystatechange = vhtml_handleResponse;
-		mxhr.send(message);
+		const url = "http://" + server.host + ":" + server.port + "/index.tmpl?d=u&upurl=" + encodeURIComponent(data);
+		const response = await fetch(url, { method: "GET" });
+		const text = await response.text();
+		vhtml_handleResponse(response, text);
 	} else {
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 		var message = "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"upfile_1\"; filename=\"file.torrent\"\r\n";
 		   message += "Content-Type: application/x-bittorrent\r\n\r\n";
 		   message += data + "\r\n";
 		   message += "--" + boundary + "--\r\n";
-		
-		xhr.sendAsBinary(message);
+
+		const response = await fetch("http://" + server.host + ":" + server.port + "/index.tmpl?d=u&local=1", {
+			method: "POST",
+			headers: {
+				"Content-Type": "multipart/form-data; boundary=" + boundary
+			},
+			body: new TextEncoder().encode(message)
+		});
+		const text = await response.text();
+		vhtml_handleResponse(response, text);
 	}
 }

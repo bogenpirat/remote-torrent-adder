@@ -1,67 +1,70 @@
-function handleResponse(server, data) {
-	if(this.readyState == 4 && this.status == 200) {
-		var json = JSON.parse(this.responseText);
+async function handleResponse(response) {
+	const text = await response.text();
+	try {
+		const json = JSON.parse(text);
 		if(json.success) {
 			RTA.displayResponse("Success", "Torrent added successfully.");
 		} else {
-			RTA.displayResponse("Failure", "Server didn't accept data: " + JSON.stringify(this.responseText), true);
+			RTA.displayResponse("Failure", "Server didn't accept data: " + JSON.stringify(text), true);
 		}
-	} else if(this.readyState == 4 && this.status != 200) {
-		RTA.displayResponse("Failure", "Server responded with an irregular HTTP error code:\n" + this.status + ": " + this.responseText, true);
+	} catch (e) {
+		RTA.displayResponse("Failure", "Invalid response: " + text, true);
 	}
 }
 
-RTA.clients.synologyAdder = function(server, torrentdata, torrentname) {
-	var scheme = server.hostsecure ? "https://" : "http://";
+RTA.clients.synologyAdder = async function(server, torrentdata, torrentname) {
+	const scheme = server.hostsecure ? "https://" : "http://";
 
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/auth.cgi?api=SYNO.API.Auth&version=2&method=login&account=" + server.login + "&passwd=" + server.password + "&session=DownloadStation&format=sid", false);
-	xhr.send(null);
-	var sid;
-	var json = JSON.parse(xhr.response);
-	if(json && json.data) {
-		sid = json.data.sid;
-	} else {
-		RTA.displayResponse("Failure", "Problem getting the Synology SID. Is the configuration correct?", true);
+	// Login to get SID
+	const loginUrl = `${scheme}${server.host}:${server.port}/webapi/auth.cgi?api=SYNO.API.Auth&version=2&method=login&account=${encodeURIComponent(server.login)}&passwd=${encodeURIComponent(server.password)}&session=DownloadStation&format=sid`;
+	const loginResponse = await fetch(loginUrl);
+	const loginText = await loginResponse.text();
+	let sid;
+	try {
+		const json = JSON.parse(loginText);
+		if(json && json.data) {
+			sid = json.data.sid;
+		} else {
+			RTA.displayResponse("Failure", "Problem getting the Synology SID. Is the configuration correct?", true);
+			return;
+		}
+	} catch (e) {
+		RTA.displayResponse("Failure", "Problem parsing Synology login response.", true);
+		return;
 	}
-	
+
 	if(torrentdata.substring(0,7) == "magnet:") {
-		console.log("DATA: " + torrentdata);
-		console.log("GET: " + scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata));
-		var mxhr = new XMLHttpRequest();
-		mxhr.open("GET", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid + "&uri=" + encodeURIComponent(torrentdata), true);
-		mxhr.onreadystatechange = handleResponse;
-		mxhr.send(message);
+		const url = `${scheme}${server.host}:${server.port}/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=${sid}&uri=${encodeURIComponent(torrentdata)}`;
+		const response = await fetch(url);
+		await handleResponse(response);
 	} else {
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", scheme + server.host + ":" + server.port + "/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=" + sid, true);
-		xhr.onreadystatechange = handleResponse;
-		// mostly stolen from https://github.com/igstan/ajax-file-upload/blob/master/complex/uploader.js
 		var boundary = "AJAX-----------------------" + (new Date).getTime();
-		xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 		var message = "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"api\"\r\n\r\n";
 		   message += "SYNO.DownloadStation.Task" + "\r\n";
-		   
 		   message += "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"version\"\r\n\r\n";
 		   message += "2" + "\r\n";
-		   
 		   message += "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"method\"\r\n\r\n";
 		   message += "create" + "\r\n";
-		   
 		   message += "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"_sid\"\r\n\r\n";
 		   message += sid + "\r\n";
-		   
 		   message += "--" + boundary + "\r\n";
 		   message += "Content-Disposition: form-data; name=\"file\"; filename=\"" + torrentname + "\"\r\n";
 		   message += "Content-Type: application/octet-stream\r\n\r\n";
 		   message += torrentdata + "\r\n";
-		   
 		   message += "--" + boundary + "--\r\n";
-		
-		xhr.sendAsBinary(message);
+
+		const url = `${scheme}${server.host}:${server.port}/webapi/DownloadStation/task.cgi?api=SYNO.DownloadStation.Task&version=2&method=create&_sid=${sid}`;
+		const response = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "multipart/form-data; boundary=" + boundary
+			},
+			body: new TextEncoder().encode(message)
+		});
+		await handleResponse(response);
 	}
 }

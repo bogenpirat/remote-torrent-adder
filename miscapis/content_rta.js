@@ -1,6 +1,6 @@
 var rta_modal_open, rta_modal_close;
 
-chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+chrome.runtime.sendMessage({"action": "getStorageData"}, function(response) {
 	var delay = 0;
 	if(response["registerDelay"] > 0) {
 		delay = response["registerDelay"];
@@ -50,7 +50,7 @@ function registerLinks(response) {
 		var modals = rta_modal_init();
 		rta_modal_open = modals[0];
 		rta_modal_close = modals[1];
-		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
+		if(response["linksfoundindicator"]=="true") chrome.runtime.sendMessage({"action": "pageActionToggle"});
 		
 		for(key in links) {
 			if(links[key].addEventListener) {
@@ -74,7 +74,7 @@ function registerLinks(response) {
 						else {
 							var ref = new URL(window.location);
 							ref.hash = '';
-							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined, "referer": ref.toString()});
+							chrome.runtime.sendMessage({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined, "referer": ref.toString()});
 						}
 					}
 				});
@@ -84,7 +84,7 @@ function registerLinks(response) {
 }
 
 // register a listener that'll display the dir/label selection dialog
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
 		var modals = rta_modal_init();
 		rta_modal_open = modals[0];
@@ -117,12 +117,12 @@ function showLabelDirChooser(settings, url, theServer) {
 	adddialog += "<form id=\"rta_addform\">Directory: <select id=\"adddialog_directory\">";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
 	adddialog += "</select>";
-	adddialog += " <img id=\"dirremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
+	adddialog += " <img id=\"dirremover\" src=\"" + chrome.runtime.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
 	adddialog += "or new: <input id=\"adddialog_directory_new\" type=\"text\" /><br/>";
 	adddialog += "Label: <select id=\"adddialog_label\">";
 	for(x in labellist) adddialog += "<option value=\""+labellist[x]+"\">"+labellist[x]+"</option>";
 	adddialog += "</select>";
-	adddialog += " <img id=\"labelremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
+	adddialog += " <img id=\"labelremover\" src=\"" + chrome.runtime.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
 	adddialog += " or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
 	adddialog += "<input id=\"adddialog_submit\" type=\"submit\" value=\"Add Torrent\" /></form>";
 	
@@ -168,7 +168,7 @@ function showLabelDirChooser(settings, url, theServer) {
 		
 		var ref = new URL(window.location);
 		ref.hash = '';
-		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server, "referer": ref.toString()});
+		chrome.runtime.sendMessage({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server, "referer": ref.toString()});
 		
 		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel, serverIndex);
 		
@@ -178,7 +178,7 @@ function showLabelDirChooser(settings, url, theServer) {
 	};
 
 	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
-		chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+		chrome.runtime.sendMessage({"action": "getStorageData"}, function(response) {
 			var servers = JSON.parse(response.servers);
 			var server;
 			if(!serverIndex) {
@@ -211,7 +211,7 @@ function showLabelDirChooser(settings, url, theServer) {
 			servers[serverIndex] = server;
 			settings.servers = JSON.stringify(servers);
 
-			chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
+			chrome.runtime.sendMessage({"action": "setStorageData", "data": settings});
 		});
 	}
 }

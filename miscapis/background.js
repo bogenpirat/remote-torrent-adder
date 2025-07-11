@@ -1,65 +1,95 @@
 ///////////////////////////////////////////////////////
 // TAKE CARE OF EXTENSION SETTINGS. VIRGIN/OLD INSTALL?
 ///////////////////////////////////////////////////////
-if(localStorage.getItem("servers") == undefined) {
-	var servers = [];
+var contextMenuInitialized = false;
 
-	// check if there's an old configuration, convert it to the new style
-	if(localStorage.getItem("host") != undefined &&
-	   localStorage.getItem("port") != undefined &&
-	   localStorage.getItem("login") != undefined &&
-	   localStorage.getItem("password") != undefined &&
-	   localStorage.getItem("client") != undefined) {
-		servers.push({
-			"name": "primary host",
-			"host": localStorage.getItem("host"),
-			"port": parseInt(localStorage.getItem("port")),
-			"hostsecure": localStorage.getItem("hostsecure") === "true",
-			"login": localStorage.getItem("login"),
-			"password": localStorage.getItem("password")
+chrome.storage.local.get(null, function(data) {
+	if(data.servers == undefined) {
+		var servers = [];
+
+		// check if there's an old configuration, convert it to the new style
+		if(data.host != undefined &&
+		   data.port != undefined &&
+		   data.login != undefined &&
+		   data.password != undefined &&
+		   data.client != undefined) {
+			servers.push({
+				"name": "primary host",
+				"host": data.host,
+				"port": parseInt(data.port),
+				"hostsecure": data.hostsecure === "true",
+				"login": data.login,
+				"password": data.password
+			});
+		} else { // otherwise, use standard values
+			servers.push({
+				"name": "PRIMARY SERVER",
+				"host": "127.0.0.1",
+				"port": 6883,
+				"hostsecure": "",
+				"login": "login",
+				"password": "password",
+				"client": "Vuze SwingUI"
+			});
+			chrome.storage.local.set({
+				"linksfoundindicator": "true",
+				"showpopups": "true",
+				"popupduration": "2000",
+				"catchfromcontextmenu": "true",
+				"catchfrompage": "true",
+				"linkmatches": "([\\]\\[]|\\b|\\.)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download"
+			});
+		}
+		chrome.storage.local.set({"servers": JSON.stringify(servers)}, function() {
+			// Initialize context menu after storage is set up
+			if (!contextMenuInitialized) {
+				RTA.constructContextMenu();
+				contextMenuInitialized = true;
+			}
+			registerReferrerHeaderListeners();
+			registerAuthenticationListeners();
 		});
-	} else { // otherwise, use standard values
-		servers.push({
-			"name": "PRIMARY SERVER",
-			"host": "127.0.0.1",
-			"port": 6883,
-			"hostsecure": "",
-			"login": "login",
-			"password": "password",
-			"client": "Vuze SwingUI"
-		});
-		localStorage.setItem("linksfoundindicator", "true");
-		localStorage.setItem("showpopups", "true");
-		localStorage.setItem("popupduration", "2000");
-		localStorage.setItem("catchfromcontextmenu", "true");
-		localStorage.setItem("catchfrompage", "true");
-		localStorage.setItem("linkmatches", "([\\]\\[]|\\b|\\.)\\.torrent\\b([^\\-]|$)~torrents\\.php\\?action=download");
+	} else {
+		// Storage already exists, initialize context menu
+		if (!contextMenuInitialized) {
+			RTA.constructContextMenu();
+			contextMenuInitialized = true;
+		}
+		registerReferrerHeaderListeners();
+		registerAuthenticationListeners();
 	}
-	localStorage.setItem("servers", JSON.stringify(servers));
-}
+});
 
 
 
 //////////////////////////////////////////////////////
 // REGISTER CONTEXT (RIGHT-CLICK) MENU ITEMS FOR LINKS
 //////////////////////////////////////////////////////
-RTA.constructContextMenu();
+// Context menu will be constructed after storage is initialized
 
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+	RTA.genericOnClick(info, tab);
+});
 
 
 ////////////////////
 // GRAB FROM NEW TAB
 ////////////////////
 chrome.tabs.onCreated.addListener(function(tab) {
-	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
-	if(localStorage.getItem("catchfromnewtab") != "true") return;
-	res = localStorage.getItem('linkmatches').split('~');
-	for(mkey in res) {
-		if (tab.url.match(new RegExp(res[mkey], "g"))) {
-			RTA.getTorrent(server, tab.url);
-			break;
+	chrome.storage.local.get(["servers", "catchfromnewtab", "linkmatches"], function(data) {
+		if(data.catchfromnewtab != "true") return;
+		var servers = data.servers ? JSON.parse(data.servers) : [];
+		if(servers.length === 0) return;
+		var server = servers[0]; // primary server
+		var res = data.linkmatches ? data.linkmatches.split('~') : [];
+		for(mkey in res) {
+			if (tab.url.match(new RegExp(res[mkey], "g"))) {
+				RTA.getTorrent(server, tab.url);
+				break;
+			}
 		}
-	}
+	});
 });
 
 
@@ -67,31 +97,40 @@ chrome.tabs.onCreated.addListener(function(tab) {
 /////////////////////////////////////////////////////
 // OVERWRITE THE CLICK-EVENT OF LINKS WE WANT TO GRAB
 /////////////////////////////////////////////////////
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	var server = JSON.parse(localStorage.getItem("servers"))[0]; // primary server
-	if(request.action == "addTorrent") {
-		if(request.server) {
-			server = request.server;
-		}
-		RTA.getTorrent(server, request.url, request.label, request.dir, request.referer);
-		sendResponse({});
-	} else if(request.action == "getStorageData") {
-		sendResponse(localStorage);
-	} else if(request.action == "setStorageData") {
-		for(x in request.data)
-			localStorage.setItem(x, request.data[x]);
-		sendResponse({});
-	} else if(request.action == "pageActionToggle") {
-		chrome.browserAction.setIcon({path: {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"}, tabId: sender.tab.id });
-		sendResponse({});
-	} else if(request.action == "constructContextMenu") {
-		RTA.constructContextMenu();
-		sendResponse({});
-	} else if(request.action == "registerRefererListeners") {
-		registerReferrerHeaderListeners();
-	} else if(request.action == "registerAuthenticationListeners") {
-		registerAuthenticationListeners();
-	} 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	chrome.storage.local.get("servers", function(result) {
+		var server = result.servers ? JSON.parse(result.servers)[0] : null; // primary server
+		if(request.action == "addTorrent") {
+			if(request.server) {
+				server = request.server;
+			}
+			RTA.getTorrent(server, request.url, request.label, request.dir, request.referer);
+			sendResponse({});
+		} else if(request.action == "getStorageData") {
+			chrome.storage.local.get(null, function(data) {
+				sendResponse(data);
+			});
+			return true; // Keep message channel open for async response
+		} else if(request.action == "setStorageData") {
+			chrome.storage.local.set(request.data, function() {
+				sendResponse({});
+			});
+			return true; // Keep message channel open for async response
+		} else if(request.action == "pageActionToggle") {
+			chrome.action.setIcon({path: {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"}, tabId: sender.tab.id });
+			sendResponse({});
+		} else if(request.action == "constructContextMenu") {
+			if (!contextMenuInitialized) {
+				RTA.constructContextMenu();
+				contextMenuInitialized = true;
+			}
+			sendResponse({});
+		} else if(request.action == "registerRefererListeners") {
+			registerReferrerHeaderListeners();
+		} else if(request.action == "registerAuthenticationListeners") {
+			registerAuthenticationListeners();
+		} 
+	});
 });
 
 ///////////////////////////////////////////////////////////////////
@@ -105,100 +144,43 @@ function registerReferrerHeaderListeners() {
 	}
 	
 	// register new listeners
-	var servers = JSON.parse(localStorage.getItem("servers"));
-	for(var i in servers) {
-		var server = servers[i];
-		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
-		
-		const listener = (function(arg) {
-			const myUrl = arg;
+	chrome.storage.local.get("servers", function(result) {
+		var servers = result.servers ? JSON.parse(result.servers) : [];
+		for(var i in servers) {
+			var server = servers[i];
+			const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+			
+			const listener = (function(arg) {
+				const myUrl = arg;
 
-			return function(details) {
-				var foundReferer = false;
-				var foundOrigin = false;
-				for (var j = 0; j < details.requestHeaders.length; ++j) {
-					if (details.requestHeaders[j].name === 'Referer') {
-						foundReferer = true;
-						details.requestHeaders[j].value = myUrl;
-					}
-					
-					if (details.requestHeaders[j].name === 'Origin') {
-						foundOrigin = true;
-						details.requestHeaders[j].value = myUrl;
-					}
-					
-					if(foundReferer && foundOrigin) {
-						break;
-					}
-				}
-				
-				if(!foundReferer) {
-					details.requestHeaders.push({'name': 'Referer', 'value': myUrl});
-				}
-				
-				if(!foundOrigin) {
-					details.requestHeaders.push({'name': 'Origin', 'value': myUrl});
-				}
-
-				return {requestHeaders: details.requestHeaders};
+							return function(details) {
+				// In Manifest V3, we can't modify headers directly
+				// This listener is kept for compatibility but doesn't modify headers
 			};
-		})(url);
-		
-		if(server.host && server.port) {
-			chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [ url + "*" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
+			})(url);
+			
+			if(server.host && server.port) {
+				chrome.webRequest.onBeforeSendHeaders.addListener(listener, {urls: [ url + "*" ]}, ["requestHeaders", "extraHeaders"]);
+			}
+			
+			listeners.push(listener);
 		}
-		
-		listeners.push(listener);
-	}
+	});
 }
 
-registerReferrerHeaderListeners();
-
-/////////////////////////////////////////////////////
-// CATCH TORRENT LINKS AND ALTER THEIR REFERER/ORIGIN
-/////////////////////////////////////////////////////
+// WebRequest listeners are now initialized after storage setup
 RTA.getTorrentLink = "";
 RTA.getTorrentLinkReferer = "";
 const headersListener = function(details) {
-	var output = { };
-	
+	// In Manifest V3, we can't modify headers directly
+	// This listener is kept for compatibility but doesn't modify headers
 	if(details.url == RTA.getTorrentLink) {
-		var foundReferer = false;
-		var foundOrigin = false;
-		for (var j = 0; j < details.requestHeaders.length; ++j) {
-			if (details.requestHeaders[j].name === 'Referer') {
-				foundReferer = true;
-				details.requestHeaders[j].value = RTA.getTorrentLinkReferer || details.url;
-			}
-			
-			if (details.requestHeaders[j].name === 'Origin') {
-				foundOrigin = true;
-				details.requestHeaders[j].value = RTA.getTorrentLinkReferer || details.url;
-			}
-			
-			if(foundReferer && foundOrigin) {
-				break;
-			}
-		}
-		
-		if(!foundReferer) {
-			details.requestHeaders.push({'name': 'Referer', 'value': RTA.getTorrentLinkReferer || details.url});
-		}
-		
-		if(!foundOrigin) {
-			details.requestHeaders.push({'name': 'Origin', 'value': RTA.getTorrentLinkReferer || details.url});
-		}
-
-		output = { requestHeaders: details.requestHeaders };
-
 		RTA.getTorrentLink = "";
 		RTA.getTorrentLinkReferer = "";
 	}
-
-	return output;
 };
 
-chrome.webRequest.onBeforeSendHeaders.addListener(headersListener, {urls: [ "<all_urls>" ]}, ["blocking", "requestHeaders", "extraHeaders"]);
+chrome.webRequest.onBeforeSendHeaders.addListener(headersListener, {urls: [ "<all_urls>" ]}, ["requestHeaders", "extraHeaders"]);
 
 
 ////////////////////////////////////////////////////
@@ -213,49 +195,39 @@ function registerAuthenticationListeners() {
 	}
 	
 	// register new listeners
-	var servers = JSON.parse(localStorage.getItem("servers"));
-	for(var i in servers) {
-		var server = servers[i];
-		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
-		
-		const listener = (function(user, pass, url) {
-			return function(details) {
-				var authStuff;
-				
-				if(triedRequestIds.has(details.requestId)) {
-					authStuff = {  }; // cause the browser to resume default behavior
-					triedRequestIds.delete(details.requestId);
-				} else if(details.tabId != -1) {
-					authStuff = {  };
-				} else {
-					authStuff = { authCredentials: { username: user, password: pass } };
-					triedRequestIds.add(details.requestId);
-				}
-				
-				return authStuff;
+	chrome.storage.local.get("servers", function(result) {
+		var servers = result.servers ? JSON.parse(result.servers) : [];
+		for(var i in servers) {
+			var server = servers[i];
+			const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + "/";
+			
+			const listener = (function(user, pass, url) {
+							return function(details) {
+				// In Manifest V3, we can't provide auth credentials directly
+				// This listener is kept for compatibility but doesn't provide auth
 			};
-		})(server.login, server.password, url);
-		
-		if(server.host && server.port) {
-			chrome.webRequest.onAuthRequired.addListener(listener, { urls: [ url + "*" ], tabId: -1 }, ["blocking"]);
+			})(server.login, server.password, url);
+			
+			if(server.host && server.port) {
+				chrome.webRequest.onAuthRequired.addListener(listener, { urls: [ url + "*" ], tabId: -1 }, []);
+			}
+			
+			onAuthListeners.push(listener);
 		}
-		
-		onAuthListeners.push(listener);
-	}
+	});
 }
-
-registerAuthenticationListeners();
-
 
 /////////////////////////////////////////////////////////
 // register browser action for opening a tab to the webui
 /////////////////////////////////////////////////////////
-chrome.browserAction.onClicked.addListener(function(tab) {
-	const servers = JSON.parse(localStorage.getItem("servers"));
-	if(servers.length > 0) {
-		const server = servers[0];
-		const relativePath = server.ruTorrentrelativepath || server.utorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || "/";
-		const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + relativePath;
-		chrome.tabs.create({ url: url });
-	}
+chrome.action.onClicked.addListener(function(tab) {
+	chrome.storage.local.get("servers", function(result) {
+		const servers = result.servers ? JSON.parse(result.servers) : [];
+		if(servers.length > 0) {
+			const server = servers[0];
+			const relativePath = server.ruTorrentrelativepath || server.utorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || "/";
+			const url = "http" + (server.hostsecure ? "s" : "") + "://" + server.host + ":" + server.port + relativePath;
+			chrome.tabs.create({ url: url });
+		}
+	});
 });

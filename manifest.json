@@ -3,45 +3,15 @@
 	"short_name": "RTA",
 	"icons": {"16":"icons/BitTorrent16.png", "48":"icons/BitTorrent48.png", "128":"icons/BitTorrent128.png"},
 	"version": "1.3.8",
-	"manifest_version": 2,
+	"manifest_version": 3,
 	"description": "Add torrents using several programs' WebUIs",
-	"permissions": ["*://*/*","contextMenus","notifications","tabs","webRequest","webRequestBlocking"],
+	"permissions": ["contextMenus","notifications","tabs","webRequest","storage"],
+	"host_permissions": ["*://*/*"],
 	"background": {
-		"scripts": [
-			"miscapis/RTAinit.js",
-			"miscapis/browser.js",
-			"miscapis/safe-buffer.js",
-			"miscapis/bencode.js",
-			"miscapis/functions.js",
-			"miscapis/background.js",
-			"miscapis/config.js",
-			"miscapis/base64.js",
-			"webuiapis/VuzeSwingUI.js",
-			"webuiapis/TorrentfluxWebUI.js",
-			"webuiapis/TransmissionWebUI.js",
-			"webuiapis/uTorrentWebUI.js",
-			"webuiapis/ruTorrentWebUI.js",
-			"webuiapis/VuzeHTMLUI.js",
-			"webuiapis/VuzeRemoteUI.js",
-			"webuiapis/BuffaloWebUI.js",
-			"webuiapis/qBittorrentWebUI.js",
-			"webuiapis/qBittorrentWebUI-v2.js",
-			"webuiapis/QnapDownloadStation.js",
-			"webuiapis/DelugeWebUI.js",
-			"webuiapis/pyrtWebUI.js",
-			"webuiapis/TixatiWebUI.js",
-			"webuiapis/HadoukenWebUI.js",
-			"webuiapis/nodejsrtorrentWebUI.js",
-			"webuiapis/SynologyWebUI.js",
-			"webuiapis/floodWebUI.js",
-			"webuiapis/flood-jesecWebUI.js",
-			"webuiapis/tTorrentWebUI.js",
-			"webuiapis/rtorrentXmlRpc.js",
-			"webuiapis/elementumWebUi.js"
-		]
+		"service_worker": "background.js"
 	},
 	"options_page": "options.html",
-	"browser_action": {
+	"action": {
 		"default_icon": {"16":"icons/BitTorrent16-gray.png", "48":"icons/BitTorrent48-gray.png", "128":"icons/BitTorrent128-gray.png"},
 		"default_title": "Remote Torrent Adder"
 	},
@@ -59,5 +29,10 @@
 		"all_frames": true
 		}
 	],
-	"web_accessible_resources": [ "icons/White_X_in_red_background.svg", "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*" ]
+	"web_accessible_resources": [ 
+		{
+			"resources": ["icons/White_X_in_red_background.svg", "icons/BitTorrent16.png", "icons/BitTorrent48.png", "icons/BitTorrent128.png", "miscapis/jquery-2.0.3.min.map", "fancybox/*"],
+			"matches": ["<all_urls>"]
+		}
+	]
 }
