@@ -1,0 +1,63 @@
+{
+    "name": "Remote Torrent Adder",
+    "short_name": "RTA",
+    "icons": {
+        "16": "assets/icons/BitTorrent16.png",
+        "48": "assets/icons/BitTorrent48.png",
+        "128": "assets/icons/BitTorrent128.png"
+    },
+    "version": "2.0.0",
+    "manifest_version": 3,
+    "description": "Add torrents using several programs' WebUIs",
+    "permissions": [
+        "contextMenus",
+        "notifications",
+        "tabs",
+        "storage",
+        "webRequest",
+        "webRequestAuthProvider",
+        "declarativeNetRequest"
+    ],
+    "host_permissions": [
+      "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "service_worker.js"
+    },
+    //"options_page": "options.html",
+    "action": {
+        "default_icon": {
+            "16": "assets/icons/BitTorrent16-gray.png",
+            "48": "assets/icons/BitTorrent48-gray.png",
+            "128": "assets/icons/BitTorrent128-gray.png"
+        },
+        "default_title": "Remote Torrent Adder"
+    },
+    // "content_scripts": [
+    //     {
+    //         "matches": ["<all_urls>"],
+    //         "js": [
+    //             "miscapis/modal.js",
+    //             "miscapis/content_rta.js"
+    //         ],
+    //         "css": [
+    //             "modal.css"
+    //         ],
+    //         "run_at": "document_end",
+    //         "all_frames": true
+    //     }
+    // ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "assets/icons/White_X_in_red_background.svg",
+                "assets/icons/BitTorrent16.png",
+                "assets/icons/BitTorrent48.png",
+                "assets/icons/BitTorrent128.png",
+                "miscapis/jquery-2.0.3.min.map",
+                "fancybox/*"
+            ],
+            "matches": ["<all_urls>"]
+        }
+    ]
+}
