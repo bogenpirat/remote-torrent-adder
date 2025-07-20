@@ -1,7 +1,7 @@
 import { RTASettings } from "../models/settings";
 import { WebUISettings } from "../models/webui";
 import { getDefaultSettings } from "./settings-defaults";
-import { WebUIFactory } from "../models/clients";
+import { Client, WebUIFactory } from "../models/clients";
 
 export async function convertLegacySettingsToRTASettings(): Promise<RTASettings | null> {
     return new Promise((resolve) => {
@@ -59,7 +59,7 @@ function parseServers(servers: string | null): WebUISettings[] {
         const serverList = JSON.parse(servers); // TODO note to self; JSON.parse(response["servers"))
         serverList.forEach((server: any) => {
             const webUiSettings: WebUISettings = {
-                client: server.client,
+                client: getClientForLegacyName(server.client),
                 name: server.name,
                 host: server.host,
                 port: server.port,
@@ -73,7 +73,7 @@ function parseServers(servers: string | null): WebUISettings[] {
                 clientSpecificSettings: {} // TODO? depends on how/whether we wanna model the client-specific settings in particular 
             } as WebUISettings;
 
-            if(WebUIFactory.createWebUI(webUiSettings) !== null) {
+            if (WebUIFactory.createWebUI(webUiSettings) !== null) {
                 webuiSettingsList.push(webUiSettings);
             } else {
                 console.warn(`Couldn't convert legacy client to new settings format: ${JSON.stringify(server)}`);
@@ -82,4 +82,15 @@ function parseServers(servers: string | null): WebUISettings[] {
     }
 
     return webuiSettingsList;
+}
+
+function getClientForLegacyName(name: string): Client | null {
+    switch (name) {
+        case "Buffalo WebUI (OLD!)":
+            return Client.BuffaloWebUI;
+        case "Vuze Remote WebUI":
+            return Client.VuzeRemoteUI;
+    }
+
+    return name as Client || null;
 }

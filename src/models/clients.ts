@@ -2,7 +2,7 @@ import { BuffaloWebUI } from "../webuis/buffalo-webui";
 import { TorrentWebUI, WebUISettings } from "./webui";
 
 export enum Client {
-    BuffaloWebUI = "Buffalo WebUI (OLD!)",
+    BuffaloWebUI = "Buffalo WebUI",
     DelugeWebUI = "Deluge WebUI",
     ElementumWebUI = "Elementum WebUI",
     FloodJesecWebUI = "flood-jesec WebUI",
