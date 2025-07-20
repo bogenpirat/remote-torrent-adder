@@ -32,14 +32,14 @@ export class Settings {
                     }
                     resolve(this.loadSettings())
                 }
-                resolve(deserializeSettings(response[SETTINGS_KEY])); // TODO: deserialize JSON of complex fields: linkCatchingRegexes & webUiSettings
+                resolve(deserializeSettings(response[SETTINGS_KEY]));
             });
         });
     }
 
     private saveSettings(settings: RTASettings): Promise<void> {
         return new Promise((resolve) => {
-            chrome.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) }, () => { // TODO: serialize to JSON of complex fields: linkCatchingRegexes & webUiSettings
+            chrome.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) }, () => {
                 console.log("Settings saved: ", settings);
                 resolve();
             });
@@ -47,11 +47,11 @@ export class Settings {
     }
 
     public serialize(): string {
-        return JSON.stringify(this._rtaSettings);
+        return serializeSettings(this._rtaSettings);
     }
 
     public deserialize(serialized: string): RTASettings {
-        return JSON.parse(serialized);
+        return deserializeSettings(serialized);
     }
 
 }
