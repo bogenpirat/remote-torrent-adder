@@ -1,4 +1,5 @@
 import { BuffaloWebUI } from "../webuis/buffalo-webui";
+import { RuTorrentWebUI } from "../webuis/rutorrent-webui";
 import { TorrentWebUI, WebUISettings } from "./webui";
 
 export enum Client {
@@ -30,27 +31,27 @@ type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentW
 
 export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor> = {
     [Client.BuffaloWebUI]: BuffaloWebUI,
-    [Client.DelugeWebUI]: BuffaloWebUI,
-    [Client.ElementumWebUI]: BuffaloWebUI,
-    [Client.FloodJesecWebUI]: BuffaloWebUI,
-    [Client.FloodWebUI]: BuffaloWebUI,
-    [Client.HadoukenWebUI]: BuffaloWebUI,
-    [Client.NodeJSrTorrentWebUI]: BuffaloWebUI,
-    [Client.PyrtWebUI]: BuffaloWebUI,
-    [Client.QBittorrentWebUI]: BuffaloWebUI,
-    [Client.QBittorrentWebUIv2]: BuffaloWebUI,
-    [Client.QnapDownloadStationWebUI]: BuffaloWebUI,
-    [Client.RTorrentXmlRPCWebUI]: BuffaloWebUI,
-    [Client.RuTorrentWebUI]: BuffaloWebUI,
-    [Client.SynologyWebUI]: BuffaloWebUI,
-    [Client.TixatiWebUI]: BuffaloWebUI,
-    [Client.TorrentfluxWebUI]: BuffaloWebUI,
-    [Client.TransmissionWebUI]: BuffaloWebUI,
-    [Client.TTorrentWebUI]: BuffaloWebUI,
-    [Client.UTorrentWebUI]: BuffaloWebUI,
-    [Client.VuzeHTMLUI]: BuffaloWebUI,
-    [Client.VuzeRemoteUI]: BuffaloWebUI,
-    [Client.VuzeSwingUI]: BuffaloWebUI,
+    [Client.DelugeWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.ElementumWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.FloodJesecWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.FloodWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.NodeJSrTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.PyrtWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.QBittorrentWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.QBittorrentWebUIv2]: BuffaloWebUI, // TODO: placeholder
+    [Client.QnapDownloadStationWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.RTorrentXmlRPCWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.RuTorrentWebUI]: RuTorrentWebUI,
+    [Client.SynologyWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TixatiWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TorrentfluxWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TransmissionWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.UTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.VuzeHTMLUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.VuzeRemoteUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.VuzeSwingUI]: BuffaloWebUI, // TODO: placeholder
 };
 
 export class WebUIFactory {

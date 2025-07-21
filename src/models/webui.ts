@@ -39,11 +39,26 @@ export abstract class TorrentWebUI {
         return this._settings;
     }
 
-    protected abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<void>;
+    protected abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
 
-    checkPerClickSettingsAndSendTorrent(torrent: Torrent): Promise<void> {
+    checkPerClickSettingsAndSendTorrent(torrent: Torrent): Promise<TorrentAddingResult> {
         // default implementation immediately sends the torrent, no config dialog in content script
         const config: TorrentUploadConfig = null; // TODO: fetch this somehow
         return this.sendTorrent(torrent, config);
     }
+
+    async fetch(url: string, options?: RequestInit): Promise<Response> {
+        const res: Response = await fetch(url, options);
+        if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+        }
+        return res;
+    }
+
+}
+
+export interface TorrentAddingResult {
+    success: boolean;
+    httpResponseCode: number;
+    httpResponseBody: string | null;
 }
