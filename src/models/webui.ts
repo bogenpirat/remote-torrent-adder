@@ -43,7 +43,7 @@ export abstract class TorrentWebUI {
 
     checkPerClickSettingsAndSendTorrent(torrent: Torrent): Promise<TorrentAddingResult> {
         // default implementation immediately sends the torrent, no config dialog in content script
-        const config: TorrentUploadConfig = null; // TODO: fetch this somehow
+        const config: TorrentUploadConfig = {}; // TODO: create this somehow
         return this.sendTorrent(torrent, config);
     }
 
