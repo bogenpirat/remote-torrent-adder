@@ -47,12 +47,28 @@ export abstract class TorrentWebUI {
         return this.sendTorrent(torrent, config);
     }
 
+    createBaseUrl(): string {
+        return [
+            "http",
+            this._settings.secure ? "s" : "",
+            "://",
+            this._settings.host,
+            ":",
+            this._settings.port,
+            this._settings.relativePath ? this.addSurroundingSlashes(this._settings.relativePath) : "",
+        ].join("");
+    }
+
     async fetch(url: string, options?: RequestInit): Promise<Response> {
         const res: Response = await fetch(url, options);
         if (!res.ok) {
             throw new Error(`HTTP error ${res.status}`);
         }
         return res;
+    }
+
+    addSurroundingSlashes(urlPart: string): string {
+        return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
     }
 
 }

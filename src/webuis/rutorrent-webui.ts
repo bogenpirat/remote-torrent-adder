@@ -22,13 +22,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
 
     createRutorrentBaseUrl(config: TorrentUploadConfig): string {
         return [
-            "http",
-            this._settings.secure ? "s" : "",
-            "://",
-            this._settings.host,
-            ":",
-            this._settings.port,
-            this._settings.relativePath ? addSurroundingSlashes(this._settings.relativePath) : "",
+            this.createBaseUrl(),
             "php/addtorrent.php?",
             config.dir ? `dir_edit=${encodeURIComponent(config.dir)}&` : "",
             config.label ? `label=${encodeURIComponent(config.label)}&` : "",
@@ -51,7 +45,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
         if (config.label) {
             message.append("label", config.label);
         }
-        
+
         const blobData = new Blob([torrent.data as Uint8Array], { type: "application/x-bittorrent" });
         const filename = torrent.name;
         message.append("torrent_file", blobData, filename);
@@ -75,8 +69,4 @@ export class RuTorrentWebUI extends TorrentWebUI {
             reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
         });
     }
-}
-
-function addSurroundingSlashes(urlPart: string): string {
-    return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
 }
