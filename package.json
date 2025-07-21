@@ -32,6 +32,7 @@
         "typescript": "^5.8.3"
     },
     "dependencies": {
-        "bencode": "^4.0.0"
+        "bencode": "^4.0.0",
+        "buffer": "^6.0.3"
     }
 }

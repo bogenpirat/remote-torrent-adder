@@ -2,6 +2,7 @@ import { Torrent } from "../models/torrent";
 import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDecodedTorrentData, parseNameFromDecodedTorrentData, parsePrivateFlagFromDecodedTorrentData, parseTrackersFromDecodedTorrentData } from "./parsers";
 import { convertBlobToString } from "./converter";
 import bencode from "bencode";
+import { Buffer } from "buffer";
 
 export async function downloadTorrent(url: string): Promise<Torrent> {
     if (url.substring(0, 7) == "magnet:") {

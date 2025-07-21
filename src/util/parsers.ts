@@ -15,12 +15,12 @@ export function getTorrentNameFromLink(url: string): string {
 
 export function parseTrackersFromDecodedTorrentData(data: any): string[] {
     const trackers = new Set<string>();
-    trackers.add(data["announce"]);
+    trackers.add(new TextDecoder().decode(data["announce"]));
     if ("announce-list" in data && data["announce-list"].length > 0) {
         data["announce-list"].forEach((announceList: any[]) => {
             if (Array.isArray(announceList)) {
-                announceList.forEach((tracker: string) => {
-                    trackers.add(tracker);
+                announceList.forEach((tracker) => {
+                    trackers.add(new TextDecoder().decode(tracker));
                 });
             }
         });
@@ -30,7 +30,7 @@ export function parseTrackersFromDecodedTorrentData(data: any): string[] {
 
 export function parseNameFromDecodedTorrentData(data: any): string | null {
     if (data && data["info"] && data["info"]["name"]) {
-        return data["info"]["name"];
+        return new TextDecoder().decode(data["info"]["name"]);
     }
     return null;
 }
@@ -40,7 +40,7 @@ export function parseFilesFromDecodedTorrentData(data: any): string[] {
     if ("info" in data && "files" in data["info"]) {
         data["info"]["files"].forEach((file: any) => {
             var thisFilePath = file["path"];
-            files.push(thisFilePath[thisFilePath.length - 1]);
+            files.push(new TextDecoder().decode(thisFilePath[thisFilePath.length - 1]));
         });
     }
     return files;

@@ -13,7 +13,10 @@ export default {
         sourcemap: true
     },
     plugins: [
-        resolve(),
+        resolve({
+            browser: true,
+            preferBuiltins: false
+        }),
         commonjs(),
         typescript({ tsconfig: './tsconfig.json' }),
         copy({
