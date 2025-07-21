@@ -64,7 +64,7 @@ function parseServers(servers: string | null): WebUISettings[] {
                 host: server.host,
                 port: server.port,
                 secure: server.hostsecure || false,
-                relativePath: server.relativePath || null,
+                relativePath: server.relativePath || server.ruTorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || server.torrentfluxrelativepath || server.utorrentrelativepath || null,
                 username: server.login || "",
                 password: server.password || "",
                 labels: server.labellist ? JSON.parse(server.labellist) : [],
