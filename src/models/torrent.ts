@@ -1,6 +1,6 @@
 
 export interface Torrent {
-    data: Uint8Array | string;
+    data: Blob | string;
     name: string;
     isMagnet: boolean;
     trackers?: string[];

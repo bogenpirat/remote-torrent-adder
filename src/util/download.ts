@@ -18,12 +18,13 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
             throw new Error("Failed to fetch torrent file: " + error.message);
         }
 
-        const torrentData: string = await convertBlobToString(await response.blob());
+        const torrentBlob: Blob = await response.blob();
+        const torrentData: string = await convertBlobToString(torrentBlob);
         validateTorrentData(response, torrentData);
         const decodedTorrentData = bencode.decode(Buffer.from(torrentData, 'ascii'));
 
         return Promise.resolve({
-            data: torrentData,
+            data: torrentBlob,
             name: parseNameFromDecodedTorrentData(decodedTorrentData) ?? getTorrentNameFromLink(url),
             isMagnet: false,
             trackers: parseTrackersFromDecodedTorrentData(decodedTorrentData),

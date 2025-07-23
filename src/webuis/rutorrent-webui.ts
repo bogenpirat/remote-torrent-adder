@@ -13,7 +13,6 @@ export class RuTorrentWebUI extends TorrentWebUI {
                 headers = { "Content-Type": "application/x-www-form-urlencoded" };
             } else {
                 payload = this.createPayloadForTorrent(torrent, config);
-                headers = { "Content-Type": "multipart/form-data" };
             }
 
             this.sendRequest(url, payload, headers, resolve, reject);
@@ -46,7 +45,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
             message.append("label", config.label);
         }
 
-        const blobData = new Blob([torrent.data as Uint8Array], { type: "application/x-bittorrent" });
+        const blobData = new Blob([torrent.data], { type: "application/x-bittorrent" });
         const filename = torrent.name;
         message.append("torrent_file", blobData, filename);
 
