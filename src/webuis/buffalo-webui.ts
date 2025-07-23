@@ -1,12 +1,12 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentWebUI } from "../models/webui";
+import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { showNotification } from "../util/notifications";
 import { convertToBinary } from "../util/converter";
 
 // TODO: yeah no, none of this works yet, just a mockup
 
 export class BuffaloWebUI extends TorrentWebUI {
-    override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<void> {
+    override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "http://" + this._settings.host + ":" + this._settings.port + "/api/torrent-add?start=yes", true);
         xhr.onreadystatechange = function (data) {
@@ -31,5 +31,11 @@ export class BuffaloWebUI extends TorrentWebUI {
         message += "--" + boundary + "--\r\n";
 
         xhr.send(convertToBinary(message));
+
+        return Promise.resolve({ // don't work
+            success: true,
+            httpResponseCode: xhr.status,
+            httpResponseBody: xhr.responseText
+        });
     }
 }
