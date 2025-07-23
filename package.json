@@ -4,9 +4,13 @@
     "type": "module",
     "scripts": {
         "build": "npm run clean && npm run copy-assets && npm run rollup",
+        "build:prod": "npm run clean:prod && npm run copy-assets:prod && npm run rollup -- --configProd",
         "clean": "rimraf dist",
+        "clean:prod": "rimraf dist-prod",
         "copy": "cpy 'src/**' dist --parents",
+        "copy:prod": "cpy 'src/**' dist-prod --parents",
         "copy-assets": "cpy 'src/**/*.{json,html,css,png,svg,ogg}' dist --parents",
+        "copy-assets:prod": "cpy 'src/**/*.{json,html,css,png,svg,ogg}' dist --parents",
         "rollup": "rollup -c",
         "compile": "tsc --noEmit false --outDir dist",
         "watch": "npm run build && concurrently \"npm run watch:files\" \"npm run watch:ts\"",
@@ -19,6 +23,7 @@
     "devDependencies": {
         "@rollup/plugin-commonjs": "^28.0.6",
         "@rollup/plugin-node-resolve": "^16.0.1",
+        "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^12.1.4",
         "@types/bencode": "^2.0.4",
         "@types/chrome": "^0.1.0",
