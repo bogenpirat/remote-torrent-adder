@@ -50,12 +50,12 @@ export abstract class TorrentWebUI {
     createBaseUrl(): string {
         return [
             "http",
-            this._settings.secure ? "s" : "",
+            this.settings.secure ? "s" : "",
             "://",
-            this._settings.host,
+            this.settings.host,
             ":",
-            this._settings.port,
-            this._settings.relativePath ? this.addSurroundingSlashes(this._settings.relativePath) : "",
+            this.settings.port,
+            this.settings.relativePath ? this.addSurroundingSlashes(this.settings.relativePath) : "",
         ].join("");
     }
 
