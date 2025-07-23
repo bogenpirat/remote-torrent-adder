@@ -8,25 +8,41 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'latest'
           cache: 'npm'
-
       - name: Install dependencies
         run: npm install
-
       - name: Build extension
         run: npm run build
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension-dist
           path: dist
+
+  build-prod:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build extension (production)
+        run: npm run build:prod
+      - name: Upload production build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension-dist-prod
+          path: dist-prod
