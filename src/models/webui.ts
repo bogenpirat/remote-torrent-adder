@@ -61,6 +61,10 @@ export abstract class TorrentWebUI {
         ].join("");
     }
 
+    createBaseUrlPatternForFilter(): string {
+        return this.createBaseUrl().replace(/\/+$/, "") + "/";
+    }
+
     async fetch(url: string, options?: RequestInit): Promise<Response> {
         const res: Response = await fetch(url, options);
         if (!res.ok) {
@@ -73,12 +77,16 @@ export abstract class TorrentWebUI {
         return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
     }
 
-    getDirectory(config: TorrentUploadConfig) : string | null {
+    getDirectory(config: TorrentUploadConfig): string | null {
         return config.dir ?? this.settings.defaultDir ?? null;
     }
 
-    getLabel(config: TorrentUploadConfig) : string | null {
+    getLabel(config: TorrentUploadConfig): string | null {
         return config.label ?? this.settings.defaultLabel ?? null;
+    }
+
+    getPaused(config: TorrentUploadConfig): boolean | null {
+        return config.addPaused ?? this.settings.addPaused ?? false;
     }
 
 }

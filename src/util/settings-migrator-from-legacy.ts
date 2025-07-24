@@ -93,7 +93,7 @@ function getClientForLegacyName(name: string): Client | null {
         case "Buffalo WebUI (OLD!)":
             return Client.BuffaloWebUI;
         case "Vuze Remote WebUI":
-            return Client.VuzeRemoteUI;
+            return Client.BiglyBTWebUI;
     }
 
     return name as Client || null;

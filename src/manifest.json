@@ -16,7 +16,8 @@
         "storage",
         "webRequest",
         "webRequestAuthProvider",
-        "declarativeNetRequest"
+        "declarativeNetRequest",
+        "declarativeNetRequestWithHostAccess"
     ],
     "host_permissions": [
       "<all_urls>"
