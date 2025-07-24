@@ -13,6 +13,8 @@ export interface WebUISettings {
     username: string;
     password: string;
 
+    defaultLabel: string | null;
+    defaultDir: string | null;
     labels: Array<string>;
     dirs: Array<string>;
     addPaused: boolean;
@@ -69,6 +71,14 @@ export abstract class TorrentWebUI {
 
     addSurroundingSlashes(urlPart: string): string {
         return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
+    }
+
+    getDirectory(config: TorrentUploadConfig) : string | null {
+        return config.dir ?? this.settings.defaultDir ?? null;
+    }
+
+    getDLabel(config: TorrentUploadConfig) : string | null {
+        return config.label ?? this.settings.defaultLabel ?? null;
     }
 
 }

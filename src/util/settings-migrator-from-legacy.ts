@@ -57,7 +57,7 @@ function parseServers(servers: string | null): WebUISettings[] {
 
     if (servers) {
         const serverList = JSON.parse(servers); // TODO note to self; JSON.parse(response["servers"))
-        serverList.forEach((server: any) => {
+        serverList.forEach((server: Record<string, any>) => {
             const webUiSettings: WebUISettings = {
                 client: getClientForLegacyName(server.client),
                 name: server.name,
@@ -69,8 +69,12 @@ function parseServers(servers: string | null): WebUISettings[] {
                 password: server.password || "",
                 labels: server.labellist ? JSON.parse(server.labellist) : [],
                 dirs: server.dirlist ? JSON.parse(server.dirlist) : [],
-                addPaused: server.addPaused || false,
-                clientSpecificSettings: {} // TODO? depends on how/whether we wanna model the client-specific settings in particular 
+                defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
+                defaultDir: server.rutorrentdirectory || server.floodjesecdirectory || server.hadoukendir || server.flooddirectory || server.qnapmove || null,
+                addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
+                clientSpecificSettings: { // TODO: some stuff to map here from the old config.js
+
+                } 
             } as WebUISettings;
 
             if (WebUIFactory.createWebUI(webUiSettings) !== null) {
