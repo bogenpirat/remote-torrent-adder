@@ -77,7 +77,7 @@ export abstract class TorrentWebUI {
         return config.dir ?? this.settings.defaultDir ?? null;
     }
 
-    getDLabel(config: TorrentUploadConfig) : string | null {
+    getLabel(config: TorrentUploadConfig) : string | null {
         return config.label ?? this.settings.defaultLabel ?? null;
     }
 

@@ -37,12 +37,14 @@ export class RuTorrentWebUI extends TorrentWebUI {
     createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): FormData {
         const message = new FormData();
 
-        if (config.dir) {
-            message.append("dir_edit", config.dir);
+        const dir = this.getDirectory(config);
+        if (dir) {
+            message.append("dir_edit", dir);
         }
 
-        if (config.label) {
-            message.append("label", config.label);
+        const label = this.getLabel(config);
+        if (label) {
+            message.append("label", label);
         }
 
         const blobData = new Blob([torrent.data], { type: "application/x-bittorrent" });
