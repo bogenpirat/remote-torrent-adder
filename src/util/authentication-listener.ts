@@ -34,7 +34,7 @@ export function registerAuthenticationListenersForAllWebUis(allWebUis: TorrentWe
         };
 
         if (webUi.settings.host && webUi.settings.port) {
-            console.log(`Registering auth listener for: ${url} (${webUi.settings.name})`); // TODO: debugging
+            console.debug(`Registering auth listener for: ${url} (${webUi.settings.name})`); // TODO: debugging
             chrome.webRequest.onAuthRequired.addListener(listener, { urls: [url] }, ["blocking"]);
             onAuthListeners.push(listener);
         }
