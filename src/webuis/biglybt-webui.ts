@@ -4,7 +4,7 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 export class BiglyBTWebUI extends TorrentWebUI {
     protected override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         return new Promise(async (resolve, reject) => {
-            const url = this.createBiglyBTBaseUrl(torrent);
+            const url = this.createBiglyBTBaseUrl(torrent, config);
             let payload: string | FormData;
 
             await this.fetchSessionCookie(url);
@@ -19,18 +19,19 @@ export class BiglyBTWebUI extends TorrentWebUI {
         });
     }
 
-    createBiglyBTBaseUrl(torrent: Torrent): string {
+    createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {
         return [
             this.createBaseUrl(),
             "/transmission/",
-            torrent.isMagnet ? "rpc" : "upload",
-            this.settings.addPaused ? "" : "?paused=false",
+            torrent.isMagnet ? "rpc" : "upload", 
+            !torrent.isMagnet && this.getPaused(config) ? "?paused=true" : "",
+            this.settings.addPaused ? "" : "",
         ].join("");
     }
 
     fetchSessionCookie(apiBaseUrl: string): Promise<Response> {
         return new Promise((resolve, reject) => {
-            this.fetch(apiBaseUrl)
+            fetch(apiBaseUrl)
                 .then(response => {
                     if (response.status != 200 && response.status != 409) {
                         reject(response);

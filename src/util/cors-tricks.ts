@@ -1,6 +1,6 @@
-export async function registerWebUiCorsCircumvention(torrentWebUiUrls: string[]): Promise<void> {
-    await chrome.declarativeNetRequest.updateSessionRules({
-        removeRuleIds: (await chrome.declarativeNetRequest.getSessionRules()).map(rule => rule.id)
+export async function registerCorsCircumventionWithDeclarativeNetRequest(torrentWebUiUrls: string[]): Promise<void> {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: (await chrome.declarativeNetRequest.getDynamicRules()).map(rule => rule.id)
     });
 
     torrentWebUiUrls.forEach((url, index) => {
@@ -12,13 +12,13 @@ export async function registerWebUiCorsCircumvention(torrentWebUiUrls: string[])
                 requestHeaders: [
                     {
                         operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-                        header: 'Origin',
-                        value: url
+                        header: 'Access-Control-Allow-Methods',
+                        value: 'PUT, GET, HEAD, POST, DELETE, OPTIONS'
                     },
                     {
                         operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-                        header: 'Referer',
-                        value: url
+                        header: 'Access-Control-Allow-Origin',
+                        value: '*'
                     },
                 ],
             },
@@ -27,6 +27,7 @@ export async function registerWebUiCorsCircumvention(torrentWebUiUrls: string[])
                 resourceTypes: ['xmlhttprequest'],
             },
         };
-        chrome.declarativeNetRequest.updateSessionRules({ addRules: [rule] });
+        console.log(`register listener for ${url}*`);
+        chrome.declarativeNetRequest.updateDynamicRules({ addRules: [rule] });
     });
 }

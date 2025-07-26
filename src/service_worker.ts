@@ -4,13 +4,13 @@ import { registerAuthenticationListenersForAllWebUis } from './util/authenticati
 import { Settings } from './util/settings';
 import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
-import { registerWebUiCorsCircumvention } from './util/cors-tricks';
+import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
 
 
 const settingsProvider = new Settings();
 settingsProvider.loadSettings().then(async (settings) => {
     console.log("Settings loaded:", settings);
-    const allWebUis =await initiateWebUis(settings);
+    const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
     registerAuthenticationListenersForAllWebUis(allWebUis);
     ContextMenu.createContextMenu(allWebUis);
@@ -18,6 +18,6 @@ settingsProvider.loadSettings().then(async (settings) => {
 
 async function initiateWebUis(settings: RTASettings): Promise<TorrentWebUI[]> {
     const allWebUis = settings.webuiSettings.map(webUiSettings => WebUIFactory.createWebUI(webUiSettings)).filter(webUi => webUi !== null);
-    await registerWebUiCorsCircumvention(allWebUis.map((webUi: TorrentWebUI) => webUi.createBaseUrlPatternForFilter()));
+    //await registerCorsCircumventionWithDeclarativeNetRequest(allWebUis.map((webUi: TorrentWebUI) => webUi.createBaseUrlPatternForFilter())); // TODO uhm chat do we need this?
     return allWebUis;
 }
