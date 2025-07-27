@@ -1,9 +1,7 @@
 import { observe } from './mutations';
-import { DiscoveredElement } from './element';
 import { RTASettings } from '../models/settings';
 import { deserializeSettings } from '../util/serializer';
 
-const discoveredElements: DiscoveredElement[] = [];
 
 chrome.runtime.sendMessage({ "action": "getSettings" }, function (serializedSettings: string) {
     const settings: RTASettings = deserializeSettings(serializedSettings);
@@ -14,17 +12,7 @@ chrome.runtime.sendMessage({ "action": "getSettings" }, function (serializedSett
 function registerLinks(linkRegexes: RegExp[]): void {
     observe('a', (element) => {
         if (element.href && (isMatchedByRegexes(element.href, linkRegexes) || isMagnetLink(element.href))) {
-            console.debug(`Registering link: ${element.href}`);
-            element.addEventListener('click', (event: MouseEvent) => {
-                if (event.ctrlKey || event.shiftKey || event.altKey) {
-                    console.log(`Clicked a recognized link, but RTA action prevented due to modifier keys.`);
-                    return;
-                }
-
-                event.preventDefault();
-                console.log('Clicked a regex-matched link');
-                // TODO: register actual click event
-            });
+            registerAction(element, element.href);
         }
     });
 }
@@ -32,21 +20,8 @@ function registerLinks(linkRegexes: RegExp[]): void {
 function registerForms(linkRegexes: RegExp[]): void {
     observe('input,button', (element) => {
         const form = element.form;
-        console.debug(`Registering form: ${element.form.action}`);
         if (form && form.action && (isMatchedByRegexes(form.action, linkRegexes) || isMagnetLink(form.action))) {
-            element.addEventListener('click', (event: MouseEvent) => {
-                if (event.ctrlKey || event.shiftKey || event.altKey) {
-                    console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");
-                    return;
-                }
-                event.preventDefault();
-                console.log("Clicked form input");
-                discoveredElements.push({
-                    element: element,
-                    url: element.href
-                });
-                // TODO: register actual click event
-            });
+            registerAction(element, form.action);
         }
     });
 }
@@ -60,9 +35,15 @@ function isMagnetLink(url: string): boolean {
 }
 
 function registerAction(element: Element, url: string): void {
-    discoveredElements.push({
-        element: element,
-        url: url
-    });
     console.log(`Registered action for element: ${element.tagName}, URL: ${url}`);
+    element.addEventListener('click', (event: MouseEvent) => {
+        if (event.ctrlKey || event.shiftKey || event.altKey) {
+            console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");
+            return;
+        }
+        event.preventDefault();
+        console.log("Clicked form input");
+        // TODO: register actual click event
+    });
+
 }
