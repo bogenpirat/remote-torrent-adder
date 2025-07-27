@@ -14,6 +14,7 @@ chrome.runtime.sendMessage({ "action": "getSettings" }, function (serializedSett
 function registerLinks(linkRegexes: RegExp[]): void {
     observe('a', (element) => {
         if (element.href && (isMatchedByRegexes(element.href, linkRegexes) || isMagnetLink(element.href))) {
+            console.debug(`Registering link: ${element.href}`);
             element.addEventListener('click', (event: MouseEvent) => {
                 if (event.ctrlKey || event.shiftKey || event.altKey) {
                     console.log(`Clicked a recognized link, but RTA action prevented due to modifier keys.`);
@@ -31,14 +32,15 @@ function registerLinks(linkRegexes: RegExp[]): void {
 function registerForms(linkRegexes: RegExp[]): void {
     observe('input,button', (element) => {
         const form = element.form;
-        if (form && form.action && isMatchedByRegexes(form.action, linkRegexes)) {
+        console.debug(`Registering form: ${element.form.action}`);
+        if (form && form.action && (isMatchedByRegexes(form.action, linkRegexes) || isMagnetLink(form.action))) {
             element.addEventListener('click', (event: MouseEvent) => {
                 if (event.ctrlKey || event.shiftKey || event.altKey) {
                     console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");
                     return;
                 }
                 event.preventDefault();
-                console.log("Clicked custom link");
+                console.log("Clicked form input");
                 discoveredElements.push({
                     element: element,
                     url: element.href
