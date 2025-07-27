@@ -13,7 +13,8 @@ export default [
         input: 'src/service_worker.ts',
         output: {
             dir: distDir,
-            format: 'esm',
+            format: 'iife',
+            name: 'RTAServiceWorker',
             sourcemap: !isProd,
             entryFileNames: 'service_worker.js'
         },
