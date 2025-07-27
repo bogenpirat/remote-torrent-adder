@@ -5,7 +5,7 @@ import { Settings } from './util/settings';
 import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
 import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
-import { registerSettingsMessageSender, registerPreAddTorrentDispatcher } from './util/messaging';
+import { registerSettingsMessageSender, registerPreAddTorrentDispatcher, registerAddTorrentDispatcher } from './util/messaging';
 
 
 const settingsProvider = new Settings();
@@ -16,10 +16,11 @@ settingsProvider.loadSettings().then(async (settings) => {
 
     const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
-    
+
     registerAuthenticationListenersForAllWebUis(allWebUis);
     registerPreAddTorrentDispatcher(allWebUis);
-    
+    registerAddTorrentDispatcher(allWebUis);
+
     ContextMenu.createContextMenu(allWebUis);
 });
 

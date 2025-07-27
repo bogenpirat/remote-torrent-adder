@@ -52,13 +52,13 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
             throw new Error("no servers configured");
         }
 
-        if(webUis.length === 1) {
+        if (webUis.length === 1) {
             chrome.runtime.sendMessage({
                 action: PreAddTorrentMessage.action,
                 webUiId: webUis[0].settings.id,
                 url: onClickData.linkUrl
             } as IPreAddTorrentMessage);
-        }else {
+        } else {
             webUis.forEach(webUi => chrome.runtime.sendMessage({
                 action: AddTorrentMessage.action,
                 webUiId: webUi.settings.id,
