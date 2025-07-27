@@ -2,7 +2,7 @@ import { Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class RuTorrentWebUI extends TorrentWebUI {
-    protected override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         return new Promise((resolve, reject) => {
             const url = this.createRutorrentBaseUrl(config);
             let payload: string | FormData;

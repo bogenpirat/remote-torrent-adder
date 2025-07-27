@@ -5,7 +5,7 @@ import { Settings } from './util/settings';
 import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
 import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
-import { registerSettingsMessageSender } from './util/messages';
+import { registerSettingsMessageSender } from './util/messaging';
 
 
 const settingsProvider = new Settings();

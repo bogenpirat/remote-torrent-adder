@@ -1,9 +1,11 @@
 import { observe } from './mutations';
 import { RTASettings } from '../models/settings';
 import { deserializeSettings } from '../util/serializer';
+import { GetSettingsMessage, IPreAddTorrentMessage } from '../models/messages';
+import { PreAddTorrentMessage } from '../models/messages';
 
 
-chrome.runtime.sendMessage({ "action": "getSettings" }, function (serializedSettings: string) {
+chrome.runtime.sendMessage(GetSettingsMessage, function (serializedSettings: string) {
     const settings: RTASettings = deserializeSettings(serializedSettings);
     registerLinks(settings.linkCatchingRegexes);
     registerForms(settings.linkCatchingRegexes);
@@ -43,7 +45,8 @@ function registerAction(element: Element, url: string): void {
         }
         event.preventDefault();
         console.log("Clicked form input");
-        // TODO: register actual click event
+
+        chrome.runtime.sendMessage({ action: PreAddTorrentMessage.action, url: url } as IPreAddTorrentMessage);
     });
 
 }

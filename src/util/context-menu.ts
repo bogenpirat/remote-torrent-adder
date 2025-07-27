@@ -2,6 +2,7 @@ import { TorrentWebUI } from "../models/webui";
 import { downloadTorrent } from "./download";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
+import { AddTorrentMessage, IAddTorrentMessage, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 
 
 export function createContextMenu(allWebUis: TorrentWebUI[]): void {
@@ -51,9 +52,19 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
             throw new Error("no servers configured");
         }
 
-        downloadTorrent(onClickData.linkUrl)
-            .then(torrent => {
-                webUis.forEach(webUi => webUi.checkPerClickSettingsAndSendTorrent(torrent));
-            });
+        if(webUis.length === 1) {
+            chrome.runtime.sendMessage({
+                action: PreAddTorrentMessage.action,
+                webUiId: webUis[0].settings.id,
+                url: onClickData.linkUrl
+            } as IPreAddTorrentMessage);
+        }else {
+            webUis.forEach(webUi => chrome.runtime.sendMessage({
+                action: AddTorrentMessage.action,
+                webUiId: webUi.settings.id,
+                url: onClickData.linkUrl,
+                config: {} // TODO: this should fetch the default config from the webui... right?
+            } as IAddTorrentMessage));
+        }
     };
 }

@@ -6,7 +6,7 @@ import { convertToBinary } from "../util/converter";
 // TODO: yeah no, none of this works yet, just a mockup
 
 export class BuffaloWebUI extends TorrentWebUI {
-    override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "http://" + this._settings.host + ":" + this._settings.port + "/api/torrent-add?start=yes", true);
         xhr.onreadystatechange = function (data) {

@@ -3,6 +3,7 @@ import { WebUISettings } from "../models/webui";
 import { getDefaultSettings } from "./settings-defaults";
 import { Client, WebUIFactory } from "../models/clients";
 
+
 export async function convertLegacySettingsToRTASettings(): Promise<RTASettings | null> {
     return new Promise((resolve) => {
         chrome.storage.local.get(["showpopups", "popupduration", "hearpopups", "catchfrompage", "linkmatches", "registerDelay", "catchfromnewtab", "servers"], async (response) => {
@@ -59,6 +60,7 @@ function parseServers(servers: string | null): WebUISettings[] {
         const serverList = JSON.parse(servers); // TODO note to self; JSON.parse(response["servers"))
         serverList.forEach((server: Record<string, any>) => {
             const webUiSettings: WebUISettings = {
+                id: crypto.randomUUID(),
                 client: getClientForLegacyName(server.client),
                 name: server.name,
                 host: server.host,
@@ -67,6 +69,7 @@ function parseServers(servers: string | null): WebUISettings[] {
                 relativePath: server.relativePath || server.ruTorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || server.torrentfluxrelativepath || server.utorrentrelativepath || null,
                 username: server.login || "",
                 password: server.password || "",
+                showPerTorrentConfigSelector: server.rutorrentdirlabelask || server.qbittorrentdirlabelask || server.qbittorrentv2dirlabelask || false,
                 labels: server.labellist ? JSON.parse(server.labellist) : [],
                 dirs: server.dirlist ? JSON.parse(server.dirlist) : [],
                 defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
@@ -74,7 +77,7 @@ function parseServers(servers: string | null): WebUISettings[] {
                 addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
                 clientSpecificSettings: { // TODO: some stuff to map here from the old config.js
 
-                } 
+                }
             } as WebUISettings;
 
             if (WebUIFactory.createWebUI(webUiSettings) !== null) {

@@ -2,7 +2,7 @@ import { Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class BiglyBTWebUI extends TorrentWebUI {
-    protected override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         return new Promise(async (resolve, reject) => {
             const url = this.createBiglyBTBaseUrl(torrent, config);
             let payload: string | FormData;

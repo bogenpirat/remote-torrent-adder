@@ -2,6 +2,8 @@ import { Client } from './clients';
 import { Torrent, TorrentUploadConfig } from './torrent';
 
 export interface WebUISettings {
+    id: string;
+
     client: Client;
     name: string;
 
@@ -13,6 +15,7 @@ export interface WebUISettings {
     username: string;
     password: string;
 
+    showPerTorrentConfigSelector: boolean;
     defaultLabel: string | null;
     defaultDir: string | null;
     labels: Array<string>;
@@ -41,13 +44,7 @@ export abstract class TorrentWebUI {
         return this._settings;
     }
 
-    protected abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
-
-    checkPerClickSettingsAndSendTorrent(torrent: Torrent): Promise<TorrentAddingResult> {
-        // default implementation immediately sends the torrent, no config dialog in content script
-        const config: TorrentUploadConfig = {}; // TODO: create this somehow
-        return this.sendTorrent(torrent, config);
-    }
+    public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
 
     createBaseUrl(): string {
         return [
@@ -65,7 +62,7 @@ export abstract class TorrentWebUI {
         return this.createBaseUrl().replace(/\/+$/, "") + "/";
     }
 
-    async fetch(url: string, options?: RequestInit): Promise<Response> {
+    protected async fetch(url: string, options?: RequestInit): Promise<Response> {
         const res: Response = await fetch(url, options);
         if (!res.ok) {
             throw new Error(`HTTP error ${res.status}`);
@@ -73,19 +70,19 @@ export abstract class TorrentWebUI {
         return res;
     }
 
-    addSurroundingSlashes(urlPart: string): string {
+    protected addSurroundingSlashes(urlPart: string): string {
         return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
     }
 
-    getDirectory(config: TorrentUploadConfig): string | null {
+    protected getDirectory(config: TorrentUploadConfig): string | null {
         return config.dir ?? this.settings.defaultDir ?? null;
     }
 
-    getLabel(config: TorrentUploadConfig): string | null {
+    protected getLabel(config: TorrentUploadConfig): string | null {
         return config.label ?? this.settings.defaultLabel ?? null;
     }
 
-    getPaused(config: TorrentUploadConfig): boolean | null {
+    protected getPaused(config: TorrentUploadConfig): boolean | null {
         return config.addPaused ?? this.settings.addPaused ?? false;
     }
 
