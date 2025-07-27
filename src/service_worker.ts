@@ -5,11 +5,15 @@ import { Settings } from './util/settings';
 import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
 import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
+import { registerSettingsMessageSender } from './util/messages';
 
 
 const settingsProvider = new Settings();
 settingsProvider.loadSettings().then(async (settings) => {
     console.log("Settings loaded:", settings);
+
+    registerSettingsMessageSender(settings);
+
     const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
     registerAuthenticationListenersForAllWebUis(allWebUis);

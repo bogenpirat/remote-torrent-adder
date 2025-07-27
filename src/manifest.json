@@ -19,7 +19,7 @@
         "declarativeNetRequest"
     ],
     "host_permissions": [
-      "<all_urls>"
+        "<all_urls>"
     ],
     "background": {
         "service_worker": "service_worker.js"
@@ -31,22 +31,24 @@
             "48": "assets/icons/BitTorrent48-gray.png",
             "128": "assets/icons/BitTorrent128-gray.png"
         },
-        "default_title": "Remote Torrent Adder"
+        "default_title": "Remote Torrent Adder",
+        "default_popup": "popup/popup.html"
     },
-    // "content_scripts": [
-    //     {
-    //         "matches": ["<all_urls>"],
-    //         "js": [
-    //             "miscapis/modal.js",
-    //             "miscapis/content_rta.js"
-    //         ],
-    //         "css": [
-    //             "modal.css"
-    //         ],
-    //         "run_at": "document_end",
-    //         "all_frames": true
-    //     }
-    // ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content-script/rta.js"
+            ],
+            "css": [
+                //"modal.css"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
+        }
+    ],
     "web_accessible_resources": [
         {
             "resources": [
@@ -57,7 +59,9 @@
                 "miscapis/jquery-2.0.3.min.map",
                 "fancybox/*"
             ],
-            "matches": ["<all_urls>"]
+            "matches": [
+                "<all_urls>"
+            ]
         }
     ]
 }
