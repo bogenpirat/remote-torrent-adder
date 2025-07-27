@@ -2,9 +2,9 @@ import { WebUISettings } from "./webui";
 
 
 export interface RTASettings {
-    popupsEnabled: boolean;
-    popupsDurationMs: number;
-    popupsSoundEnabled: boolean;
+    notificationsEnabled: boolean;
+    notificationsDurationMs: number;
+    notificationsSoundEnabled: boolean;
 
     linkCatchingEnabled: boolean;
     linkCatchingRegexes: RegExp[];

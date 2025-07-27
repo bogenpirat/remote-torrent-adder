@@ -14,9 +14,9 @@ export async function convertLegacySettingsToRTASettings(): Promise<RTASettings 
 
             const defaults = getDefaultSettings();
             const newSettings: RTASettings = {
-                popupsEnabled: JSON.parse(response["showpopups"] ?? defaults.popupsEnabled),
-                popupsDurationMs: parseInt(response["popupduration"] ?? defaults.popupsDurationMs, 10),
-                popupsSoundEnabled: JSON.parse(response["hearpopups"] ?? defaults.popupsSoundEnabled),
+                notificationsEnabled: JSON.parse(response["showpopups"] ?? defaults.notificationsEnabled),
+                notificationsDurationMs: parseInt(response["popupduration"] ?? defaults.notificationsDurationMs, 10),
+                notificationsSoundEnabled: JSON.parse(response["hearpopups"] ?? defaults.notificationsSoundEnabled),
                 linkCatchingEnabled: JSON.parse(response["catchfrompage"] ?? defaults.linkCatchingEnabled),
                 linkCatchingRegexes: parseLinkMatches(response["linkmatches"]),
                 linkCatchingScanDelayMs: parseInt(response["registerDelay"] ?? defaults.linkCatchingScanDelayMs, 10),

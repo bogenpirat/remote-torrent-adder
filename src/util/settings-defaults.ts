@@ -2,9 +2,9 @@ import { RTASettings } from "../models/settings";
 
 export function getDefaultSettings(): RTASettings {
     return {
-        popupsEnabled: true,
-        popupsDurationMs: 2000,
-        popupsSoundEnabled: false,
+        notificationsEnabled: true,
+        notificationsDurationMs: 2000,
+        notificationsSoundEnabled: false,
 
         linkCatchingEnabled: true,
         linkCatchingRegexes: [
