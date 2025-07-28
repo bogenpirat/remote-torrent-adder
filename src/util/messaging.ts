@@ -16,17 +16,7 @@ export function registerSettingsMessageSender(settings: RTASettings): void {
 export function registerPreAddTorrentDispatcher(allWebUis: TorrentWebUI[]): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === PreAddTorrentMessage.action) {
-            const preAddTorrentMessage = message as IPreAddTorrentMessage;
-            const webUi: TorrentWebUI = getWebUiById(preAddTorrentMessage.webUiId, allWebUis) || allWebUis.length > 0 ? allWebUis[0] : null;
-            if (webUi && webUi.settings.showPerTorrentConfigSelector) {
-                // TODO: activate the popup, send a message to it for selecting label/dir/whatever to build the TorrentUploadConfig
-                // TODO: the popup script should then only send AddTorrentMessages
-            } else if (webUi) {
-                // TODO: populate some default TorrentUploadConfig
-                downloadTorrent(preAddTorrentMessage.url).then(torrent => webUi.sendTorrent(torrent, {}));
-            } else {
-                console.error("No WebUI found for preAddTorrentMessage:", preAddTorrentMessage);
-            }
+            dispatchPreAddTorrent(message as IPreAddTorrentMessage, allWebUis);
         }
     });
 }
@@ -44,6 +34,21 @@ export function registerAddTorrentDispatcher(allWebUis: TorrentWebUI[]): void {
             }
         }
     });
+}
+
+export function dispatchPreAddTorrent(message: IPreAddTorrentMessage, allWebUis: TorrentWebUI[]): void {
+    const webUi: TorrentWebUI = getWebUiById(message.webUiId, allWebUis) || allWebUis.length > 0 ? allWebUis[0] : null;
+    if (webUi && webUi.settings.showPerTorrentConfigSelector) {
+        // TODO: activate the popup, send a message to it for selecting label/dir/whatever to build the TorrentUploadConfig
+        // TODO: the popup script should then only send AddTorrentMessages
+        //chrome.runtime.sendMessage({});
+    } else if (webUi) {
+        // TODO: populate some default TorrentUploadConfig
+        downloadTorrent(message.url).then(torrent => webUi.sendTorrent(torrent, {}));
+    } else {
+        console.error("No WebUI found for preAddTorrentMessage:", message);
+    }
+
 }
 
 

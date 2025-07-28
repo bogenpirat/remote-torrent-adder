@@ -1,8 +1,8 @@
 import { TorrentWebUI } from "../models/webui";
-import { downloadTorrent } from "./download";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
 import { AddTorrentMessage, IAddTorrentMessage, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { dispatchPreAddTorrent } from "./messaging";
 
 
 export function createContextMenu(allWebUis: TorrentWebUI[]): void {
@@ -53,18 +53,22 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
         }
 
         if (webUis.length === 1) {
-            chrome.runtime.sendMessage({
+            const preAddTorrentMessage: IPreAddTorrentMessage = {
                 action: PreAddTorrentMessage.action,
                 webUiId: webUis[0].settings.id,
                 url: onClickData.linkUrl
-            } as IPreAddTorrentMessage);
+            };
+            dispatchPreAddTorrent(preAddTorrentMessage, webUis);
         } else {
-            webUis.forEach(webUi => chrome.runtime.sendMessage({
-                action: AddTorrentMessage.action,
-                webUiId: webUi.settings.id,
-                url: onClickData.linkUrl,
-                config: {} // TODO: this should fetch the default config from the webui... right?
-            } as IAddTorrentMessage));
+            webUis.forEach(webUi => {
+                const addTorrentMessage: IAddTorrentMessage = {
+                    action: AddTorrentMessage.action,
+                    webUiId: webUi.settings.id,
+                    url: onClickData.linkUrl,
+                    config: {} // TODO: this should fetch the default config from the webui... right?
+                };
+                dispatchPreAddTorrent(addTorrentMessage, webUis);
+            });
         }
     };
 }
