@@ -47,7 +47,7 @@ export function createContextMenu(allWebUis: TorrentWebUI[]): void {
 }
 
 function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: Tab) => void {
-    return (onClickData: OnClickData, tab: Tab) => { // TODO: do we no longer need tab?
+    return (onClickData: OnClickData, tab: Tab) => {
         if (webUis.length === 0) {
             throw new Error("no servers configured");
         }
