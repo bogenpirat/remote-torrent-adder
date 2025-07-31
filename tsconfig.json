@@ -16,7 +16,8 @@
     "moduleResolution": "node",
     "types": [
       "chrome"
-    ]
+    ],
+    "jsx": "react-jsx"
   },
   "include": [
     "src/**/*"
