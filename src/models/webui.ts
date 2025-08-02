@@ -21,6 +21,7 @@ export interface WebUISettings {
     labels: Array<string>;
     dirs: Array<string>;
     addPaused: boolean;
+    autoLabelDirSettings: Array<AutoLabelDirSetting>;
 
     clientSpecificSettings: Record<string, any>;
 }
@@ -92,4 +93,15 @@ export interface TorrentAddingResult {
     success: boolean;
     httpResponseCode: number;
     httpResponseBody: string | null;
+}
+
+export interface AutoLabelDirSetting {
+    criteria: Array<AutoLabelDirCriterion>;
+    label: string | null;
+    dir: string | null;
+}
+
+export interface AutoLabelDirCriterion {
+    field: "trackerUrl";
+    value: string;
 }

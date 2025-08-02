@@ -1,5 +1,5 @@
 import { RTASettings } from "../models/settings";
-import { WebUISettings } from "../models/webui";
+import { WebUISettings, AutoLabelDirSetting } from "../models/webui";
 import { getDefaultSettings } from "./settings-defaults";
 import { Client, WebUIFactory } from "../models/clients";
 
@@ -75,6 +75,7 @@ function parseServers(servers: string | null): WebUISettings[] {
                 defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
                 defaultDir: server.rutorrentdirectory || server.floodjesecdirectory || server.hadoukendir || server.flooddirectory || server.qnapmove || null,
                 addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
+                autoLabelDirSettings: parseAutoLabelDirSettings(server.autolabellist, server.autodirlist),
                 clientSpecificSettings: { // TODO: some stuff to map here from the old config.js
 
                 }
@@ -101,3 +102,39 @@ function getClientForLegacyName(name: string): Client | null {
 
     return name as Client || null;
 }
+
+function parseAutoLabelDirSettings(autolabellist: any, autodirlist: any): Array<AutoLabelDirSetting> {
+    const labelByTrackerUrl: Record<string, string> = {};
+    const dirByTrackerUrl: Record<string, string> = {};
+
+    if (autolabellist) {
+        for (const parsedAutoLabel of JSON.parse(autolabellist)) {
+            const [trackerUrl, label] = parsedAutoLabel.split(",");
+            labelByTrackerUrl[trackerUrl] = label;
+        }
+    }
+
+    if (autodirlist) {
+        for (const parsedAutoDir of JSON.parse(autodirlist)) {
+            const [trackerUrl, dir] = parsedAutoDir.split(",");
+            dirByTrackerUrl[trackerUrl] = dir;
+        }
+    }
+
+    const autoLabelDirSettings: Array<AutoLabelDirSetting> = [];
+    for (const trackerUrl of new Set([...Object.keys(labelByTrackerUrl), ...Object.keys(dirByTrackerUrl)])) {
+        autoLabelDirSettings.push({
+            criteria: [
+                {
+                    field: "trackerUrl",
+                    value: trackerUrl
+                }
+            ],
+            label: labelByTrackerUrl[trackerUrl],
+            dir: dirByTrackerUrl[trackerUrl]
+        });
+    }
+
+    return autoLabelDirSettings;
+}
+
