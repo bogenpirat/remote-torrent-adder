@@ -24,8 +24,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
             this.createBaseUrl(),
             "/transmission/",
             torrent.isMagnet ? "rpc" : "upload", 
-            !torrent.isMagnet && this.getPaused(config) ? "?paused=true" : "",
-            this.settings.addPaused ? "" : "",
+            !torrent.isMagnet && this.getAddPaused(config) ? "?paused=true" : "",
         ].join("");
     }
 
@@ -45,7 +44,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
     }
 
     createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
-        return JSON.stringify({ "method": "torrent-add", "arguments": { "paused": `${this.getPaused(config)}`, "filename": magnetUri } });
+        return JSON.stringify({ "method": "torrent-add", "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri } });
     }
 
     createPayloadForTorrent(torrent: Torrent): FormData {

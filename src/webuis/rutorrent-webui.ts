@@ -20,13 +20,16 @@ export class RuTorrentWebUI extends TorrentWebUI {
     }
 
     createRutorrentBaseUrl(config: TorrentUploadConfig): string {
+        const targetDir = this.getDirectory(config);
+        const targetLabel = this.getLabel(config);
+        const addPaused = this.getAddPaused(config) ? "1" : "0";
         return [
             this.createBaseUrl(),
             "php/addtorrent.php?",
-            config.dir ? `dir_edit=${encodeURIComponent(config.dir)}&` : "",
-            config.label ? `label=${encodeURIComponent(config.label)}&` : "",
-            this._settings.addPaused ? "torrents_start_stopped=1&" : "",
-            this._settings.clientSpecificSettings["dontAddNamePath"] ? "not_add_path=1&" : "",
+            targetDir ? `dir_edit=${encodeURIComponent(targetDir)}&` : "",
+            targetLabel ? `label=${encodeURIComponent(targetLabel)}&` : "",
+            addPaused ? "torrents_start_stopped=1&" : "",
+            this._settings.clientSpecificSettings["dontAddNamePath"] ? "not_add_path=1&" : "", // TODO: what
         ].join("");
     }
 

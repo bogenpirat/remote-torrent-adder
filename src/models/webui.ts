@@ -82,7 +82,7 @@ export abstract class TorrentWebUI {
         return config.label ?? this.settings.defaultLabel ?? null;
     }
 
-    protected getPaused(config: TorrentUploadConfig): boolean | null {
+    protected getAddPaused(config: TorrentUploadConfig): boolean | null {
         return config.addPaused ?? this.settings.addPaused ?? false;
     }
 
