@@ -17,6 +17,7 @@ export function registerPreAddTorrentDispatcher(allWebUis: TorrentWebUI[]): void
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === PreAddTorrentMessage.action) {
             dispatchPreAddTorrent(message as IPreAddTorrentMessage, allWebUis);
+            sendResponse();
         }
     });
 }
@@ -32,6 +33,7 @@ export function registerAddTorrentDispatcher(allWebUis: TorrentWebUI[]): void {
             } else {
                 console.error("No WebUI found for addTorrentMessage:", addTorrentMessage);
             }
+            sendResponse();
         }
     });
 }
