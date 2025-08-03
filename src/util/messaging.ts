@@ -6,6 +6,7 @@ import { downloadTorrent } from "./download";
 import { serializeSettings, convertTorrentToSerialized } from "./serializer";
 
 
+const POPUP_PAGE = "popup/popup.html";
 let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 
@@ -46,7 +47,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, allW
             webUiSettings: webUi._settings
         };
         chrome.windows.update(windowId, { focused: true });
-        chrome.action.setPopup({ popup: "popup/popup.html" });
+        chrome.action.setPopup({ popup: POPUP_PAGE });
         chrome.action.openPopup({ windowId: windowId });
         chrome.action.setPopup({ popup: "" });
     } else {
