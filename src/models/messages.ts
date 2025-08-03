@@ -1,4 +1,5 @@
-import { TorrentUploadConfig } from "./torrent";
+import { SerializedTorrent, TorrentUploadConfig } from "./torrent";
+import { WebUISettings } from "./webui";
 
 export const GetSettingsMessage: IMessagable = {
     action: "getSettings"
@@ -12,6 +13,19 @@ export const AddTorrentMessage: IMessagable = {
     action: "addTorrent"
 }
 
+export const GetPreAddedTorrentAndSettings: IMessagable = {
+    action: "getPreAddedTorrentAndSettings"
+}
+
+export const GetPreAddedTorrentAndSettingsResponse: IMessagable = {
+    action: "getPreAddedTorrentAndSettingsResponse"
+}
+
+
+export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
+    webUiSettings: WebUISettings;
+    serializedTorrent: SerializedTorrent;
+}
 
 export interface IAddTorrentMessage extends IPreAddTorrentMessage {
     webUiId: string;

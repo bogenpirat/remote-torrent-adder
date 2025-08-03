@@ -1,8 +1,10 @@
-import { PreAddTorrentMessage } from "../models/messages";
+import { GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse } from "../models/messages";
+import { convertSerializedToTorrent } from "../util/serializer";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === PreAddTorrentMessage.action) {
-        document.querySelector("body").innerText = `Received PreAddTorrentMessage with URL: ${JSON.stringify(message, null, 2)}`;
+chrome.runtime.sendMessage({ action: GetPreAddedTorrentAndSettings.action }, (response) => {
+    if (response && response.action === GetPreAddedTorrentAndSettingsResponse.action) {
+        const torrent = convertSerializedToTorrent(response.serializedTorrent);
+        console.log("received event:", response, torrent);
     }
 });
 

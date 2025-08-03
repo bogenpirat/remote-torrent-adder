@@ -5,24 +5,25 @@ import { Settings } from './util/settings';
 import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
 import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
-import { registerSettingsMessageSender, registerPreAddTorrentDispatcher, registerAddTorrentDispatcher } from './util/messaging';
+import { registerMessageListener } from './util/messaging';
 
 
 const settingsProvider = new Settings();
-settingsProvider.loadSettings().then(async (settings) => {
-    console.log("Settings loaded:", settings);
+settingsProvider.loadSettings().then(registerEverything);
 
-    registerSettingsMessageSender(settings);
+
+async function registerEverything(settings: RTASettings): Promise<void> {
+    console.log("Settings loaded:", settings);
 
     const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
 
+    registerMessageListener(settings, allWebUis);
+
     registerAuthenticationListenersForAllWebUis(allWebUis);
-    registerPreAddTorrentDispatcher(allWebUis);
-    registerAddTorrentDispatcher(allWebUis);
 
     ContextMenu.createContextMenu(allWebUis);
-});
+}
 
 async function initiateWebUis(settings: RTASettings): Promise<TorrentWebUI[]> {
     const allWebUis = settings.webuiSettings.map(webUiSettings => WebUIFactory.createWebUI(webUiSettings)).filter(webUi => webUi !== null);

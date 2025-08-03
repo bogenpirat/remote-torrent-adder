@@ -58,7 +58,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                 webUiId: webUis[0].settings.id,
                 url: onClickData.linkUrl
             };
-            dispatchPreAddTorrent(preAddTorrentMessage, webUis);
+            dispatchPreAddTorrent(preAddTorrentMessage, webUis, tab.windowId);
         } else {
             webUis.forEach(webUi => {
                 const addTorrentMessage: IAddTorrentMessage = {
@@ -67,7 +67,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                     url: onClickData.linkUrl,
                     config: {} // TODO: this should fetch the default config from the webui... right?
                 };
-                dispatchPreAddTorrent(addTorrentMessage, webUis);
+                dispatchPreAddTorrent(addTorrentMessage, webUis, tab.windowId);
             });
         }
     };

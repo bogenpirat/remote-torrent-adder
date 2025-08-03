@@ -1,26 +1,71 @@
 import { RTASettings } from "../models/settings";
+import { SerializedTorrent, Torrent } from "../models/torrent";
 
-export function customReplacer(key: string, value: any): any {
+
+export function serializeSettings(settings: RTASettings): string {
+    return serializeObject(settings);
+}
+
+export function deserializeSettings(serialized: string): RTASettings | null {
+    return deserializeObject(serialized);
+}
+
+export function serializeObject(obj: any): string {
+    return JSON.stringify(obj, customReplacer);
+}
+
+export function deserializeObject(serialized: string): any {
+    if (!serialized) {
+        return null;
+    }
+    return JSON.parse(serialized, customReviver);
+}
+
+export async function convertTorrentToSerialized(torrent: Torrent): Promise<SerializedTorrent> {
+    return new Promise(async (resolve) => {
+        resolve({
+            ...torrent,
+            data: torrent.isMagnet ? torrent.data as string : await blobToBase64(torrent.data as Blob),
+        });
+    });
+}
+
+export function convertSerializedToTorrent(serialized: SerializedTorrent): Torrent {
+    return {
+        ...serialized,
+        data: base64ToBlob(serialized.data, serialized.isMagnet ? "text/plain" : "application/x-bittorrent"),
+    };
+}
+
+
+function customReplacer(key: string, value: any): any {
     if (value instanceof RegExp) {
         return { __type: "RegExp", source: value.source, flags: value.flags };
     }
     return value;
 }
 
-export function customReviver(key: string, value: any): any {
-    if (value && value.__type === "RegExp") {
-        return new RegExp(value.source, value.flags);
+function customReviver(key: string, value: any): any {
+    if (value) {
+        if (value.__type === "RegExp") {
+            return new RegExp(value.source, value.flags);
+        }
     }
     return value;
 }
 
-export function serializeSettings(settings: RTASettings): string {
-    return JSON.stringify(settings, customReplacer);
+async function blobToBase64(blob: Blob): Promise<string> {
+    const buffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const binary = bytes.reduce((acc, b) => acc + String.fromCharCode(b), "");
+    return btoa(binary);
 }
 
-export function deserializeSettings(serialized: string): RTASettings | null {
-    if (!serialized) {
-        return null;
+function base64ToBlob(base64: string, type = "application/x-bittorrent"): Blob {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
     }
-    return JSON.parse(serialized, customReviver);
+    return new Blob([bytes], { type });
 }
