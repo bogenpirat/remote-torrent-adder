@@ -71,4 +71,16 @@ export class BiglyBTWebUI extends TorrentWebUI {
             reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
         });
     }
+    
+    get isLabelSupported(): boolean {
+        return false;
+    }
+
+    get isDirSupported(): boolean {
+        return false;
+    }
+
+    get isAddPausedSupported(): boolean {
+        return true;
+    }
 }

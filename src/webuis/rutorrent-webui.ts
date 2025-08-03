@@ -73,4 +73,16 @@ export class RuTorrentWebUI extends TorrentWebUI {
             reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
         });
     }
+
+    get isLabelSupported(): boolean {
+        return true;
+    }
+
+    get isDirSupported(): boolean {
+        return true;
+    }
+
+    get isAddPausedSupported(): boolean {
+        return true;
+    }
 }

@@ -25,6 +25,10 @@ export const GetPreAddedTorrentAndSettingsResponse: IMessagable = {
 export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
     webUiSettings: WebUISettings;
     serializedTorrent: SerializedTorrent;
+    autoLabelDirResult?: {
+        label?: string;
+        directory?: string;
+    };
 }
 
 export interface IAddTorrentMessage extends IPreAddTorrentMessage {

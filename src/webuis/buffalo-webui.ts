@@ -38,4 +38,16 @@ export class BuffaloWebUI extends TorrentWebUI {
             httpResponseBody: xhr.responseText
         });
     }
+    
+    get isLabelSupported(): boolean {
+        return false;
+    }
+
+    get isDirSupported(): boolean {
+        return false;
+    }
+
+    get isAddPausedSupported(): boolean {
+        return false;
+    }
 }
