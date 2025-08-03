@@ -70,8 +70,8 @@ function parseServers(servers: string | null): WebUISettings[] {
                 username: server.login || "",
                 password: server.password || "",
                 showPerTorrentConfigSelector: server.rutorrentdirlabelask || server.qbittorrentdirlabelask || server.qbittorrentv2dirlabelask || false,
-                labels: server.labellist ? JSON.parse(server.labellist) : [],
-                dirs: server.dirlist ? JSON.parse(server.dirlist) : [],
+                labels: server.labellist ? pruneEmptyEntries(JSON.parse(server.labellist)) : [],
+                dirs: server.dirlist ? pruneEmptyEntries(JSON.parse(server.dirlist)) : [],
                 defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
                 defaultDir: server.rutorrentdirectory || server.floodjesecdirectory || server.hadoukendir || server.flooddirectory || server.qnapmove || null,
                 addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
@@ -138,3 +138,6 @@ function parseAutoLabelDirSettings(autolabellist: any, autodirlist: any): Array<
     return autoLabelDirSettings;
 }
 
+function pruneEmptyEntries(array: string[]): string[] {
+    return array.filter(item => item !== null && item !== undefined && item.trim() !== "");
+}
