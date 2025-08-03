@@ -31,8 +31,7 @@
             "48": "assets/icons/BitTorrent48-gray.png",
             "128": "assets/icons/BitTorrent128-gray.png"
         },
-        "default_title": "Remote Torrent Adder",
-        "default_popup": "popup/popup.html"
+        "default_title": "Remote Torrent Adder"
     },
     "content_scripts": [
         {

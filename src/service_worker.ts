@@ -6,6 +6,7 @@ import { TorrentWebUI } from './models/webui';
 import { RTASettings } from './models/settings';
 import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
 import { registerMessageListener } from './util/messaging';
+import { registerClickActionForIcon } from './util/action';
 
 
 const settingsProvider = new Settings();
@@ -21,6 +22,8 @@ async function registerEverything(settings: RTASettings): Promise<void> {
     registerMessageListener(settings, allWebUis);
 
     registerAuthenticationListenersForAllWebUis(allWebUis);
+
+    registerClickActionForIcon(allWebUis.length > 0 ? allWebUis[0] : null);
 
     ContextMenu.createContextMenu(allWebUis);
 }
