@@ -33,7 +33,7 @@ export async function convertTorrentToSerialized(torrent: Torrent): Promise<Seri
 export function convertSerializedToTorrent(serialized: SerializedTorrent): Torrent {
     return {
         ...serialized,
-        data: base64ToBlob(serialized.data, serialized.isMagnet ? "text/plain" : "application/x-bittorrent"),
+        data: serialized.isMagnet ? serialized.data : base64ToBlob(serialized.data),
     };
 }
 
@@ -61,11 +61,11 @@ async function blobToBase64(blob: Blob): Promise<string> {
     return btoa(binary);
 }
 
-function base64ToBlob(base64: string, type = "application/x-bittorrent"): Blob {
+function base64ToBlob(base64: string): Blob {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
     }
-    return new Blob([bytes], { type });
+    return new Blob([bytes], { type: "application/x-bittorrent" });
 }
