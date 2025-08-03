@@ -1,9 +1,9 @@
-import { AddTorrentMessage, GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, GetSettingsMessage, IAddTorrentMessage, IGetPreAddedTorrentAndSettingsResponse, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { AddTorrentMessage, GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, GetSettingsMessage, IAddTorrentMessage, IGetPreAddedTorrentAndSettingsResponse, IPreAddTorrentMessage, PreAddTorrentMessage, AddTorrentMessageWithLabelAndDir } from "../models/messages";
 import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentWebUI, WebUISettings } from "../models/webui";
 import { downloadTorrent } from "./download";
-import { serializeSettings, convertTorrentToSerialized } from "./serializer";
+import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent } from "./serializer";
 
 
 const POPUP_PAGE = "popup/popup.html";
@@ -12,6 +12,8 @@ let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 export function registerMessageListener(settings: RTASettings, allWebUis: TorrentWebUI[]): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.debug("Received message:", message, sender);
+
         if (message.action === GetSettingsMessage.action) {
             sendResponse(serializeSettings(settings));
         } else if (message.action === PreAddTorrentMessage.action) {
@@ -35,6 +37,12 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
                 sendResponse(response);
             });
             return true;
+        } else if (message.action === AddTorrentMessageWithLabelAndDir.action) {
+            const webUi = getWebUiById(message.webUiId, allWebUis);
+            const torrent = convertSerializedToTorrent(message.serializedTorrent);
+            webUi.sendTorrent(torrent, message.config);
+            // TODO: persist new webui settings; take over label/dir list from message
+            sendResponse({});
         }
     });
 }

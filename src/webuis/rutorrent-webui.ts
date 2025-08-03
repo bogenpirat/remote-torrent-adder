@@ -22,7 +22,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
     createRutorrentBaseUrl(config: TorrentUploadConfig): string {
         const targetDir = this.getDirectory(config);
         const targetLabel = this.getLabel(config);
-        const addPaused = this.getAddPaused(config) ? "1" : "0";
+        const addPaused = this.getAddPaused(config);
         return [
             this.createBaseUrl(),
             "php/addtorrent.php?",

@@ -1,15 +1,24 @@
 import { getTorrentAndSettingsAndFillPopup } from '../chrome-messaging';
+import { WebUISettings } from "../../models/webui";
 import { useState, useEffect } from 'react';
 import { ComboBox } from '../components/ui/combobox';
 import { Button } from '../components/ui/button';
 import { Toggle } from '../components/ui/toggle';
+import { Torrent } from '../../models/torrent';
 
+
+export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;
 
 // Initial options
 const initialLabelOptions = ['Movies', 'TV Shows', 'Music', 'Games', 'Software', 'Books']
 const initialDirectoryOptions = []
 
 export default function Home() {
+  const [webUi, setWebUi] = useState(null)
+  const [addTorrentCallback, setAddTorrentCallback] = useState<AddTorrentCallback | null>(null);
+
+  const [torrent, setTorrent] = useState<Torrent>(null)
+
   const [label, setLabel] = useState('')
   const [directory, setDirectory] = useState('')
   const [paused, setPaused] = useState(false)
@@ -23,19 +32,18 @@ export default function Home() {
   const [showDirectory, setShowDirectory] = useState(true)
   const [showPaused, setShowPaused] = useState(true)
 
-  const handleSubmit = () => { // TODO
-    const data = {
-      label: showLabel ? label : undefined,
-      directory: showDirectory ? directory : undefined,
-      paused: showPaused ? paused : undefined
-    }
 
-    console.log('Submit data:', data)
-    alert(`Settings: ${JSON.stringify(data, null, 2)}`)
+  const handleSubmit = () => {
+    const augmentedLabels = label && !labelOptions.includes(label) ? [label, ...labelOptions] : labelOptions;
+    const augmentedDirectories = directory && !directoryOptions.includes(directory) ? [directory, ...directoryOptions] : directoryOptions;
+    addTorrentCallback(webUi.id, torrent, label || null, directory || null, paused || false, augmentedLabels, augmentedDirectories).then(() => {
+      window.close();
+    });
   }
 
   // Programmatic setters for external control
   const setFormData: FormControl = {
+    torrent: setTorrent,
     label: setLabel,
     directory: setDirectory,
     paused: setPaused,
@@ -45,16 +53,15 @@ export default function Home() {
       label: setShowLabel,
       directory: setShowDirectory,
       paused: setShowPaused
+    },
+    webUiSettings: setWebUi,
+    addTorrentCb: (callback: AddTorrentCallback) => {
+      setAddTorrentCallback(() => callback);
     }
   }
 
-  // Make setters available globally for external access (e.g., from Chrome extension)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).remoteAdderControls = setFormData;
-      getTorrentAndSettingsAndFillPopup(setFormData);
-    }
-  }, [])
+  // Make setters available globally for external access
+  useEffect(() => getTorrentAndSettingsAndFillPopup(setFormData), [])
 
   const handleRemoveLabel = (optionToRemove: string) => {
     setLabelOptions(prev => prev.filter(option => option !== optionToRemove))
@@ -72,12 +79,15 @@ export default function Home() {
     }
   }
 
+
   return (
     <div className="h-full bg-background p-6">
       <div className="max-w-sm mx-auto space-y-4">
         <div className="text-center">
           <h1 className="text-xl font-bold text-foreground">Remote Torrent Adder</h1>
-          <p className="text-xs text-muted-foreground mt-1">Configure your torrent settings</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {torrent?.name}
+          </p>
         </div>
 
         <div className="space-y-3 bg-card p-4 rounded-lg border border-border shadow-sm">
@@ -126,6 +136,7 @@ export default function Home() {
 }
 
 export interface FormControl {
+  torrent: (value: Torrent) => void;
   label: (value: string) => void;
   directory: (value: string) => void;
   paused: (value: boolean) => void;
@@ -136,4 +147,6 @@ export interface FormControl {
     directory: (visible: boolean) => void;
     paused: (visible: boolean) => void;
   };
+  webUiSettings: (webUiSettings: WebUISettings) => void;
+  addTorrentCb: (callback: AddTorrentCallback) => void;
 }

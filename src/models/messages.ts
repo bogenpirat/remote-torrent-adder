@@ -13,6 +13,10 @@ export const AddTorrentMessage: IMessagable = {
     action: "addTorrent"
 }
 
+export const AddTorrentMessageWithLabelAndDir: IMessagable = {
+    action: "addTorrentMessageWithLabelAndDir"
+}
+
 export const GetPreAddedTorrentAndSettings: IMessagable = {
     action: "getPreAddedTorrentAndSettings"
 }
@@ -34,6 +38,14 @@ export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
 export interface IAddTorrentMessage extends IPreAddTorrentMessage {
     webUiId: string;
     config: TorrentUploadConfig;
+}
+
+export interface IAddTorrentMessageWithLabelAndDir extends IMessagable {
+    webUiId: string;
+    config: TorrentUploadConfig;
+    serializedTorrent: SerializedTorrent;
+    labels: string[];
+    directories: string[];
 }
 
 export interface IPreAddTorrentMessage extends IMessagable {
