@@ -12,7 +12,7 @@ let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 export function registerMessageListener(settings: RTASettings, allWebUis: TorrentWebUI[]): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.debug("Received message:", message, sender);
+        console.debug(`Received message of type ${message.action}:`, message, sender);
 
         if (message.action === GetSettingsMessage.action) {
             sendResponse(serializeSettings(settings));
