@@ -37,7 +37,7 @@ export class Settings {
         });
     }
 
-    private saveSettings(settings: RTASettings): Promise<void> {
+    public saveSettings(settings: RTASettings): Promise<void> {
         return new Promise((resolve) => {
             chrome.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) }, () => {
                 console.log("Settings saved: ", settings);

@@ -1,16 +1,28 @@
-import { AddTorrentMessage, GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, GetSettingsMessage, IAddTorrentMessage, IGetPreAddedTorrentAndSettingsResponse, IPreAddTorrentMessage, PreAddTorrentMessage, AddTorrentMessageWithLabelAndDir } from "../models/messages";
+import {
+    AddTorrentMessage,
+    GetPreAddedTorrentAndSettings,
+    GetPreAddedTorrentAndSettingsResponse,
+    GetSettingsMessage,
+    IAddTorrentMessage,
+    IGetPreAddedTorrentAndSettingsResponse,
+    IPreAddTorrentMessage,
+    PreAddTorrentMessage,
+    AddTorrentMessageWithLabelAndDir
+} from "../models/messages";
 import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentWebUI, WebUISettings } from "../models/webui";
 import { downloadTorrent } from "./download";
 import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent } from "./serializer";
+import { Settings } from "./settings";
+
 
 
 const POPUP_PAGE = "popup/popup.html";
 let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 
-export function registerMessageListener(settings: RTASettings, allWebUis: TorrentWebUI[]): void {
+export function registerMessageListener(settings: RTASettings, allWebUis: TorrentWebUI[], settingsProvider: Settings): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.debug(`Received message of type ${message.action}:`, message, sender);
 
@@ -41,7 +53,7 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
             const webUi = getWebUiById(message.webUiId, allWebUis);
             const torrent = convertSerializedToTorrent(message.serializedTorrent);
             webUi.sendTorrent(torrent, message.config);
-            // TODO: persist new webui settings; take over label/dir list from message
+            updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
             sendResponse({});
         }
     });
@@ -82,4 +94,23 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: 
 interface BufferedTorrentDataForPopup {
     torrent: Torrent;
     webUiSettings: WebUISettings;
+}
+
+function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string, labels: string[], directories: string[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+        settingsProvider.loadSettings().then(settings => {
+            const webUiSettings = settings.webuiSettings.find(webUi => webUi.id === webUiId);
+            if (webUiSettings) {
+                webUiSettings.labels = labels;
+                webUiSettings.dirs = directories;
+                settingsProvider.saveSettings(settings).then(() => {
+                    resolve();
+                });
+            } else {
+                const message = `WebUI with id ${webUiId} not found in settings; couldn't update labels and directories.`;
+                console.error(message);
+                reject(new Error(message));
+            }
+        });
+    });
 }

@@ -19,7 +19,7 @@ async function registerEverything(settings: RTASettings): Promise<void> {
     const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
 
-    registerMessageListener(settings, allWebUis);
+    registerMessageListener(settings, allWebUis, settingsProvider);
 
     registerAuthenticationListenersForAllWebUis(allWebUis);
 
