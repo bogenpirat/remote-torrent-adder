@@ -7,15 +7,17 @@ import {
     IGetPreAddedTorrentAndSettingsResponse,
     IPreAddTorrentMessage,
     PreAddTorrentMessage,
-    AddTorrentMessageWithLabelAndDir
+    AddTorrentMessageWithLabelAndDir,
+    UpdateActionBadgeText,
+    IGetSettingsMessage
 } from "../models/messages";
 import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentWebUI, WebUISettings } from "../models/webui";
+import { updateBadgeText } from "./action";
 import { downloadTorrent } from "./download";
 import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent } from "./serializer";
 import { Settings } from "./settings";
-
 
 
 const POPUP_PAGE = "popup/popup.html";
@@ -55,6 +57,8 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
             webUi.sendTorrent(torrent, message.config);
             updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
             sendResponse({});
+        } else if (message.action === UpdateActionBadgeText.action) {
+            updateBadgeText((message as IGetSettingsMessage).text, sender.tab?.id || -1);
         }
     });
 }
