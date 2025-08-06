@@ -46,27 +46,5 @@ export default [
             }),
             ...(isProd ? [terser()] : [])
         ]
-    },
-    // {
-    //     input: 'src/popup/popup.ts',
-    //     output: {
-    //         dir: `${distDir}/popup`,
-    //         format: 'iife',
-    //         name: 'RTAPopupScript',
-    //         sourcemap: !isProd,
-    //         entryFileNames: 'popup.js'
-    //     },
-    //     plugins: [
-    //         resolve({ browser: true, preferBuiltins: false }),
-    //         commonjs(),
-    //         typescript({ tsconfig: './tsconfig.json' }),
-    //         copy({
-    //             targets: [
-    //                 { src: 'src/**/*.{json,html,css,png,svg,ogg}', dest: distDir }
-    //             ],
-    //             flatten: false
-    //         }),
-    //         ...(isProd ? [terser()] : [])
-    //     ]
-    // }
+    }
 ];
