@@ -1,6 +1,6 @@
 var rta_modal_open, rta_modal_close;
 
-chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+chrome.runtime.sendMessage({"action": "getStorageData"}, function(response) {
 	var delay = 0;
 	if(response["registerDelay"] > 0) {
 		delay = response["registerDelay"];
@@ -50,7 +50,7 @@ function registerLinks(response) {
 		var modals = rta_modal_init();
 		rta_modal_open = modals[0];
 		rta_modal_close = modals[1];
-		if(response["linksfoundindicator"]=="true") chrome.extension.sendRequest({"action": "pageActionToggle"});
+		if(response["linksfoundindicator"]=="true") chrome.runtime.sendMessage({"action": "pageActionToggle"});
 		
 		for(key in links) {
 			if(links[key].addEventListener) {
@@ -74,7 +74,7 @@ function registerLinks(response) {
 						else {
 							var ref = new URL(window.location);
 							ref.hash = '';
-							chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined, "referer": ref.toString()});
+							chrome.runtime.sendMessage({"action": "addTorrent", "url": url, "label": undefined, "dir": undefined, "referer": ref.toString()});
 						}
 					}
 				});
@@ -84,23 +84,38 @@ function registerLinks(response) {
 }
 
 // register a listener that'll display the dir/label selection dialog
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	console.log('Content script received message:', request);
+
 	if(request.action == "showLabelDirChooser" && request.url && request.settings) {
-		var modals = rta_modal_init();
-		rta_modal_open = modals[0];
-		rta_modal_close = modals[1];
-		showLabelDirChooser(request.settings, request.url, request.server);
-		sendResponse({});
+		console.log('Showing label/dir chooser popup');
+		try {
+			var modals = rta_modal_init();
+			rta_modal_open = modals[0];
+			rta_modal_close = modals[1];
+			showLabelDirChooser(request.settings, request.url, request.server);
+			sendResponse({success: true});
+		} catch (error) {
+			console.error('Error showing label/dir chooser:', error);
+			sendResponse({success: false, error: error.message});
+		}
+	} else {
+		console.log('Message not handled by content script');
+		sendResponse({success: false, reason: 'Invalid message format'});
 	}
 });
 
 function showLabelDirChooser(settings, url, theServer) {
+	console.log('showLabelDirChooser called with:', {settings, url, theServer});
+
 	var servers = JSON.parse(settings.servers);
 	var server, serverIndex = 0;
 	if(theServer == null) {
 		server = servers[0];
+		console.log('Using first server:', server);
 	} else {
 		server = theServer;
+		console.log('Using provided server:', server);
 		for(var x in servers) {
 			if(servers[x].name == theServer.name) {
 				serverIndex = x;
@@ -111,20 +126,70 @@ function showLabelDirChooser(settings, url, theServer) {
 	var dirlist = server["dirlist"] ? JSON.parse(server["dirlist"]) : [];
 	var labellist = server["labellist"] ? JSON.parse(server["labellist"]) : [];
 
+	console.log('Current dirlist:', dirlist);
+	console.log('Current labellist:', labellist);
+
+	// Temporary visible debugging
+	if (dirlist.length > 0 || labellist.length > 0) {
+		console.log('Found stored values - dirs:', dirlist, 'labels:', labellist);
+	} else {
+		console.log('No stored directories or labels found');
+	}
+
 	var adddialog = "<div id=\"rta_modal_wrapper\"><div id=\"rta_modal_window\">";
-	adddialog += "<style>#rta_modal_wrapper { color: rgb(68, 68, 68); background: rgb(249, 249, 249); } #dirremover, #labelremover { height: 1em; cursor: pointer; } </style>";
-	adddialog += "<h2 style=\"color: rgb(68, 68, 68);\">Select label and directory for torrent adding</h2>";
-	adddialog += "<form id=\"rta_addform\">Directory: <select id=\"adddialog_directory\">";
+	adddialog += "<style>";
+	adddialog += "#rta_modal_wrapper { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }";
+	adddialog += "#rta_modal_window { background: #ffffff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 24px; min-width: 400px; }";
+	adddialog += "#rta_modal_window h2 { margin: 0 0 20px 0; color: #333; font-size: 18px; font-weight: 600; }";
+	adddialog += ".rta-form-group { margin-bottom: 16px; }";
+	adddialog += ".rta-form-label { display: block; margin-bottom: 6px; color: #555; font-weight: 500; font-size: 14px; }";
+	adddialog += ".rta-form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }";
+	adddialog += ".rta-form-row select, .rta-form-row input[type='text'] { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }";
+	adddialog += ".rta-form-row select { min-width: 150px; background: white; }";
+	adddialog += ".rta-form-row input[type='text'] { flex: 1; min-width: 200px; }";
+	adddialog += ".rta-remove-btn { width: 20px; height: 20px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }";
+	adddialog += ".rta-remove-btn:hover { opacity: 1; }";
+	adddialog += ".rta-submit-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; }";
+	adddialog += ".rta-submit-btn:hover { background: #0056b3; }";
+	adddialog += ".rta-or-text { color: #666; font-size: 13px; margin: 0 8px; }";
+	adddialog += "</style>";
+	adddialog += "<h2>Select label and directory for torrent adding</h2>";
+	adddialog += "<form id=\"rta_addform\">";
+
+	// Directory section
+	adddialog += "<div class=\"rta-form-group\">";
+	adddialog += "<label class=\"rta-form-label\">Directory:</label>";
+	adddialog += "<div class=\"rta-form-row\">";
+	adddialog += "<select id=\"adddialog_directory\">";
+	adddialog += "<option value=\"\">Select directory...</option>";
 	for(x in dirlist) adddialog += "<option value=\""+dirlist[x]+"\">"+dirlist[x]+"</option>";
 	adddialog += "</select>";
-	adddialog += " <img id=\"dirremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
-	adddialog += "or new: <input id=\"adddialog_directory_new\" type=\"text\" /><br/>";
-	adddialog += "Label: <select id=\"adddialog_label\">";
+	adddialog += "<img class=\"rta-remove-btn\" id=\"dirremover\" src=\"" + chrome.runtime.getURL("icons/White_X_in_red_background.svg") + "\" title=\"Remove selected directory\" />";
+	adddialog += "</div>";
+	adddialog += "<div class=\"rta-form-row\">";
+	adddialog += "<span class=\"rta-or-text\">or enter new:</span>";
+	adddialog += "<input id=\"adddialog_directory_new\" type=\"text\" placeholder=\"/path/to/directory\" />";
+	adddialog += "</div>";
+	adddialog += "</div>";
+
+	// Label section
+	adddialog += "<div class=\"rta-form-group\">";
+	adddialog += "<label class=\"rta-form-label\">Label:</label>";
+	adddialog += "<div class=\"rta-form-row\">";
+	adddialog += "<select id=\"adddialog_label\">";
+	adddialog += "<option value=\"\">Select label...</option>";
 	for(x in labellist) adddialog += "<option value=\""+labellist[x]+"\">"+labellist[x]+"</option>";
 	adddialog += "</select>";
-	adddialog += " <img id=\"labelremover\" src=\"" + chrome.extension.getURL("icons/White_X_in_red_background.svg") + "\" /> ";
-	adddialog += " or new: <input id=\"adddialog_label_new\" type=\"text\" /><br/>";
-	adddialog += "<input id=\"adddialog_submit\" type=\"submit\" value=\"Add Torrent\" /></form>";
+	adddialog += "<img class=\"rta-remove-btn\" id=\"labelremover\" src=\"" + chrome.runtime.getURL("icons/White_X_in_red_background.svg") + "\" title=\"Remove selected label\" />";
+	adddialog += "</div>";
+	adddialog += "<div class=\"rta-form-row\">";
+	adddialog += "<span class=\"rta-or-text\">or enter new:</span>";
+	adddialog += "<input id=\"adddialog_label_new\" type=\"text\" placeholder=\"Label name\" />";
+	adddialog += "</div>";
+	adddialog += "</div>";
+
+	adddialog += "<button class=\"rta-submit-btn\" id=\"adddialog_submit\" type=\"submit\">Add Torrent</button>";
+	adddialog += "</form>";
 	
 	document.querySelector("body").insertAdjacentHTML("beforeend", adddialog);
 	
@@ -162,23 +227,31 @@ function showLabelDirChooser(settings, url, theServer) {
 		var inputLabel = document.querySelector("input#adddialog_label_new").value;
 		var selectedDir = document.querySelector("select#adddialog_directory").value;
 		var inputDir = document.querySelector("input#adddialog_directory_new").value;
-		
+
+		console.log('Form submission values:', {selectedLabel, inputLabel, selectedDir, inputDir});
+
 		var targetLabel = (inputLabel=="")? ((selectedLabel==null)? "" : selectedLabel) : inputLabel;
 		var targetDir = (inputDir=="")? ((selectedDir==null)? "" : selectedDir) : inputDir;
-		
+
+		console.log('Final target values:', {targetLabel, targetDir});
+
 		var ref = new URL(window.location);
 		ref.hash = '';
-		chrome.extension.sendRequest({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server, "referer": ref.toString()});
-		
+		chrome.runtime.sendMessage({"action": "addTorrent", "url": url, "label": targetLabel, "dir": targetDir, "server": server, "referer": ref.toString()});
+
 		setNewSettings(settings, dirlist, labellist, targetDir, targetLabel, serverIndex);
-		
+
 		rta_modal_close();
-		
+
 		return false;
 	};
 
 	function setNewSettings(settings, baseDirs, baseLabels, newDir, newLabel, serverIndex) {
-		chrome.extension.sendRequest({"action": "getStorageData"}, function(response) {
+		console.log('setNewSettings called with:', {baseDirs, baseLabels, newDir, newLabel, serverIndex});
+
+		chrome.runtime.sendMessage({"action": "getStorageData"}, function(response) {
+			console.log('getStorageData response:', response);
+
 			var servers = JSON.parse(response.servers);
 			var server;
 			if(!serverIndex) {
@@ -186,7 +259,9 @@ function showLabelDirChooser(settings, url, theServer) {
 			} else {
 				server = servers[serverIndex];
 			}
-			
+
+			console.log('Current server before update:', server);
+
 			var labellist = baseLabels;
 			var dirlist = baseDirs;
 
@@ -197,13 +272,18 @@ function showLabelDirChooser(settings, url, theServer) {
 			while((dirOldPos = dirlist.indexOf(newDir)) != -1) {
 				dirlist.splice(dirOldPos, 1);
 			}
-			
-			if(newDir !== null) {
+
+			if(newDir !== null && newDir !== "") {
 				dirlist.unshift(newDir);
+				console.log('Added new directory:', newDir);
 			}
-			if(newLabel !== null) {
+			if(newLabel !== null && newLabel !== "") {
 				labellist.unshift(newLabel);
+				console.log('Added new label:', newLabel);
 			}
+
+			console.log('Updated dirlist:', dirlist);
+			console.log('Updated labellist:', labellist);
 
 			server["dirlist"] = JSON.stringify(dirlist);
 			server["labellist"] = JSON.stringify(labellist);
@@ -211,7 +291,14 @@ function showLabelDirChooser(settings, url, theServer) {
 			servers[serverIndex] = server;
 			settings.servers = JSON.stringify(servers);
 
-			chrome.extension.sendRequest({"action": "setStorageData", "data": settings});
+			console.log('Saving updated settings:', settings);
+			chrome.runtime.sendMessage({"action": "setStorageData", "data": settings}, function(saveResponse) {
+				if (chrome.runtime.lastError) {
+					console.error('Error saving settings:', chrome.runtime.lastError);
+				} else {
+					console.log('Settings saved successfully:', saveResponse);
+				}
+			});
 		});
 	}
 }

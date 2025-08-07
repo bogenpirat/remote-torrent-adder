@@ -6,8 +6,8 @@
 	z-index: 999;
 	top: 0;
 	left: 0;
-	background: #000;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(2px);
 }
 
 #rta_modal_window {
@@ -16,19 +16,44 @@
 	position: fixed;
 	left: 50%;
 	top: 50%;
-	overflow: auto;
-	padding: 10px 20px;
-	background: #fff;
-	border: 5px solid #999;
-	border-radius: 10px;
-	box-shadow: 0 0 10px rgba(0,0,0,0.2);
+	transform: translate(-50%, -50%);
+		overflow: visible;
+		padding: 0;
+		background: #ffffff;
+		border: none;
+		border-radius: 12px;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+		max-width: 90vw;
+		max-height: 90vh;
 }
 
 #rta_modal_wrapper.overlay_rta #rta_modal_window {
 	display: block;
+	animation: rta-modal-appear 0.2s ease-out;
 }
 
-#rta_modal_window input  {
+@keyframes rta-modal-appear {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.95);
+	}
+
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+#rta_modal_window input,
+#rta_modal_window select {
 	margin: 0;
-	border: 1px solid lightgrey;
+	border: 1px solid #ddd;
+		outline: none;
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+	
+	#rta_modal_window input:focus,
+	#rta_modal_window select:focus {
+		border-color: #007bff;
+		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }

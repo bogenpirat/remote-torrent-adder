@@ -1,3 +1,11 @@
+// Fallback multiline function if not loaded from browser.js
+if (typeof multiline === 'undefined') {
+	window.multiline = function(fn) {
+		var match = /\/\*!?(?:\@preserve)?[ \t]*(?:\r\n|\n)([\s\S]*?)(?:\r\n|\n)\s*\*\//.exec(fn.toString());
+		return match ? match[1] : '';
+	};
+}
+
 RTA.clients.config.getConfig = function(client, name) {
 	var clientMap = {
 		"ruTorrent WebUI" : RTA.clients.config.rutorrent,

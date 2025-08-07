@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Options Page</title>
+    <script>
+        // Mock chrome API
+        window.chrome = {
+            storage: {
+                local: {
+                    get: function(keys, callback) {
+                        console.log('chrome.storage.local.get called with:', keys);
+                        callback({});
+                    },
+                    set: function(data, callback) {
+                        console.log('chrome.storage.local.set called with:', data);
+                        if (callback) callback();
+                    }
+                }
+            },
+            runtime: {
+                sendMessage: function(message) {
+                    console.log('chrome.runtime.sendMessage called with:', message);
+                }
+            }
+        };
+    </script>
+    <script type="text/javascript" src="miscapis/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript" src="miscapis/jquery-ui-1.10.3.custom.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log('Document ready');
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('jQuery UI dialog available:', typeof $.fn.dialog);
+            
+            // Test if multiline function is available
+            console.log('multiline function available:', typeof multiline);
+        });
+    </script>
+    <script type="text/javascript" src="miscapis/RTAinit.js"></script>
+    <script>
+        console.log('After RTAinit.js - RTA object:', typeof RTA);
+    </script>
+    <script type="text/javascript" src="miscapis/browser.js"></script>
+    <script>
+        console.log('After browser.js - multiline function:', typeof multiline);
+    </script>
+    <script type="text/javascript" src="miscapis/functions.js"></script>
+    <script>
+        console.log('After functions.js - RTA.displayResponse:', typeof RTA.displayResponse);
+    </script>
+    <script type="text/javascript" src="miscapis/config.js"></script>
+    <script>
+        console.log('After config.js - RTA.clients.config.getConfig:', typeof RTA.clients.config.getConfig);
+    </script>
+    <link rel="stylesheet" type="text/css" href="themes/south-street/jquery-ui-1.10.3.custom.min.css" />
+    <link rel="stylesheet" type="text/css" href="options.css" />
+</head>
+<body>
+    <h1>Debug Options Page</h1>
+    
+    <div id="dialog" title="Add a server">
+        <form id="addserverform">
+            <fieldset class="ui-helper-reset">
+                <label for="tab_title">Server name:</label>
+                <input type="text" name="tab_title" id="tab_title" class="ui-widget-content ui-corner-all">
+                <label for="tab_client">Server type</label>
+                <select id="tab_client">
+                    <option>ruTorrent WebUI</option>
+                    <option>qBittorrent WebUI</option>
+                </select>
+            </fieldset>
+        </form>
+    </div>
+    
+    <div id="serverstabs">
+        <button id="add_tab">Add Server</button>
+        <ul></ul>
+    </div>
+    
+    <div id="debug-output"></div>
+    
+    <script>
+        $(document).ready(function() {
+            const debugOutput = $('#debug-output');
+            
+            try {
+                // Test dialog initialization
+                const dialog = $("#dialog").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    buttons: {
+                        Add: function() {
+                            console.log('Add button clicked');
+                            $(this).dialog("close");
+                        },
+                        Cancel: function() {
+                            console.log('Cancel button clicked');
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+                
+                debugOutput.append('<p>✅ Dialog initialized successfully</p>');
+                
+                // Test button click handler
+                $("#add_tab").button().click(function() {
+                    console.log('Add Server button clicked');
+                    debugOutput.append('<p>🔘 Add Server button clicked</p>');
+                    dialog.dialog("open");
+                });
+                
+                debugOutput.append('<p>✅ Button click handler attached</p>');
+                
+                // Test config function
+                if (typeof RTA !== 'undefined' && 
+                    typeof RTA.clients !== 'undefined' && 
+                    typeof RTA.clients.config !== 'undefined' && 
+                    typeof RTA.clients.config.getConfig === 'function') {
+                    
+                    const testConfig = RTA.clients.config.getConfig('ruTorrent WebUI', 'Test Server');
+                    debugOutput.append('<p>✅ Config function works</p>');
+                    debugOutput.append('<details><summary>Config HTML</summary><pre>' + 
+                                     testConfig.substring(0, 200) + '...</pre></details>');
+                } else {
+                    debugOutput.append('<p>❌ Config function not available</p>');
+                }
+                
+            } catch (error) {
+                debugOutput.append('<p>❌ Error: ' + error.message + '</p>');
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
