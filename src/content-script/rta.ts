@@ -15,7 +15,7 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
         const settings: RTASettings = deserializeSettings(serializedSettings);
         console.debug("Received settings from background script:", settings);
         if(!settings && attemptNumber < 3) {
-            console.error("Service worker might've been asleep. Retrying to load settings...");
+            console.warn("Service worker might've been asleep. Retrying to load settings...");
             loadSettingsAndRegisterActions(attemptNumber + 1);
             return;
         }
