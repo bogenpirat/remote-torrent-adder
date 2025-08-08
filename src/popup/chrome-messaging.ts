@@ -1,7 +1,7 @@
 import { WebUIFactory } from "../models/clients";
 import { GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, IAddTorrentMessageWithLabelAndDir, AddTorrentMessageWithLabelAndDir, IGetPreAddedTorrentAndSettingsResponse } from "../models/messages";
 import { convertSerializedToTorrent, convertTorrentToSerialized } from "../util/serializer";
-import { FormControl, AddTorrentCallback } from "./app/page";
+import { FormControl } from "./app/page";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 
 
