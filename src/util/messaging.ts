@@ -15,6 +15,7 @@ import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentWebUI, WebUISettings } from "../models/webui";
 import { updateBadgeText } from "./action";
+import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { downloadTorrent } from "./download";
 import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent } from "./serializer";
 import { Settings } from "./settings";
@@ -47,7 +48,12 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
                     action: GetPreAddedTorrentAndSettingsResponse.action,
                     webUiSettings: bufferedTorrent.webUiSettings,
                     serializedTorrent: serializedTorrent,
+                    autoLabelDirResult: {
+                        label: getAutoLabelResult(bufferedTorrent.torrent, bufferedTorrent.webUiSettings.autoLabelDirSettings),
+                        directory: getAutoDirResult(bufferedTorrent.torrent, bufferedTorrent.webUiSettings.autoLabelDirSettings)
+                    }
                 };
+                console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
                 sendResponse(response);
             });
             return true;
