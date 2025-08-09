@@ -40,7 +40,7 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
         } else if (message.action === AddTorrentMessage.action) {
             const addTorrentMessage = message as IAddTorrentMessage;
             const webUi: TorrentWebUI = getWebUiById(addTorrentMessage.webUiId, allWebUis);
-            downloadAndAddTorrentToWebUi(webUi, addTorrentMessage.url, addTorrentMessage.config || {}, addTorrentMessage);
+            downloadAndAddTorrentToWebUi(webUi, addTorrentMessage.url, addTorrentMessage.config, addTorrentMessage);
             sendResponse({});
         } else if (message.action === GetPreAddedTorrentAndSettings.action) {
             convertTorrentToSerialized(bufferedTorrent.torrent).then((serializedTorrent: SerializedTorrent) => {
@@ -48,10 +48,7 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
                     action: GetPreAddedTorrentAndSettingsResponse.action,
                     webUiSettings: bufferedTorrent.webUiSettings,
                     serializedTorrent: serializedTorrent,
-                    autoLabelDirResult: {
-                        label: getAutoLabelResult(bufferedTorrent.torrent, bufferedTorrent.webUiSettings.autoLabelDirSettings),
-                        directory: getAutoDirResult(bufferedTorrent.torrent, bufferedTorrent.webUiSettings.autoLabelDirSettings)
-                    }
+                    autoLabelDirResult: getAutoLabelDirResultForConfig(bufferedTorrent.torrent, bufferedTorrent.webUiSettings)
                 };
                 console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
                 sendResponse(response);
@@ -80,7 +77,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, allW
         chrome.action.setPopup({ popup: POPUP_PAGE });
         chrome.action.openPopup({ windowId: windowId }).then(() => chrome.action.setPopup({ popup: "" }));
     } else {
-        downloadAndAddTorrentToWebUi(webUi, message.url, {}, message);
+        downloadAndAddTorrentToWebUi(webUi, message.url, null, message);
     }
 }
 
@@ -92,9 +89,17 @@ function getWebUiById(webUiId: string, allWebUis: TorrentWebUI[]): TorrentWebUI 
     return allWebUis.find(webUi => webUi.settings.id === webUiId) || null;
 }
 
-function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: TorrentUploadConfig, message: IPreAddTorrentMessage): void {
+function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: TorrentUploadConfig | null, message: IPreAddTorrentMessage): void {
     if (webUi) {
-        downloadTorrent(url).then(torrent => webUi.sendTorrent(torrent, config));
+        downloadTorrent(url).then(torrent => {
+            const fallbackConfig: TorrentUploadConfig = {
+                addPaused: webUi.settings.addPaused,
+                dir: getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultDir,
+                label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel
+            };
+
+            webUi.sendTorrent(torrent, config || fallbackConfig);
+        });
     } else {
         console.error("No WebUI found for addTorrentMessage:", message);
     }
@@ -122,4 +127,11 @@ function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string
             }
         });
     });
+}
+
+function getAutoLabelDirResultForConfig(torrent: Torrent, webUiSettings: WebUISettings): Record<string, string | undefined> {
+    return {
+        label: getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings),
+        directory: getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings)
+    };
 }

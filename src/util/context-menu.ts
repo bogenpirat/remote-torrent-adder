@@ -65,7 +65,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                     action: AddTorrentMessage.action,
                     webUiId: webUi.settings.id,
                     url: onClickData.linkUrl,
-                    config: {} // TODO: this should fetch the default config from the webui... right?
+                    config: null
                 };
                 dispatchPreAddTorrent(addTorrentMessage, webUis, tab.windowId);
             });
