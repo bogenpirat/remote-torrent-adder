@@ -20,9 +20,21 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
     return (
       <div className={cn("flex items-center space-x-3", className)}>
         {label && (
-          <label className="block text-sm font-medium text-foreground">
+          <span
+            className="block text-sm font-medium text-foreground cursor-pointer select-none"
+            onClick={handleToggle}
+            tabIndex={0}
+            role="button"
+            aria-pressed={checked}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleToggle();
+              }
+            }}
+          >
             {label}
-          </label>
+          </span>
         )}
         <button
           ref={ref}

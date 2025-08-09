@@ -26,6 +26,9 @@ function setPopupStateForMessage(message: IGetPreAddedTorrentAndSettingsResponse
     popupControl.directory(message.autoLabelDirResult?.directory || message.webUiSettings.defaultDir || "");
     popupControl.directoryOptions(message.webUiSettings.dirs);
 
+    popupControl.autoDir(!!message.autoLabelDirResult?.directory);
+    popupControl.autoLabeled(!!message.autoLabelDirResult?.label);
+
     popupControl.paused(message.webUiSettings.addPaused);
 
     popupControl.visibility.directory(webUi.isDirSupported);

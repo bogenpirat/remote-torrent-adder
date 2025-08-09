@@ -94,3 +94,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* Rainbow outline for ComboBox */
+.rainbow-outline {
+  border: 3px solid;
+  border-radius: 0.375rem;
+  border-image: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet) 1;
+}

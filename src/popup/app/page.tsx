@@ -19,6 +19,9 @@ export default function Home() {
 
   const [torrent, setTorrent] = useState<Torrent>(null)
 
+  const [autoLabeled, setAutoLabeled] = useState(false)
+  const [autoDir, setAutoDir] = useState(false)
+
   const [label, setLabel] = useState('')
   const [directory, setDirectory] = useState('')
   const [paused, setPaused] = useState(false)
@@ -46,6 +49,8 @@ export default function Home() {
     torrent: setTorrent,
     label: setLabel,
     directory: setDirectory,
+    autoDir: setAutoDir,
+    autoLabeled: setAutoLabeled,
     paused: setPaused,
     labelOptions: setLabelOptions,
     directoryOptions: setDirectoryOptions,
@@ -98,6 +103,7 @@ export default function Home() {
               onChange={setLabel}
               onRemoveOption={handleRemoveLabel}
               options={labelOptions}
+              rainbowOutline={autoLabeled}
               placeholder="Select or type label..."
             />
           )}
@@ -109,6 +115,7 @@ export default function Home() {
               onChange={setDirectory}
               onRemoveOption={handleRemoveDirectory}
               options={directoryOptions}
+              rainbowOutline={autoDir}
               placeholder="Select or type directory..."
             />
           )}
@@ -140,6 +147,8 @@ export interface FormControl {
   label: (value: string) => void;
   directory: (value: string) => void;
   paused: (value: boolean) => void;
+  autoDir: (value: boolean) => void;
+  autoLabeled: (value: boolean) => void;
   labelOptions: (options: string[]) => void;
   directoryOptions: (options: string[]) => void;
   visibility: {

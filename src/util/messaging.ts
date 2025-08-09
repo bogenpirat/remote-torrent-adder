@@ -78,8 +78,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, allW
         };
         chrome.windows.update(windowId, { focused: true });
         chrome.action.setPopup({ popup: POPUP_PAGE });
-        chrome.action.openPopup({ windowId: windowId });
-        chrome.action.setPopup({ popup: "" });
+        chrome.action.openPopup({ windowId: windowId }).then(() => chrome.action.setPopup({ popup: "" }));
     } else {
         downloadAndAddTorrentToWebUi(webUi, message.url, {}, message);
     }
