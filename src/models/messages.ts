@@ -79,7 +79,7 @@ export interface ISaveSettingsMessage extends IMessagable {
 
 export interface ITestNotificationMessage extends IMessagable {
     title: string;
-    message: string; 
+    message: string;
     isFailed: boolean;
     popupDurationMs: number;
     playSound: boolean;
@@ -92,4 +92,10 @@ export interface IPlaySoundMessage extends IMessagable {
 
 interface IMessagable {
     action: string;
+}
+
+
+export interface RegisteredListeners {
+    messageListener: (message: any, sender: any, sendResponse: any) => void;
+    actionIconListener: (tab: chrome.tabs.Tab) => Promise<void>;
 }

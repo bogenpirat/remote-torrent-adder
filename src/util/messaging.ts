@@ -28,8 +28,8 @@ const POPUP_PAGE = "popup/popup.html";
 let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 
-export function registerMessageListener(settingsProvider: Settings): void {
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+export function registerMessageListener(settingsProvider: Settings): (message: any, sender: any, sendResponse: any) => void {
+    const messageListener = (message: any, sender: any, sendResponse: any) => {
         console.debug(`Received message of type ${message.action}:`, message, sender);
 
         if (message.action === GetSettingsMessage.action) {
@@ -67,7 +67,7 @@ export function registerMessageListener(settingsProvider: Settings): void {
             });
             return true;
         } else if (message.action === AddTorrentMessageWithLabelAndDir.action) {
-                const torrent = convertSerializedToTorrent(message.serializedTorrent);
+            const torrent = convertSerializedToTorrent(message.serializedTorrent);
             getWebUiById(message.webUiId, settingsProvider).then(webUi => {
                 webUi.sendTorrent(torrent, message.config);
                 updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
@@ -76,7 +76,10 @@ export function registerMessageListener(settingsProvider: Settings): void {
         } else if (message.action === UpdateActionBadgeText.action) {
             updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
         }
-    });
+    };
+
+    chrome.runtime.onMessage.addListener(messageListener);
+    return messageListener;
 }
 
 export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, settingsProvider: Settings, windowId: number): Promise<void> {
