@@ -5,7 +5,7 @@ import { GetSettingsMessage, IPreAddTorrentMessage, IUpdateActionBadgeTextMessag
 import { PreAddTorrentMessage } from '../models/messages';
 
 
-let numFoundLinks;
+let numFoundLinks: number;
 loadSettingsAndRegisterActions();
 
 function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
