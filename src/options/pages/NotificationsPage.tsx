@@ -1,6 +1,7 @@
 import { useSettings } from "../SettingsContext";
 import { showNotification } from "../../util/notifications";
 import { ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
+import Toggle from "../components/Toggle";
 
 export default function NotificationsPage() {
   const { settings, updateSetting, loading } = useSettings();
@@ -29,27 +30,22 @@ export default function NotificationsPage() {
     } as ITestNotificationMessage);
   };
 
+
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={settings.notificationsEnabled}
-            onChange={e => updateSetting("notificationsEnabled", e.target.checked)}
-          />
-          Show notifications
-        </label>
+        <Toggle
+          checked={settings.notificationsEnabled}
+          onChange={v => updateSetting("notificationsEnabled", v)}
+          label="Show notifications"
+        />
       </div>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={settings.notificationsSoundEnabled}
-            onChange={e => updateSetting("notificationsSoundEnabled", e.target.checked)}
-          />
-          Sound
-        </label>
+        <Toggle
+          checked={settings.notificationsSoundEnabled}
+          onChange={v => updateSetting("notificationsSoundEnabled", v)}
+          label="Sound"
+        />
       </div>
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}>

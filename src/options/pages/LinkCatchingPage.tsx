@@ -1,4 +1,5 @@
 import { useState, ChangeEvent } from "react";
+import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
 
 function regexToString(r: RegExp): string {
@@ -61,24 +62,18 @@ export default function LinkCatchingPage(): JSX.Element {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={settings.linkCatchingEnabled}
-            onChange={e => updateSetting("linkCatchingEnabled", e.target.checked)}
-          />
-          Enable link catching
-        </label>
+        <Toggle
+          checked={settings.linkCatchingEnabled}
+          onChange={v => updateSetting("linkCatchingEnabled", v)}
+          label="Enable link catching"
+        />
       </div>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={settings.newTabCatchingEnabled}
-            onChange={e => updateSetting("newTabCatchingEnabled", e.target.checked)}
-          />
-          Intercept new tabs
-        </label>
+        <Toggle
+          checked={settings.newTabCatchingEnabled}
+          onChange={v => updateSetting("newTabCatchingEnabled", v)}
+          label="Intercept new tabs"
+        />
       </div>
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>Link matching regexes:</label>
