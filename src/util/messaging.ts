@@ -9,7 +9,8 @@ import {
     PreAddTorrentMessage,
     AddTorrentMessageWithLabelAndDir,
     UpdateActionBadgeText,
-    IGetSettingsMessage
+    SaveSettingsMessage,
+    IUpdateActionBadgeTextMessage
 } from "../models/messages";
 import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
@@ -31,6 +32,8 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
 
         if (message.action === GetSettingsMessage.action) {
             sendResponse(serializeSettings(settings));
+        } else if (message.action === SaveSettingsMessage.action) {
+            settingsProvider.saveSettings(message.settings as RTASettings);
         } else if (message.action === PreAddTorrentMessage.action) {
             chrome.windows.getLastFocused().then((lastFocusedWindow) => {
                 dispatchPreAddTorrent(message as IPreAddTorrentMessage, allWebUis, sender.tab?.windowId ?? (lastFocusedWindow).id);
@@ -61,7 +64,7 @@ export function registerMessageListener(settings: RTASettings, allWebUis: Torren
             updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
             sendResponse({});
         } else if (message.action === UpdateActionBadgeText.action) {
-            updateBadgeText((message as IGetSettingsMessage).text, sender.tab?.id || -1);
+            updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
         }
     });
 }

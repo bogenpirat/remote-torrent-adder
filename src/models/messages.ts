@@ -1,8 +1,13 @@
+import { RTASettings } from "./settings";
 import { SerializedTorrent, TorrentUploadConfig } from "./torrent";
 import { WebUISettings } from "./webui";
 
 export const GetSettingsMessage: IMessagable = {
     action: "getSettings"
+}
+
+export const SaveSettingsMessage: IMessagable = {
+    action: "saveSettings"
 }
 
 export const PreAddTorrentMessage: IMessagable = {
@@ -57,8 +62,12 @@ export interface IPreAddTorrentMessage extends IMessagable {
     webUiId?: string | null;
 }
 
-export interface IGetSettingsMessage extends IMessagable {
+export interface IUpdateActionBadgeTextMessage extends IMessagable {
     text: string;
+}
+
+export interface ISaveSettingsMessage extends IMessagable {
+    settings: RTASettings;
 }
 
 interface IMessagable {

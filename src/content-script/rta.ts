@@ -1,7 +1,7 @@
 import { observe } from './mutations';
 import { RTASettings } from '../models/settings';
 import { deserializeSettings } from '../util/serializer';
-import { GetSettingsMessage, IGetSettingsMessage, IPreAddTorrentMessage, UpdateActionBadgeText } from '../models/messages';
+import { GetSettingsMessage, IPreAddTorrentMessage, IUpdateActionBadgeTextMessage, UpdateActionBadgeText } from '../models/messages';
 import { PreAddTorrentMessage } from '../models/messages';
 
 
@@ -10,7 +10,7 @@ loadSettingsAndRegisterActions();
 
 function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     numFoundLinks = 0;
-    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IGetSettingsMessage);
+    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
     chrome.runtime.sendMessage(GetSettingsMessage, function (serializedSettings: string) {
         const settings: RTASettings = deserializeSettings(serializedSettings);
         console.debug("Received settings from background script:", settings);
@@ -50,7 +50,7 @@ function isMagnetLink(url: string): boolean {
 }
 
 function incrementCounter(): void {
-    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: (++numFoundLinks).toString() } as IGetSettingsMessage);
+    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: (++numFoundLinks).toString() } as IUpdateActionBadgeTextMessage);
 }
 
 function registerAction(element: Element, url: string): void {
