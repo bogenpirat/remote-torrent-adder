@@ -2,6 +2,7 @@ import { RTASettings } from "../models/settings";
 import { WebUISettings, AutoLabelDirSetting } from "../models/webui";
 import { getDefaultSettings } from "./settings-defaults";
 import { Client, WebUIFactory } from "../models/clients";
+import { Settings } from "./settings";
 
 
 export async function convertLegacySettingsToRTASettings(): Promise<RTASettings | null> {
@@ -59,7 +60,7 @@ function parseServers(servers: string | null): WebUISettings[] {
         const serverList = JSON.parse(servers); // TODO note to self; JSON.parse(response["servers"))
         serverList.forEach((server: Record<string, any>) => {
             const webUiSettings: WebUISettings = {
-                id: crypto.randomUUID(),
+                id: Settings.generateId(),
                 client: getClientForLegacyName(server.client),
                 name: server.name,
                 host: server.host,
