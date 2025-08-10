@@ -3,17 +3,17 @@ import React from "react";
 interface SelectProps {
   label: string;
   value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
   changeable?: boolean;
+  options: { value: string; label: string }[];
+  onChange?: (value: string) => void;
 }
 
-const Select: React.FC<SelectProps> = ({ label, value, options, onChange, changeable }) => (
-  <div style={{ marginBottom: 16 }}>
-    <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>{label}</label>
+const Select: React.FC<SelectProps> = ({ label, value, changeable, options, onChange }) => (
+  <div>
+    <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>{label}</label>
     <select
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={onChange ? e => onChange(e.target.value) : undefined}
       style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 180 }}
       disabled={changeable === false}
     >

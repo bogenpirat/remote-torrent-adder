@@ -7,7 +7,7 @@ import type { WebUISettings } from "../../models/webui";
 import Toggle from "../components/Toggle";
 import { generateId } from "../../util/utils";
 
-const clientOptions = Object.entries(Client).map(([key, value]) => ({ value: key, label: value }));
+const clientOptions = Object.values(Client).map(c => ({ value: c, label: c }));
 
 function getDefaultWebUISettings(): WebUISettings {
   return {
@@ -15,7 +15,7 @@ function getDefaultWebUISettings(): WebUISettings {
     client: Client.QBittorrentWebUI,
     name: "",
     host: "",
-    port: 8080,
+    port: 80,
     secure: false,
     relativePath: "",
     username: "",
@@ -26,31 +26,62 @@ function getDefaultWebUISettings(): WebUISettings {
     labels: [],
     dirs: [],
     addPaused: false,
-    autoLabelDirSettings: [], // TODO: implement
-    clientSpecificSettings: {}, // TODO: implement
+    autoLabelDirSettings: [],
+    clientSpecificSettings: {},
   };
 }
 
 function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onChange: (w: WebUISettings) => void; onRemove: () => void }) {
+  const [confirmRemove, setConfirmRemove] = useState(false);
+
   return (
     <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
       <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 18 }}>{webui.name || "Unnamed WebUI"}</span>
-        <button onClick={onRemove} style={{ background: "#B22222", color: "#fff", border: "none", borderRadius: 8, padding: "6px 16px", fontWeight: 500, cursor: "pointer" }}>Remove</button>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <span style={{ fontWeight: 500 }}>ID:</span> <span style={{ fontFamily: "monospace" }}>{webui.id}</span> <span style={{ color: "#888" }}>(TODO: auto-generate)</span>
+        <button
+          onClick={() => {
+            if (confirmRemove) onRemove();
+            else setConfirmRemove(true);
+          }}
+          style={{
+            background: confirmRemove ? "#8B0000" : "#B22222",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "6px 16px",
+            fontWeight: 700,
+            cursor: "pointer",
+            boxShadow: confirmRemove ? "0 0 8px 2px #8B0000" : undefined,
+            transition: "all 0.15s"
+          }}
+        >
+          {confirmRemove ? "For real?" : "Remove"}
+        </button>
+        {confirmRemove && (
+          <button
+            onClick={() => setConfirmRemove(false)}
+            style={{
+              background: "#eee",
+              color: "#B22222",
+              border: "none",
+              borderRadius: 8,
+              padding: "6px 12px",
+              fontWeight: 500,
+              cursor: "pointer",
+              marginLeft: 8
+            }}
+          >Cancel</button>
+        )}
       </div>
       {/* Client + Name */}
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <Select
           label="Client"
           value={webui.client}
-          options={clientOptions}
-          onChange={client => onChange({ ...webui, client: client as Client })}
           changeable={false}
+          options={clientOptions}
         />
-        <div style={{ marginBottom: 16 }}>
+        <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Name</label>
           <input
             type="text"
@@ -61,7 +92,7 @@ function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onCh
         </div>
       </div>
       {/* Host + Port + Secure + Relative Path */}
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Host</label>
           <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
@@ -77,7 +108,7 @@ function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onCh
         </div>
       </div>
       {/* Username + Password */}
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Username</label>
           <input type="text" value={webui.username} onChange={e => onChange({ ...webui, username: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
@@ -87,13 +118,15 @@ function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onCh
           <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
         </div>
       </div>
-      {/* Torrents Paused Toggle */}
-      <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
+        {/* Torrents Paused Toggle */}
+        <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
+        {/* Per-torrent config selector toggle */}
+        <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
+      </div>
       {/* Label/Dir stuff */}
       <ChipList label="Labels" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
       <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
-      {/* Per-torrent config selector toggle */}
-      <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
       <div style={{ marginTop: 16, color: "#888" }}>
         <div><b>AutoLabelDirSettings:</b> <span>TODO: implement</span></div>
         <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
@@ -139,6 +172,7 @@ export default function WebUIsPage() {
           <Select
             label="Client"
             value={newClient}
+            changeable={true}
             options={clientOptions}
             onChange={setNewClient}
           />
