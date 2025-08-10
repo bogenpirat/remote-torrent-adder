@@ -24,7 +24,7 @@
     "background": {
         "service_worker": "service_worker.js"
     },
-    //"options_page": "options.html",
+    "options_page": "options/options.html",
     "action": {
         "default_icon": {
             "16": "assets/icons/BitTorrent16.png",
