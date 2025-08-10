@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { RTASettings } from "../models/settings";
 import { GetSettingsMessage, SaveSettingsMessage } from "../models/messages";
-import { deserializeSettings } from "../util/serializer";
+import { deserializeSettings, serializeSettings } from "../util/serializer";
 
 interface SettingsContextType {
   settings: RTASettings | null;
@@ -28,7 +28,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Save settings to service worker whenever they change
   const saveSettings = (newSettings: RTASettings) => {
     setSettings(newSettings);
-    chrome.runtime.sendMessage({ action: SaveSettingsMessage.action, settings: newSettings });
+    chrome.runtime.sendMessage({ action: SaveSettingsMessage.action, settings: serializeSettings(newSettings) });
   };
 
   const updateSetting = <K extends keyof RTASettings>(key: K, value: RTASettings[K]) => {

@@ -18,7 +18,7 @@ import { TorrentWebUI, WebUISettings } from "../models/webui";
 import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { downloadTorrent } from "./download";
-import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent } from "./serializer";
+import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
 
 
@@ -26,14 +26,17 @@ const POPUP_PAGE = "popup/popup.html";
 let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 
-export function registerMessageListener(settings: RTASettings, allWebUis: TorrentWebUI[], settingsProvider: Settings): void {
+export function registerMessageListener(allWebUis: TorrentWebUI[], settingsProvider: Settings): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.debug(`Received message of type ${message.action}:`, message, sender);
 
         if (message.action === GetSettingsMessage.action) {
-            sendResponse(serializeSettings(settings));
+            settingsProvider.loadSettings().then((settings) => {
+                sendResponse(serializeSettings(settings));
+            });
+            return true;
         } else if (message.action === SaveSettingsMessage.action) {
-            settingsProvider.saveSettings(message.settings as RTASettings);
+            settingsProvider.saveSettings(deserializeSettings(message.settings));
         } else if (message.action === PreAddTorrentMessage.action) {
             chrome.windows.getLastFocused().then((lastFocusedWindow) => {
                 dispatchPreAddTorrent(message as IPreAddTorrentMessage, allWebUis, sender.tab?.windowId ?? (lastFocusedWindow).id);
