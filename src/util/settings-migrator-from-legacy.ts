@@ -20,7 +20,6 @@ export async function convertLegacySettingsToRTASettings(): Promise<RTASettings 
                 notificationsSoundEnabled: JSON.parse(response["hearpopups"] ?? defaults.notificationsSoundEnabled),
                 linkCatchingEnabled: JSON.parse(response["catchfrompage"] ?? defaults.linkCatchingEnabled),
                 linkCatchingRegexes: parseLinkMatches(response["linkmatches"]),
-                linkCatchingScanDelayMs: parseInt(response["registerDelay"] ?? defaults.linkCatchingScanDelayMs, 10),
                 newTabCatchingEnabled: JSON.parse(response["catchfromnewtab"] ?? defaults.newTabCatchingEnabled),
                 webuiSettings: parseServers(response["servers"]),
             };

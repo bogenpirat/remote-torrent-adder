@@ -9,7 +9,6 @@ export interface RTASettings {
     linkCatchingEnabled: boolean;
     linkCatchingRegexes: RegExp[];
     newTabCatchingEnabled: boolean;
-    linkCatchingScanDelayMs: number;
 
     webuiSettings: WebUISettings[];
 }
