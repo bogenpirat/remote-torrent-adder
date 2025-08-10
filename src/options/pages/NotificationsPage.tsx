@@ -1,9 +1,33 @@
 import { useSettings } from "../SettingsContext";
+import { showNotification } from "../../util/notifications";
+import { ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
 
 export default function NotificationsPage() {
   const { settings, updateSetting, loading } = useSettings();
 
   if (loading || !settings) return <div>Loading...</div>;
+
+  const handleTestSuccess = () => {
+    chrome.runtime.sendMessage({
+      action: TestNotificationMessage.action,
+      title: "Test Notification",
+      message: "This is a successful notification.",
+      isFailed: false,
+      popupDurationMs: settings.notificationsDurationMs,
+      playSound: settings.notificationsSoundEnabled
+    } as ITestNotificationMessage);
+  };
+
+  const handleTestFail = () => {
+    chrome.runtime.sendMessage({
+      action: TestNotificationMessage.action,
+      title: "Test Notification",
+      message: "This is a failed notification.",
+      isFailed: true,
+      popupDurationMs: settings.notificationsDurationMs,
+      playSound: settings.notificationsSoundEnabled
+    } as ITestNotificationMessage);
+  };
 
   return (
     <div>
@@ -38,6 +62,20 @@ export default function NotificationsPage() {
             style={{ width: 100 }}
           />
         </label>
+      </div>
+      <div style={{ display: "flex", gap: 16, marginTop: 32 }}>
+        <button
+          onClick={handleTestSuccess}
+          style={{ background: "#228B22", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
+        >
+          Test Success Notification
+        </button>
+        <button
+          onClick={handleTestFail}
+          style={{ background: "#B22222", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
+        >
+          Test Failed Notification
+        </button>
       </div>
     </div>
   );

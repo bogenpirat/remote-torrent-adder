@@ -14,6 +14,7 @@
         "notifications",
         "tabs",
         "storage",
+        "offscreen",
         "webRequest",
         "webRequestAuthProvider",
         "declarativeNetRequest"

@@ -10,6 +10,10 @@ export const SaveSettingsMessage: IMessagable = {
     action: "saveSettings"
 }
 
+export const TestNotificationMessage: IMessagable = {
+    action: "testNotification"
+}
+
 export const PreAddTorrentMessage: IMessagable = {
     action: "preAddTorrent"
 }
@@ -34,6 +38,9 @@ export const UpdateActionBadgeText: IMessagable = {
     action: "updateActionBadgeText"
 }
 
+export const PlaySoundMessage: IMessagable = {
+    action: "playSound"
+}
 
 export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
     webUiSettings: WebUISettings;
@@ -68,6 +75,19 @@ export interface IUpdateActionBadgeTextMessage extends IMessagable {
 
 export interface ISaveSettingsMessage extends IMessagable {
     settings: RTASettings;
+}
+
+export interface ITestNotificationMessage extends IMessagable {
+    title: string;
+    message: string; 
+    isFailed: boolean;
+    popupDurationMs: number;
+    playSound: boolean;
+}
+
+export interface IPlaySoundMessage extends IMessagable {
+    source: string;
+    volume: number;
 }
 
 interface IMessagable {

@@ -10,14 +10,15 @@ import {
     AddTorrentMessageWithLabelAndDir,
     UpdateActionBadgeText,
     SaveSettingsMessage,
-    IUpdateActionBadgeTextMessage
+    IUpdateActionBadgeTextMessage,
+    TestNotificationMessage
 } from "../models/messages";
-import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentWebUI, WebUISettings } from "../models/webui";
 import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { downloadTorrent } from "./download";
+import { showNotification } from "./notifications";
 import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
 
@@ -37,6 +38,8 @@ export function registerMessageListener(allWebUis: TorrentWebUI[], settingsProvi
             return true;
         } else if (message.action === SaveSettingsMessage.action) {
             settingsProvider.saveSettings(deserializeSettings(message.settings));
+        } else if (message.action === TestNotificationMessage.action) {
+            showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
         } else if (message.action === PreAddTorrentMessage.action) {
             chrome.windows.getLastFocused().then((lastFocusedWindow) => {
                 dispatchPreAddTorrent(message as IPreAddTorrentMessage, allWebUis, sender.tab?.windowId ?? (lastFocusedWindow).id);
