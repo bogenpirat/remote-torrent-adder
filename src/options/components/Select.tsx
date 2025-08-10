@@ -5,15 +5,17 @@ interface SelectProps {
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  changeable?: boolean;
 }
 
-const Select: React.FC<SelectProps> = ({ label, value, options, onChange }) => (
+const Select: React.FC<SelectProps> = ({ label, value, options, onChange, changeable }) => (
   <div style={{ marginBottom: 16 }}>
     <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>{label}</label>
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
       style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 180 }}
+      disabled={changeable === false}
     >
       <option value="" disabled>Select...</option>
       {options.map(opt => (

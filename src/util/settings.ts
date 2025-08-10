@@ -54,8 +54,4 @@ export class Settings {
         return deserializeSettings(serialized);
     }
 
-    public static generateId(): string {
-        return crypto.randomUUID();
-    }
-
 }

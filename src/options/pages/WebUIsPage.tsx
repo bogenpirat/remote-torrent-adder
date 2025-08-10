@@ -5,13 +5,13 @@ import Select from "../components/Select";
 import { Client } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
 import Toggle from "../components/Toggle";
-import { Settings } from "../../util/settings";
+import { generateId } from "../../util/utils";
 
 const clientOptions = Object.entries(Client).map(([key, value]) => ({ value: key, label: value }));
 
 function getDefaultWebUISettings(): WebUISettings {
   return {
-    id: Settings.generateId(),
+    id: generateId(),
     client: Client.QBittorrentWebUI,
     name: "",
     host: "",
@@ -48,6 +48,7 @@ function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onCh
           value={webui.client}
           options={clientOptions}
           onChange={client => onChange({ ...webui, client: client as Client })}
+          changeable={false}
         />
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Name</label>
