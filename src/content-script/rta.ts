@@ -3,6 +3,7 @@ import { RTASettings } from '../models/settings';
 import { deserializeSettings } from '../util/serializer';
 import { GetSettingsMessage, IPreAddTorrentMessage, IUpdateActionBadgeTextMessage, UpdateActionBadgeText } from '../models/messages';
 import { PreAddTorrentMessage } from '../models/messages';
+import { isMatchedByRegexes } from '../util/utils';
 
 
 let numFoundLinks: number;
@@ -39,10 +40,6 @@ function registerForms(linkRegexes: RegExp[]): void {
             registerAction(element, form.action);
         }
     });
-}
-
-function isMatchedByRegexes(url: string, regexes: RegExp[]): boolean {
-    return regexes.some(regex => regex.test(url));
 }
 
 function isMagnetLink(url: string): boolean {
