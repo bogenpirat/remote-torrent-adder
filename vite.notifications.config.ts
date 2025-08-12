@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-const isProd = process.argv.includes('--configProd');
+const isProd = process.env.PROD === 'true';
 const distDir = isProd ? 'dist-prod' : 'dist';
 
 export default defineConfig({
