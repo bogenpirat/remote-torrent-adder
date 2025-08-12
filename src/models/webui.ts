@@ -49,6 +49,10 @@ export abstract class TorrentWebUI {
     abstract get isDirSupported(): boolean;
     abstract get isAddPausedSupported(): boolean;
 
+    get isLabelDirChooserSupported(): boolean {
+        return this.isLabelSupported && this.isDirSupported;
+    }
+
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
 
     createBaseUrl(): string {

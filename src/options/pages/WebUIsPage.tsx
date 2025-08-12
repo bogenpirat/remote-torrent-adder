@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSettings } from "../SettingsContext";
 import ChipList from "../components/ChipList";
 import Select from "../components/Select";
-import { Client } from "../../models/clients";
+import { Client, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
 import Toggle from "../components/Toggle";
 import { generateId } from "../../util/utils";
@@ -33,6 +33,7 @@ function getDefaultWebUISettings(): WebUISettings {
 
 function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onChange: (w: WebUISettings) => void; onRemove: () => void }) {
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const webUiInstance = WebUIFactory.createWebUI(webui);
 
   return (
     <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
@@ -118,15 +119,25 @@ function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onCh
           <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
-        {/* Torrents Paused Toggle */}
-        <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
-        {/* Per-torrent config selector toggle */}
-        <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
-      </div>
-      {/* Label/Dir stuff */}
-      <ChipList label="Labels" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
-      <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+      {/* Only show these fields if supported by the WebUI instance */}
+      {webUiInstance?.isAddPausedSupported && (
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
+          {/* Torrents Paused Toggle */}
+          <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
+        </div>
+      )}
+      {webUiInstance?.isLabelDirChooserSupported && (
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
+          {/* Per-torrent config selector toggle */}
+          <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
+        </div>
+      )}
+      {webUiInstance?.isLabelSupported && (
+        <ChipList label="Labels" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
+      )}
+      {webUiInstance?.isDirSupported && (
+        <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+      )}
       <div style={{ marginTop: 16, color: "#888" }}>
         <div><b>AutoLabelDirSettings:</b> <span>TODO: implement</span></div>
         <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
