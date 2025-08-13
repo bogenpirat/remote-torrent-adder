@@ -37,19 +37,18 @@ interface WebUIEditorProps {
   onChange: (w: WebUISettings) => void;
   onRemove: () => void;
   onPromote: () => void;
+  isPrimary?: boolean;
 }
 
-function WebUIEditor({ webui, onChange, onRemove, onPromote }: WebUIEditorProps) {
+function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIEditorProps) {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const webUiInstance = WebUIFactory.createWebUI(webui);
 
-  // Accept onPromote prop
-  // ...existing code...
   return (
     <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
       <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 18 }}>{webui.name || "Unnamed WebUI"}</span>
-        {typeof onPromote === 'function' && (
+  {typeof onPromote === 'function' && !isPrimary && (
           <button
             onClick={onPromote}
             style={{
@@ -255,6 +254,7 @@ export default function WebUIsPage() {
           onChange={updated => handleChange(idx, updated)}
           onRemove={() => handleRemove(idx)}
           onPromote={() => handlePromote(idx)}
+          isPrimary={idx === 0}
         />
       ))}
     </div>
