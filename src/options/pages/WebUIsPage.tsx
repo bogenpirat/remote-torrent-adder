@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSettings } from "../SettingsContext";
 import ChipList from "../components/ChipList";
+import AutoLabelDirSettingsEditor from "../components/AutoLabelDirSettingsEditor";
 import Select from "../components/Select";
 import { Client, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
@@ -163,8 +164,17 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote }: WebUIEditorProps)
       {webUiInstance?.isDirSupported && (
         <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
       )}
+      {webUiInstance?.isLabelDirChooserSupported && (
+        <AutoLabelDirSettingsEditor
+          value={webui.autoLabelDirSettings}
+          onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
+          showLabel={!!webUiInstance?.isLabelSupported}
+          showDir={!!webUiInstance?.isDirSupported}
+          labels={webui.labels}
+          dirs={webui.dirs}
+        />
+      )}
       <div style={{ marginTop: 16, color: "#888" }}>
-        <div><b>AutoLabelDirSettings:</b> <span>TODO: implement</span></div>
         <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
       </div>
     </div>
