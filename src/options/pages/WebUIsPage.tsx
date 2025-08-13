@@ -31,14 +31,39 @@ function getDefaultWebUISettings(): WebUISettings {
   };
 }
 
-function WebUIEditor({ webui, onChange, onRemove }: { webui: WebUISettings; onChange: (w: WebUISettings) => void; onRemove: () => void }) {
+interface WebUIEditorProps {
+  webui: WebUISettings;
+  onChange: (w: WebUISettings) => void;
+  onRemove: () => void;
+  onPromote: () => void;
+}
+
+function WebUIEditor({ webui, onChange, onRemove, onPromote }: WebUIEditorProps) {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const webUiInstance = WebUIFactory.createWebUI(webui);
 
+  // Accept onPromote prop
+  // ...existing code...
   return (
     <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
       <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 18 }}>{webui.name || "Unnamed WebUI"}</span>
+        {typeof onPromote === 'function' && (
+          <button
+            onClick={onPromote}
+            style={{
+              background: "#4682B4",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "6px 16px",
+              fontWeight: 700,
+              cursor: "pointer",
+              marginRight: 8,
+              transition: "all 0.15s"
+            }}
+          >Promote to Primary</button>
+        )}
         <button
           onClick={() => {
             if (confirmRemove) onRemove();
@@ -175,6 +200,14 @@ export default function WebUIsPage() {
     updateSetting("webuiSettings", arr);
   };
 
+  const handlePromote = (idx: number) => {
+    if (idx === 0) return; // already primary
+    const arr = [...settings.webuiSettings];
+    const [item] = arr.splice(idx, 1);
+    arr.unshift(item);
+    updateSetting("webuiSettings", arr);
+  };
+
   return (
     <div>
       {adding ? (
@@ -211,6 +244,7 @@ export default function WebUIsPage() {
           webui={webui}
           onChange={updated => handleChange(idx, updated)}
           onRemove={() => handleRemove(idx)}
+          onPromote={() => handlePromote(idx)}
         />
       ))}
     </div>
