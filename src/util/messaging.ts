@@ -69,7 +69,11 @@ export function registerMessageListener(settingsProvider: Settings): (message: a
         } else if (message.action === AddTorrentMessageWithLabelAndDir.action) {
             const torrent = convertSerializedToTorrent(message.serializedTorrent);
             getWebUiById(message.webUiId, settingsProvider).then(webUi => {
-                webUi.sendTorrent(torrent, message.config);
+                webUi.sendTorrent(torrent, message.config).then(() => {
+                    console.log("Torrent sent successfully:", torrent.name);
+                }).catch(error => {
+                    console.error("Error sending torrent:", error);
+                });
                 updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
                 sendResponse({});
             });
@@ -129,7 +133,13 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: 
                 label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel
             };
 
-            webUi.sendTorrent(torrent, config || fallbackConfig);
+            webUi.sendTorrent(torrent, config || fallbackConfig).then(() => {
+                console.log("Torrent sent successfully:", torrent.name);
+            }).catch(error => {
+                console.error("Error sending torrent:", error);
+            });
+        }).catch(error => {
+            console.error("Error downloading torrent:", error);
         });
     } else {
         console.error("No WebUI found for addTorrentMessage:", message);

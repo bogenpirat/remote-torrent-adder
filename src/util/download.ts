@@ -5,33 +5,35 @@ import bencode from "bencode";
 import { Buffer } from "buffer";
 
 export async function downloadTorrent(url: string): Promise<Torrent> {
-    if (url.substring(0, 7) == "magnet:") {
-        return Promise.resolve({ data: url, name: getTorrentNameFromMagnetLink(url), isMagnet: true });
-    } else {
-        let response: Response;
-        try {
-            response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Status not OK: ${response.status} ${response.statusText}`);
+    return new Promise<Torrent>(async (resolve, reject) => {
+        if (url.substring(0, 7) == "magnet:") {
+            resolve({ data: url, name: getTorrentNameFromMagnetLink(url), isMagnet: true });
+        } else {
+            let response: Response;
+            try {
+                response = await fetch(url);
+                if (!response.ok) {
+                    reject(new Error(`Status not OK: ${response.status} ${response.statusText}`));
+                }
+            } catch (error) {
+                reject(new Error("Failed to fetch torrent file: " + error.message));
             }
-        } catch (error) {
-            throw new Error("Failed to fetch torrent file: " + error.message);
+
+            const torrentBlob: Blob = await response.blob();
+            const torrentData: string = await convertBlobToString(torrentBlob);
+            validateTorrentData(response, torrentData);
+            const decodedTorrentData = bencode.decode(Buffer.from(torrentData, 'ascii'));
+
+            resolve({
+                data: torrentBlob,
+                name: parseNameFromDecodedTorrentData(decodedTorrentData) ?? getTorrentNameFromLink(url),
+                isMagnet: false,
+                trackers: parseTrackersFromDecodedTorrentData(decodedTorrentData),
+                files: parseFilesFromDecodedTorrentData(decodedTorrentData),
+                isPrivate: parsePrivateFlagFromDecodedTorrentData(decodedTorrentData),
+            });
         }
-
-        const torrentBlob: Blob = await response.blob();
-        const torrentData: string = await convertBlobToString(torrentBlob);
-        validateTorrentData(response, torrentData);
-        const decodedTorrentData = bencode.decode(Buffer.from(torrentData, 'ascii'));
-
-        return Promise.resolve({
-            data: torrentBlob,
-            name: parseNameFromDecodedTorrentData(decodedTorrentData) ?? getTorrentNameFromLink(url),
-            isMagnet: false,
-            trackers: parseTrackersFromDecodedTorrentData(decodedTorrentData),
-            files: parseFilesFromDecodedTorrentData(decodedTorrentData),
-            isPrivate: parsePrivateFlagFromDecodedTorrentData(decodedTorrentData),
-        });
-    }
+    });
 }
 
 function validateTorrentData(response: Response, data: string): void {
