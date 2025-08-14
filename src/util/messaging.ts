@@ -26,6 +26,7 @@ import { initiateWebUis } from "./webuis";
 
 const POPUP_PAGE = "popup/popup.html";
 let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
+const settingsProvider = new Settings();
 
 
 export function registerMessageListener(settingsProvider: Settings): (message: any, sender: any, sendResponse: any) => void {
@@ -45,7 +46,7 @@ export function registerMessageListener(settingsProvider: Settings): (message: a
             sendResponse({});
         } else if (message.action === PreAddTorrentMessage.action) {
             chrome.windows.getLastFocused().then((lastFocusedWindow) => {
-                dispatchPreAddTorrent(message as IPreAddTorrentMessage, settingsProvider, sender.tab?.windowId ?? (lastFocusedWindow).id);
+                dispatchPreAddTorrent(message as IPreAddTorrentMessage, sender.tab?.windowId ?? (lastFocusedWindow).id);
                 sendResponse({});
             });
             return true;
@@ -89,9 +90,10 @@ export function registerMessageListener(settingsProvider: Settings): (message: a
     return messageListener;
 }
 
-export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, settingsProvider: Settings, windowId: number): Promise<void> {
-    const allWebUis = await getAllWebUis(settingsProvider);
-    const webUi: TorrentWebUI = getWebUiById(message.webUiId, settingsProvider) || allWebUis.length > 0 ? allWebUis[0] : null;
+export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, windowId: number): Promise<void> {
+    const allWebUis = await getAllWebUis(settingsProvider ?? new Settings());
+    const webUiById = await getWebUiById(message.webUiId, settingsProvider);
+    const webUi: TorrentWebUI = webUiById ?? (allWebUis.length > 0 ? allWebUis[0] : null);
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {
         bufferedTorrent = {
             torrent: await downloadTorrent(message.url),
@@ -109,8 +111,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, sett
 async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]> {
     return new Promise((resolve) => {
         settingsProvider.loadSettings().then(async (settings) => {
-            const allWebUis = await initiateWebUis(settings);
-            resolve(allWebUis);
+            resolve(await initiateWebUis(settings));
         });
     });
 }

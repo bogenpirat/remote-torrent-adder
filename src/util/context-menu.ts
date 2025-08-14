@@ -3,10 +3,7 @@ import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
 import { AddTorrentMessage, IAddTorrentMessage, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { dispatchPreAddTorrent } from "./messaging";
-import { Settings } from "./settings";
 
-
-const settingsProvider = new Settings();
 
 export function createContextMenu(allWebUis: TorrentWebUI[]): void {
     chrome.contextMenus.removeAll();
@@ -61,7 +58,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                 webUiId: webUis[0].settings.id,
                 url: onClickData.linkUrl
             };
-            dispatchPreAddTorrent(preAddTorrentMessage, settingsProvider, tab.windowId);
+            dispatchPreAddTorrent(preAddTorrentMessage, tab.windowId);
         } else {
             webUis.forEach(webUi => {
                 const addTorrentMessage: IAddTorrentMessage = {
@@ -70,7 +67,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                     url: onClickData.linkUrl,
                     config: null
                 };
-                dispatchPreAddTorrent(addTorrentMessage, settingsProvider, tab.windowId);
+                dispatchPreAddTorrent(addTorrentMessage, tab.windowId);
             });
         }
     };
