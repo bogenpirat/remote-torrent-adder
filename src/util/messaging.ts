@@ -39,8 +39,10 @@ export function registerMessageListener(settingsProvider: Settings): (message: a
             return true;
         } else if (message.action === SaveSettingsMessage.action) {
             settingsProvider.saveSettings(deserializeSettings(message.settings));
+            sendResponse({});
         } else if (message.action === TestNotificationMessage.action) {
             showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
+            sendResponse({});
         } else if (message.action === PreAddTorrentMessage.action) {
             chrome.windows.getLastFocused().then((lastFocusedWindow) => {
                 dispatchPreAddTorrent(message as IPreAddTorrentMessage, settingsProvider, sender.tab?.windowId ?? (lastFocusedWindow).id);
@@ -79,6 +81,7 @@ export function registerMessageListener(settingsProvider: Settings): (message: a
             });
         } else if (message.action === UpdateActionBadgeText.action) {
             updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
+            sendResponse({});
         }
     };
 
