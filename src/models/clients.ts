@@ -1,6 +1,7 @@
 import { BiglyBTWebUI } from "../webuis/biglybt-webui";
 import { BuffaloWebUI } from "../webuis/buffalo-webui";
 import { RuTorrentWebUI } from "../webuis/rutorrent-webui";
+import { FloodWebUI } from "../webuis/flood";
 import { TorrentWebUI, WebUISettings } from "./webui";
 
 export enum Client {
@@ -36,7 +37,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.BuffaloWebUI]: BuffaloWebUI, // TODO: broken
     [Client.DelugeWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.ElementumWebUI]: BuffaloWebUI, // TODO: placeholder
-    [Client.FloodJesecWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.FloodJesecWebUI]: FloodWebUI,
     [Client.FloodWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.NodeJSrTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
