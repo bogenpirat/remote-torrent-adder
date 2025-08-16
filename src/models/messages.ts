@@ -96,6 +96,5 @@ interface IMessagable {
 
 
 export interface RegisteredListeners {
-    messageListener: (message: any, sender: any, sendResponse: any) => void;
     actionIconListener: (tab: chrome.tabs.Tab) => Promise<void>;
 }

@@ -11,6 +11,8 @@ import { clearListeners } from './util/utils';
 
 
 const listeners = {} as RegisteredListeners;
+registerMessageListener();
+
 const settingsProvider = new Settings();
 settingsProvider.loadSettings().then(registerEverything);
 
@@ -28,8 +30,6 @@ async function registerEverything(settings: RTASettings): Promise<void> {
 
     const allWebUis = await initiateWebUis(settings);
     console.log("All WebUIs:", allWebUis);
-
-    listeners.messageListener = registerMessageListener(settingsProvider);
 
     registerAuthenticationListenersForAllWebUis(allWebUis);
 
