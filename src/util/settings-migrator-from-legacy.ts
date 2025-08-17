@@ -58,34 +58,40 @@ function parseServers(servers: string | null): WebUISettings[] {
     const webuiSettingsList: WebUISettings[] = [];
 
     if (servers) {
-        const serverList = JSON.parse(servers); // TODO note to self; JSON.parse(response["servers"))
+        const serverList = JSON.parse(servers);
         serverList.forEach((server: Record<string, any>) => {
-            const webUiSettings: WebUISettings = {
-                id: generateId(),
-                client: getClientForLegacyName(server.client),
-                name: server.name,
-                host: server.host,
-                port: server.port,
-                secure: server.hostsecure || false,
-                relativePath: server.relativePath || server.ruTorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || server.torrentfluxrelativepath || server.utorrentrelativepath || null,
-                username: server.login || "",
-                password: server.password || "",
-                showPerTorrentConfigSelector: server.rutorrentdirlabelask || server.qbittorrentdirlabelask || server.qbittorrentv2dirlabelask || false,
-                labels: server.labellist ? pruneEmptyEntries(JSON.parse(server.labellist)) : [],
-                dirs: server.dirlist ? pruneEmptyEntries(JSON.parse(server.dirlist)) : [],
-                defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
-                defaultDir: server.rutorrentdirectory || server.floodjesecdirectory || server.hadoukendir || server.flooddirectory || server.qnapmove || null,
-                addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
-                autoLabelDirSettings: parseAutoLabelDirSettings(server.autolabellist, server.autodirlist),
-                clientSpecificSettings: { // TODO: some stuff to map here from the old config.js
+            const client = getClientForLegacyName(server.client);
+            console.debug(`converting "${server.client}" to "${client}"`);
+            if(client) {
+                const webUiSettings: WebUISettings = {
+                    id: generateId(),
+                    client,
+                    name: server.name,
+                    host: server.host,
+                    port: server.port,
+                    secure: server.hostsecure || false,
+                    relativePath: server.relativePath || server.ruTorrentrelativepath || server.delugerelativepath || server.rtorrentxmlrpcrelativepath || server.torrentfluxrelativepath || server.utorrentrelativepath || null,
+                    username: server.login || "",
+                    password: server.password || "",
+                    showPerTorrentConfigSelector: server.rutorrentdirlabelask || server.qbittorrentdirlabelask || server.qbittorrentv2dirlabelask || false,
+                    labels: server.labellist ? pruneEmptyEntries(JSON.parse(server.labellist)) : [],
+                    dirs: server.dirlist ? pruneEmptyEntries(JSON.parse(server.dirlist)) : [],
+                    defaultLabel: server.rutorrentlabel || server.hadoukenlabel || null,
+                    defaultDir: server.rutorrentdirectory || server.floodjesecdirectory || server.hadoukendir || server.flooddirectory || server.qnapmove || null,
+                    addPaused: server.addPaused || server.floodjesecaddpaused || server.rutorrentaddpaused || server.rtorrentaddpaused || server.floodaddpaused || false,
+                    autoLabelDirSettings: parseAutoLabelDirSettings(server.autolabellist, server.autodirlist),
+                    clientSpecificSettings: { // TODO: some stuff to map here from the old config.js
 
+                    }
+                } as WebUISettings;
+
+                if (WebUIFactory.createWebUI(webUiSettings) !== null) {
+                    webuiSettingsList.push(webUiSettings);
+                } else {
+                    console.warn(`Couldn't convert legacy client to new settings format: ${JSON.stringify(server)}`);
                 }
-            } as WebUISettings;
-
-            if (WebUIFactory.createWebUI(webUiSettings) !== null) {
-                webuiSettingsList.push(webUiSettings);
             } else {
-                console.warn(`Couldn't convert legacy client to new settings format: ${JSON.stringify(server)}`);
+                console.warn(`Unknown client in legacy settings: ${server.client}`);
             }
         });
     }
@@ -98,6 +104,12 @@ function getClientForLegacyName(name: string): Client | null {
         case "Buffalo WebUI (OLD!)":
             return Client.BuffaloWebUI;
         case "Vuze Remote WebUI":
+            return Client.BiglyBTWebUI;
+        case "qBittorrent v4.1+ WebUI":
+            return Client.QBittorrentWebUI;
+        case "flood-jesec WebUI":
+            return Client.FloodWebUI;
+        case "Bigly/Vuze Remote WebUI":
             return Client.BiglyBTWebUI;
     }
 

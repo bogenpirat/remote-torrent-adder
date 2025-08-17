@@ -62,7 +62,7 @@ export abstract class TorrentWebUI {
             "://",
             this.settings.host,
             ":",
-            this.settings.port,
+            this.settings.port ?? (this.settings.secure ? "443" : "80"),
             this.settings.relativePath ? this.addSurroundingSlashes(this.settings.relativePath) : "",
         ].join("");
     }
@@ -80,6 +80,9 @@ export abstract class TorrentWebUI {
     }
 
     protected addSurroundingSlashes(urlPart: string): string {
+        if (!urlPart) {
+            return "";
+        }
         return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
     }
 
