@@ -30,7 +30,7 @@ type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentW
 export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor> = {
     [Client.BiglyBTWebUI]: BiglyBTWebUI,
     [Client.BuffaloWebUI]: BuffaloWebUI, // TODO: broken
-    [Client.DelugeWebUI]: DelugeWebUI, // TODO: placeholder
+    [Client.DelugeWebUI]: DelugeWebUI,
     [Client.ElementumWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.FloodWebUI]: FloodWebUI,
     [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
