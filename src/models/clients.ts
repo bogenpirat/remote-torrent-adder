@@ -4,6 +4,7 @@ import { BuffaloWebUI } from "../webuis/buffalo-webui";
 import { RuTorrentWebUI } from "../webuis/rutorrent-webui";
 import { FloodWebUI } from "../webuis/flood-webui";
 import { QBittorrentWebUI } from "../webuis/qbittorrent-webui";
+import { DelugeWebUI } from "../webuis/deluge-webui";
 
 export enum Client {
     BiglyBTWebUI = "BiglyBT WebUI",
@@ -29,7 +30,7 @@ type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentW
 export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor> = {
     [Client.BiglyBTWebUI]: BiglyBTWebUI,
     [Client.BuffaloWebUI]: BuffaloWebUI, // TODO: broken
-    [Client.DelugeWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.DelugeWebUI]: DelugeWebUI, // TODO: placeholder
     [Client.ElementumWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.FloodWebUI]: FloodWebUI,
     [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
