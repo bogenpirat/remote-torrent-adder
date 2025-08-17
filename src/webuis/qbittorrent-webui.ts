@@ -1,6 +1,5 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { blobToBase64 } from "../util/converter";
 
 export class QBittorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
