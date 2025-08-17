@@ -6,18 +6,24 @@ export class DelugeWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         return new Promise((resolve, reject) => {
             const authPromise = this.authenticate();
-            let startUploadedTorrentPromise: Promise<TorrentAddingResult>;
+            let latestPromise: Promise<TorrentAddingResult>;
 
             if (torrent.isMagnet) {
-                startUploadedTorrentPromise = authPromise
+                latestPromise = authPromise
                     .then(() => this.startUploadedTorrent(torrent.data as string, config));
             } else {
-                startUploadedTorrentPromise = authPromise
+                latestPromise = authPromise
                     .then(() => this.uploadTorrentFile(torrent))
                     .then(uploadedFilePath => this.startUploadedTorrent(uploadedFilePath, config));
             }
 
-            startUploadedTorrentPromise
+            if (config.label) {
+                latestPromise = latestPromise.then(result => {
+                    return this.setLabelForUploadedTorrent(result.httpResponseBody, config.label.toLowerCase());
+                });
+            }
+
+            latestPromise
                 .then(resolve)
                 .catch(reject);
         });
@@ -96,14 +102,46 @@ export class DelugeWebUI extends TorrentWebUI {
                 body: JSON.stringify(payload)
             }).then(async (response) => {
                 const responseJson = await response.json();
+                const responseText = JSON.stringify(responseJson);
                 if (response.status == 200 && responseJson["result"].length > 0 && responseJson["result"][0].length > 0 && responseJson["result"][0][0] === true) {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseJson });
+                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
                 } else {
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
+                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
                 }
             }).catch(error => {
                 reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
             });
+        });
+    }
+
+    private setLabelForUploadedTorrent(startUploadedTorrentResponseJson: string, label: string): Promise<TorrentAddingResult> {
+        const startUploadedTorrentResponse = JSON.parse(startUploadedTorrentResponseJson);
+        return new Promise((resolve, reject) => {
+            this.fetch(this.createBaseUrl() + "/json", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    method: "label.add",
+                    params: [label],
+                    id: this.randomId()
+                })
+            }).then(() => {
+                return this.fetch(this.createBaseUrl() + "/json", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        method: "label.set_torrent",
+                        params: [startUploadedTorrentResponse["result"][0][1], label],
+                        id: this.randomId()
+                    })
+                });
+            }).then(async response => {
+                if (response.status === 200) {
+                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(startUploadedTorrentResponse) });
+                } else {
+                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
+                }
+            }).catch(reject);
         });
     }
 
@@ -112,7 +150,7 @@ export class DelugeWebUI extends TorrentWebUI {
     }
 
     get isLabelSupported(): boolean {
-        return false;
+        return true;
     }
 
     get isDirSupported(): boolean {
