@@ -50,7 +50,7 @@ export abstract class TorrentWebUI {
     abstract get isAddPausedSupported(): boolean;
 
     get isLabelDirChooserSupported(): boolean {
-        return this.isLabelSupported && this.isDirSupported;
+        return this.isLabelSupported || this.isDirSupported || this.isAddPausedSupported;
     }
 
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
