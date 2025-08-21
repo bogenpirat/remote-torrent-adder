@@ -29,66 +29,126 @@ let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
 
 
 export function registerMessageListener(): void {
-    const messageListener = (message: any, sender: any, sendResponse: any) => {
-        console.debug(`Received message of type ${message.action}:`, message, sender);
-        const settingsProvider = new Settings();
-        settingsProvider.loadSettings().then(settings => {
-            if (message.action === GetSettingsMessage.action) {
-                sendResponse(serializeSettings(settings));
-            } else if (message.action === SaveSettingsMessage.action) {
-                settingsProvider.saveSettings(deserializeSettings(message.settings));
-                sendResponse({});
-            } else if (message.action === TestNotificationMessage.action) {
-                showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
-                sendResponse({});
-            } else if (message.action === PreAddTorrentMessage.action) {
-                chrome.windows.getLastFocused().then((lastFocusedWindow) => {
-                    dispatchPreAddTorrent(message as IPreAddTorrentMessage, sender.tab?.windowId ?? (lastFocusedWindow).id);
-                    sendResponse({});
-                });
-            } else if (message.action === AddTorrentMessage.action) {
-                const addTorrentMessage = message as IAddTorrentMessage;
-                getWebUiById(addTorrentMessage.webUiId, settingsProvider).then(webUi => {
-                    downloadAndAddTorrentToWebUi(webUi, addTorrentMessage.url, addTorrentMessage.config, addTorrentMessage);
-                    sendResponse({});
-                });
-            } else if (message.action === GetPreAddedTorrentAndSettings.action) {
-                convertTorrentToSerialized(bufferedTorrent.torrent).then((serializedTorrent: SerializedTorrent) => {
-                    const response: IGetPreAddedTorrentAndSettingsResponse = {
-                        action: GetPreAddedTorrentAndSettingsResponse.action,
-                        webUiSettings: bufferedTorrent.webUiSettings,
-                        serializedTorrent: serializedTorrent,
-                        autoLabelDirResult: getAutoLabelDirResultForConfig(bufferedTorrent.torrent, bufferedTorrent.webUiSettings)
-                    };
-                    console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
-                    sendResponse(response);
-                });
-            } else if (message.action === AddTorrentMessageWithLabelAndDir.action) {
-                const torrent = convertSerializedToTorrent(message.serializedTorrent);
-                getWebUiById(message.webUiId, settingsProvider).then(webUi => {
-                    webUi.sendTorrent(torrent, message.config).then(() => {
-                        console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
-                    }).catch(error => {
-                        console.error("Error sending torrent:", error);
-                    });
-                    updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories);
-                    sendResponse({});
-                });
-            } else if (message.action === UpdateActionBadgeText.action) {
-                updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
-                sendResponse({});
+    chrome.runtime.onMessage.addListener((message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+        let willRespondAsync = false;
+
+        const finish = (payload?: any) => {
+            try { sendResponse(payload); } catch { /* channel maybe closed */ }
+        };
+
+        const respondWithError = (err: unknown) => {
+            console.error("Message handling error", message?.action, err);
+            finish({ error: (err as Error)?.message || String(err) });
+        };
+
+        try {
+            if (!message || !message.action) {
+                finish({ error: "missing action" });
+                return false;
             }
-        });
 
-        return true;
-    };
+            console.debug(`Received message of type ${message.action}:`, message, sender);
+            const settingsProvider = new Settings();
 
-    chrome.runtime.onMessage.addListener(messageListener);
+            switch (message.action) {
+                case GetSettingsMessage.action: {
+                    willRespondAsync = true;
+                    settingsProvider.loadSettings()
+                        .then(settings => finish(serializeSettings(settings)))
+                        .catch(respondWithError);
+                    break;
+                }
+                case SaveSettingsMessage.action: {
+                    willRespondAsync = true;
+                    settingsProvider.saveSettings(deserializeSettings(message.settings))
+                        .then(() => finish({}))
+                        .catch(respondWithError);
+                    break;
+                }
+                case TestNotificationMessage.action: {
+                    showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
+                    finish({});
+                    break;
+                }
+                case PreAddTorrentMessage.action: {
+                    willRespondAsync = true;
+                    chrome.windows.getLastFocused().then(lastFocusedWindow => {
+                        try {
+                            dispatchPreAddTorrent(message as IPreAddTorrentMessage, sender.tab?.windowId ?? lastFocusedWindow.id);
+                            finish({});
+                        } catch (e) { respondWithError(e); }
+                    }).catch(respondWithError);
+                    break;
+                }
+                case AddTorrentMessage.action: {
+                    willRespondAsync = true;
+                    const addTorrentMessage = message as IAddTorrentMessage;
+                    getWebUiById(addTorrentMessage.webUiId, settingsProvider)
+                        .then(webUi => {
+                            downloadAndAddTorrentToWebUi(webUi, addTorrentMessage.url, addTorrentMessage.config, addTorrentMessage);
+                            finish({});
+                        })
+                        .catch(respondWithError);
+                    break;
+                }
+                case GetPreAddedTorrentAndSettings.action: {
+                    if (!bufferedTorrent) {
+                        finish({ error: "no buffered torrent" });
+                        break;
+                    }
+                    willRespondAsync = true;
+                    convertTorrentToSerialized(bufferedTorrent.torrent)
+                        .then((serializedTorrent: SerializedTorrent) => {
+                            const response: IGetPreAddedTorrentAndSettingsResponse = {
+                                action: GetPreAddedTorrentAndSettingsResponse.action,
+                                webUiSettings: bufferedTorrent!.webUiSettings,
+                                serializedTorrent: serializedTorrent,
+                                autoLabelDirResult: getAutoLabelDirResultForConfig(bufferedTorrent!.torrent, bufferedTorrent!.webUiSettings)
+                            };
+                            console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
+                            finish(response);
+                        })
+                        .catch(respondWithError);
+                    break;
+                }
+                case AddTorrentMessageWithLabelAndDir.action: {
+                    willRespondAsync = true;
+                    const torrent = convertSerializedToTorrent(message.serializedTorrent);
+                    getWebUiById(message.webUiId, settingsProvider)
+                        .then(webUi => {
+                            if (webUi) {
+                                webUi.sendTorrent(torrent, message.config)
+                                    .then(() => console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`))
+                                    .catch(error => console.error("Error sending torrent:", error));
+                            } else {
+                                console.error("No WebUI found for id", message.webUiId);
+                            }
+                            updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories)
+                                .catch(e => console.error("Failed updating labels/dirs", e));
+                            finish({});
+                        })
+                        .catch(respondWithError);
+                    break;
+                }
+                case UpdateActionBadgeText.action: {
+                    updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
+                    break;
+                }
+                default: {
+                    finish({ error: `unknown action: ${message.action}` });
+                }
+            }
+        } catch (err) {
+            respondWithError(err);
+        }
+
+        return willRespondAsync;
+    });
 }
 
 export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, windowId: number): Promise<void> {
     const settingsProvider = new Settings();
-    const allWebUis = await getAllWebUis(settingsProvider ?? new Settings());
+    const allWebUis = await getAllWebUis(settingsProvider);
     const webUiById = await getWebUiById(message.webUiId, settingsProvider);
     const webUi: TorrentWebUI = webUiById ?? (allWebUis.length > 0 ? allWebUis[0] : null);
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {

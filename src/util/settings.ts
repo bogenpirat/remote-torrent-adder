@@ -30,9 +30,18 @@ export class Settings {
                         console.log("Initializing with default settings.");
                         await this.saveSettings(getDefaultSettings());
                     }
-                    resolve(this.loadSettings())
+                    const reloaded = await this.loadSettings();
+                    resolve(reloaded);
+                    return;
                 }
-                resolve(deserializeSettings(response[SETTINGS_KEY]));
+                try {
+                    resolve(deserializeSettings(response[SETTINGS_KEY]));
+                } catch (e) {
+                    console.error("Failed to deserialize settings, resetting to defaults", e);
+                    const defaults = getDefaultSettings();
+                    await this.saveSettings(defaults);
+                    resolve(defaults);
+                }
             });
         });
     }
