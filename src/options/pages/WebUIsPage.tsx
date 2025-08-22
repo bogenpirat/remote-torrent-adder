@@ -45,14 +45,14 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
   const webUiInstance = WebUIFactory.createWebUI(webui);
 
   return (
-    <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
+    <div style={{ border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 12, padding: 20, marginBottom: 32, background: "var(--rta-surface-alt, #f7faf7)" }}>
       <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 18 }}>{webui.name || "Unnamed WebUI"}</span>
-  {typeof onPromote === 'function' && !isPrimary && (
+        {typeof onPromote === 'function' && !isPrimary && (
           <button
             onClick={onPromote}
             style={{
-              background: "#4682B4",
+              background: "var(--rta-info, #4682B4)",
               color: "#fff",
               border: "none",
               borderRadius: 8,
@@ -70,14 +70,14 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
             else setConfirmRemove(true);
           }}
           style={{
-            background: confirmRemove ? "#8B0000" : "#B22222",
+            background: confirmRemove ? "var(--rta-danger-dark, #8B0000)" : "var(--rta-danger, #B22222)",
             color: "#fff",
             border: "none",
             borderRadius: 8,
             padding: "6px 16px",
             fontWeight: 700,
             cursor: "pointer",
-            boxShadow: confirmRemove ? "0 0 8px 2px #8B0000" : undefined,
+            boxShadow: confirmRemove ? "0 0 8px 2px var(--rta-danger-dark, #8B0000)" : undefined,
             transition: "all 0.15s"
           }}
         >
@@ -87,8 +87,8 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
           <button
             onClick={() => setConfirmRemove(false)}
             style={{
-              background: "#eee",
-              color: "#B22222",
+              background: "var(--rta-neutral, #eee)",
+              color: "var(--rta-danger, #B22222)",
               border: "none",
               borderRadius: 8,
               padding: "6px 12px",
@@ -113,7 +113,7 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
             type="text"
             value={webui.name}
             onChange={e => onChange({ ...webui, name: e.target.value })}
-            style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 180 }}
+            style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 180 }}
           />
         </div>
       </div>
@@ -121,28 +121,28 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
       <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Host</label>
-          <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
+          <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }} />
         </div>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Port</label>
-          <input type="number" value={webui.port} onChange={e => onChange({ ...webui, port: Number(e.target.value) })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 80 }} />
+          <input type="number" value={webui.port} onChange={e => onChange({ ...webui, port: Number(e.target.value) })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 80 }} />
         </div>
         <Toggle checked={webui.secure} onChange={v => onChange({ ...webui, secure: v })} label="Secure (HTTPS)" />
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Relative Path</label>
-          <input type="text" value={webui.relativePath || ""} onChange={e => onChange({ ...webui, relativePath: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
+          <input type="text" value={webui.relativePath || ""} onChange={e => onChange({ ...webui, relativePath: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }} />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, color: "#888" }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, color: "var(--rta-text-muted, #888)" }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
       {/* Username + Password */}
       <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Username</label>
-          <input type="text" value={webui.username} onChange={e => onChange({ ...webui, username: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
+          <input type="text" value={webui.username} onChange={e => onChange({ ...webui, username: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }} />
         </div>
         <div>
           <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Password</label>
-          <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 120 }} />
+          <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }} />
         </div>
       </div>
       {/* Only show these fields if supported by the WebUI instance */}
@@ -174,7 +174,7 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
           dirs={webui.dirs}
         />
       )}
-      <div style={{ marginTop: 16, color: "#888" }}>
+      <div style={{ marginTop: 16, color: "var(--rta-text-muted, #888)" }}>
         <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
       </div>
     </div>
@@ -221,7 +221,7 @@ export default function WebUIsPage() {
   return (
     <div>
       {adding ? (
-        <div style={{ border: "1px solid #b7c9a7", borderRadius: 12, padding: 20, marginBottom: 32, background: "#f7faf7" }}>
+        <div style={{ border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 12, padding: 20, marginBottom: 32, background: "var(--rta-surface-alt, #f7faf7)" }}>
           <h3 style={{ fontWeight: 600, fontSize: 18, marginBottom: 16 }}>Add New WebUI</h3>
           <Select
             label="Client"
@@ -236,17 +236,17 @@ export default function WebUIsPage() {
               type="text"
               value={newName}
               onChange={e => setNewName(e.target.value)}
-              style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid #b7c9a7", minWidth: 180 }}
+              style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 180 }}
             />
           </div>
-          <button onClick={handleAdd} style={{ background: "#228B22", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", marginRight: 12 }}>Add</button>
-          <button onClick={() => setAdding(false)} style={{ background: "#B22222", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}>Cancel</button>
+          <button onClick={handleAdd} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", marginRight: 12 }}>Add</button>
+          <button onClick={() => setAdding(false)} style={{ background: "var(--rta-danger, #B22222)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}>Cancel</button>
         </div>
       ) : (
-        <button onClick={() => setAdding(true)} style={{ background: "#228B22", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", marginTop: 12, marginBottom: 12 }}>Add New WebUI</button>
+        <button onClick={() => setAdding(true)} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", marginTop: 12, marginBottom: 12 }}>Add New WebUI</button>
       )}
       {settings.webuiSettings.length === 0 && !adding && (
-        <div style={{ marginBottom: 24, color: "#888" }}>No WebUIs configured yet.</div>
+        <div style={{ marginBottom: 24, color: "var(--rta-text-muted, #888)" }}>No WebUIs configured yet.</div>
       )}
       {settings.webuiSettings.map((webui, idx) => (
         <WebUIEditor

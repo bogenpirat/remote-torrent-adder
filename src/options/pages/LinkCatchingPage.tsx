@@ -84,8 +84,8 @@ export default function LinkCatchingPage(): JSX.Element {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                background: "#eaf5ea",
-                border: "1px solid #b7c9a7",
+                background: "var(--rta-chip-bg, #eaf5ea)",
+                border: "1px solid var(--rta-chip-border, #b7c9a7)",
                 borderRadius: 16,
                 padding: "4px 12px",
                 fontFamily: "monospace",
@@ -105,7 +105,8 @@ export default function LinkCatchingPage(): JSX.Element {
                       fontSize: 15,
                       border: "none",
                       outline: "none",
-                      background: "#fff",
+                      background: "var(--rta-input-bg, #fff)",
+                      color: "var(--rta-text, #1b241d)",
                       borderRadius: 8,
                       padding: "2px 8px",
                       marginRight: 4
@@ -133,7 +134,9 @@ export default function LinkCatchingPage(): JSX.Element {
             style={{
               fontFamily: "monospace",
               fontSize: 15,
-              border: "1px solid #b7c9a7",
+              border: "1px solid var(--rta-border, #b7c9a7)",
+              background: "var(--rta-input-bg, #fff)",
+              color: "var(--rta-text, #1b241d)",
               borderRadius: 8,
               padding: "4px 10px"
             }}
@@ -141,8 +144,8 @@ export default function LinkCatchingPage(): JSX.Element {
           <button
             onClick={handleAdd}
             style={{
-              background: "#b7c9a7",
-              color: "#4e6a57",
+              background: "var(--rta-accent, #b7c9a7)",
+              color: "var(--rta-green-dark, #4e6a57)",
               border: "none",
               borderRadius: 8,
               padding: "4px 12px",
@@ -152,7 +155,7 @@ export default function LinkCatchingPage(): JSX.Element {
           >Add</button>
         </div>
       </div>
-      <hr style={{ margin: "32px 0 24px 0", border: "none", borderTop: "1px solid #b7c9a7" }} />
+      <hr style={{ margin: "32px 0 24px 0", border: "none", borderTop: "1px solid var(--rta-border, #b7c9a7)" }} />
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>Test your regexes:</label>
         <input
@@ -160,7 +163,7 @@ export default function LinkCatchingPage(): JSX.Element {
           placeholder="Paste a link to test..."
           value={testerValue}
           onChange={handleTesterChange}
-          style={{ width: "100%", maxWidth: 400, fontSize: 15, padding: "6px 12px", borderRadius: 8, border: "1px solid #b7c9a7", marginBottom: 12 }}
+          style={{ width: "100%", maxWidth: 400, fontSize: 15, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", marginBottom: 12 }}
         />
         <div>
           {testerValue && (
@@ -169,11 +172,11 @@ export default function LinkCatchingPage(): JSX.Element {
                 let match = false;
                 try {
                   match = reg.test(testerValue);
-                } catch {}
+                } catch { }
                 return (
-                  <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: match ? "#228B22" : "#B22222" }}>
+                  <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: match ? "var(--rta-success, #228B22)" : "var(--rta-danger, #B22222)" }}>
                     <span style={{ fontFamily: "monospace" }}>{reg.source}</span>
-                    {match ? <span style={{ color: "#228B22" }}>✔</span> : <span style={{ color: "#B22222" }}>✖</span>}
+                    {match ? <span style={{ color: "var(--rta-success, #228B22)" }}>✔</span> : <span style={{ color: "var(--rta-danger, #B22222)" }}>✖</span>}
                   </li>
                 );
               })}
@@ -181,9 +184,9 @@ export default function LinkCatchingPage(): JSX.Element {
               {(() => {
                 const magnetMatch = testerValue.startsWith && testerValue.startsWith('magnet:');
                 return (
-                  <li style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: magnetMatch ? "#228B22" : "#B22222" }}>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: magnetMatch ? "var(--rta-success, #228B22)" : "var(--rta-danger, #B22222)" }}>
                     <span style={{ fontFamily: "monospace" }}>magnet:</span>
-                    {magnetMatch ? <span style={{ color: "#228B22" }}>✔</span> : <span style={{ color: "#B22222" }}>✖</span>}
+                    {magnetMatch ? <span style={{ color: "var(--rta-success, #228B22)" }}>✔</span> : <span style={{ color: "var(--rta-danger, #B22222)" }}>✖</span>}
                   </li>
                 );
               })()}

@@ -1,5 +1,4 @@
 import { useSettings } from "../SettingsContext";
-import { showNotification } from "../../util/notifications";
 import { ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
 import Toggle from "../components/Toggle";
 
@@ -62,13 +61,13 @@ export default function NotificationsPage() {
       <div style={{ display: "flex", gap: 16, marginTop: 32 }}>
         <button
           onClick={handleTestSuccess}
-          style={{ background: "#228B22", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
+          style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
         >
           Test Success Notification
         </button>
         <button
           onClick={handleTestFail}
-          style={{ background: "#B22222", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
+          style={{ background: "var(--rta-danger, #B22222)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer" }}
         >
           Test Failed Notification
         </button>

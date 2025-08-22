@@ -21,7 +21,7 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
           width: "100%",
           height: "100%",
           borderRadius: 16,
-          background: checked ? "#228B22" : "#ccc",
+          background: checked ? "var(--rta-success, #228B22)" : "var(--rta-neutral, #ccc)",
           transition: "background 0.2s",
         }}
       ></span>
@@ -33,8 +33,8 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
           width: 20,
           height: 20,
           borderRadius: "50%",
-          background: "#fff",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+          background: "var(--rta-surface, #fff)",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
           transition: "left 0.2s",
         }}
       ></span>

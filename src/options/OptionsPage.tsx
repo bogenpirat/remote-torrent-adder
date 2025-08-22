@@ -9,12 +9,12 @@ import AboutPage from "./pages/AboutPage";
 import ImportExportPage from "./pages/ImportExportPage";
 
 
-const GREEN_THEME = {
-  bg: "#eaf5ea",         // light green background
-  green: "#6e8b74",     // main green
-  greenDark: "#4e6a57", // dark green
-  accent: "#b7c9a7",    // accent green
-  white: "#fff"
+const FALLBACK_THEME = {
+  bg: "#eaf5ea",
+  green: "#6e8b74",
+  greenDark: "#4e6a57",
+  accent: "#b7c9a7",
+  white: "#ffffff"
 };
 
 const TAB_TITLES = ["WebUIs", "Notifications", "Link Catching", "Import/Export Settings", "About"];
@@ -37,11 +37,12 @@ export default function OptionsPage() {
           fontFamily: "sans-serif",
           width: "80%",
           margin: "40px auto",
-          background: GREEN_THEME.bg,
+          background: "var(--rta-bg, " + FALLBACK_THEME.bg + ")",
           borderRadius: 16,
-          boxShadow: "0 2px 16px rgba(110,139,116,0.10)",
-          border: `1px solid ${GREEN_THEME.greenDark}`,
-          minHeight: 400
+          boxShadow: "0 2px 16px var(--rta-shadow-color, rgba(110,139,116,0.10))",
+          border: "1px solid var(--rta-green-dark, " + FALLBACK_THEME.greenDark + ")",
+          minHeight: 400,
+          color: "var(--rta-text, #1b241d)"
         }}
       >
         <div
@@ -54,18 +55,18 @@ export default function OptionsPage() {
         >
           <h1
             style={{
-              color: GREEN_THEME.greenDark,
+              color: "var(--rta-green-dark, " + FALLBACK_THEME.greenDark + ")",
               fontWeight: 700,
               fontSize: 32,
               margin: 0,
               letterSpacing: 1,
-              textShadow: `0 2px 8px ${GREEN_THEME.accent}`
+              textShadow: "0 2px 8px var(--rta-accent, " + FALLBACK_THEME.accent + ")"
             }}
           >
             Remote Torrent Adder Options
           </h1>
         </div>
-        <div style={{ display: "flex", borderBottom: `2px solid ${GREEN_THEME.green}` }}>
+        <div style={{ display: "flex", borderBottom: "2px solid var(--rta-green, " + FALLBACK_THEME.green + ")" }}>
           {TAB_TITLES.map((title, idx) => (
             <button
               key={title}
@@ -73,11 +74,11 @@ export default function OptionsPage() {
               style={{
                 flex: 1,
                 padding: "16px 0",
-                background: activeTab === idx ? GREEN_THEME.accent : GREEN_THEME.bg,
+                background: activeTab === idx ? "var(--rta-accent, " + FALLBACK_THEME.accent + ")" : "var(--rta-bg, " + FALLBACK_THEME.bg + ")",
                 border: "none",
-                borderBottom: activeTab === idx ? `4px solid ${GREEN_THEME.greenDark}` : "4px solid transparent",
+                borderBottom: activeTab === idx ? "4px solid var(--rta-green-dark, " + FALLBACK_THEME.greenDark + ")" : "4px solid transparent",
                 fontWeight: activeTab === idx ? "bold" : "normal",
-                color: GREEN_THEME.greenDark,
+                color: "var(--rta-green-dark, " + FALLBACK_THEME.greenDark + ")",
                 fontSize: 18,
                 cursor: "pointer",
                 transition: "background 0.2s"
@@ -89,10 +90,10 @@ export default function OptionsPage() {
         </div>
         <div style={{
           padding: "10px",
-          background: GREEN_THEME.white,
+          background: "var(--rta-surface, " + FALLBACK_THEME.white + ")",
           minHeight: 200,
           borderRadius: "0 0 16px 16px",
-          boxShadow: `0 2px 8px ${GREEN_THEME.accent}`
+          boxShadow: "0 2px 8px var(--rta-accent, " + FALLBACK_THEME.accent + ")"
         }}>
           {TAB_CONTENT[activeTab]}
         </div>

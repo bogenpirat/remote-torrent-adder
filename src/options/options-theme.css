@@ -1,0 +1,68 @@
+/* Remote Torrent Adder Options Page Theme */
+/* Light theme (default) */
+:root {
+  --rta-bg: #eaf5ea;
+  --rta-surface: #ffffff;
+  --rta-surface-alt: #f7faf7;
+  --rta-green: #6e8b74;
+  --rta-green-dark: #4e6a57;
+  --rta-accent: #b7c9a7;
+  --rta-border: #b7c9a7;
+  --rta-chip-bg: #eaf5ea;
+  --rta-chip-border: #b7c9a7;
+  --rta-input-bg: #ffffff;
+  --rta-text: #1b241d;
+  --rta-text-muted: #888888;
+  --rta-success: #228b22;
+  --rta-danger: #b22222;
+  --rta-danger-dark: #8b0000;
+  --rta-info: #4682b4;
+  --rta-neutral: #eeeeee;
+  --rta-shadow-color: rgba(110,139,116,0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rta-bg: #141a16;
+    --rta-surface: #1d2420;
+    --rta-surface-alt: #202a24;
+    --rta-green: #7fa88e;
+    --rta-green-dark: #9cc8ae;
+    --rta-accent: #2e4136;
+    --rta-border: #2e4136;
+    --rta-chip-bg: #1f2924;
+    --rta-chip-border: #365144;
+    --rta-input-bg: #252f29;
+    --rta-text: #dfe7e2;
+    --rta-text-muted: #a2b0a8;
+    --rta-success: #2fae4b;
+    --rta-danger: #d85858;
+    --rta-danger-dark: #b00000;
+    --rta-info: #5ca2d6;
+    --rta-neutral: #444444;
+    --rta-shadow-color: rgba(0,0,0,0.5);
+  }
+  body {
+    background: #0d110f;
+    color: var(--rta-text);
+  }
+}
+
+body {
+  background: var(--rta-bg);
+  color: var(--rta-text);
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+/* Scrollbar styling (works in Chromium) */
+body::-webkit-scrollbar { width: 10px; }
+body::-webkit-scrollbar-track { background: var(--rta-bg); }
+body::-webkit-scrollbar-thumb { background: var(--rta-accent); border-radius: 5px; }
+body::-webkit-scrollbar-thumb:hover { background: var(--rta-green); }
+
+/* Utility classes (if needed later) */
+.rta-muted { color: var(--rta-text-muted); }
+.rta-border { border: 1px solid var(--rta-border); }
+.rta-surface { background: var(--rta-surface); }
+.rta-surface-alt { background: var(--rta-surface-alt); }
