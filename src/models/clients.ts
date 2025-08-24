@@ -6,6 +6,7 @@ import { FloodWebUI } from "../webuis/flood-webui";
 import { QBittorrentWebUI } from "../webuis/qbittorrent-webui";
 import { DelugeWebUI } from "../webuis/deluge-webui";
 import { ElementumWebUI } from "../webuis/elementum-webui";
+import { TransmissionWebUI } from "../webuis/transmission-webui";
 
 export enum Client {
     BiglyBTWebUI = "BiglyBT WebUI",
@@ -42,7 +43,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.RuTorrentWebUI]: RuTorrentWebUI,
     [Client.SynologyWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.TixatiWebUI]: BuffaloWebUI, // TODO: placeholder
-    [Client.TransmissionWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TransmissionWebUI]: TransmissionWebUI,
     [Client.TTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.UTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
 };
