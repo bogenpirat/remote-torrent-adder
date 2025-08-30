@@ -159,10 +159,28 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
         </div>
       )}
       {webUiInstance?.isLabelSupported && (
-        <ChipList label="Labels" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
+        <ChipList
+          label="Labels"
+          values={webui.labels}
+          onChange={labels => onChange({
+            ...webui,
+            labels,
+            defaultLabel: labels.length > 0 ? labels[0] : null
+          })}
+          placeholder="Add label"
+        />
       )}
       {webUiInstance?.isDirSupported && (
-        <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+        <ChipList
+          label="Directories"
+          values={webui.dirs}
+          onChange={dirs => onChange({
+            ...webui,
+            dirs,
+            defaultDir: dirs.length > 0 ? dirs[0] : null
+          })}
+          placeholder="Add directory"
+        />
       )}
       {webUiInstance?.isLabelDirChooserSupported && (
         <AutoLabelDirSettingsEditor

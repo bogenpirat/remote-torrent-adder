@@ -25,6 +25,13 @@ const ChipList: React.FC<ChipListProps> = ({ label, values, onChange, placeholde
     arr[idx] = newValue;
     onChange(arr);
   };
+    const handlePromote = (idx: number) => {
+      if (idx === 0) return;
+      const arr = [...values];
+      const [promoted] = arr.splice(idx, 1);
+      arr.unshift(promoted);
+      onChange(arr);
+    };
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>{label}</label>
@@ -39,6 +46,25 @@ const ChipList: React.FC<ChipListProps> = ({ label, values, onChange, placeholde
                 style={{ fontFamily: "monospace", fontSize: 15, border: "none", outline: "none", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", borderRadius: 8, padding: "2px 8px", marginRight: 4 }}
               />
               <button onClick={() => handleRemove(idx)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
+                {idx !== 0 && (
+                  <button
+                    title="Als Standard setzen"
+                    onClick={() => handlePromote(idx)}
+                    style={{
+                      fontSize: 13,
+                      marginLeft: 4,
+                      background: "var(--rta-info, #4682B4)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "2px 8px",
+                      cursor: "pointer"
+                    }}
+                  >★</button>
+                )}
+                {idx === 0 && (
+                  <span style={{ marginLeft: 6, fontSize: 12, color: "var(--rta-success, #228B22)", fontWeight: 500 }}>(Standard)</span>
+                )}
             </span>
           ))}
         </div>
