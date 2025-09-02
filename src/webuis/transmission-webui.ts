@@ -75,7 +75,7 @@ export class TransmissionWebUI extends TorrentWebUI {
                 const responseText = await response.text();
                 const responseData = JSON.parse(responseText);
                 if (responseData["result"] === "success") {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(responseData) });
+                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
                 } else {
                     reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
                 }
