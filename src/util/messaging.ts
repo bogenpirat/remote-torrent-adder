@@ -13,8 +13,9 @@ import {
     IUpdateActionBadgeTextMessage,
     TestNotificationMessage
 } from "../models/messages";
+import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentWebUI, WebUISettings } from "../models/webui";
+import { TorrentAddingResult, TorrentWebUI, WebUISettings } from "../models/webui";
 import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { downloadTorrent } from "./download";
@@ -117,9 +118,7 @@ export function registerMessageListener(): void {
                     getWebUiById(message.webUiId, settingsProvider)
                         .then(webUi => {
                             if (webUi) {
-                                webUi.sendTorrent(torrent, message.config)
-                                    .then(() => console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`))
-                                    .catch(error => console.error("Error sending torrent:", error));
+                                sendTorrentToWebUi(webUi, torrent, message.config);
                             } else {
                                 console.error("No WebUI found for id", message.webUiId);
                             }
@@ -194,11 +193,7 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: 
                 label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel
             };
 
-            webUi.sendTorrent(torrent, config || fallbackConfig).then(() => {
-                console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
-            }).catch(error => {
-                console.error("Error sending torrent:", error);
-            });
+            sendTorrentToWebUi(webUi, torrent, config ?? fallbackConfig);
         }).catch(error => {
             console.error("Error downloading torrent:", error);
         });
@@ -236,4 +231,33 @@ function getAutoLabelDirResultForConfig(torrent: Torrent, webUiSettings: WebUISe
         label: getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings),
         directory: getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings)
     };
+}
+
+function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null) {
+    new Settings().loadSettings().then(settings => {
+        const webUiUrl = webUi.createBaseUrl();
+        webUi.sendTorrent(torrent, config).then((torrentAddingResult: TorrentAddingResult) => {
+            console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
+            if (settings.notificationsEnabled) {
+                if (torrentAddingResult.success) {
+                    showNotification("Torrent added successfully",
+                        `${torrent.name} successfully added to ${webUi.name}`,
+                        false,
+                        settings.notificationsDurationMs,
+                        settings.notificationsSoundEnabled,
+                        webUiUrl);
+                } else {
+                    showNotification("Torrent adding failed",
+                        `HTTP Response code: ${torrentAddingResult.httpResponseCode}\nResponse body: ${torrentAddingResult.httpResponseBody}`,
+                        false,
+                        settings.notificationsDurationMs,
+                        settings.notificationsSoundEnabled,
+                        webUiUrl);
+                }
+            }
+        }).catch(error => {
+            console.error("Error sending torrent:", error);
+            showNotification("Torrent adding failed", `Error: ${error}`, true, settings.notificationsDurationMs, settings.notificationsSoundEnabled, webUiUrl);
+        });
+    });
 }
