@@ -100,8 +100,6 @@ function parseServers(servers: string | null): WebUISettings[] {
 
 function getClientForLegacyName(name: string): Client | null {
     switch (name) {
-        case "Buffalo WebUI (OLD!)":
-            return Client.BuffaloWebUI;
         case "Vuze Remote WebUI":
             return Client.BiglyBTWebUI;
         case "qBittorrent v4.1+ WebUI":

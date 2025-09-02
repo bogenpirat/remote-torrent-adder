@@ -1,6 +1,5 @@
 import { TorrentWebUI, WebUISettings } from "./webui";
 import { BiglyBTWebUI } from "../webuis/biglybt-webui";
-import { BuffaloWebUI } from "../webuis/buffalo-webui";
 import { RuTorrentWebUI } from "../webuis/rutorrent-webui";
 import { FloodWebUI } from "../webuis/flood-webui";
 import { QBittorrentWebUI } from "../webuis/qbittorrent-webui";
@@ -12,17 +11,12 @@ import { TixatiWebUI } from "../webuis/tixati-webui";
 
 export enum Client {
     BiglyBTWebUI = "BiglyBT WebUI",
-    BuffaloWebUI = "Buffalo WebUI",
     DelugeWebUI = "Deluge WebUI",
     ElementumWebUI = "Elementum WebUI",
     FloodWebUI = "flood WebUI",
     HadoukenWebUI = "Hadouken WebUI",
-    NodeJSrTorrentWebUI = "NodeJS-rTorrent WebUI",
-    PyrtWebUI = "pyrt WebUI",
     QBittorrentWebUI = "qBittorrent WebUI",
-    QnapDownloadStationWebUI = "QNAP DownloadStation",
     RuTorrentWebUI = "ruTorrent WebUI",
-    SynologyWebUI = "Synology WebUI",
     TixatiWebUI = "Tixati WebUI",
     TransmissionWebUI = "Transmission WebUI",
     TTorrentWebUI = "tTorrent WebUI",
@@ -34,17 +28,12 @@ type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentW
 
 export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor> = {
     [Client.BiglyBTWebUI]: BiglyBTWebUI,
-    [Client.BuffaloWebUI]: BuffaloWebUI, // TODO: broken
     [Client.DelugeWebUI]: DelugeWebUI,
     [Client.ElementumWebUI]: ElementumWebUI,
     [Client.FloodWebUI]: FloodWebUI,
     [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
-    [Client.NodeJSrTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
-    [Client.PyrtWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.QBittorrentWebUI]: QBittorrentWebUI,
-    [Client.QnapDownloadStationWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.RuTorrentWebUI]: RuTorrentWebUI,
-    [Client.SynologyWebUI]: BuffaloWebUI, // TODO: placeholder
     [Client.TixatiWebUI]: TixatiWebUI,
     [Client.TransmissionWebUI]: TransmissionWebUI,
     [Client.TTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
