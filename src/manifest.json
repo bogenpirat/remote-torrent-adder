@@ -16,8 +16,7 @@
         "storage",
         "offscreen",
         "webRequest",
-        "webRequestAuthProvider",
-        "declarativeNetRequest"
+        "webRequestAuthProvider"
     ],
     "host_permissions": [
         "<all_urls>"

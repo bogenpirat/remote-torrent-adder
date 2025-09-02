@@ -2,7 +2,6 @@ import * as ContextMenu from './util/context-menu';
 import { registerAuthenticationListenersForAllWebUis } from './util/authentication-listener';
 import { Settings } from './util/settings';
 import { RTASettings } from './models/settings';
-import { registerCorsCircumventionWithDeclarativeNetRequest } from './util/cors-tricks';
 import { registerMessageListener } from './util/messaging';
 import { registerClickActionForIcon } from './util/action';
 import { initiateWebUis } from './util/webuis';
