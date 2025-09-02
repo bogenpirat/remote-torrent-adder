@@ -61,7 +61,7 @@ function parseServers(servers: string | null): WebUISettings[] {
         serverList.forEach((server: Record<string, any>) => {
             const client = getClientForLegacyName(server.client);
             console.debug(`converting "${server.client}" to "${client}"`);
-            if(client) {
+            if (client) {
                 const webUiSettings: WebUISettings = {
                     id: generateId(),
                     client,
