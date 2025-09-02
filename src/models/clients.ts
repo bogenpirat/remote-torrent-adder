@@ -8,6 +8,7 @@ import { ElementumWebUI } from "../webuis/elementum-webui";
 import { TransmissionWebUI } from "../webuis/transmission-webui";
 import { PorlaWebUI } from "../webuis/porla-webui";
 import { TixatiWebUI } from "../webuis/tixati-webui";
+import { TTorrentWebUI } from "../webuis/ttorrent-webui";
 
 export enum Client {
     BiglyBTWebUI = "BiglyBT WebUI",
@@ -31,13 +32,13 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.DelugeWebUI]: DelugeWebUI,
     [Client.ElementumWebUI]: ElementumWebUI,
     [Client.FloodWebUI]: FloodWebUI,
-    [Client.HadoukenWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.HadoukenWebUI]: TTorrentWebUI, // TODO: placeholder
     [Client.QBittorrentWebUI]: QBittorrentWebUI,
     [Client.RuTorrentWebUI]: RuTorrentWebUI,
     [Client.TixatiWebUI]: TixatiWebUI,
     [Client.TransmissionWebUI]: TransmissionWebUI,
-    [Client.TTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
-    [Client.UTorrentWebUI]: BuffaloWebUI, // TODO: placeholder
+    [Client.TTorrentWebUI]: TTorrentWebUI,
+    [Client.UTorrentWebUI]: TTorrentWebUI, // TODO: placeholder
     [Client.PorlaWebUI]: PorlaWebUI,
 };
 
