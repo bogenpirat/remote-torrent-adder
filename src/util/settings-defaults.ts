@@ -11,7 +11,6 @@ export function getDefaultSettings(): RTASettings {
             /([\]\[]|\b|\.)\.torrent\b([^\-]|$)/,
             /torrents\.php\?action=download/
         ],
-        newTabCatchingEnabled: false,
 
         webuiSettings: [] // TODO: should probably add an empty one? or not? who knows, i sure don't
     };

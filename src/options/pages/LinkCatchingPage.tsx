@@ -69,13 +69,6 @@ export default function LinkCatchingPage(): JSX.Element {
         />
       </div>
       <div style={{ marginBottom: 16 }}>
-        <Toggle
-          checked={settings.newTabCatchingEnabled}
-          onChange={v => updateSetting("newTabCatchingEnabled", v)}
-          label="Intercept new tabs"
-        />
-      </div>
-      <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>Link matching regexes:</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 40 }}>
           {regexStrings.map((r, idx) => (
