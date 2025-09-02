@@ -91,7 +91,7 @@ export class PorlaWebUI extends TorrentWebUI {
             if (response.status === 200) {
                 const responseJson = JSON.parse(responseText);
                 if (!responseJson.error) {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: null });
+                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
                     return;
                 }
             }
