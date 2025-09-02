@@ -21,7 +21,12 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
 
             const torrentBlob: Blob = await response.blob();
             const torrentData: string = await convertBlobToString(torrentBlob);
-            validateTorrentData(response, torrentData);
+            try {
+                validateTorrentData(response, torrentData);
+            } catch (error) {
+                reject(error);
+                return;
+            }
             const decodedTorrentData = bencode.decode(Buffer.from(torrentData, 'ascii'));
 
             resolve({

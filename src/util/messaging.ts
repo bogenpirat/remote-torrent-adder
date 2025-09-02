@@ -185,21 +185,35 @@ async function getWebUiById(webUiId: string, settingsProvider: Settings): Promis
 }
 
 function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: TorrentUploadConfig | null, message: IPreAddTorrentMessage): void {
-    if (webUi) {
-        downloadTorrent(url).then(torrent => {
-            const fallbackConfig: TorrentUploadConfig = {
-                addPaused: webUi.settings.addPaused,
-                dir: getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultDir,
-                label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel
-            };
+    new Settings().loadSettings().then(settings => {
+        if (webUi) {
+            downloadTorrent(url).then(torrent => {
+                const fallbackConfig: TorrentUploadConfig = {
+                    addPaused: webUi.settings.addPaused,
+                    dir: getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultDir,
+                    label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel
+                };
 
-            sendTorrentToWebUi(webUi, torrent, config ?? fallbackConfig);
-        }).catch(error => {
-            console.error("Error downloading torrent:", error);
-        });
-    } else {
-        console.error("No WebUI found for addTorrentMessage:", message);
-    }
+                sendTorrentToWebUi(webUi, torrent, config ?? fallbackConfig);
+            }).catch(error => {
+                console.error("Error downloading torrent:", error);
+                showNotification("Error downloading torrent",
+                            `Error: ${error}`,
+                            true,
+                            settings.notificationsDurationMs,
+                            settings.notificationsSoundEnabled,
+                            webUi.createBaseUrl());
+            });
+        } else {
+            console.error("No WebUI found for addTorrentMessage:", message);
+            showNotification("No WebUI configured",
+                        `Check your settings.`,
+                        true,
+                        settings.notificationsDurationMs,
+                        settings.notificationsSoundEnabled,
+                        webUi.createBaseUrl());
+        }
+    });
 }
 
 interface BufferedTorrentDataForPopup {
