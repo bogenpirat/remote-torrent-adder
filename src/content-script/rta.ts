@@ -15,13 +15,16 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     chrome.runtime.sendMessage(GetSettingsMessage, function (serializedSettings: string) {
         const settings: RTASettings = deserializeSettings(serializedSettings);
         console.debug("Received settings from background script:", settings);
-        if(!settings && attemptNumber < 3) {
+        if (!settings && attemptNumber < 3) {
             console.warn("Service worker might've been asleep. Retrying to load settings...");
             loadSettingsAndRegisterActions(attemptNumber + 1);
             return;
         }
-        registerLinks(settings.linkCatchingRegexes);
-        registerForms(settings.linkCatchingRegexes);
+
+        if (settings.linkCatchingEnabled) {
+            registerLinks(settings.linkCatchingRegexes);
+            registerForms(settings.linkCatchingRegexes);
+        }
     });
 }
 
