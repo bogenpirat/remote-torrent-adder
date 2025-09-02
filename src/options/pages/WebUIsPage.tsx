@@ -192,9 +192,9 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
           dirs={webui.dirs}
         />
       )}
-      <div style={{ marginTop: 16, color: "var(--rta-text-muted, #888)" }}>
+      {/* <div style={{ marginTop: 16, color: "var(--rta-text-muted, #888)" }}>
         <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
-      </div>
+      </div> */}
     </div>
   );
 }
