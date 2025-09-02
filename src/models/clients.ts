@@ -21,7 +21,6 @@ export enum Client {
     TixatiWebUI = "Tixati WebUI",
     TransmissionWebUI = "Transmission WebUI",
     TTorrentWebUI = "tTorrent WebUI",
-    UTorrentWebUI = "uTorrent WebUI",
     PorlaWebUI = "Porla WebUI",
 }
 
@@ -38,7 +37,6 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.TixatiWebUI]: TixatiWebUI,
     [Client.TransmissionWebUI]: TransmissionWebUI,
     [Client.TTorrentWebUI]: TTorrentWebUI,
-    [Client.UTorrentWebUI]: TTorrentWebUI, // TODO: placeholder
     [Client.PorlaWebUI]: PorlaWebUI,
 };
 
