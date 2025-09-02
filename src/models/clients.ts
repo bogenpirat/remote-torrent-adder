@@ -15,7 +15,6 @@ export enum Client {
     DelugeWebUI = "Deluge WebUI",
     ElementumWebUI = "Elementum WebUI",
     FloodWebUI = "flood WebUI",
-    HadoukenWebUI = "Hadouken WebUI",
     QBittorrentWebUI = "qBittorrent WebUI",
     RuTorrentWebUI = "ruTorrent WebUI",
     TixatiWebUI = "Tixati WebUI",
@@ -31,7 +30,6 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.DelugeWebUI]: DelugeWebUI,
     [Client.ElementumWebUI]: ElementumWebUI,
     [Client.FloodWebUI]: FloodWebUI,
-    [Client.HadoukenWebUI]: TTorrentWebUI, // TODO: placeholder
     [Client.QBittorrentWebUI]: QBittorrentWebUI,
     [Client.RuTorrentWebUI]: RuTorrentWebUI,
     [Client.TixatiWebUI]: TixatiWebUI,
