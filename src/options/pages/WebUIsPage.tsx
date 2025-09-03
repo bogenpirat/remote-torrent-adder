@@ -29,6 +29,7 @@ function getDefaultWebUISettings(): WebUISettings {
     addPaused: false,
     autoLabelDirSettings: [],
     clientSpecificSettings: {},
+    useAlternativeLabelDirChooser: false,
   };
 }
 
@@ -156,6 +157,8 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
         <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
           {/* Per-torrent config selector toggle */}
           <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
+          {/* Alternative label/dir chooser toggle */}
+          <Toggle checked={webui.useAlternativeLabelDirChooser ?? false} onChange={v => onChange({ ...webui, useAlternativeLabelDirChooser: v })} label="Use alternative container (window instead of popup)" />
         </div>
       )}
       {webUiInstance?.isLabelSupported && (
