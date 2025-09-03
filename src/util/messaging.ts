@@ -271,7 +271,7 @@ function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: Torre
             }
         }).catch(error => {
             console.error("Error sending torrent:", error);
-            showNotification("Torrent adding failed", `Error: ${error}`, true, settings.notificationsDurationMs, settings.notificationsSoundEnabled, webUiUrl);
+            showNotification("Torrent adding failed", `Error (${error.httpResponseCode}):\n${error.httpResponseBody}`, true, settings.notificationsDurationMs, settings.notificationsSoundEnabled, webUiUrl);
         });
     });
 }
