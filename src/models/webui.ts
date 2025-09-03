@@ -63,7 +63,7 @@ export abstract class TorrentWebUI {
             this.settings.host,
             ":",
             this.settings.port ?? (this.settings.secure ? "443" : "80"),
-            this.settings.relativePath ? this.addSurroundingSlashes(this.settings.relativePath) : "",
+            this.settings.relativePath ? this.addLeadingAndTrimTrailingSlashes(this.settings.relativePath) : "",
         ].join("");
     }
 
@@ -79,11 +79,11 @@ export abstract class TorrentWebUI {
         return res;
     }
 
-    protected addSurroundingSlashes(urlPart: string): string {
+    protected addLeadingAndTrimTrailingSlashes(urlPart: string): string {
         if (!urlPart) {
             return "";
         }
-        return "/" + urlPart.replace(/^\/+|\/+$/g, "") + "/";
+        return "/" + urlPart.replace(/^\/+|\/+$/g, "");
     }
 
     protected getDirectory(config: TorrentUploadConfig): string | null {
