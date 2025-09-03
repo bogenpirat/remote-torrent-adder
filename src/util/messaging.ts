@@ -155,9 +155,19 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
             torrent: await downloadTorrent(message.url),
             webUiSettings: webUi.settings
         };
-        chrome.windows.update(windowId, { focused: true });
-        chrome.action.setPopup({ popup: POPUP_PAGE });
-        chrome.action.openPopup({ windowId: windowId }).then(() => chrome.action.setPopup({ popup: "" }));
+        if (webUi.settings.useAlternativeLabelDirChooser) {
+            chrome.windows.create({
+                url: POPUP_PAGE,
+                type: "popup",
+                width: 420,
+                height: 600,
+                focused: true
+            });
+        } else {
+            chrome.windows.update(windowId, { focused: true });
+            chrome.action.setPopup({ popup: POPUP_PAGE });
+            chrome.action.openPopup({ windowId: windowId }).then(() => chrome.action.setPopup({ popup: "" }));
+        }
     } else {
         downloadAndAddTorrentToWebUi(webUi, message.url, null, message);
     }
