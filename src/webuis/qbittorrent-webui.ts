@@ -50,16 +50,16 @@ export class QBittorrentWebUI extends TorrentWebUI {
             } else {
                 fetchOpts["body"].append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
             }
-            
-            if(this.getDirectory(config)) {
+
+            if (this.getDirectory(config)) {
                 fetchOpts["body"].append("savepath", this.getDirectory(config));
             }
-            
-            if(this.getLabel(config)) {
+
+            if (this.getLabel(config)) {
                 fetchOpts["body"].append("category", this.getLabel(config));
             }
-            
-            if(this.getAddPaused(config) !== null) {
+
+            if (this.getAddPaused(config) !== null) {
                 fetchOpts["body"].append("stopped", this.getAddPaused(config).toString());
             }
 
@@ -69,10 +69,17 @@ export class QBittorrentWebUI extends TorrentWebUI {
 
     private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
         this.fetch(url, fetchOpts).then(async (response) => {
+            const responseBody = await response.text();
             if (response.status === 200) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: null });
+                switch (responseBody) {
+                    case "Fails.":
+                        reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
+                        break;
+                    default:
+                        resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
+                }
             } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
+                reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
             }
         }).catch(error => {
             reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
