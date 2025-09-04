@@ -48,4 +48,3 @@ With Chrome enforcing Manifest V3, a rewrite of the extension (RTA v2.x) resulte
 - **context menu** is always generated instead of being togglable
 - **new tab catching** is gone. not sure if that ever worked properly in the recent past, couldn't get it to work
 - **address bar indicator** has not been a thing since like 2016? extension icon always exists anyway
-- **Header injection** is a thing of the past. MV3 doesn't allow changing CORS/Referer headers, so please make sure that your CORS protections are disabled, or RTA cannot work
