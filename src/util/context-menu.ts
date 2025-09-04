@@ -4,8 +4,12 @@ import Tab = chrome.tabs.Tab;
 import { AddTorrentMessage, IAddTorrentMessage, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { dispatchPreAddTorrent } from "./messaging";
 
+let listener: any = null;
 
 export function createContextMenu(allWebUis: TorrentWebUI[]): void {
+    if(listener !== null) {
+        chrome.contextMenus.onClicked.removeListener(listener);
+    }
     chrome.contextMenus.removeAll();
 
     var parentContextMenuId = chrome.contextMenus.create({
@@ -32,7 +36,7 @@ export function createContextMenu(allWebUis: TorrentWebUI[]): void {
         });
     }
 
-    chrome.contextMenus.onClicked.addListener((onClickData: OnClickData, tab: Tab) => {
+    listener = (onClickData: OnClickData, tab: Tab) => {
         if (onClickData.menuItemId === "server-main") {
             createOnClick(allWebUis.length > 0 ? [allWebUis[0]] : [])(onClickData, tab);
         } else if (onClickData.menuItemId.toString().startsWith("server-")) {
@@ -43,7 +47,8 @@ export function createContextMenu(allWebUis: TorrentWebUI[]): void {
         } else if (onClickData.menuItemId === "server-all") {
             createOnClick(allWebUis)(onClickData, tab);
         }
-    });
+    };
+    chrome.contextMenus.onClicked.addListener(listener);
 }
 
 function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: Tab) => void {
