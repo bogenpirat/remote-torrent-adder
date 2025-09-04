@@ -4,7 +4,7 @@ import { TorrentWebUI } from "../models/webui";
 const onAuthListeners = [];
 var triedRequestIds: Set<string> = new Set();
 
-export function registerAuthenticationListenersForAllWebUis(allWebUis: TorrentWebUI[]) {
+export function registerAuthenticationListenersForAllWebUis(allWebUis: TorrentWebUI[]): void {
     onAuthListeners.forEach(listener => {
         chrome.webRequest.onAuthRequired.removeListener(listener);
     });
@@ -34,7 +34,7 @@ export function registerAuthenticationListenersForAllWebUis(allWebUis: TorrentWe
         };
 
         if (webUi.settings.host && webUi.settings.port) {
-            console.debug(`Registering auth listener for: ${url} (${webUi.settings.name})`); // TODO: debugging
+            console.debug(`Registering auth listener for: ${url} (${webUi.settings.name})`);
             chrome.webRequest.onAuthRequired.addListener(listener, { urls: [url] }, ["blocking"]);
             onAuthListeners.push(listener);
         }

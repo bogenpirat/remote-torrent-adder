@@ -4,7 +4,7 @@ export default function AboutPage() {
   return (
     <div>
       <h1>About Remote Torrent Adder</h1>
-      <p>This extension allows you to automatically add torrents to your torrent client without having to download a torrent file and opening your torrent client. For that purpose, the torrent client's WebUI must be running and have CORS restrictions disabled.</p>
+      <p>This extension allows you to automatically add torrents to your torrent client without having to download a torrent file and opening your torrent client.</p>
       <h2>RTA v2 (Manifest V3)</h2>
       <p>A lot of things have changed with Chrome's insistence on Manifest V3. This has prompted a complete rewrite of this project. Some features were removed, others were improved, some new stuff was added. I've tried to migrate old configurations, but it's a good possibility that some things don't work. Should you see problems after migration to RTA v2.x from RTA v1.x, please reinstall the extension and reconfigure it. If you're faced with bugs or problems on a clean install, file an issue at the GitHub repo below.</p>
       <h2>Support, Source, Contact</h2>

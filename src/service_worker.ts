@@ -7,6 +7,7 @@ import { registerClickActionForIcon } from './util/action';
 import { initiateWebUis } from './util/webuis';
 import { RegisteredListeners } from './models/messages';
 import { clearListeners } from './util/utils';
+import { registerCorsCircumventionForWebUis } from './util/cors-tricks';
 
 
 const listeners = {} as RegisteredListeners;
@@ -31,6 +32,7 @@ async function registerEverything(settings: RTASettings): Promise<void> {
     console.log("All WebUIs:", allWebUis);
 
     registerAuthenticationListenersForAllWebUis(allWebUis);
+    registerCorsCircumventionForWebUis(allWebUis);
 
     listeners.actionIconListener = registerClickActionForIcon(allWebUis.length > 0 ? allWebUis[0] : null);
 

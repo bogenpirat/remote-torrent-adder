@@ -25,7 +25,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
         const addPaused = this.getAddPaused(config);
         return [
             this.createBaseUrl(),
-            "php/addtorrent.php?",
+            "/php/addtorrent.php?",
             targetDir ? `dir_edit=${encodeURIComponent(targetDir)}&` : "",
             targetLabel ? `label=${encodeURIComponent(targetLabel)}&` : "",
             addPaused ? "torrents_start_stopped=1&" : "",
