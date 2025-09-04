@@ -9,6 +9,7 @@ import { TransmissionWebUI } from "../webuis/transmission-webui";
 import { PorlaWebUI } from "../webuis/porla-webui";
 import { TixatiWebUI } from "../webuis/tixati-webui";
 import { TTorrentWebUI } from "../webuis/ttorrent-webui";
+import { QNAPDownloadStationWebUI } from "../webuis/qnapdownloadstation-webui";
 
 export enum Client {
     BiglyBTWebUI = "BiglyBT WebUI",
@@ -21,6 +22,7 @@ export enum Client {
     TransmissionWebUI = "Transmission WebUI",
     TTorrentWebUI = "tTorrent WebUI",
     PorlaWebUI = "Porla WebUI",
+    QNAPDownloadStationWebUI = "QNAP Download Station WebUI",
 }
 
 type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentWebUI;
@@ -36,6 +38,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.TransmissionWebUI]: TransmissionWebUI,
     [Client.TTorrentWebUI]: TTorrentWebUI,
     [Client.PorlaWebUI]: PorlaWebUI,
+    [Client.QNAPDownloadStationWebUI]: QNAPDownloadStationWebUI,
 };
 
 export class WebUIFactory {
