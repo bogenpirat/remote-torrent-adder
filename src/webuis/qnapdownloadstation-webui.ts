@@ -28,17 +28,15 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
             payload.append("user", this.settings.username);
             payload.append("pass", btoa(this.settings.password));
             fetch(loginUrl, { method: 'POST', body: payload })
-                .then(response =>
-                response.json()
-            ).then(json => {
-                if (json.error) {
-                    reject(new Error(json.error));
-                } else {
-                    resolve(json.sid);
-                }
-            }).catch(error => {
-                reject(error);
-            });
+                .then(async (response) => {
+                    const responseJson = await response.json();
+                    if (response.status === 200 && responseJson["sid"]) {
+                        resolve(responseJson["sid"]);
+                    }
+                    reject(new Error("Authentication failed"));
+                }).catch(error => {
+                    reject(error);
+                });
         });
     }
 
@@ -68,9 +66,9 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
     private sendRequest(url: string, fetchOptions: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
         this.fetch(url, fetchOptions).then(async (response) => {
             const responseText = await response.text();
-            if(response.status === 200) {
+            if (response.status === 200) {
                 const responseJson = JSON.parse(responseText);
-                switch(responseJson["error"]) {
+                switch (responseJson["error"]) {
                     case 0:
                     case 8196: // 8196 = "The task already exists"
                         resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
