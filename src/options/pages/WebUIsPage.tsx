@@ -162,10 +162,34 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
         </div>
       )}
       {webUiInstance?.isLabelSupported && (
-        <ChipList label="Labels" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
+        <>
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Label</label>
+            <input
+              type="text"
+              value={webui.defaultLabel ?? ""}
+              onChange={e => onChange({ ...webui, defaultLabel: e.target.value })}
+              style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 180 }}
+              placeholder="Default label"
+            />
+          </div>
+          <ChipList label="Labels for per-torrent selection" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
+        </>
       )}
       {webUiInstance?.isDirSupported && (
-        <ChipList label="Directories" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+        <>
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Directory</label>
+            <input
+              type="text"
+              value={webui.defaultDir ?? ""}
+              onChange={e => onChange({ ...webui, defaultDir: e.target.value })}
+              style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 180 }}
+              placeholder="Default directory"
+            />
+          </div>
+          <ChipList label="Directories for per-torrent selection" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+        </>
       )}
       {webUiInstance?.isLabelDirChooserSupported && (
         <AutoLabelDirSettingsEditor
