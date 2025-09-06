@@ -34,9 +34,9 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
                     if (response.status === 200 && responseJson["sid"]) {
                         resolve(responseJson["sid"]);
                     }
-                    reject(new Error("Authentication failed"));
+                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: "Authentication failed" });
                 }).catch(error => {
-                    reject(error);
+                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
                 });
         });
     }
