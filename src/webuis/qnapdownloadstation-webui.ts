@@ -6,7 +6,8 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         return new Promise(async (resolve, reject) => {
             this.fetchSessionId()
                 .then(sessionId => this.createTorrentFetchOptions(sessionId, torrent, config))
-                .then(fetchOptions => this.sendRequest(this.createAddingUrlForTorrent(torrent), fetchOptions, resolve, reject));
+                .then(fetchOptions => this.sendRequest(this.createAddingUrlForTorrent(torrent), fetchOptions, resolve, reject))
+                .catch(reject);
         });
     }
 
