@@ -74,13 +74,14 @@ const ComboBox = React.forwardRef<HTMLDivElement, ComboBoxProps>(
           <div
             className={cn(
               "absolute z-50 w-full mt-1 max-h-60 overflow-auto",
-              "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 border-2 border-cyan-400 shadow-lg rounded-lg"
+              // Use theme-aware background and border
+              "bg-popover border border-popover shadow-lg rounded-lg"
             )}
           >
             {options.map((option, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-cyan-900 hover:text-white transition-colors group"
+                className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
                 onClick={() => handleOptionSelect(option)}
               >
                 <span className="flex-1">{option}</span>
