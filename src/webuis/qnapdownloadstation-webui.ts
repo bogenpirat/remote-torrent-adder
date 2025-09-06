@@ -28,15 +28,17 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
             payload.append("user", this.settings.username);
             payload.append("pass", btoa(this.settings.password));
             fetch(loginUrl, { method: 'POST', body: payload })
-                .then(response => {
-                    const responseJson = response.json();
-                    if (response.status === 200 && responseJson["sid"]) {
-                        resolve(responseJson["sid"]);
-                    }
-                    reject(new Error("Authentication failed"));
-                }).catch(error => {
-                    reject(error);
-                });
+                .then(response =>
+                response.json()
+            ).then(json => {
+                if (json.error) {
+                    reject(new Error(json.error));
+                } else {
+                    resolve(json.sid);
+                }
+            }).catch(error => {
+                reject(error);
+            });
         });
     }
 
@@ -46,6 +48,7 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
             payload.append("sid", sessionId);
 
             if (this.getDirectory(config)) {
+                payload.append("temp", this.getDirectory(config));
                 payload.append("move", this.getDirectory(config));
             }
 
