@@ -55,7 +55,7 @@
         "tailwindcss-animate": "^1.0.7",
         "ts-loader": "^9.5.2",
         "typescript": "^5.8.3",
-        "vite": "^5.4.19"
+        "vite": "^5.4.20"
     },
     "dependencies": {
         "@radix-ui/react-select": "^2.2.5",
