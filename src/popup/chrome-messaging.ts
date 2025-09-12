@@ -20,10 +20,10 @@ function setPopupStateForMessage(message: IGetPreAddedTorrentAndSettingsResponse
 
     popupControl.torrent(torrent);
 
-    popupControl.label(message.autoLabelDirResult?.label || message.webUiSettings.defaultLabel || "");
+    popupControl.label(message.autoLabelDirResult?.label || message.webUiSettings.defaultLabel || getFirstEntry(message.webUiSettings.labels) || "");
     popupControl.labelOptions(message.webUiSettings.labels);
 
-    popupControl.directory(message.autoLabelDirResult?.directory || message.webUiSettings.defaultDir || "");
+    popupControl.directory(message.autoLabelDirResult?.directory || message.webUiSettings.defaultDir || getFirstEntry(message.webUiSettings.dirs) || "");
     popupControl.directoryOptions(message.webUiSettings.dirs);
 
     popupControl.autoDir(!!message.autoLabelDirResult?.directory);
@@ -59,4 +59,8 @@ function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torr
             });
         })
     });
+}
+
+function getFirstEntry(collection: Array<string>): string | null {
+    return collection && collection.length > 0 ? collection[0] : null;
 }
