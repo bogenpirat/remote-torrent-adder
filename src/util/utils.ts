@@ -14,3 +14,12 @@ export function clearListeners(listeners: RegisteredListeners): void {
 export function isMatchedByRegexes(url: string, regexes: RegExp[]): boolean {
     return regexes.some(regex => regex.test(url));
 }
+
+export function getBaseUrl(url: string): string {
+    try {
+        const u = new URL(url);
+        return u.origin;
+    } catch (e) {
+        return '';
+    }
+}
