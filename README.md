@@ -17,6 +17,7 @@ It supports the following BitTorrent clients:
 - Transmission
 - Porla (new!)
 - Tixati
+- QNAP DownloadStation
 
 ## How do i get it running?
 
