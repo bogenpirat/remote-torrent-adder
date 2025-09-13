@@ -50,6 +50,9 @@ function validateTorrentData(response: Response, data: string): void {
         } else {
             contentType = "unknown"
         }
+
+        console.error("Invalid torrent data received:", data);
+        
         throw new Error("Received " + contentType + " content instead of a .torrent file");
     }
 }
