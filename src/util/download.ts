@@ -21,13 +21,13 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
 
             const torrentBlob: Blob = await response.blob();
             const torrentData: string = await convertBlobToString(torrentBlob);
+            let decodedTorrentData: any;
             try {
-                validateTorrentData(response, torrentData);
+                decodedTorrentData = decodeTorrentDataAndValidate(response, torrentData);
             } catch (error) {
                 reject(error);
                 return;
-            }
-            const decodedTorrentData = bencode.decode(Buffer.from(torrentData, 'ascii'));
+            };
 
             resolve({
                 data: torrentBlob,
@@ -41,8 +41,10 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     });
 }
 
-function validateTorrentData(response: Response, data: string): void {
-    if (!data || data.length < 10 || !data.startsWith("d8:announce")) {
+function decodeTorrentDataAndValidate(response: Response, torrentData: string): any {
+    try {
+        return bencode.decode(Buffer.from(torrentData, 'ascii'));
+    } catch (error) {
         let contentType = response.headers.get("Content-Type");
         if (contentType) {
             const semicolonPos = contentType.indexOf(";");
@@ -50,6 +52,9 @@ function validateTorrentData(response: Response, data: string): void {
         } else {
             contentType = "unknown"
         }
-        throw new Error("Received " + contentType + " content instead of a .torrent file");
+
+        console.error("Invalid torrent data received", torrentData);
+
+        throw new Error("Received " + contentType + " instead of a torrent file. Please check the devtools view for details.");
     }
 }
