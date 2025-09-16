@@ -13,7 +13,6 @@ import {
     IUpdateActionBadgeTextMessage,
     TestNotificationMessage
 } from "../models/messages";
-import { RTASettings } from "../models/settings";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentAddingResult, TorrentWebUI, WebUISettings } from "../models/webui";
 import { updateBadgeText } from "./action";
@@ -22,6 +21,7 @@ import { downloadTorrent } from "./download";
 import { showNotification } from "./notifications";
 import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
+import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
 
 
@@ -212,7 +212,7 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: 
                             true,
                             settings.notificationsDurationMs,
                             settings.notificationsSoundEnabled,
-                            webUi.createBaseUrl());
+                            addTrailingSlash(webUi.createBaseUrl()));
             });
         } else {
             console.error("No WebUI found for addTorrentMessage:", message);
@@ -221,7 +221,7 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI, url: string, config: 
                         true,
                         settings.notificationsDurationMs,
                         settings.notificationsSoundEnabled,
-                        webUi.createBaseUrl());
+                        addTrailingSlash(webUi.createBaseUrl()));
         }
     });
 }
@@ -259,7 +259,7 @@ function getAutoLabelDirResultForConfig(torrent: Torrent, webUiSettings: WebUISe
 
 function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null) {
     new Settings().loadSettings().then(settings => {
-        const webUiUrl = webUi.createBaseUrl();
+        const webUiUrl = addTrailingSlash(webUi.createBaseUrl());
         webUi.sendTorrent(torrent, config).then((torrentAddingResult: TorrentAddingResult) => {
             console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
             if (settings.notificationsEnabled) {

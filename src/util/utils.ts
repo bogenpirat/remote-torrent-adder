@@ -14,3 +14,10 @@ export function clearListeners(listeners: RegisteredListeners): void {
 export function isMatchedByRegexes(url: string, regexes: RegExp[]): boolean {
     return regexes.some(regex => regex.test(url));
 }
+
+export function addTrailingSlash(url: string): string {
+    if (!url.endsWith("/")) {
+        return url + "/";
+    }
+    return url;
+}
