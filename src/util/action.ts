@@ -1,11 +1,12 @@
 import { TorrentWebUI } from "../models/webui";
+import { addTrailingSlash } from "./utils";
 
 
 export function registerClickActionForIcon(webUi: TorrentWebUI | null): (tab: chrome.tabs.Tab) => Promise<void> {
     const clickActionListener = async (tab: chrome.tabs.Tab) => {
         if (webUi) {
             await chrome.tabs.create({
-                url: webUi.createBaseUrl(),
+                url: addTrailingSlash(webUi.createBaseUrl()),
                 active: true,
             });
         }
