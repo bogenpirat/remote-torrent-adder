@@ -3,6 +3,8 @@ import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDec
 import { convertBlobToString } from "./converter";
 import bencode from "bencode";
 import { Buffer } from "buffer";
+import { executeMethodWrappedWithReferer } from "./cors-tricks";
+import { getBaseUrl } from "./utils";
 
 export async function downloadTorrent(url: string): Promise<Torrent> {
     return new Promise<Torrent>(async (resolve, reject) => {
@@ -11,7 +13,7 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
         } else {
             let response: Response;
             try {
-                response = await fetch(url);
+                response = await executeMethodWrappedWithReferer(() => fetch(url), url, getBaseUrl(url));
                 if (!response.ok) {
                     reject(new Error(`Status not OK: ${response.status} ${response.statusText}`));
                 }
