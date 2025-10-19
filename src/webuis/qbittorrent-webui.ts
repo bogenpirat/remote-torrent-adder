@@ -2,6 +2,11 @@ import { Torrent, TorrentUploadConfig } from "../models/torrent";
 import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QBittorrentWebUI extends TorrentWebUI {
+    // Default client-specific settings for qBittorrent
+    static override clientSpecificDefaults: Record<string, any> = {
+        // Force Start: when true, add torrent with force start mode
+        forceStart: false,
+    };
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         return new Promise((resolve, reject) => {
             const url = this.createBaseUrl() + "/api/v2/torrents/add";
@@ -61,6 +66,13 @@ export class QBittorrentWebUI extends TorrentWebUI {
 
             if (this.getAddPaused(config) !== null) {
                 fetchOpts["body"].append("stopped", this.getAddPaused(config).toString());
+            }
+
+            // qBittorrent supports a "force_start" parameter when adding torrents
+            const forceStart = this.getClientSpecificOrDefault<boolean>("forceStart");
+            if (forceStart) {
+                // API accepts 'force_start' as 'true' / 'false' or '1' / '0'
+                fetchOpts["body"].append("force_start", "true");
             }
 
             resolve(fetchOpts);

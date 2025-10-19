@@ -16,4 +16,6 @@ export interface TorrentUploadConfig {
     dir?: string;
     label?: string;
     addPaused?: boolean;
+    // Arbitrary per-client keys and values, implementations may read these when handling uploads
+    clientSpecificSettings?: Record<string, any>;
 }

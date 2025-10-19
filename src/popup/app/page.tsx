@@ -7,7 +7,7 @@ import { Toggle } from '../components/ui/toggle';
 import { Torrent } from '../../models/torrent';
 
 
-export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;
+export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[], clientSpecificSettings: Record<string, any>) => Promise<void>;
 
 // Initial options
 const initialLabelOptions = ['Movies', 'TV Shows', 'Music', 'Games', 'Software', 'Books']
@@ -25,6 +25,7 @@ export default function Home() {
   const [label, setLabel] = useState('')
   const [directory, setDirectory] = useState('')
   const [paused, setPaused] = useState(false)
+  const [clientSpecificSettings, setClientSpecificSettings] = useState<Record<string, any>>({});
 
   // Dynamic options state
   const [labelOptions, setLabelOptions] = useState(initialLabelOptions)
@@ -39,7 +40,7 @@ export default function Home() {
   const handleSubmit = () => {
     const augmentedLabels = label && !labelOptions.includes(label) ? [label, ...labelOptions] : labelOptions;
     const augmentedDirectories = directory && !directoryOptions.includes(directory) ? [directory, ...directoryOptions] : directoryOptions;
-    addTorrentCallback(webUi.id, torrent, label || null, directory || null, paused || false, augmentedLabels, augmentedDirectories).then(() => {
+    addTorrentCallback(webUi.id, torrent, label || null, directory || null, paused || false, augmentedLabels, augmentedDirectories, clientSpecificSettings).then(() => {
       window.close();
     });
   }
@@ -60,6 +61,7 @@ export default function Home() {
       paused: setShowPaused
     },
     webUiSettings: setWebUi,
+    clientSpecificSettings: setClientSpecificSettings,
     addTorrentCb: (callback: AddTorrentCallback) => {
       setAddTorrentCallback(() => callback);
     }
@@ -128,6 +130,28 @@ export default function Home() {
             />
           )}
 
+          {/* client-specific settings UI */}
+          {Object.keys(clientSpecificSettings || {}).map(key => {
+            const val = clientSpecificSettings[key];
+            if (typeof val === 'boolean') {
+              return (
+                <Toggle
+                  key={key}
+                  label={key}
+                  checked={!!val}
+                  onChange={(v) => setClientSpecificSettings(prev => ({ ...prev, [key]: v }))}
+                />
+              )
+            }
+            // default to text input for string/other
+            return (
+              <div key={key} className="space-y-1">
+                <label className="text-sm font-medium">{key}</label>
+                <input className="w-full rounded-md border" value={val ?? ''} onChange={e => setClientSpecificSettings(prev => ({ ...prev, [key]: e.target.value }))} />
+              </div>
+            )
+          })}
+
           <Button
             onClick={handleSubmit}
             className="w-full"
@@ -157,5 +181,6 @@ export interface FormControl {
     paused: (visible: boolean) => void;
   };
   webUiSettings: (webUiSettings: WebUISettings) => void;
+  clientSpecificSettings: (settings: Record<string, any>) => void;
   addTorrentCb: (callback: AddTorrentCallback) => void;
 }

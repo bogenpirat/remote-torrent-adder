@@ -36,11 +36,13 @@ function setPopupStateForMessage(message: IGetPreAddedTorrentAndSettingsResponse
     popupControl.visibility.paused(webUi.isAddPausedSupported);
 
     popupControl.webUiSettings(message.webUiSettings);
+    // initialize client-specific settings for this web UI in the popup
+    popupControl.clientSpecificSettings({ ...(message.webUiSettings.clientSpecificSettings || {}) });
 
     popupControl.addTorrentCb(sendAddTorrentAndLabelDirSettingsMessage);
 }
 
-function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]): Promise<void> {
+function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[], clientSpecificSettings: Record<string, any>): Promise<void> {
     return new Promise((resolve, reject) => {
         convertTorrentToSerialized(torrent).then((serializedTorrent: SerializedTorrent) => {
             chrome.runtime.sendMessage({
@@ -51,6 +53,7 @@ function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torr
                     label,
                     dir,
                     addPaused: paused,
+                    clientSpecificSettings: clientSpecificSettings || {}
                 } as TorrentUploadConfig,
                 labels: labelOptions,
                 directories: directoryOptions

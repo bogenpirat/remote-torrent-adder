@@ -201,9 +201,39 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
           dirs={webui.dirs}
         />
       )}
-      {/* <div style={{ marginTop: 16, color: "var(--rta-text-muted, #888)" }}>
-        <div><b>ClientSpecificSettings:</b> <span>TODO: implement</span></div>
-      </div> */}
+      {/* Client-specific settings editor (uses defaults declared by the concrete WebUI class) */}
+      <div style={{ marginTop: 16 }}>
+        <label style={{ fontWeight: 600, display: "block", marginBottom: 8 }}>Client-specific settings</label>
+        <div style={{ color: "var(--rta-text-muted, #888)", padding: 8, borderRadius: 8, border: "1px dashed var(--rta-border, #b7c9a7)" }}>
+          {(() => {
+            const ctor = (webUiInstance?.constructor as any) || {};
+            const defaults: Record<string, any> = ctor.clientSpecificDefaults || {};
+            const stored: Record<string, any> = webui.clientSpecificSettings || {};
+            const keys = Array.from(new Set([...Object.keys(defaults), ...Object.keys(stored)]));
+            if (keys.length === 0) {
+              return <div style={{ color: "var(--rta-text-muted, #888)" }}>No client-specific settings declared for this client.</div>;
+            }
+            return keys.map(key => {
+              const def = defaults[key];
+              const val = stored[key] !== undefined ? stored[key] : def;
+              const type = def !== undefined ? typeof def : typeof val;
+              if (type === 'boolean') {
+                return (
+                  <div key={key} style={{ marginBottom: 8 }}>
+                    <Toggle checked={!!val} onChange={v => onChange({ ...webui, clientSpecificSettings: { ...(webui.clientSpecificSettings || {}), [key]: v } })} label={key} />
+                  </div>
+                );
+              }
+              return (
+                <div key={key} style={{ marginBottom: 8 }}>
+                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>{key}</label>
+                  <input type="text" value={val ?? ''} onChange={e => onChange({ ...webui, clientSpecificSettings: { ...(webui.clientSpecificSettings || {}), [key]: e.target.value } })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 180 }} />
+                </div>
+              );
+            });
+          })()}
+        </div>
+      </div>
     </div>
   );
 }
