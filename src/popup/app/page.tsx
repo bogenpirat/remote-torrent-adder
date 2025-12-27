@@ -37,8 +37,8 @@ export default function Home() {
 
 
   const handleSubmit = () => {
-    const augmentedLabels = label && !labelOptions.includes(label) ? [label, ...labelOptions] : labelOptions;
-    const augmentedDirectories = directory && !directoryOptions.includes(directory) ? [directory, ...directoryOptions] : directoryOptions;
+    const augmentedLabels = [label, ...labelOptions.filter(x => x !== label)];
+    const augmentedDirectories = [directory, ...directoryOptions.filter(x => x !== directory)];
     addTorrentCallback(webUi.id, torrent, label || null, directory || null, paused || false, augmentedLabels, augmentedDirectories).then(() => {
       window.close();
     });
