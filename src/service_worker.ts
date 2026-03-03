@@ -6,7 +6,7 @@ import { registerMessageListener } from './util/messaging';
 import { registerClickActionForIcon } from './util/action';
 import { initiateWebUis } from './util/webuis';
 import { RegisteredListeners } from './models/messages';
-import { clearListeners } from './util/utils';
+import { clearDynamicRules, clearListeners } from './util/utils';
 import { registerCorsCircumventionForWebUis } from './util/cors-tricks';
 
 
@@ -40,3 +40,7 @@ async function registerEverything(settings: RTASettings): Promise<void> {
 
     console.debug("Reloaded service worker context", { listeners, settings });
 }
+
+chrome.runtime.onStartup.addListener(() => {
+    clearDynamicRules();
+});

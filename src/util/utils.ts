@@ -30,3 +30,14 @@ export function addTrailingSlash(url: string): string {
     }
     return url;
 }
+
+export function clearDynamicRules(): void {
+    chrome.declarativeNetRequest.getDynamicRules().then(rules => {
+        const ruleIds = rules.map(rule => rule.id);
+        if (ruleIds.length > 0) {
+            chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: ruleIds
+            });
+        }
+    });
+}
