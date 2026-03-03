@@ -67,7 +67,7 @@ export function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url
             } catch (error) {
                 reject(error);
             } finally {
-                chrome.declarativeNetRequest.updateSessionRules({
+                chrome.declarativeNetRequest.updateDynamicRules({
                     removeRuleIds: [refererSetterRuleId],
                 });
             }
