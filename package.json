@@ -48,7 +48,7 @@
         "lucide-react": "^0.534.0",
         "postcss": "^8.0.0",
         "rimraf": "^6.0.1",
-        "rollup": "^4.45.0",
+        "rollup": "^4.59.0",
         "rollup-plugin-copy": "^3.5.0",
         "tailwind-merge": "^3.3.1",
         "tailwindcss": "^3.4.17",
