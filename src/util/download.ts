@@ -1,5 +1,5 @@
 import { Torrent } from "../models/torrent";
-import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDecodedTorrentData, parseNameFromDecodedTorrentData, parsePrivateFlagFromDecodedTorrentData, parseTrackersFromDecodedTorrentData } from "./parsers";
+import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDecodedTorrentData, parseNameFromDecodedTorrentData, parsePrivateFlagFromDecodedTorrentData, parseTrackersFromDecodedTorrentData, parseTrackersFromMagnetLink } from "./parsers";
 import { convertBlobToString } from "./converter";
 import bencode from "bencode";
 import { Buffer } from "buffer";
@@ -9,7 +9,12 @@ import { getBaseUrl } from "./utils";
 export async function downloadTorrent(url: string): Promise<Torrent> {
     return new Promise<Torrent>(async (resolve, reject) => {
         if (url.substring(0, 7) == "magnet:") {
-            resolve({ data: url, name: getTorrentNameFromMagnetLink(url), isMagnet: true });
+            resolve({
+                data: url,
+                name: getTorrentNameFromMagnetLink(url),
+                isMagnet: true,
+                trackers: parseTrackersFromMagnetLink(url)
+            });
         } else {
             let response: Response;
             try {

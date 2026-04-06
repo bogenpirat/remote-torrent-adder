@@ -1,8 +1,11 @@
 const FALLBACK_TORRENT_NAME = "file.torrent";
 
 export function getTorrentNameFromMagnetLink(magnetLink: string): string {
-    const nameMatch = magnetLink.match(/dn=([^&]+)/);
-    return nameMatch ? decodeURIComponent(nameMatch[1]).replace(/\+/g, ' ') : "Some magnet link you clicked there, buddy.";
+    return getMagnetParamValues(magnetLink, "dn")[0] ?? "Some magnet link you clicked there, buddy.";
+}
+
+export function parseTrackersFromMagnetLink(magnetLink: string): string[] {
+    return getMagnetParamValues(magnetLink, "tr");
 }
 
 export function getTorrentNameFromLink(url: string): string {
@@ -51,4 +54,40 @@ export function parsePrivateFlagFromDecodedTorrentData(data: any): boolean {
         return data["info"]["private"] === 1;
     }
     return false;
+}
+
+function getMagnetParamValues(magnetLink: string, paramName: string): string[] {
+    const queryStartIndex = magnetLink.indexOf("?");
+    if (queryStartIndex === -1) {
+        return [];
+    }
+
+    const values = new Set<string>();
+    const query = magnetLink.slice(queryStartIndex + 1);
+    for (const pair of query.split("&")) {
+        if (!pair) {
+            continue;
+        }
+
+        const [rawKey, ...rawValueParts] = pair.split("=");
+        if (rawKey !== paramName) {
+            continue;
+        }
+
+        const value = decodeMagnetParamValue(rawValueParts.join("="));
+        if (value) {
+            values.add(value);
+        }
+    }
+
+    return Array.from(values);
+}
+
+function decodeMagnetParamValue(value: string): string {
+    const normalizedValue = value.replace(/\+/g, " ");
+    try {
+        return decodeURIComponent(normalizedValue).trim();
+    } catch {
+        return normalizedValue.trim();
+    }
 }
