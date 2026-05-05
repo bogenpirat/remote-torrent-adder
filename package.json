@@ -29,15 +29,15 @@
         "dev": "npm run build && concurrently \"npm run watch:assets\" \"npm run watch:rollup\""
     },
     "devDependencies": {
-        "@rollup/plugin-commonjs": "^28.0.6",
-        "@rollup/plugin-node-resolve": "^16.0.1",
+        "@rollup/plugin-commonjs": "^29.0.2",
+        "@rollup/plugin-node-resolve": "^16.0.3",
         "@rollup/plugin-terser": "^1.0.0",
-        "@rollup/plugin-typescript": "^12.1.4",
+        "@rollup/plugin-typescript": "^12.3.0",
         "@types/bencode": "^2.0.4",
         "@types/chrome": "^0.1.0",
-        "@types/react": "^18.0.0",
-        "@types/react-dom": "^18.0.0",
-        "@vitejs/plugin-react": "^4.7.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@vitejs/plugin-react": "^5.2.0",
         "autoprefixer": "^10.4.21",
         "chokidar-cli": "^3.0.0",
         "class-variance-authority": "^0.7.1",
@@ -46,23 +46,23 @@
         "cpy-cli": "^5.0.0",
         "cross-env": "^10.0.0",
         "lucide-react": "^0.534.0",
-        "postcss": "^8.0.0",
+        "postcss": "^8.5.14",
         "rimraf": "^6.0.1",
-        "rollup": "^4.59.0",
+        "rollup": "^4.60.3",
         "rollup-plugin-copy": "^3.5.0",
         "tailwind-merge": "^3.3.1",
         "tailwindcss": "^3.4.17",
         "tailwindcss-animate": "^1.0.7",
         "ts-loader": "^9.5.2",
         "typescript": "^5.8.3",
-        "vite": "^5.4.21"
+        "vite": "^8.0.10"
     },
     "dependencies": {
-        "@radix-ui/react-select": "^2.2.5",
-        "@radix-ui/react-slot": "^1.2.3",
+        "@radix-ui/react-select": "^2.2.6",
+        "@radix-ui/react-slot": "^1.2.4",
         "bencode": "^4.0.0",
         "buffer": "^6.0.3",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react": "^19.2.5",
+        "react-dom": "^19.2.5"
     }
 }
