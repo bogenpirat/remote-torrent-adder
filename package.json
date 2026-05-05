@@ -46,7 +46,7 @@
         "cpy-cli": "^5.0.0",
         "cross-env": "^10.0.0",
         "lucide-react": "^0.534.0",
-        "postcss": "^8.0.0",
+        "postcss": "^8.5.14",
         "rimraf": "^6.0.1",
         "rollup": "^4.59.0",
         "rollup-plugin-copy": "^3.5.0",
