@@ -19,7 +19,7 @@ export default defineConfig({
   build: {
     outDir: `../../${distDir}/notifications`,
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: path.resolve(__dirname, 'src/notifications/offscreen.html')
     }
   },

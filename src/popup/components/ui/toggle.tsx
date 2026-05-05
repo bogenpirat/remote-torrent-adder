@@ -7,10 +7,10 @@ interface ToggleProps {
   label?: string
   className?: string
   disabled?: boolean
+  ref?: React.Ref<HTMLButtonElement>
 }
 
-const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
-  ({ checked, onChange, label, className, disabled = false }, ref) => {
+function Toggle({ checked, onChange, label, className, disabled = false, ref }: ToggleProps) {
     const handleToggle = () => {
       if (!disabled) {
         onChange(!checked)
@@ -57,8 +57,7 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
         </button>
       </div>
     )
-  }
-)
+}
 
 Toggle.displayName = "Toggle"
 

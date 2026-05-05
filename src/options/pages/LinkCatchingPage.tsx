@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, type JSX } from "react";
 import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
 
