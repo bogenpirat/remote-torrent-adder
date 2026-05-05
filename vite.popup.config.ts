@@ -25,7 +25,7 @@ export default defineConfig({
   build: {
     outDir: `../../${distDir}/popup`,
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: path.resolve(__dirname, 'src/popup/popup.html')
     }
   },

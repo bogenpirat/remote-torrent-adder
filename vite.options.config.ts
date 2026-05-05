@@ -19,7 +19,7 @@ export default defineConfig({
   build: {
     outDir: `../../${distDir}/options`,
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: path.resolve(__dirname, 'src/options/options.html')
     }
   },
