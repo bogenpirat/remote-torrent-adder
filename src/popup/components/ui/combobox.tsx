@@ -10,10 +10,10 @@ interface ComboBoxProps {
   label?: string
   className?: string
   rainbowOutline?: boolean
+  ref?: React.Ref<HTMLDivElement>
 }
 
-const ComboBox = React.forwardRef<HTMLDivElement, ComboBoxProps>(
-  ({ options, value, onChange, onRemoveOption, placeholder = "Select or type...", label, className, rainbowOutline = false }, ref) => {
+function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Select or type...", label, className, rainbowOutline = false, ref }: ComboBoxProps) {
     const [isOpen, setIsOpen] = React.useState(false)
 
     // Check if current value is a new option (not in the options list)
@@ -100,8 +100,7 @@ const ComboBox = React.forwardRef<HTMLDivElement, ComboBoxProps>(
         )}
       </div>
     )
-  }
-)
+}
 
 ComboBox.displayName = "ComboBox"
 
