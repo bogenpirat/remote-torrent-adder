@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { useSettings } from "../SettingsContext";
 import { serializeSettings, deserializeSettings } from "../../util/serializer";
 

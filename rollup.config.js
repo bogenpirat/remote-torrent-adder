@@ -21,7 +21,7 @@ export default [
         plugins: [
             resolve({ browser: true, preferBuiltins: false }),
             commonjs(),
-            typescript({ tsconfig: './tsconfig.json' }),
+            typescript({ tsconfig: './tsconfig.rollup.json' }),
             ...(isProd ? [terser()] : [])
         ]
     },
@@ -37,7 +37,7 @@ export default [
         plugins: [
             resolve({ browser: true, preferBuiltins: false }),
             commonjs(),
-            typescript({ tsconfig: './tsconfig.json' }),
+            typescript({ tsconfig: './tsconfig.rollup.json' }),
             copy({
                 targets: [
                     { src: 'src/**/*.{json,html,css,png,svg,ogg}', dest: distDir }
