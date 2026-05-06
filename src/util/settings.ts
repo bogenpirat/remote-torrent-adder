@@ -20,7 +20,7 @@ export class Settings {
 
     public loadSettings(): Promise<RTASettings> {
         return new Promise((resolve) => {
-            chrome.storage.local.get([SETTINGS_KEY], async (response) => {
+            chrome.storage.local.get([SETTINGS_KEY], async (response: Record<string, string>) => {
                 console.debug("Loaded serialized RTAv2 settings:", response);
                 if (!response[SETTINGS_KEY]) {
                     const convertedLegacySettings = await convertLegacySettingsToRTASettings();

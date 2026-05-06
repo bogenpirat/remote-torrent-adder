@@ -34,7 +34,7 @@
         "@rollup/plugin-terser": "^1.0.0",
         "@rollup/plugin-typescript": "^12.3.0",
         "@types/bencode": "^2.0.4",
-        "@types/chrome": "^0.1.0",
+        "@types/chrome": "^0.1.40",
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
         "@vitejs/plugin-react": "^5.2.0",
