@@ -27,7 +27,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 },
                 body: authenticationBody
             }).then(response => {
-                if (response.status == 200) {
+                if (response.ok) {
                     resolve();
                 } else {
                     reject(new Error("Authentication failed"));
