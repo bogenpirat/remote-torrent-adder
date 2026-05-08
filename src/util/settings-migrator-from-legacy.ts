@@ -8,7 +8,7 @@ import { generateId } from "./utils";
 
 export async function convertLegacySettingsToRTASettings(): Promise<RTASettings | null> {
     return new Promise((resolve) => {
-        chrome.storage.local.get(["showpopups", "popupduration", "hearpopups", "catchfrompage", "linkmatches", "registerDelay", "catchfromnewtab", "servers"], async (response) => {
+        chrome.storage.local.get(["showpopups", "popupduration", "hearpopups", "catchfrompage", "linkmatches", "registerDelay", "catchfromnewtab", "servers"], async (response: Record<string, string>) => {
             if (Object.keys(response).length === 0) {
                 console.log("Failed to convert legacy settings: No old settings found.", response);
                 resolve(null);
@@ -17,10 +17,10 @@ export async function convertLegacySettingsToRTASettings(): Promise<RTASettings 
 
             const defaults = getDefaultSettings();
             const newSettings: RTASettings = {
-                notificationsEnabled: JSON.parse(response["showpopups"] ?? defaults.notificationsEnabled),
-                notificationsDurationMs: parseInt(response["popupduration"] ?? defaults.notificationsDurationMs, 10),
-                notificationsSoundEnabled: JSON.parse(response["hearpopups"] ?? defaults.notificationsSoundEnabled),
-                linkCatchingEnabled: JSON.parse(response["catchfrompage"] ?? defaults.linkCatchingEnabled),
+                notificationsEnabled: JSON.parse(response["showpopups"] ?? String(defaults.notificationsEnabled)),
+                notificationsDurationMs: parseInt(response["popupduration"] ?? String(defaults.notificationsDurationMs), 10),
+                notificationsSoundEnabled: JSON.parse(response["hearpopups"] ?? String(defaults.notificationsSoundEnabled)),
+                linkCatchingEnabled: JSON.parse(response["catchfrompage"] ?? String(defaults.linkCatchingEnabled)),
                 linkCatchingRegexes: parseLinkMatches(response["linkmatches"]),
                 webuiSettings: parseServers(response["servers"]),
             };

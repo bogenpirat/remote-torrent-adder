@@ -57,13 +57,20 @@ export abstract class TorrentWebUI {
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
 
     createBaseUrl(): string {
+        let portPart: string;
+        if(this.settings.secure && this._settings.port == 443) {
+            portPart = "";
+        } else if(!this.settings.secure && this._settings.port == 80) {
+            portPart = "";
+        } else {
+            portPart = `:${this._settings.port}`;
+        }
         return [
             "http",
             this.settings.secure ? "s" : "",
             "://",
             this.settings.host,
-            ":",
-            this.settings.port ?? (this.settings.secure ? "443" : "80"),
+            portPart,
             this.settings.relativePath ? this.addLeadingAndTrimTrailingSlashes(this.settings.relativePath) : "",
         ].join("");
     }

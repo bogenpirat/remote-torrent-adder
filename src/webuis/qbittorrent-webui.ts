@@ -10,6 +10,9 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 .then(() => this.createTorrentFetchOptions(torrent, config))
                 .then(fetchOpts => {
                     this.sendRequest(url, fetchOpts, resolve, reject);
+                })
+                .catch(error => {
+                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
                 });
         });
     }
@@ -27,7 +30,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 },
                 body: authenticationBody
             }).then(response => {
-                if (response.status == 200) {
+                if (response.status == 200 || response.status == 204) {
                     resolve();
                 } else {
                     reject(new Error("Authentication failed"));
