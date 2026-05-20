@@ -1,0 +1,22 @@
+name: Type-check after WebUI client edit
+description: Run TypeScript type-check whenever a client implementation or model file is saved, to catch interface mismatches early.
+on:
+  fileEdited:
+    include:
+      - "src/webuis/**/*.ts"
+      - "src/models/**/*.ts"
+steps:
+  - prompt: |
+      A client implementation or model file was just edited. Run a TypeScript type-check to catch any interface mismatches:
+
+      ```
+      npx tsc --noEmit -p tsconfig.rollup.json
+      ```
+
+      If there are errors, explain what's wrong and suggest the fix. Common issues:
+      - Missing abstract method implementations (isLabelSupported, isDirSupported, isAddPausedSupported, sendTorrent)
+      - Return type mismatch in sendTorrent (must return TorrentAddingResult)
+      - New client class not registered in ClientClassByClient map in src/models/clients.ts
+      - Import path errors
+
+      If the type-check passes, briefly confirm it's clean. Do not make any changes unless there are errors.
