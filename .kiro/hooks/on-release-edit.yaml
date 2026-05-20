@@ -1,0 +1,16 @@
+name: Sync versions after manifest or package edit
+description: When package.json or manifest.json is edited, verify that version numbers stay in sync between both files.
+on:
+  fileEdited:
+    include:
+      - "package.json"
+      - "src/manifest.json"
+steps:
+  - prompt: |
+      Either package.json or src/manifest.json was just edited. Check that the "version" field is identical in both files:
+      - Read package.json → "version"
+      - Read src/manifest.json → "version"
+
+      If they match: confirm they are in sync. No action needed.
+
+      If they don't match: this is a problem — report the mismatch and which file needs to be updated to match the other. The convention is that both files must always have the same version string. Ask the user which version is correct before making any changes.
