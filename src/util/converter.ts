@@ -1,8 +1,7 @@
 export function convertToBinary(payload: string): Uint8Array {
 	// TODO: note to self: to use this with a fetch() call, set Content-Type to application/octet-stream
-	var ordinals = Array.prototype.map.call(payload, byteValue);
-	var uint8Array = new Uint8Array(ordinals);
-	return uint8Array.buffer;
+	var ordinals = Array.prototype.map.call(payload, byteValue) as number[];
+	return new Uint8Array(ordinals);
 }
 
 function byteValue(x: string): number {
@@ -15,7 +14,7 @@ export async function convertBlobToString(blob: Blob): Promise<string> {
 	const chunksize = 0x8000;
 	const chunks = [];
 	for (let i = 0; i < ui8a.length; i += chunksize) {
-		chunks.push(String.fromCharCode.apply(null, ui8a.subarray(i, i + chunksize)));
+		chunks.push(String.fromCharCode(...Array.from(ui8a.subarray(i, i + chunksize))));
 	}
 	return Promise.resolve(chunks.join(""));
 }

@@ -11,13 +11,13 @@ export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: stri
 
 // Initial options
 const initialLabelOptions = ['Movies', 'TV Shows', 'Music', 'Games', 'Software', 'Books']
-const initialDirectoryOptions = []
+const initialDirectoryOptions: string[] = []
 
 export default function Home() {
-  const [webUi, setWebUi] = useState(null)
+  const [webUi, setWebUi] = useState<WebUISettings | null>(null)
   const [addTorrentCallback, setAddTorrentCallback] = useState<AddTorrentCallback | null>(null);
 
-  const [torrent, setTorrent] = useState<Torrent>(null)
+  const [torrent, setTorrent] = useState<Torrent | null>(null)
 
   const [autoLabeled, setAutoLabeled] = useState(false)
   const [autoDir, setAutoDir] = useState(false)
@@ -39,7 +39,7 @@ export default function Home() {
   const handleSubmit = () => {
     const augmentedLabels = [label, ...labelOptions.filter(x => x !== label)];
     const augmentedDirectories = [directory, ...directoryOptions.filter(x => x !== directory)];
-    addTorrentCallback(webUi.id, torrent, label || null, directory || null, paused || false, augmentedLabels, augmentedDirectories).then(() => {
+    addTorrentCallback!(webUi!.id, torrent!, label, directory, paused, augmentedLabels, augmentedDirectories).then(() => {
       window.close();
     });
   }

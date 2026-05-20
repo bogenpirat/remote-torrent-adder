@@ -13,11 +13,13 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     numFoundLinks = 0;
     chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
     chrome.runtime.sendMessage(GetSettingsMessage, function (serializedSettings: string) {
-        const settings: RTASettings = deserializeSettings(serializedSettings);
+        const settings = deserializeSettings(serializedSettings);
         console.debug("Received settings from background script:", settings);
-        if (!settings && attemptNumber < 3) {
-            console.warn("Service worker might've been asleep. Retrying to load settings...");
-            loadSettingsAndRegisterActions(attemptNumber + 1);
+        if (!settings) {
+            if (attemptNumber < 3) {
+                console.warn("Service worker might've been asleep. Retrying to load settings...");
+                loadSettingsAndRegisterActions(attemptNumber + 1);
+            }
             return;
         }
 
@@ -46,7 +48,7 @@ function registerForms(linkRegexes: RegExp[]): void {
 }
 
 function isMagnetLink(url: string): boolean {
-    return url && url.startsWith && url.startsWith('magnet:');
+    return url.startsWith('magnet:');
 }
 
 function incrementCounter(): void {
@@ -56,12 +58,13 @@ function incrementCounter(): void {
 function registerAction(element: Element, url: string): void {
     incrementCounter();
     console.debug(`Registered action for element: ${element.tagName}, URL: ${url}`);
-    element.addEventListener('click', (event: MouseEvent) => {
-        if (event.ctrlKey || event.shiftKey || event.altKey) {
+    element.addEventListener('click', (event: Event) => {
+        const mouseEvent = event as MouseEvent;
+        if (mouseEvent.ctrlKey || mouseEvent.shiftKey || mouseEvent.altKey) {
             console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");
             return;
         }
-        event.preventDefault();
+        mouseEvent.preventDefault();
         console.debug("Clicked form input");
 
         chrome.runtime.sendMessage({ action: PreAddTorrentMessage.action, url: url } as IPreAddTorrentMessage);

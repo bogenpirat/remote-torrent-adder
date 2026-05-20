@@ -18,7 +18,7 @@ export class DelugeWebUI extends TorrentWebUI {
             }
 
             if (config.label) {
-                latestPromise = latestPromise.then(result => this.setLabelForUploadedTorrent(result.httpResponseBody, config.label.toLowerCase()));
+                latestPromise = latestPromise.then(result => this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", config.label!.toLowerCase()));
             }
 
             latestPromise
@@ -85,7 +85,7 @@ export class DelugeWebUI extends TorrentWebUI {
                             path: uploadedFilePathOrMagnetLink,
                             options: {
                                 add_paused: this.getAddPaused(config),
-                            }
+                            } as Record<string, unknown>
                         }
                     ]
                 ],

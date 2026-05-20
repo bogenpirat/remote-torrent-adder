@@ -61,7 +61,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
             const preAddTorrentMessage: IPreAddTorrentMessage = {
                 action: PreAddTorrentMessage.action,
                 webUiId: webUis[0].settings.id,
-                url: onClickData.linkUrl
+                url: onClickData.linkUrl ?? ""
             };
             dispatchPreAddTorrent(preAddTorrentMessage, tab.windowId);
         } else {
@@ -69,8 +69,8 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
                 const addTorrentMessage: IAddTorrentMessage = {
                     action: AddTorrentMessage.action,
                     webUiId: webUi.settings.id,
-                    url: onClickData.linkUrl,
-                    config: null
+                    url: onClickData.linkUrl ?? "",
+                    config: {}
                 };
                 dispatchPreAddTorrent(addTorrentMessage, tab.windowId);
             });

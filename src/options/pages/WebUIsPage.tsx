@@ -134,7 +134,7 @@ function WebUIEditor({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIE
           <input type="text" value={webui.relativePath || ""} onChange={e => onChange({ ...webui, relativePath: e.target.value })} style={{ fontSize: 15, borderRadius: 8, padding: "6px 12px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }} />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, color: "var(--rta-text-muted, #888)" }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, color: "var(--rta-text-muted, #888)" }}>Base URL for API calls: {webUiInstance?.createBaseUrl()}</div>
       {/* Username + Password */}
       <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
         <div>

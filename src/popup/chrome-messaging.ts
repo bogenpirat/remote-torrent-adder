@@ -31,9 +31,9 @@ function setPopupStateForMessage(message: IGetPreAddedTorrentAndSettingsResponse
 
     popupControl.paused(message.webUiSettings.addPaused);
 
-    popupControl.visibility.directory(webUi.isDirSupported);
-    popupControl.visibility.label(webUi.isLabelSupported);
-    popupControl.visibility.paused(webUi.isAddPausedSupported);
+    popupControl.visibility.directory(webUi?.isDirSupported ?? false);
+    popupControl.visibility.label(webUi?.isLabelSupported ?? false);
+    popupControl.visibility.paused(webUi?.isAddPausedSupported ?? false);
 
     popupControl.webUiSettings(message.webUiSettings);
 

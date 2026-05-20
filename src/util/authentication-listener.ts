@@ -1,7 +1,7 @@
 import { TorrentWebUI } from "../models/webui";
 
 
-const onAuthListeners = [];
+const onAuthListeners: ((details: chrome.webRequest.OnAuthRequiredDetails) => chrome.webRequest.BlockingResponse)[] = [];
 var triedRequestIds: Set<string> = new Set();
 
 export function registerAuthenticationListenersForAllWebUis(allWebUis: TorrentWebUI[]): void {

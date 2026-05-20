@@ -21,7 +21,7 @@ export class TransmissionWebUI extends TorrentWebUI {
                 body: ""
             }).then(response => {
                 if (response.status == 200 || response.status == 409) {
-                    const sessionId = response.headers.get("X-Transmission-Session-Id");
+                    const sessionId = response.headers.get("X-Transmission-Session-Id") ?? "";
                     resolve(sessionId);
                 } else {
                     reject(new Error("Authentication failed"));
@@ -56,12 +56,14 @@ export class TransmissionWebUI extends TorrentWebUI {
                 };
             }
 
-            if (this.getDirectory(config)) {
-                payload["arguments"]["download-dir"] = this.getDirectory(config);
+            const dir = this.getDirectory(config);
+            if (dir) {
+                payload["arguments"]["download-dir"] = dir;
             }
 
-            if (this.getAddPaused(config) !== null) {
-                payload["arguments"]["paused"] = this.getAddPaused(config).toString();
+            const addPaused = this.getAddPaused(config);
+            if (addPaused !== null) {
+                payload["arguments"]["paused"] = addPaused.toString();
             }
 
             fetchOpts["body"] = JSON.stringify(payload);

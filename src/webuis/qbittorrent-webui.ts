@@ -54,16 +54,19 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 fetchOpts["body"].append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
             }
 
-            if (this.getDirectory(config)) {
-                fetchOpts["body"].append("savepath", this.getDirectory(config));
+            const dir = this.getDirectory(config);
+            if (dir) {
+                fetchOpts["body"].append("savepath", dir);
             }
 
-            if (this.getLabel(config)) {
-                fetchOpts["body"].append("category", this.getLabel(config));
+            const label = this.getLabel(config);
+            if (label) {
+                fetchOpts["body"].append("category", label);
             }
 
-            if (this.getAddPaused(config) !== null) {
-                fetchOpts["body"].append("stopped", this.getAddPaused(config).toString());
+            const addPaused = this.getAddPaused(config);
+            if (addPaused !== null) {
+                fetchOpts["body"].append("stopped", addPaused.toString());
             }
 
             resolve(fetchOpts);

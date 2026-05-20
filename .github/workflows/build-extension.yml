@@ -6,7 +6,25 @@ on:
       - '**'
 
 jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Type check (Vite targets)
+        run: npx tsc --noEmit
+      - name: Type check (Rollup targets)
+        run: npx tsc --noEmit -p tsconfig.rollup.json
+
   build-dev:
+    needs: typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,6 +46,7 @@ jobs:
 
   build-prod:
     if: github.ref == 'refs/heads/master'
+    needs: typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
