@@ -22,9 +22,47 @@ Supported clients: ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementum, Tr
 
 **Build system**: Three separate Vite builds (popup, options, notifications) + Rollup for service worker and content script. Output: `dist/` (dev), `dist-prod/` (prod).
 
+## Intermediate Documentation (`/.tmp/`)
+
+Agents and skills **must** write intermediate findings, analysis, and summaries to `.tmp/<slug>-<date>.md` before (or alongside) making code changes. This folder is gitignored — it is a session-scoped scratchpad, not a permanent record.
+
+### When to write a `.tmp/` file
+
+| Situation | What to write |
+|---|---|
+| Pre-change analysis (type errors, lint output, audit findings) | Full error list, categorized, with file:line references |
+| Post-change summary | Files changed, what was fixed and why, any deferred items |
+| Diagnostic session (debug-client) | Failure mode, root cause, steps tried, fix applied |
+| Code review (code-reviewer) | Checklist results, issues found, severity |
+| Security review | Findings per category, pass/fail, recommended actions |
+
+### Naming convention
+
+```
+.tmp/<task>-<YYYY-MM-DD>.md
+```
+
+Examples: `.tmp/strict-types-2026-05-20.md`, `.tmp/debug-qbittorrent-2026-05-21.md`, `.tmp/review-pr-42-2026-05-22.md`
+
+### File structure
+
+```markdown
+# <Task Title>
+**Date**: YYYY-MM-DD  **Branch**: <branch>
+
+## Summary
+One paragraph of what was done and the outcome.
+
+## Findings / Changes
+Detailed list — errors fixed, files touched, decisions made.
+
+## Deferred / Follow-up
+Anything intentionally left out and why.
+```
+
 ## Key Conventions
 
-- TypeScript (strict mode **off**), React 19, Tailwind CSS
+- TypeScript (**strict mode on**), React 19, Tailwind CSS
 - `TorrentWebUI` subclasses named `<Name>WebUI` in `src/webuis/<name>-webui.ts`
 - Service worker is **stateless** (MV3) — all state goes to `chrome.storage.local`
 - Use `this.fetch()` (base class wrapper) for HTTP — it throws on non-OK responses

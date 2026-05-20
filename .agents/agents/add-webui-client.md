@@ -133,6 +133,10 @@ await this.fetch(`${this.createBaseUrl()}/api/endpoint`, {
 ### Split branches by magnet vs file — see `flood-webui.ts`, `deluge-webui.ts`, `rutorrent-webui.ts`
 Different endpoints or payload shapes for `torrent.isMagnet === true` vs `false`. Branch in `sendTorrent` itself; do not try to unify.
 
+## Output
+
+After completing the implementation, save a summary to `.tmp/add-client-<clientname>-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include: files created/modified, authentication pattern used, feature flags (`isLabelSupported` etc.), and anything deferred.
+
 ## Notes
 
 - The CORS bypass (removing Origin, setting Referer) is applied automatically by `cors-tricks.ts` for each configured WebUI — you don't need to handle this in the client class.

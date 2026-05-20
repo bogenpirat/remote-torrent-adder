@@ -78,3 +78,5 @@ Project-specific security checklist for Remote Torrent Adder. The built-in `/sec
 ## Reporting
 
 Group by severity, cite `file_path:line_number`, propose the smallest fix that closes the issue. End with a one-line verdict.
+
+Save the full report to `.tmp/security-review-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. The report must include every checked item (pass/fail/skip) in addition to the findings.

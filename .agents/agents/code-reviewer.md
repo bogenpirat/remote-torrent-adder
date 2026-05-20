@@ -55,6 +55,10 @@ For changes in `src/webuis/`:
 - [ ] New HTML pages require a new Vite config file and entry in `package.json` scripts
 - [ ] Assets (images, static files) go in `src/` and are copied by `copy-assets` script
 
+## Output
+
+Save review findings to `.tmp/review-<pr-or-branch>-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include every checklist item that failed (pass/warn/fail) and severity.
+
 ## Common Issues to Flag
 
 1. **Fetch without error handling**: raw `fetch()` calls that don't check `res.ok`

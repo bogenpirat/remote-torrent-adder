@@ -28,6 +28,10 @@
 3. Click "Load unpacked" → select the `dist/` folder
 4. After code changes, click the reload icon on the extension card (or run `npm run build` and reload)
 
+## Output
+
+If the build or type-check fails, save the full error output to `.tmp/build-errors-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include: command run, error list with file:line references, root cause, and fix applied.
+
 ## Troubleshooting
 
 - **Service worker errors**: check `chrome://extensions/` → "Errors" or "service worker" link for logs
