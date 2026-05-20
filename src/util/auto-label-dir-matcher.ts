@@ -33,7 +33,7 @@ function isAutoLabelDirSettingMatchingForTorrent(autoLabelDirSetting: AutoLabelD
         if (criterion.value && criterion.field) {
             switch (criterion.field) {
                 case 'trackerUrl':
-                    matches &&= trackers?.some(tracker => new RegExp(criterion.value).test(tracker));
+                    matches &&= trackers?.some(tracker => new RegExp(criterion.value).test(tracker)) ?? false;
                 default:
                     continue;
             }

@@ -7,7 +7,7 @@ import { serializeSettings, deserializeSettings } from "./serializer";
 const SETTINGS_KEY: string = "settings";
 
 export class Settings {
-    private _rtaSettings: RTASettings;
+    private _rtaSettings!: RTASettings;
 
     public get settings(): RTASettings {
         return this._rtaSettings;
@@ -35,7 +35,7 @@ export class Settings {
                     return;
                 }
                 try {
-                    resolve(deserializeSettings(response[SETTINGS_KEY]));
+                    resolve(deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings());
                 } catch (e) {
                     console.error("Failed to deserialize settings, resetting to defaults", e);
                     const defaults = getDefaultSettings();
@@ -59,7 +59,7 @@ export class Settings {
         return serializeSettings(this._rtaSettings);
     }
 
-    public deserialize(serialized: string): RTASettings {
+    public deserialize(serialized: string): RTASettings | null {
         return deserializeSettings(serialized);
     }
 

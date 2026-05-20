@@ -45,7 +45,7 @@ For changes in `src/webuis/`:
 
 ### TypeScript
 
-- [ ] Strict mode is **off** — but avoid `any` where a proper type exists
+- [ ] Strict mode is **on** — `"strict": true` in `tsconfig.json`; fix any new errors introduced by the change
 - [ ] No unused imports or variables
 - [ ] No `console.log` left in production code (use sparingly for debugging)
 

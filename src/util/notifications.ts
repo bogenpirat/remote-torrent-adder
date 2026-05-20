@@ -9,7 +9,7 @@ export function showNotification(title: string, message: string, isFailed: boole
         message: message
     };
 
-    chrome.notifications.create(null, notificationCreateOptions, myId => {
+    chrome.notifications.create("", notificationCreateOptions, myId => {
         if (webUiurl) {
             chrome.notifications.onClicked.addListener((clickedNotificationId) => {
                 if (clickedNotificationId === myId) {

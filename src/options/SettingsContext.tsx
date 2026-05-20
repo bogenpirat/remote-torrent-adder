@@ -19,7 +19,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Fetch settings from service worker on mount
   useEffect(() => {
     chrome.runtime.sendMessage(GetSettingsMessage, (serializedSettings) => {
-      const settings: RTASettings = deserializeSettings(serializedSettings);
+      const settings: RTASettings | null = deserializeSettings(serializedSettings);
       setSettings(settings);
       setLoading(false);
     });

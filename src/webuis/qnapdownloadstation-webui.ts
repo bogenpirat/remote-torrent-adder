@@ -46,9 +46,10 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
             const payload = new FormData();
             payload.append("sid", sessionId);
 
-            if (this.getDirectory(config)) {
-                payload.append("temp", this.getDirectory(config));
-                payload.append("move", this.getDirectory(config));
+            const dir = this.getDirectory(config);
+            if (dir) {
+                payload.append("temp", dir);
+                payload.append("move", dir);
             }
 
             if (torrent.isMagnet) {

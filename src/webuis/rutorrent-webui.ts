@@ -6,7 +6,7 @@ export class RuTorrentWebUI extends TorrentWebUI {
         return new Promise((resolve, reject) => {
             const url = this.createRutorrentBaseUrl(config);
             let payload: string | FormData;
-            let headers: Record<string, string>;
+            let headers: Record<string, string> = {};
 
             if (torrent.isMagnet) {
                 payload = this.createPayloadForMagnet(torrent.data as string);

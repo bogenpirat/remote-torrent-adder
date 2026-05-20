@@ -71,12 +71,12 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
     arr[idx] = { ...arr[idx], criteria };
     onChange(arr);
   };
-  const handleLabelChange = (idx: number, label: string) => {
+  const handleLabelChange = (idx: number, label: string | null) => {
     const arr = [...value];
     arr[idx] = { ...arr[idx], label };
     onChange(arr);
   };
-  const handleDirChange = (idx: number, dir: string) => {
+  const handleDirChange = (idx: number, dir: string | null) => {
     const arr = [...value];
     arr[idx] = { ...arr[idx], dir };
     onChange(arr);

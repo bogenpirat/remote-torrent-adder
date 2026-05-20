@@ -18,7 +18,8 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
                     reject(new Error(`Status not OK: ${response.status} ${response.statusText}`));
                 }
             } catch (error) {
-                reject(new Error("Failed to fetch torrent file: " + error.message));
+                reject(new Error("Failed to fetch torrent file: " + (error as Error).message));
+                return;
             }
 
             const torrentBlob: Blob = await response.blob();
