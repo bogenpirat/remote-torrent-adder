@@ -124,3 +124,7 @@ Load the unpacked `dist/` in Chrome and verify:
 - New field appears correctly in Options
 - Default value is applied to existing configs
 - If per-torrent: popup shows the control and the chosen value reaches the client
+
+## Output
+
+Save a summary to `.tmp/add-setting-<settingname>-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include: scope (global/per-client/per-torrent), files modified, default value, and UI location.

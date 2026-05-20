@@ -84,6 +84,10 @@ if (torrent.isMagnet) {
 }
 ```
 
+## Output
+
+Save the diagnostic session to `.tmp/debug-<clientname>-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include: failure mode, root cause, steps tried, fix applied, and any unresolved items.
+
 ## Relevant Files
 
 - `src/webuis/<clientname>-webui.ts` — client implementation

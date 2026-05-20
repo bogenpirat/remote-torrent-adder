@@ -132,6 +132,10 @@ EOF
 
 After creating, print the URL of the draft release so the user can review and publish it.
 
+## Output
+
+Save the release log to `.tmp/release-<version>-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. Include: version bumped, commits included, artifact location, CI run URL, and whether the draft release was published.
+
 ## Notes
 
 - The `dist-prod/` folder is gitignored — the release artifact comes from GitHub Actions CI
