@@ -1,8 +1,8 @@
 import { RTASettings } from "../models/settings";
 import { WebUISettings, AutoLabelDirSetting } from "../models/webui";
 import { getDefaultSettings } from "./settings-defaults";
-import { Client, WebUIFactory } from "../models/clients";
-import { Settings } from "./settings";
+import { WebUIFactory } from "../models/clients";
+import { resolveClientIdentifier } from "./legacy-client-identifiers";
 import { generateId } from "./utils";
 
 
@@ -59,7 +59,7 @@ function parseServers(servers: string | null): WebUISettings[] {
     if (servers) {
         const serverList = JSON.parse(servers);
         serverList.forEach((server: Record<string, any>) => {
-            const client = getClientForLegacyName(server.client);
+            const client = resolveClientIdentifier(server.client);
             console.debug(`converting "${server.client}" to "${client}"`);
             if (client) {
                 const webUiSettings: WebUISettings = {
@@ -96,21 +96,6 @@ function parseServers(servers: string | null): WebUISettings[] {
     }
 
     return webuiSettingsList;
-}
-
-function getClientForLegacyName(name: string): Client | null {
-    switch (name) {
-        case "Vuze Remote WebUI":
-            return Client.BiglyBTWebUI;
-        case "qBittorrent v4.1+ WebUI":
-            return Client.QBittorrentWebUI;
-        case "flood-jesec WebUI":
-            return Client.FloodWebUI;
-        case "Bigly/Vuze Remote WebUI":
-            return Client.BiglyBTWebUI;
-    }
-
-    return name as Client || null;
 }
 
 function parseAutoLabelDirSettings(autolabellist: any, autodirlist: any): Array<AutoLabelDirSetting> {

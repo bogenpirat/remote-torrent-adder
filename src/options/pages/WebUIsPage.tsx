@@ -3,12 +3,12 @@ import { useSettings } from "../SettingsContext";
 import ChipList from "../components/ChipList";
 import AutoLabelDirSettingsEditor from "../components/AutoLabelDirSettingsEditor";
 import Select from "../components/Select";
-import { Client, WebUIFactory } from "../../models/clients";
+import { Client, ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
 import Toggle from "../components/Toggle";
 import { generateId } from "../../util/utils";
 
-const clientOptions = Object.values(Client).map(c => ({ value: c, label: c }));
+const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
 function getDefaultWebUISettings(): WebUISettings {
   return {

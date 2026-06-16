@@ -11,19 +11,44 @@ import { TixatiWebUI } from "../webuis/tixati-webui";
 import { TTorrentWebUI } from "../webuis/ttorrent-webui";
 import { QNAPDownloadStationWebUI } from "../webuis/qnapdownloadstation-webui";
 
+/**
+ * Stable, opaque identifiers for each supported client. These values are
+ * persisted in user settings and used as lookup keys, so they must never change.
+ * What the user actually sees is defined separately in {@link ClientDisplayName},
+ * which is free to change at any time. Legacy identifiers from older versions are
+ * migrated in `util/legacy-client-identifiers.ts`.
+ */
 export enum Client {
-    BiglyBTWebUI = "BiglyBT WebUI",
-    DelugeWebUI = "Deluge WebUI",
-    ElementumWebUI = "Elementum WebUI",
-    FloodWebUI = "flood WebUI",
-    QBittorrentWebUI = "qBittorrent WebUI",
-    RuTorrentWebUI = "ruTorrent WebUI",
-    TixatiWebUI = "Tixati WebUI",
-    TransmissionWebUI = "Transmission WebUI",
-    TTorrentWebUI = "tTorrent WebUI",
-    PorlaWebUI = "Porla WebUI",
-    QNAPDownloadStationWebUI = "QNAP Download Station WebUI",
+    BiglyBTWebUI = "biglybt",
+    DelugeWebUI = "deluge",
+    ElementumWebUI = "elementum",
+    FloodWebUI = "flood",
+    QBittorrentWebUI = "qbittorrent",
+    RuTorrentWebUI = "rutorrent",
+    TixatiWebUI = "tixati",
+    TransmissionWebUI = "transmission",
+    TTorrentWebUI = "ttorrent",
+    PorlaWebUI = "porla",
+    QNAPDownloadStationWebUI = "qnap-download-station",
 }
+
+/**
+ * Human-readable name for each {@link Client}, shown in the UI. Decoupled from
+ * the identifier so labels can be reworded freely without touching stored data.
+ */
+export const ClientDisplayName: Record<Client, string> = {
+    [Client.BiglyBTWebUI]: "BiglyBT",
+    [Client.DelugeWebUI]: "Deluge",
+    [Client.ElementumWebUI]: "Elementum",
+    [Client.FloodWebUI]: "flood",
+    [Client.QBittorrentWebUI]: "qBittorrent",
+    [Client.RuTorrentWebUI]: "ruTorrent",
+    [Client.TixatiWebUI]: "Tixati",
+    [Client.TransmissionWebUI]: "Transmission",
+    [Client.TTorrentWebUI]: "tTorrent",
+    [Client.PorlaWebUI]: "Porla",
+    [Client.QNAPDownloadStationWebUI]: "QNAP Download Station",
+};
 
 type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentWebUI;
 

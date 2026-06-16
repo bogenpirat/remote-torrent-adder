@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import { useSettings } from "../SettingsContext";
 import { serializeSettings, deserializeSettings } from "../../util/serializer";
+import { migrateSettingsClientIdentifiers } from "../../util/legacy-client-identifiers";
 
 export default function ImportExportPage(): JSX.Element {
   const { settings, setSettings, loading } = useSettings();
@@ -20,7 +21,7 @@ export default function ImportExportPage(): JSX.Element {
     setImportError("");
     const imported = deserializeSettings(importValue);
     if (imported) {
-      setSettings(imported);
+      setSettings(migrateSettingsClientIdentifiers(imported));
       setImportValue("");
     } else {
       setImportError("Invalid settings JSON");

@@ -1,6 +1,7 @@
 import { RTASettings } from "../models/settings";
 import { getDefaultSettings } from "./settings-defaults";
 import { convertLegacySettingsToRTASettings } from "./settings-migrator-from-legacy";
+import { migrateSettingsClientIdentifiers } from "./legacy-client-identifiers";
 import { serializeSettings, deserializeSettings } from "./serializer";
 
 
@@ -35,7 +36,12 @@ export class Settings {
                     return;
                 }
                 try {
-                    resolve(deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings());
+                    const loaded = deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings();
+                    const migrated = migrateSettingsClientIdentifiers(loaded);
+                    if (migrated !== loaded) {
+                        await this.saveSettings(migrated);
+                    }
+                    resolve(migrated);
                 } catch (e) {
                     console.error("Failed to deserialize settings, resetting to defaults", e);
                     const defaults = getDefaultSettings();
