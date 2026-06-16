@@ -6,23 +6,15 @@ import { RTASettings } from "../models/settings";
  * appear in a user's stored or exported configuration, mapped to the current
  * {@link Client} identifier.
  *
- * Two generations of legacy names live here:
- *   - pre-2.0 names (e.g. "Vuze Remote WebUI"), and
- *   - 2.0.x names, where the display label doubled as the stored identifier
- *     (e.g. "qBittorrent WebUI").
+ * These are the 2.0.x identifiers, where the display label doubled as the stored
+ * identifier (e.g. "qBittorrent WebUI"), from before labels and identifiers were
+ * decoupled.
  *
  * This module is intentionally the ONLY place in the codebase that knows about
  * these old strings. All regular code deals exclusively with current
  * {@link Client} values, keeping legacy concerns quarantined here.
  */
 const LEGACY_CLIENT_IDENTIFIERS: Readonly<Record<string, Client>> = {
-    // pre-2.0 identifiers
-    "Vuze Remote WebUI": Client.BiglyBTWebUI,
-    "Bigly/Vuze Remote WebUI": Client.BiglyBTWebUI,
-    "qBittorrent v4.1+ WebUI": Client.QBittorrentWebUI,
-    "flood-jesec WebUI": Client.FloodWebUI,
-
-    // 2.0.x identifiers (display label === stored identifier)
     "BiglyBT WebUI": Client.BiglyBTWebUI,
     "Deluge WebUI": Client.DelugeWebUI,
     "Elementum WebUI": Client.ElementumWebUI,
