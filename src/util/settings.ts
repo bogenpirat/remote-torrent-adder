@@ -1,6 +1,6 @@
 import { RTASettings } from "../models/settings";
 import { getDefaultSettings } from "./settings-defaults";
-import { convertLegacySettingsToRTASettings } from "./settings-migrator-from-legacy";
+import { migrateSettingsClientIdentifiers } from "./legacy-client-identifiers";
 import { serializeSettings, deserializeSettings } from "./serializer";
 
 
@@ -23,19 +23,19 @@ export class Settings {
             chrome.storage.local.get([SETTINGS_KEY], async (response: Record<string, string>) => {
                 console.debug("Loaded serialized RTAv2 settings:", response);
                 if (!response[SETTINGS_KEY]) {
-                    const convertedLegacySettings = await convertLegacySettingsToRTASettings();
-                    if (convertedLegacySettings) {
-                        await this.saveSettings(convertedLegacySettings);
-                    } else {
-                        console.log("Initializing with default settings.");
-                        await this.saveSettings(getDefaultSettings());
-                    }
-                    const reloaded = await this.loadSettings();
-                    resolve(reloaded);
+                    console.log("Initializing with default settings.");
+                    const defaults = getDefaultSettings();
+                    await this.saveSettings(defaults);
+                    resolve(defaults);
                     return;
                 }
                 try {
-                    resolve(deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings());
+                    const loaded = deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings();
+                    const migrated = migrateSettingsClientIdentifiers(loaded);
+                    if (migrated !== loaded) {
+                        await this.saveSettings(migrated);
+                    }
+                    resolve(migrated);
                 } catch (e) {
                     console.error("Failed to deserialize settings, resetting to defaults", e);
                     const defaults = getDefaultSettings();
