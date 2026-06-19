@@ -119,9 +119,8 @@ jobs:
           client-id: ${{ secrets.CWS_CLIENT_ID }}
           client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
-          # TODO: AUTO-PUBLISH TOGGLE
-          #   publish: false -> upload only; the new version sits as a draft and
-          #                     you click "Publish" in the dashboard (safe default).
+          # AUTO-PUBLISH TOGGLE
           #   publish: true  -> upload AND submit for review/publication automatically.
-          # Flip this to true once you trust the pipeline.
-          publish: false
+          #   publish: false -> upload only; the new version sits as a draft and
+          #                     you click "Publish" in the dashboard.
+          publish: true
