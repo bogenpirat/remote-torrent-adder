@@ -1,6 +1,8 @@
 node_modules/
 dist/
 dist-prod/
+dist-firefox/
+web-ext-artifacts/
 coverage/
 *.log
 .DS_Store

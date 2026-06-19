@@ -1,6 +1,6 @@
 # remote-torrent-adder
 
-A handy Chrome extension to add torrent files to torrent clients.
+A handy browser extension (Chrome & Firefox) to add torrent files to torrent clients.
 
 ## What is this about?
 
@@ -26,6 +26,28 @@ To get this set up, follow these steps:
 1. Get the extension added to your Chrome Browser by visiting <https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci>
 2. Open the extension's options and set your server(s)'(s) info
 3. If just clicking a link doesn't add the torrent to your client, but downloads it locally to your disk, also look at the "Link Catching" tab in the settings.
+
+## Building it yourself
+
+The same TypeScript/React codebase targets both Chrome and Firefox; only the
+generated `manifest.json` differs between them.
+
+```sh
+npm install
+npm run build:prod      # Chromium build  -> dist-prod/
+npm run build:firefox   # Firefox build   -> dist-firefox/
+```
+
+For Firefox development you can also use [`web-ext`](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/) (installed as a dev dependency):
+
+```sh
+npm run start:firefox    # build + launch a temporary Firefox profile with the extension
+npm run lint:firefox     # validate the build against AMO rules
+npm run package:firefox  # produce a signable .zip in web-ext-artifacts/
+```
+
+> **Note:** Firefox 128 or newer is required (`declarativeNetRequest` header
+> modification, session rules and `action.openPopup()` all landed in 128).
 
 ## Changes from RTA v1.x
 

@@ -23,6 +23,7 @@ import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorre
 import { Settings } from "./settings";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
+import { isFirefox } from "./browser-compat";
 
 
 const POPUP_PAGE = "popup/popup.html";
@@ -155,7 +156,9 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
             torrent: await downloadTorrent(message.url),
             webUiSettings: webUi.settings
         };
-        if (webUi.settings.useAlternativeLabelDirChooser) {
+        // Firefox only allows action.openPopup() in response to a user gesture,
+        // which isn't available here, so fall back to a standalone popup window.
+        if (webUi.settings.useAlternativeLabelDirChooser || isFirefox()) {
             chrome.windows.create({
                 url: POPUP_PAGE,
                 type: "popup",
