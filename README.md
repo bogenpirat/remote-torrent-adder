@@ -15,9 +15,10 @@ It supports the following BitTorrent clients:
 - Deluge
 - Elementum
 - Transmission
-- Porla (new!)
+- Porla
 - Tixati
 - QNAP DownloadStation
+- rqbit (new!)
 
 ## How do i get it running?
 
