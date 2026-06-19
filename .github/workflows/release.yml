@@ -1,0 +1,127 @@
+name: Release
+
+# Manual, version-driven release.
+#
+# Trigger from the Actions tab (or: gh workflow run Release -f version=2.0.6),
+# supplying the version. The workflow bumps the version in source, builds the
+# dev and prod bundles, then commits + tags THAT commit so the tag always lands
+# on the commit carrying the version. Finally it publishes a GitHub Release with
+# both bundles attached and uploads the prod bundle to the Chrome Web Store.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
+#     obtained by enabling the Chrome Web Store API in a Google Cloud project
+#     and minting an OAuth refresh token.
+#   RELEASE_TOKEN
+#     a fine-grained PAT with Contents: read & write, owned by someone with a
+#     bypass entry in the master ruleset, so the bump-commit + tag can be pushed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. 2.0.6 (a v-prefix is accepted)'
+        required: true
+        type: string
+
+# contents: write is needed to push the bump commit + tag and create the release.
+permissions:
+  contents: write
+
+# Never run two releases at once.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          # PAT (not GITHUB_TOKEN) so the bump-commit + tag push can bypass the
+          # branch ruleset on master. The token's owner must have a bypass entry
+          # (e.g. the "Repository admin" role) in that ruleset.
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: Normalize and validate version
+        id: ver
+        env:
+          RAW_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${RAW_VERSION#v}"
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid version '$RAW_VERSION' (expected x.y.z or vx.y.z)" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure tag does not already exist
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.ver.outputs.tag }} already exists — pick a new version." >&2
+            exit 1
+          fi
+
+      - name: Apply version to source files
+        run: node scripts/bump-version.mjs "${{ steps.ver.outputs.version }}"
+
+      - name: Install dependencies
+        run: npm install
+
+      # Build both bundles BEFORE moving any git refs, so a build failure aborts
+      # the release without leaving a dangling commit or tag behind.
+      - name: Build dev bundle
+        run: npm run build
+
+      - name: Build prod bundle
+        run: npm run build:prod
+
+      - name: Zip bundles
+        run: |
+          (cd dist && zip -r "../remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip" .)
+          (cd dist-prod && zip -r "../remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip" .)
+
+      - name: Commit, tag and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/manifest.json package.json package-lock.json
+          git commit -m "chore: release ${{ steps.ver.outputs.tag }}"
+          git tag "${{ steps.ver.outputs.tag }}"
+          git push origin HEAD:master
+          git push origin "${{ steps.ver.outputs.tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
+
+      - name: Upload to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@v5
+        with:
+          file-path: remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
+          extension-id: ${{ secrets.CWS_EXTENSION_ID }}
+          client-id: ${{ secrets.CWS_CLIENT_ID }}
+          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
+          # TODO: AUTO-PUBLISH TOGGLE
+          #   publish: false -> upload only; the new version sits as a draft and
+          #                     you click "Publish" in the dashboard (safe default).
+          #   publish: true  -> upload AND submit for review/publication automatically.
+          # Flip this to true once you trust the pipeline.
+          publish: false
