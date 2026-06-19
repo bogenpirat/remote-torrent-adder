@@ -39,13 +39,13 @@ export function createContextMenu(allWebUis: TorrentWebUI[]): void {
     listener = (onClickData: OnClickData, tab: Tab) => {
         if (onClickData.menuItemId === "server-main") {
             createOnClick(allWebUis.length > 0 ? [allWebUis[0]] : [])(onClickData, tab);
+        } else if (onClickData.menuItemId === "server-all") {
+            createOnClick(allWebUis)(onClickData, tab);
         } else if (onClickData.menuItemId.toString().startsWith("server-")) {
             const index = parseInt(onClickData.menuItemId.toString().split("-")[1], 10);
             if (index >= 0 && index < allWebUis.length) {
                 createOnClick([allWebUis[index]])(onClickData, tab);
             }
-        } else if (onClickData.menuItemId === "server-all") {
-            createOnClick(allWebUis)(onClickData, tab);
         }
     };
     chrome.contextMenus.onClicked.addListener(listener);

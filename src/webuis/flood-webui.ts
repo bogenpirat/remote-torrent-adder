@@ -11,6 +11,9 @@ export class FloodWebUI extends TorrentWebUI {
                 .then(() => this.createTorrentFetchOptions(torrent, config))
                 .then(fetchOpts => {
                     this.sendRequest(url, fetchOpts, resolve, reject);
+                })
+                .catch(error => {
+                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
                 });
         });
     }

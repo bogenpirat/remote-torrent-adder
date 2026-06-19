@@ -3,6 +3,11 @@
     "version": "2.0.6",
     "type": "module",
     "scripts": {
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "prebuild": "npm test",
+        "prebuild:prod": "npm test",
         "build": "npm run clean && npm run copy-assets && npm run rollup && npm run build:popup && npm run build:options && npm run build:notifications",
         "build:popup": "vite build --config vite.popup.config.ts",
         "build:options": "vite build --config vite.options.config.ts",
@@ -39,12 +44,14 @@
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.2",
+        "@vitest/coverage-v8": "^4.1.9",
         "chokidar-cli": "^3.0.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^10.0.3",
         "cpy-cli": "^7.0.0",
         "cross-env": "^10.1.0",
+        "jsdom": "^29.1.1",
         "lucide-react": "^1.21.0",
         "postcss": "^8.5.15",
         "rimraf": "^6.1.3",
@@ -55,7 +62,8 @@
         "tailwindcss-animate": "^1.0.7",
         "ts-loader": "^9.6.1",
         "typescript": "^6.0.3",
-        "vite": "^8.0.16"
+        "vite": "^8.0.16",
+        "vitest": "^4.1.9"
     },
     "dependencies": {
         "@radix-ui/react-select": "^2.3.1",
