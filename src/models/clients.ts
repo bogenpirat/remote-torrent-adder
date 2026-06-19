@@ -10,6 +10,7 @@ import { PorlaWebUI } from "../webuis/porla-webui";
 import { TixatiWebUI } from "../webuis/tixati-webui";
 import { TTorrentWebUI } from "../webuis/ttorrent-webui";
 import { QNAPDownloadStationWebUI } from "../webuis/qnapdownloadstation-webui";
+import { RqbitWebUI } from "../webuis/rqbit-webui";
 
 /**
  * Stable, opaque identifiers for each supported client. These values are
@@ -30,6 +31,7 @@ export enum Client {
     TTorrentWebUI = "ttorrent",
     PorlaWebUI = "porla",
     QNAPDownloadStationWebUI = "qnap-download-station",
+    RqbitWebUI = "rqbit",
 }
 
 /**
@@ -48,6 +50,7 @@ export const ClientDisplayName: Record<Client, string> = {
     [Client.TTorrentWebUI]: "tTorrent",
     [Client.PorlaWebUI]: "Porla",
     [Client.QNAPDownloadStationWebUI]: "QNAP Download Station",
+    [Client.RqbitWebUI]: "rqbit",
 };
 
 type ConcreteTorrentWebUIConstructor = new (settings: WebUISettings) => TorrentWebUI;
@@ -64,6 +67,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.TTorrentWebUI]: TTorrentWebUI,
     [Client.PorlaWebUI]: PorlaWebUI,
     [Client.QNAPDownloadStationWebUI]: QNAPDownloadStationWebUI,
+    [Client.RqbitWebUI]: RqbitWebUI,
 };
 
 export class WebUIFactory {
