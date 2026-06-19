@@ -18,7 +18,7 @@
         "copy": "cpy 'src/**' dist --parents",
         "copy:prod": "cpy 'src/**' dist-prod --parents",
         "copy-assets": "cpy 'src/**/*.{json,html,css,png,svg,ogg}' dist --parents",
-        "copy-assets:prod": "cpy 'src/**/*.{json,html,css,png,svg,ogg}' dist --parents",
+        "copy-assets:prod": "cpy 'src/**/*.{json,html,css,png,svg,ogg}' dist-prod --parents",
         "rollup": "rollup -c",
         "compile": "tsc --noEmit false --outDir dist",
         "watch": "npm run build && concurrently \"npm run watch:files\" \"npm run watch:ts\"",
