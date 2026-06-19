@@ -1,7 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import copy from 'rollup-plugin-copy';
 
 import terser from '@rollup/plugin-terser';
 
@@ -38,12 +37,6 @@ export default [
             resolve({ browser: true, preferBuiltins: false }),
             commonjs(),
             typescript({ tsconfig: './tsconfig.rollup.json' }),
-            copy({
-                targets: [
-                    { src: 'src/**/*.{json,html,css,png,svg,ogg}', dest: distDir }
-                ],
-                flatten: false
-            }),
             ...(isProd ? [terser()] : [])
         ]
     }
