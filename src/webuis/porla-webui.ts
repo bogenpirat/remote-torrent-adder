@@ -9,6 +9,9 @@ export class PorlaWebUI extends TorrentWebUI {
                 .then(jsonRpcToken => this.createTorrentFetchOptions(jsonRpcToken, torrent, config))
                 .then(fetchOpts => {
                     this.sendRequest(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts, resolve, reject);
+                })
+                .catch(error => {
+                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
                 });
         });
     }

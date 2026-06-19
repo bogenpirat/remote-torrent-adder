@@ -9,7 +9,10 @@ export class TransmissionWebUI extends TorrentWebUI {
 
             this.fetchTransmissionSessionId()
                 .then((transmissionSessionId) => this.createTorrentFetchOptions(torrent, config, transmissionSessionId))
-                .then(fetchOpts => this.sendRequest(url, fetchOpts, resolve, reject));
+                .then(fetchOpts => this.sendRequest(url, fetchOpts, resolve, reject))
+                .catch(error => {
+                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
+                });
         });
     }
 

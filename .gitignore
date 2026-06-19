@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-prod/
+coverage/
 *.log
 .DS_Store
 **/*.local.json

@@ -16,6 +16,7 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
                 response = await executeMethodWrappedWithReferer(() => fetch(url), url, getBaseUrl(url));
                 if (!response.ok) {
                     reject(new Error(`Status not OK: ${response.status} ${response.statusText}`));
+                    return;
                 }
             } catch (error) {
                 reject(new Error("Failed to fetch torrent file: " + (error as Error).message));
