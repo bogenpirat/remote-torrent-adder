@@ -35,9 +35,17 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
     });
 }
 
+let nextDynamicRuleId = 0;
+
+function allocateDynamicRuleId(): number {
+    nextDynamicRuleId = (nextDynamicRuleId % 2_000_000_000) + 1;
+    return nextDynamicRuleId;
+}
+
 export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url: string, referer: string): Promise<T> {
-    const refererSetterRuleId = (await chrome.declarativeNetRequest.getDynamicRules()).length + 1;
+    const refererSetterRuleId = allocateDynamicRuleId();
     await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [refererSetterRuleId],
         addRules: [
             {
                 id: refererSetterRuleId,
@@ -62,7 +70,7 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
     try {
         return await method();
     } finally {
-        chrome.declarativeNetRequest.updateDynamicRules({
+        await chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [refererSetterRuleId],
         });
     }
