@@ -272,7 +272,7 @@ function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: Torre
                 } else {
                     showNotification("Torrent adding failed",
                         `HTTP Response code: ${torrentAddingResult.httpResponseCode}\nResponse body: ${torrentAddingResult.httpResponseBody}`,
-                        false,
+                        true,
                         settings.notificationsDurationMs,
                         settings.notificationsSoundEnabled,
                         webUiUrl);

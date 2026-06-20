@@ -86,8 +86,7 @@ export interface ITestNotificationMessage extends IMessagable {
 }
 
 export interface IPlaySoundMessage extends IMessagable {
-    source: string;
-    volume: number;
+    isFailed: boolean;
 }
 
 interface IMessagable {
