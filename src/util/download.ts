@@ -1,8 +1,6 @@
 import { Torrent } from "../models/torrent";
 import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDecodedTorrentData, parseNameFromDecodedTorrentData, parsePrivateFlagFromDecodedTorrentData, parseTrackersFromDecodedTorrentData } from "./parsers";
-import { convertBlobToString } from "./converter";
 import bencode from "bencode";
-import { Buffer } from "buffer";
 import { executeMethodWrappedWithReferer } from "./cors-tricks";
 import { getBaseUrl } from "./utils";
 
@@ -22,8 +20,7 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     }
 
     const torrentBlob: Blob = await response.blob();
-    const torrentData: string = await convertBlobToString(torrentBlob);
-    const decodedTorrentData = decodeTorrentDataAndValidate(response, torrentData);
+    const decodedTorrentData = decodeTorrentDataAndValidate(response, new Uint8Array(await torrentBlob.arrayBuffer()));
 
     return {
         data: torrentBlob,
@@ -35,9 +32,9 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     };
 }
 
-function decodeTorrentDataAndValidate(response: Response, torrentData: string): any {
+function decodeTorrentDataAndValidate(response: Response, torrentData: Uint8Array): any {
     try {
-        return bencode.decode(Buffer.from(torrentData, 'ascii'));
+        return bencode.decode(torrentData as any);
     } catch (error) {
         let contentType = response.headers.get("Content-Type");
         if (contentType) {

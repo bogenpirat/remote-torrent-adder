@@ -65,7 +65,10 @@ export function createChromeMock(): any {
 
         notifications: {
             create: vi.fn((id: string, options: any, cb?: (id: string) => void) => cb?.("notif-id")),
-            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => cb?.(true)),
+            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => {
+                cb?.(true);
+                return Promise.resolve(true);
+            }),
             onClicked: {
                 addListener: vi.fn(),
             },
