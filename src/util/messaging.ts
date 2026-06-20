@@ -3,6 +3,7 @@ import {
     GetPreAddedTorrentAndSettings,
     GetPreAddedTorrentAndSettingsResponse,
     GetSettingsMessage,
+    GetLinkCatchingConfig,
     IAddTorrentMessage,
     IGetPreAddedTorrentAndSettingsResponse,
     IPreAddTorrentMessage,
@@ -19,7 +20,7 @@ import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { downloadTorrent } from "./download";
 import { showNotification } from "./notifications";
-import { serializeSettings, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
+import { serializeSettings, serializeObject, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
@@ -56,6 +57,16 @@ export function registerMessageListener(): void {
                     willRespondAsync = true;
                     settingsProvider.loadSettings()
                         .then(settings => finish(serializeSettings(settings)))
+                        .catch(respondWithError);
+                    break;
+                }
+                case GetLinkCatchingConfig.action: {
+                    willRespondAsync = true;
+                    settingsProvider.loadSettings()
+                        .then(settings => finish(serializeObject({
+                            linkCatchingEnabled: settings.linkCatchingEnabled,
+                            linkCatchingRegexes: settings.linkCatchingRegexes,
+                        })))
                         .catch(respondWithError);
                     break;
                 }

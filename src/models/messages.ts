@@ -6,6 +6,10 @@ export const GetSettingsMessage: IMessagable = {
     action: "getSettings"
 }
 
+export const GetLinkCatchingConfig: IMessagable = {
+    action: "getLinkCatchingConfig"
+}
+
 export const SaveSettingsMessage: IMessagable = {
     action: "saveSettings"
 }
@@ -87,6 +91,11 @@ export interface ITestNotificationMessage extends IMessagable {
 
 export interface IPlaySoundMessage extends IMessagable {
     isFailed: boolean;
+}
+
+export interface ILinkCatchingConfig {
+    linkCatchingEnabled: boolean;
+    linkCatchingRegexes: RegExp[];
 }
 
 interface IMessagable {
