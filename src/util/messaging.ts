@@ -197,15 +197,12 @@ async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]>
 }
 
 async function getWebUiById(webUiId: string, settingsProvider: Settings): Promise<TorrentWebUI | null> {
-    return new Promise((resolve) => {
-        if (!webUiId) {
-            resolve(null);
-        }
+    if (!webUiId) {
+        return null;
+    }
 
-        getAllWebUis(settingsProvider).then(allWebUis => {
-            resolve(allWebUis.find(webUi => webUi.settings.id === webUiId) || null);
-        });
-    });
+    const allWebUis = await getAllWebUis(settingsProvider);
+    return allWebUis.find(webUi => webUi.settings.id === webUiId) ?? null;
 }
 
 function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, config: TorrentUploadConfig | null, message: IPreAddTorrentMessage): void {
