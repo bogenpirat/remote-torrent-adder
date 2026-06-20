@@ -2,11 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Stub out the messaging module so we can observe dispatched torrents without
 // pulling in the whole service-worker dependency graph.
-const { dispatchPreAddTorrent } = vi.hoisted(() => ({ dispatchPreAddTorrent: vi.fn() }));
-vi.mock("../../src/util/messaging", () => ({ dispatchPreAddTorrent }));
+const { dispatchPreAddTorrent, addTorrentToWebUiById } = vi.hoisted(() => ({
+    dispatchPreAddTorrent: vi.fn(),
+    addTorrentToWebUiById: vi.fn(),
+}));
+vi.mock("../../src/util/messaging", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
 
 import { createContextMenu } from "../../src/util/context-menu";
-import { PreAddTorrentMessage, AddTorrentMessage } from "../../src/models/messages";
+import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { makeWebUISettings } from "../helpers/fixtures";
 
@@ -21,7 +24,10 @@ function lastClickListener() {
     return calls[calls.length - 1][0];
 }
 
-beforeEach(() => dispatchPreAddTorrent.mockClear());
+beforeEach(() => {
+    dispatchPreAddTorrent.mockClear();
+    addTorrentToWebUiById.mockClear();
+});
 
 describe("createContextMenu", () => {
     it("creates only the parent menu for a single webui", () => {
@@ -56,13 +62,12 @@ describe("createContextMenu", () => {
         expect(dispatchPreAddTorrent.mock.calls[0][0].webUiId).toBe("b");
     });
 
-    it("dispatches an add-torrent message to every webui on send-all", () => {
+    it("adds the torrent directly to every webui on send-all, bypassing the selector", () => {
         createContextMenu([webUi("a", "A"), webUi("b", "B")]);
         lastClickListener()(clickData("server-all"), tab);
-        expect(dispatchPreAddTorrent).toHaveBeenCalledTimes(2);
-        for (const [message] of dispatchPreAddTorrent.mock.calls) {
-            expect(message.action).toBe(AddTorrentMessage.action);
-        }
+        expect(addTorrentToWebUiById).toHaveBeenCalledTimes(2);
+        expect(addTorrentToWebUiById.mock.calls.map((c: any[]) => c[0])).toEqual(["a", "b"]);
+        expect(dispatchPreAddTorrent).not.toHaveBeenCalled();
     });
 
     it("removes the previous click listener when rebuilt", () => {

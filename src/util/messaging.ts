@@ -95,11 +95,8 @@ export function registerMessageListener(): void {
                 case AddTorrentMessage.action: {
                     willRespondAsync = true;
                     const addTorrentMessage = message as IAddTorrentMessage;
-                    getWebUiById(addTorrentMessage.webUiId, settingsProvider)
-                        .then((webUi: TorrentWebUI | null) => {
-                            downloadAndAddTorrentToWebUi(webUi, addTorrentMessage.url, addTorrentMessage.config, addTorrentMessage);
-                            finish({});
-                        })
+                    addTorrentToWebUiById(addTorrentMessage.webUiId, addTorrentMessage.url, addTorrentMessage.config)
+                        .then(() => finish({}))
                         .catch(respondWithError);
                     break;
                 }
@@ -185,6 +182,11 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
     }
 }
 
+
+export async function addTorrentToWebUiById(webUiId: string, url: string, config: TorrentUploadConfig | null): Promise<void> {
+    const webUi = await getWebUiById(webUiId, new Settings());
+    downloadAndAddTorrentToWebUi(webUi, url, config, { action: AddTorrentMessage.action, url, webUiId } as IPreAddTorrentMessage);
+}
 
 async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]> {
     return new Promise((resolve) => {
