@@ -86,6 +86,14 @@ export function createChromeMock(): any {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },
+            onCompleted: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
+            onErrorOccurred: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
         },
 
         declarativeNetRequest: {

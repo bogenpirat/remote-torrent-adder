@@ -45,9 +45,22 @@ describe("registerAuthenticationListenersForAllWebUis", () => {
         expect(listener(authDetails({ tabId: 5 }))).toEqual({});
     });
 
+    it("forgets a request once it settles, so a later challenge re-supplies credentials", () => {
+        registerAuthenticationListenersForAllWebUis([webUi({ username: "u", password: "p" })]);
+        const onAuth = (chrome.webRequest.onAuthRequired.addListener as any).mock.calls[0][0];
+        const onSettled = (chrome.webRequest.onCompleted.addListener as any).mock.calls[0][0];
+        const details = authDetails({ requestId: "r" });
+
+        expect(onAuth(details)).toEqual({ authCredentials: { username: "u", password: "p" } });
+        onSettled({ requestId: "r" }); // request completes -> id pruned
+        expect(onAuth(details)).toEqual({ authCredentials: { username: "u", password: "p" } });
+    });
+
     it("removes previously registered listeners on re-registration", () => {
         registerAuthenticationListenersForAllWebUis([webUi()]);
         registerAuthenticationListenersForAllWebUis([webUi()]);
         expect(chrome.webRequest.onAuthRequired.removeListener).toHaveBeenCalled();
+        expect(chrome.webRequest.onCompleted.removeListener).toHaveBeenCalled();
+        expect(chrome.webRequest.onErrorOccurred.removeListener).toHaveBeenCalled();
     });
 });
