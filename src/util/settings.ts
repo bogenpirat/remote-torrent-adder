@@ -4,7 +4,7 @@ import { migrateSettingsClientIdentifiers } from "./legacy-client-identifiers";
 import { serializeSettings, deserializeSettings } from "./serializer";
 
 
-const SETTINGS_KEY: string = "settings";
+export const SETTINGS_KEY: string = "settings";
 
 export class Settings {
     private _rtaSettings!: RTASettings;

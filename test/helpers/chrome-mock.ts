@@ -44,7 +44,7 @@ export function createChromeMock(): any {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },
-            setBadgeText: vi.fn(),
+            setBadgeText: vi.fn(() => Promise.resolve()),
             setPopup: vi.fn(),
             openPopup: vi.fn(() => Promise.resolve()),
         },
