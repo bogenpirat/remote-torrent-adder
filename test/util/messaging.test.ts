@@ -182,4 +182,20 @@ describe("dispatchPreAddTorrent", () => {
         expect(downloadTorrent).toHaveBeenCalled();
         expect(chrome.action.openPopup).toHaveBeenCalled();
     });
+
+    it("persists the buffered torrent in session storage so the popup can retrieve it", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
+        await new Promise((r) => setTimeout(r, 0));
+
+        const response = await dispatch({ action: GetPreAddedTorrentAndSettings.action });
+        expect(response.serializedTorrent.data).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
+        expect(response.webUiSettings.id).toBe("w1");
+    });
 });

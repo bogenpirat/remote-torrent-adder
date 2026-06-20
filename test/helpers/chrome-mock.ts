@@ -7,6 +7,7 @@ import { vi } from "vitest";
  */
 export function createChromeMock(): any {
     const storage: Record<string, any> = {};
+    const sessionStorage: Record<string, any> = {};
 
     return {
         // backing store exposed for assertions/seeding in tests
@@ -35,6 +36,19 @@ export function createChromeMock(): any {
                 set: vi.fn((items: Record<string, any>, cb?: () => void) => {
                     Object.assign(storage, items);
                     cb?.();
+                }),
+            },
+            session: {
+                get: vi.fn((key: string) => {
+                    const result: Record<string, any> = {};
+                    if (key in sessionStorage) {
+                        result[key] = sessionStorage[key];
+                    }
+                    return Promise.resolve(result);
+                }),
+                set: vi.fn((items: Record<string, any>) => {
+                    Object.assign(sessionStorage, items);
+                    return Promise.resolve();
                 }),
             },
         },

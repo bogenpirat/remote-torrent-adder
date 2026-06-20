@@ -27,7 +27,7 @@ import { initiateWebUis } from "./webuis";
 
 
 const POPUP_PAGE = "popup/popup.html";
-let bufferedTorrent: BufferedTorrentDataForPopup | null = null;
+const BUFFERED_TORRENT_KEY = "bufferedTorrent";
 
 
 export function registerMessageListener(): void {
@@ -104,18 +104,18 @@ export function registerMessageListener(): void {
                     break;
                 }
                 case GetPreAddedTorrentAndSettings.action: {
-                    if (!bufferedTorrent) {
-                        finish({ error: "no buffered torrent" });
-                        break;
-                    }
                     willRespondAsync = true;
-                    convertTorrentToSerialized(bufferedTorrent.torrent)
-                        .then((serializedTorrent: SerializedTorrent) => {
+                    getBufferedTorrent()
+                        .then((buffered: BufferedTorrentForPopup | null) => {
+                            if (!buffered) {
+                                finish({ error: "no buffered torrent" });
+                                return;
+                            }
                             const response: IGetPreAddedTorrentAndSettingsResponse = {
                                 action: GetPreAddedTorrentAndSettingsResponse.action,
-                                webUiSettings: bufferedTorrent!.webUiSettings,
-                                serializedTorrent: serializedTorrent,
-                                autoLabelDirResult: getAutoLabelDirResultForConfig(bufferedTorrent!.torrent, bufferedTorrent!.webUiSettings)
+                                webUiSettings: buffered.webUiSettings,
+                                serializedTorrent: buffered.serializedTorrent,
+                                autoLabelDirResult: getAutoLabelDirResultForConfig(buffered.serializedTorrent, buffered.webUiSettings)
                             };
                             console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
                             finish(response);
@@ -162,10 +162,11 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
     const webUiById = await getWebUiById(message.webUiId ?? "", settingsProvider);
     const webUi = webUiById ?? (allWebUis.length > 0 ? allWebUis[0] : null);
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {
-        bufferedTorrent = {
-            torrent: await downloadTorrent(message.url),
+        const torrent = await downloadTorrent(message.url);
+        await setBufferedTorrent({
+            serializedTorrent: await convertTorrentToSerialized(torrent),
             webUiSettings: webUi.settings
-        };
+        });
         if (webUi.settings.useAlternativeLabelDirChooser) {
             chrome.windows.create({
                 url: POPUP_PAGE,
@@ -236,9 +237,18 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, c
     });
 }
 
-interface BufferedTorrentDataForPopup {
-    torrent: Torrent;
+interface BufferedTorrentForPopup {
+    serializedTorrent: SerializedTorrent;
     webUiSettings: WebUISettings;
+}
+
+function setBufferedTorrent(buffered: BufferedTorrentForPopup): Promise<void> {
+    return chrome.storage.session.set({ [BUFFERED_TORRENT_KEY]: buffered });
+}
+
+async function getBufferedTorrent(): Promise<BufferedTorrentForPopup | null> {
+    const stored = await chrome.storage.session.get(BUFFERED_TORRENT_KEY);
+    return (stored[BUFFERED_TORRENT_KEY] as BufferedTorrentForPopup | undefined) ?? null;
 }
 
 function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string, labels: string[], directories: string[]): Promise<void> {
