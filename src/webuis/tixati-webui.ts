@@ -3,17 +3,12 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TixatiWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
-            let payload: FormData;
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent);
-            } else {
-                payload = await this.createPayloadForTorrent(torrent);
-            }
-            payload.append("noautostart", this.getAddPaused(config) === true ? "1" : "0");
+        const payload = torrent.isMagnet
+            ? this.createPayloadForMagnet(torrent)
+            : await this.createPayloadForTorrent(torrent);
+        payload.append("noautostart", this.getAddPaused(config) === true ? "1" : "0");
 
-            this.sendRequest(payload, resolve, reject);
-        });
+        return new Promise((resolve, reject) => this.sendRequest(payload, resolve, reject));
     }
 
     private createTixatiBaseUrl(): string {
@@ -24,15 +19,13 @@ export class TixatiWebUI extends TorrentWebUI {
     }
 
     private async createPayloadForTorrent(torrent: Torrent): Promise<FormData> {
-        return new Promise(async (resolve, reject) => {
-            const payload = new FormData();
-            payload.append("addlinktext", "")
-            const torrentPayload = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
-            payload.append("metafile", torrentPayload, torrent.name);
-            payload.append("addmetafile", "Add");
+        const payload = new FormData();
+        payload.append("addlinktext", "")
+        const torrentPayload = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
+        payload.append("metafile", torrentPayload, torrent.name);
+        payload.append("addmetafile", "Add");
 
-            resolve(payload);
-        });
+        return payload;
     }
 
     private createPayloadForMagnet(torrent: Torrent): FormData {

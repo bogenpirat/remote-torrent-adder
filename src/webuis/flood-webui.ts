@@ -44,23 +44,18 @@ export class FloodWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            let fetchOpts: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                }
-            };
+    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
+        const body = torrent.isMagnet
+            ? JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config))
+            : JSON.stringify(await this.createPayloadForTorrent(torrent, config));
 
-            if (torrent.isMagnet) {
-                fetchOpts["body"] = JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config));
-            } else {
-                fetchOpts["body"] = JSON.stringify(await this.createPayloadForTorrent(torrent, config));
-            }
-
-            resolve(fetchOpts);
-        });
+        return {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=UTF-8"
+            },
+            body
+        };
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, any> {

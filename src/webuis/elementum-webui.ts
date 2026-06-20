@@ -3,15 +3,11 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class ElementumWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const url = this.createElementumBaseUrl(torrent);
-            let payload: FormData;
-
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent.data as string, config);
-            } else {
-                payload = this.createPayloadForTorrent(torrent);
-            }
+            const payload = torrent.isMagnet
+                ? this.createPayloadForMagnet(torrent.data as string, config)
+                : this.createPayloadForTorrent(torrent);
 
             this.sendRequest(url, payload, resolve, reject);
         });

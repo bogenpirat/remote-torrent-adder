@@ -35,43 +35,39 @@ export class TransmissionWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            let fetchOpts: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8",
-                    "X-Transmission-Session-Id": transmissionSessionId
-                }
+    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
+        const payload: Record<string, string | Record<string, string | boolean>> = {
+            method: "torrent-add",
+            arguments: {}
+        };
+        if (torrent.isMagnet) {
+            payload["arguments"] = {
+                filename: torrent.data as string
             };
-
-            const payload: Record<string, string | Record<string, string | boolean>> = {
-                method: "torrent-add",
-                arguments: {}
+        } else {
+            payload["arguments"] = {
+                metainfo: await blobToBase64(torrent.data as Blob)
             };
-            if (torrent.isMagnet) {
-                payload["arguments"] = {
-                    filename: torrent.data as string
-                };
-            } else {
-                payload["arguments"] = {
-                    metainfo: await blobToBase64(torrent.data as Blob)
-                };
-            }
+        }
 
-            const dir = this.getDirectory(config);
-            if (dir) {
-                payload["arguments"]["download-dir"] = dir;
-            }
+        const dir = this.getDirectory(config);
+        if (dir) {
+            payload["arguments"]["download-dir"] = dir;
+        }
 
-            const addPaused = this.getAddPaused(config);
-            if (addPaused !== null) {
-                payload["arguments"]["paused"] = addPaused;
-            }
+        const addPaused = this.getAddPaused(config);
+        if (addPaused !== null) {
+            payload["arguments"]["paused"] = addPaused;
+        }
 
-            fetchOpts["body"] = JSON.stringify(payload);
-            resolve(fetchOpts);
-        });
+        return {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=UTF-8",
+                "X-Transmission-Session-Id": transmissionSessionId
+            },
+            body: JSON.stringify(payload)
+        };
     }
 
     private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {

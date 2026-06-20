@@ -41,36 +41,30 @@ export class QBittorrentWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            let fetchOpts: RequestInit = {
-                method: "POST",
-            };
+    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
+        const body = new FormData();
+        if (torrent.isMagnet) {
+            body.append("urls", torrent.data as string);
+        } else {
+            body.append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
+        }
 
-            fetchOpts["body"] = new FormData();
-            if (torrent.isMagnet) {
-                fetchOpts["body"].append("urls", torrent.data as string);
-            } else {
-                fetchOpts["body"].append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
-            }
+        const dir = this.getDirectory(config);
+        if (dir) {
+            body.append("savepath", dir);
+        }
 
-            const dir = this.getDirectory(config);
-            if (dir) {
-                fetchOpts["body"].append("savepath", dir);
-            }
+        const label = this.getLabel(config);
+        if (label) {
+            body.append("category", label);
+        }
 
-            const label = this.getLabel(config);
-            if (label) {
-                fetchOpts["body"].append("category", label);
-            }
+        const addPaused = this.getAddPaused(config);
+        if (addPaused !== null) {
+            body.append("stopped", addPaused.toString());
+        }
 
-            const addPaused = this.getAddPaused(config);
-            if (addPaused !== null) {
-                fetchOpts["body"].append("stopped", addPaused.toString());
-            }
-
-            resolve(fetchOpts);
-        });
+        return { method: "POST", body };
     }
 
     private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {

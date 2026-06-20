@@ -3,7 +3,7 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QNAPDownloadStationWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this.fetchSessionId()
                 .then(sessionId => this.createTorrentFetchOptions(sessionId, torrent, config))
                 .then(fetchOptions => this.sendRequest(this.createAddingUrlForTorrent(torrent), fetchOptions, resolve, reject))
@@ -41,28 +41,26 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            const payload = new FormData();
-            payload.append("sid", sessionId);
+    private async createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
+        const payload = new FormData();
+        payload.append("sid", sessionId);
 
-            const dir = this.getDirectory(config);
-            if (dir) {
-                payload.append("temp", dir);
-                payload.append("move", dir);
-            }
+        const dir = this.getDirectory(config);
+        if (dir) {
+            payload.append("temp", dir);
+            payload.append("move", dir);
+        }
 
-            if (torrent.isMagnet) {
-                payload.append("url", torrent.data as string);
-            } else {
-                payload.append("file", new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" }), torrent.name);
-            }
+        if (torrent.isMagnet) {
+            payload.append("url", torrent.data as string);
+        } else {
+            payload.append("file", new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" }), torrent.name);
+        }
 
-            resolve({
-                method: 'POST',
-                body: payload
-            } as RequestInit);
-        });
+        return {
+            method: 'POST',
+            body: payload
+        } as RequestInit;
     }
 
     private sendRequest(url: string, fetchOptions: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {

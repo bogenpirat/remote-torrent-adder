@@ -22,12 +22,10 @@ export function deserializeObject(serialized: string): any {
 }
 
 export async function convertTorrentToSerialized(torrent: Torrent): Promise<SerializedTorrent> {
-    return new Promise(async (resolve) => {
-        resolve({
-            ...torrent,
-            data: torrent.isMagnet ? torrent.data as string : await blobToBase64(torrent.data as Blob),
-        });
-    });
+    return {
+        ...torrent,
+        data: torrent.isMagnet ? torrent.data as string : await blobToBase64(torrent.data as Blob),
+    };
 }
 
 export function convertSerializedToTorrent(serialized: SerializedTorrent): Torrent {

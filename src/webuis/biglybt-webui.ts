@@ -3,20 +3,15 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class BiglyBTWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
-            const url = this.createBiglyBTBaseUrl(torrent, config);
-            let payload: string | FormData;
+        const url = this.createBiglyBTBaseUrl(torrent, config);
 
-            await this.fetchSessionCookie(url);
+        await this.fetchSessionCookie(url);
 
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent.data as string, config);
-            } else {
-                payload = this.createPayloadForTorrent(torrent);
-            }
+        const payload = torrent.isMagnet
+            ? this.createPayloadForMagnet(torrent.data as string, config)
+            : this.createPayloadForTorrent(torrent);
 
-            this.sendRequest(url, payload, resolve, reject);
-        });
+        return new Promise((resolve, reject) => this.sendRequest(url, payload, resolve, reject));
     }
 
     createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {

@@ -3,19 +3,17 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TTorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
-            let payload: FormData;
-            let url = this.createTTorrentBaseUrl();
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent);
-                url += "/downloadFromUrl";
-            } else {
-                payload = await this.createPayloadForTorrent(torrent);
-                url += "/downloadTorrent";
-            }
+        let url = this.createTTorrentBaseUrl();
+        let payload: FormData;
+        if (torrent.isMagnet) {
+            payload = this.createPayloadForMagnet(torrent);
+            url += "/downloadFromUrl";
+        } else {
+            payload = await this.createPayloadForTorrent(torrent);
+            url += "/downloadTorrent";
+        }
 
-            this.sendRequest(url, payload, resolve, reject);
-        });
+        return new Promise((resolve, reject) => this.sendRequest(url, payload, resolve, reject));
     }
 
     private createTTorrentBaseUrl(): string {
@@ -26,11 +24,9 @@ export class TTorrentWebUI extends TorrentWebUI {
     }
 
     private async createPayloadForTorrent(torrent: Torrent): Promise<FormData> {
-        return new Promise(async (resolve, reject) => {
-            const payload = new FormData();
-            payload.append("torrentfile", torrent.data as Blob, torrent.name);
-            resolve(payload);
-        });
+        const payload = new FormData();
+        payload.append("torrentfile", torrent.data as Blob, torrent.name);
+        return payload;
     }
 
     private createPayloadForMagnet(torrent: Torrent): FormData {
