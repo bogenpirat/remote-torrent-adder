@@ -27,18 +27,24 @@ export function getAutoDirResult(torrent: Torrent, autoLabelDirSettings: Array<A
 }
 
 function isAutoLabelDirSettingMatchingForTorrent(autoLabelDirSetting: AutoLabelDirSetting, trackers?: string[]): boolean {
-    let matches: boolean = true;
-
-    for (const criterion of autoLabelDirSetting.criteria) {
-        if (criterion.value && criterion.field) {
-            switch (criterion.field) {
-                case 'trackerUrl':
-                    matches &&= trackers?.some(tracker => new RegExp(criterion.value).test(tracker)) ?? false;
-                default:
-                    continue;
-            }
-        }
+    if (autoLabelDirSetting.criteria.length === 0) {
+        return false;
     }
 
-    return matches;
+    return autoLabelDirSetting.criteria.every(criterion => {
+        if (criterion.field === "trackerUrl" && criterion.value) {
+            return matchesTrackerUrl(criterion.value, trackers);
+        }
+        return true;
+    });
+}
+
+function matchesTrackerUrl(pattern: string, trackers?: string[]): boolean {
+    let regex: RegExp;
+    try {
+        regex = new RegExp(pattern);
+    } catch {
+        return false;
+    }
+    return trackers?.some(tracker => regex.test(tracker)) ?? false;
 }
