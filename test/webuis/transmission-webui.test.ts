@@ -32,7 +32,7 @@ describe("TransmissionWebUI", () => {
         const payload = JSON.parse(fetch.mock.calls[1][1].body as string);
         expect(payload.arguments.metainfo).toBeTypeOf("string");
         expect(payload.arguments["download-dir"]).toBe("/data");
-        expect(payload.arguments.paused).toBe("true");
+        expect(payload.arguments.paused).toBe(true);
     });
 
     it("rejects when the session-id request returns an unexpected status", async () => {

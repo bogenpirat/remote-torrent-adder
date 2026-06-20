@@ -45,7 +45,7 @@ export class TransmissionWebUI extends TorrentWebUI {
                 }
             };
 
-            const payload: Record<string, string | Record<string, string>> = {
+            const payload: Record<string, string | Record<string, string | boolean>> = {
                 method: "torrent-add",
                 arguments: {}
             };
@@ -66,7 +66,7 @@ export class TransmissionWebUI extends TorrentWebUI {
 
             const addPaused = this.getAddPaused(config);
             if (addPaused !== null) {
-                payload["arguments"]["paused"] = addPaused.toString();
+                payload["arguments"]["paused"] = addPaused;
             }
 
             fetchOpts["body"] = JSON.stringify(payload);
