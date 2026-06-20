@@ -44,7 +44,7 @@ export function showNotification(title: string, message: string, isFailed: boole
 
 function forgetNotification(notificationId: string): void {
     notificationUrls.delete(notificationId);
-    chrome.notifications.clear(notificationId);
+    chrome.notifications.clear(notificationId).then();
 }
 
 async function ensureOffscreenDocument(): Promise<void> {
@@ -57,5 +57,5 @@ async function ensureOffscreenDocument(): Promise<void> {
 }
 
 function openWebUi(url: string): void {
-    chrome.tabs.create({ url: url });
+    chrome.tabs.create({url: url}).then();
 }
