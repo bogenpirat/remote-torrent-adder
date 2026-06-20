@@ -17,7 +17,7 @@ export function createChromeMock(): any {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },
-            sendMessage: vi.fn(),
+            sendMessage: vi.fn(() => Promise.resolve()),
             lastError: undefined,
         },
 

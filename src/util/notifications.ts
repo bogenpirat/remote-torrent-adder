@@ -1,39 +1,50 @@
 import { IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
 
-export function showNotification(title: string, message: string, isFailed: boolean = true, popupDurationMs: number = 2000, playSound: boolean = false, webUiurl?: string): void {
-    var notificationCreateOptions: chrome.notifications.NotificationCreateOptions = {
+const notificationUrls = new Map<string, string>();
+
+export function registerNotificationClickListener(): void {
+    chrome.notifications.onClicked.addListener((notificationId) => {
+        const url = notificationUrls.get(notificationId);
+        if (url) {
+            openWebUi(url);
+            forgetNotification(notificationId);
+        }
+    });
+}
+
+export function showNotification(title: string, message: string, isFailed: boolean = true, popupDurationMs: number = 2000, playSound: boolean = false, webUiUrl?: string): void {
+    const notificationCreateOptions: chrome.notifications.NotificationCreateOptions = {
         type: "basic",
-        iconUrl: (isFailed === true) ? "assets/icons/BitTorrent128-red.png" : "assets/icons/BitTorrent128.png",
+        iconUrl: isFailed ? "assets/icons/BitTorrent128-red.png" : "assets/icons/BitTorrent128.png",
         title: title,
         priority: 0,
         message: message
     };
 
     chrome.notifications.create("", notificationCreateOptions, myId => {
-        if (webUiurl) {
-            chrome.notifications.onClicked.addListener((clickedNotificationId) => {
-                if (clickedNotificationId === myId) {
-                    openWebUi(webUiurl);
-                }
-            });
+        if (webUiUrl) {
+            notificationUrls.set(myId, webUiUrl);
+        } else {
+            notificationUrls.delete(myId);
         }
 
-        setTimeout(function () {
-            chrome.notifications.clear(myId, (wasCleared) => { });
-        }, popupDurationMs);
+        setTimeout(() => forgetNotification(myId), popupDurationMs);
     });
 
     if (playSound) {
-        // The offscreen document resolves the actual audio source (a custom
-        // sound from IndexedDB, or the bundled default) based on isFailed.
         ensureOffscreenDocument().then(() => {
             const playSoundMessage = {
                 action: PlaySoundMessage.action,
                 isFailed
             } as IPlaySoundMessage;
-            chrome.runtime.sendMessage(playSoundMessage);
+            chrome.runtime.sendMessage(playSoundMessage).then();
         });
     }
+}
+
+function forgetNotification(notificationId: string): void {
+    notificationUrls.delete(notificationId);
+    chrome.notifications.clear(notificationId);
 }
 
 async function ensureOffscreenDocument(): Promise<void> {

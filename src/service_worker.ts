@@ -8,10 +8,12 @@ import { initiateWebUis } from './util/webuis';
 import { RegisteredListeners } from './models/messages';
 import { clearDynamicRules, clearListeners } from './util/utils';
 import { registerCorsCircumventionForWebUis } from './util/cors-tricks';
+import { registerNotificationClickListener } from './util/notifications';
 
 
 const listeners = {} as RegisteredListeners;
 registerMessageListener();
+registerNotificationClickListener();
 
 const settingsProvider = new Settings();
 settingsProvider.loadSettings().then(registerEverything);
