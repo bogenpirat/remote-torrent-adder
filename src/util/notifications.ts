@@ -24,18 +24,19 @@ export function showNotification(title: string, message: string, isFailed: boole
     });
 
     if (playSound) {
-        playAudioNotification(isFailed).then(() => {
+        // The offscreen document resolves the actual audio source (a custom
+        // sound from IndexedDB, or the bundled default) based on isFailed.
+        ensureOffscreenDocument().then(() => {
             const playSoundMessage = {
                 action: PlaySoundMessage.action,
-                source: isFailed ? '../assets/sounds/failure.ogg' : '../assets/sounds/success.ogg',
-                volume: 1
+                isFailed
             } as IPlaySoundMessage;
             chrome.runtime.sendMessage(playSoundMessage);
         });
     }
 }
 
-async function playAudioNotification(isFailed: boolean): Promise<void> {
+async function ensureOffscreenDocument(): Promise<void> {
     if (await chrome.offscreen.hasDocument()) return;
     await chrome.offscreen.createDocument({
         reasons: ["AUDIO_PLAYBACK"],
