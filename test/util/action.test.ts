@@ -26,8 +26,8 @@ describe("updateBadgeText", () => {
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "3", tabId: 42 });
     });
 
-    it("does not set badge text for an empty string", () => {
+    it("clears the badge with an empty string", () => {
         updateBadgeText("", 42);
-        expect(chrome.action.setBadgeText).not.toHaveBeenCalled();
+        expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "", tabId: 42 });
     });
 });
