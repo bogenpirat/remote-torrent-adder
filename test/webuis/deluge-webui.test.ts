@@ -54,6 +54,21 @@ describe("DelugeWebUI", () => {
         expect(labelSet.params).toEqual(["torrent-hash", "movies"]);
     });
 
+    it("falls back to the configured default label when the upload has none", async () => {
+        const fetch = queueFetch(
+            authOk(),
+            addOk(),
+            mockResponse({ status: 200, json: {} }), // label.add
+            mockResponse({ status: 200, json: {} }), // label.set_torrent
+        );
+        const result = await build({ defaultLabel: "Shows" }).sendTorrent(makeMagnetTorrent(), {});
+
+        expect(result.success).toBe(true);
+        const labelAdd = JSON.parse(fetch.mock.calls[2][1].body as string);
+        expect(labelAdd.method).toBe("label.add");
+        expect(labelAdd.params).toEqual(["shows"]); // default label, lower-cased
+    });
+
     it("reports failure when authentication result is false", async () => {
         queueFetch(mockResponse({ status: 200, json: { result: false } }));
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });

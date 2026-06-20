@@ -13,8 +13,9 @@ export class DelugeWebUI extends TorrentWebUI {
 
             let result = await this.startUploadedTorrent(pathOrMagnet, config);
 
-            if (result.success && config.label) {
-                result = await this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", config.label.toLowerCase());
+            const label = this.getLabel(config);
+            if (result.success && label) {
+                result = await this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", label.toLowerCase());
             }
 
             return result;
