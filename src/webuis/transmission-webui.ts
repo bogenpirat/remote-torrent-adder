@@ -4,16 +4,21 @@ import { blobToBase64 } from "../util/converter";
 
 export class TransmissionWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            const url = this.createBaseUrl() + "/transmission/rpc";
+        try {
+            const sessionId = await this.fetchTransmissionSessionId();
+            const fetchOpts = await this.createTorrentFetchOptions(torrent, config, sessionId);
+            const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
 
-            this.fetchTransmissionSessionId()
-                .then((transmissionSessionId) => this.createTorrentFetchOptions(torrent, config, transmissionSessionId))
-                .then(fetchOpts => this.sendRequest(url, fetchOpts, resolve, reject))
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+            const responseText = await response.text();
+            const responseData = JSON.parse(responseText);
+            return {
+                success: responseData["result"] === "success",
+                httpResponseCode: response.status,
+                httpResponseBody: responseText,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private fetchTransmissionSessionId(): Promise<string> {
@@ -68,21 +73,6 @@ export class TransmissionWebUI extends TorrentWebUI {
             },
             body: JSON.stringify(payload)
         };
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts)
-            .then(async (response) => {
-                const responseText = await response.text();
-                const responseData = JSON.parse(responseText);
-                if (responseData["result"] === "success") {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
-                } else {
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-                }
-            }).catch(error => {
-                reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-            });
     }
 
     get isLabelSupported(): boolean {

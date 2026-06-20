@@ -30,14 +30,14 @@ describe("PorlaWebUI", () => {
         expect(payload.params.save_path).toBe("./");
     });
 
-    it("rejects when login returns an error", async () => {
+    it("reports failure when login returns an error", async () => {
         queueFetch(mockResponse({ status: 200, json: { error: "bad creds" } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects when the jsonrpc response contains an error", async () => {
+    it("reports failure when the jsonrpc response contains an error", async () => {
         queueFetch(tokenOk(), mockResponse({ status: 200, json: { error: { code: -1 } } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports dirs only", () => {

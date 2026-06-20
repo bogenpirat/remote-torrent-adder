@@ -3,41 +3,32 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QBittorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            const url = this.createBaseUrl() + "/api/v2/torrents/add";
+        try {
+            await this.authenticate();
+            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
+            const response = await this.fetch(this.createBaseUrl() + "/api/v2/torrents/add", fetchOpts);
 
-            this.authenticate()
-                .then(() => this.createTorrentFetchOptions(torrent, config))
-                .then(fetchOpts => {
-                    this.sendRequest(url, fetchOpts, resolve, reject);
-                })
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+            const responseBody = await response.text();
+            return {
+                success: responseBody !== "Fails.",
+                httpResponseCode: response.status,
+                httpResponseBody: responseBody,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
-    private authenticate(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const authenticationUrl = this.createBaseUrl() + "/api/v2/auth/login";
-            const authenticationBody = new URLSearchParams();
-            authenticationBody.append("username", this._settings.username);
-            authenticationBody.append("password", this._settings.password);
-            this.fetch(authenticationUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
-                },
-                body: authenticationBody
-            }).then(response => {
-                if (response.status == 200 || response.status == 204) {
-                    resolve();
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
+    private async authenticate(): Promise<void> {
+        const authenticationBody = new URLSearchParams();
+        authenticationBody.append("username", this._settings.username);
+        authenticationBody.append("password", this._settings.password);
+        await this.fetch(this.createBaseUrl() + "/api/v2/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+            },
+            body: authenticationBody
         });
     }
 
@@ -65,25 +56,6 @@ export class QBittorrentWebUI extends TorrentWebUI {
         }
 
         return { method: "POST", body };
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts).then(async (response) => {
-            const responseBody = await response.text();
-            if (response.status === 200) {
-                switch (responseBody) {
-                    case "Fails.":
-                        reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-                        break;
-                    default:
-                        resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-                }
-            } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-            }
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

@@ -3,12 +3,21 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QNAPDownloadStationWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            this.fetchSessionId()
-                .then(sessionId => this.createTorrentFetchOptions(sessionId, torrent, config))
-                .then(fetchOptions => this.sendRequest(this.createAddingUrlForTorrent(torrent), fetchOptions, resolve, reject))
-                .catch(reject);
-        });
+        try {
+            const sessionId = await this.fetchSessionId();
+            const fetchOptions = await this.createTorrentFetchOptions(sessionId, torrent, config);
+            const response = await this.fetch(this.createAddingUrlForTorrent(torrent), fetchOptions);
+
+            const responseText = await response.text();
+            const errorCode = JSON.parse(responseText)["error"];
+            return {
+                success: errorCode === 0 || errorCode === 8196,
+                httpResponseCode: response.status,
+                httpResponseBody: responseText,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private createQNAPDownloadStationBaseUrl(): string {
@@ -22,23 +31,17 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         return this.createQNAPDownloadStationBaseUrl() + (torrent.isMagnet ? "/Task/AddUrl" : "/Task/AddTorrent");
     }
 
-    private fetchSessionId(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const loginUrl = this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
-            const payload = new FormData();
-            payload.append("user", this.settings.username);
-            payload.append("pass", btoa(this.settings.password));
-            fetch(loginUrl, { method: 'POST', body: payload })
-                .then(async (response) => {
-                    const responseJson = await response.json();
-                    if (response.status === 200 && responseJson["sid"]) {
-                        resolve(responseJson["sid"]);
-                    }
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: "Authentication failed" });
-                }).catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+    private async fetchSessionId(): Promise<string> {
+        const loginUrl = this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
+        const payload = new FormData();
+        payload.append("user", this.settings.username);
+        payload.append("pass", btoa(this.settings.password));
+        const response = await this.fetch(loginUrl, { method: 'POST', body: payload });
+        const responseJson = await response.json();
+        if (!responseJson["sid"]) {
+            throw new Error("Authentication failed");
+        }
+        return responseJson["sid"];
     }
 
     private async createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
@@ -61,28 +64,6 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
             method: 'POST',
             body: payload
         } as RequestInit;
-    }
-
-    private sendRequest(url: string, fetchOptions: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOptions).then(async (response) => {
-            const responseText = await response.text();
-            if (response.status === 200) {
-                const responseJson = JSON.parse(responseText);
-                switch (responseJson["error"]) {
-                    case 0:
-                    case 8196: // 8196 = "The task already exists"
-                        resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
-                        break;
-                    default:
-                        reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-                        break;
-                }
-            }
-
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

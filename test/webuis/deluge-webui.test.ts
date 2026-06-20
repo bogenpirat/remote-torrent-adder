@@ -54,19 +54,19 @@ describe("DelugeWebUI", () => {
         expect(labelSet.params).toEqual(["torrent-hash", "movies"]);
     });
 
-    it("rejects when authentication result is false", async () => {
+    it("reports failure when authentication result is false", async () => {
         queueFetch(mockResponse({ status: 200, json: { result: false } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toBeInstanceOf(Error);
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects when add returns a falsey result tuple", async () => {
+    it("reports failure when add returns a falsey result tuple", async () => {
         queueFetch(authOk(), mockResponse({ status: 200, json: { result: [[false]] } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects when file upload fails", async () => {
+    it("reports failure when file upload fails", async () => {
         queueFetch(authOk(), mockResponse({ status: 200, json: { success: false, files: [] } }));
-        await expect(build().sendTorrent(makeFileTorrent(), {})).rejects.toBeInstanceOf(Error);
+        await expect(build().sendTorrent(makeFileTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports labels, dirs and add-paused", () => {

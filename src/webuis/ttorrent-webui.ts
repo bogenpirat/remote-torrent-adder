@@ -3,17 +3,22 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TTorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        let url = this.createTTorrentBaseUrl();
-        let payload: FormData;
-        if (torrent.isMagnet) {
-            payload = this.createPayloadForMagnet(torrent);
-            url += "/downloadFromUrl";
-        } else {
-            payload = await this.createPayloadForTorrent(torrent);
-            url += "/downloadTorrent";
-        }
+        try {
+            let url = this.createTTorrentBaseUrl();
+            let payload: FormData;
+            if (torrent.isMagnet) {
+                payload = this.createPayloadForMagnet(torrent);
+                url += "/downloadFromUrl";
+            } else {
+                payload = await this.createPayloadForTorrent(torrent);
+                url += "/downloadTorrent";
+            }
 
-        return new Promise((resolve, reject) => this.sendRequest(url, payload, resolve, reject));
+            const response = await this.fetch(url, { method: 'POST', body: payload });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private createTTorrentBaseUrl(): string {
@@ -33,21 +38,6 @@ export class TTorrentWebUI extends TorrentWebUI {
         const payload = new FormData();
         payload.append("url", torrent.data as string);
         return payload;
-    }
-
-    private sendRequest(url: string, payload: FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            if (response.status === 200) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            }
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

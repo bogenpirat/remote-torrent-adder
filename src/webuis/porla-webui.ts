@@ -4,16 +4,21 @@ import { blobToBase64 } from "../util/converter";
 
 export class PorlaWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            this.authenticateForToken()
-                .then(jsonRpcToken => this.createTorrentFetchOptions(jsonRpcToken, torrent, config))
-                .then(fetchOpts => {
-                    this.sendRequest(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts, resolve, reject);
-                })
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+        try {
+            const jsonRpcToken = await this.authenticateForToken();
+            const fetchOpts = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
+            const response = await this.fetch(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts);
+
+            const responseText = await response.text();
+            const responseJson = JSON.parse(responseText);
+            return {
+                success: !responseJson.error,
+                httpResponseCode: response.status,
+                httpResponseBody: responseText,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private authenticateForToken(): Promise<string> {
@@ -81,22 +86,6 @@ export class PorlaWebUI extends TorrentWebUI {
                 save_path: this.getDirectory(config) ?? "./"
             }
         };
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts).then(async (response) => {
-            const responseText = await response.text();
-            if (response.status === 200) {
-                const responseJson = JSON.parse(responseText);
-                if (!responseJson.error) {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
-                    return;
-                }
-            }
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

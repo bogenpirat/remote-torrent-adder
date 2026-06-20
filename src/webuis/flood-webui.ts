@@ -4,18 +4,22 @@ import { blobToBase64 } from "../util/converter";
 
 export class FloodWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
+        try {
             const url = this.createBaseUrl() + (torrent.isMagnet ? "/api/torrents/add-urls" : "/api/torrents/add-files");
 
-            this.authenticate()
-                .then(() => this.createTorrentFetchOptions(torrent, config))
-                .then(fetchOpts => {
-                    this.sendRequest(url, fetchOpts, resolve, reject);
-                })
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+            await this.authenticate();
+            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
+            const response = await this.fetch(url, fetchOpts);
+
+            const success = response.status === 200 || response.status === 202;
+            return {
+                success,
+                httpResponseCode: response.status,
+                httpResponseBody: success ? null : await response.text(),
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private authenticate(): Promise<void> {
@@ -80,18 +84,6 @@ export class FloodWebUI extends TorrentWebUI {
             isBasePath: false,
             isCompleted: false
         };
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts).then(async (response) => {
-            if (response.status === 200 || response.status === 202) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: null });
-            } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            }
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

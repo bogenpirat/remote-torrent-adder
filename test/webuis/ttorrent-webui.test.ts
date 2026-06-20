@@ -25,12 +25,12 @@ describe("TTorrentWebUI", () => {
         expect((opts.body as FormData).get("torrentfile")).toBeInstanceOf(Blob);
     });
 
-    it("rejects on a non-200 response (base fetch throws before status is read)", async () => {
+    it("reports the real status and body on a non-2xx response", async () => {
         queueFetch(mockResponse({ status: 401, body: "auth" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
-            httpResponseCode: 0,
-            httpResponseBody: "HTTP error 401",
+            httpResponseCode: 401,
+            httpResponseBody: "auth",
         });
     });
 

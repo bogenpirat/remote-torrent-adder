@@ -3,14 +3,17 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class ElementumWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
+        try {
             const url = this.createElementumBaseUrl(torrent);
             const payload = torrent.isMagnet
                 ? this.createPayloadForMagnet(torrent.data as string, config)
                 : this.createPayloadForTorrent(torrent);
 
-            this.sendRequest(url, payload, resolve, reject);
-        });
+            const response = await this.fetch(url, { method: 'POST', body: payload });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     createElementumBaseUrl(torrent: Torrent): string {
@@ -35,22 +38,6 @@ export class ElementumWebUI extends TorrentWebUI {
         payload.append("file", blobData, torrent.name);
 
         return payload;
-    }
-
-    sendRequest(url: string, payload: FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            const responseBody = await response.text();
-            if (response.status === 200) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-                return;
-            }
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

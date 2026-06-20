@@ -27,6 +27,13 @@ export interface WebUISettings {
     clientSpecificSettings: Record<string, any>;
 }
 
+export class HttpError extends Error {
+    constructor(public readonly status: number, public readonly body: string) {
+        super(`HTTP error ${status}`);
+        this.name = "HttpError";
+    }
+}
+
 export abstract class TorrentWebUI {
     _settings: WebUISettings;
 
@@ -82,9 +89,16 @@ export abstract class TorrentWebUI {
     protected async fetch(url: string, options?: RequestInit): Promise<Response> {
         const res: Response = await fetch(url, options);
         if (!res.ok) {
-            throw new Error(`HTTP error ${res.status}`);
+            throw new HttpError(res.status, await res.text().catch(() => ""));
         }
         return res;
+    }
+
+    protected toFailureResult(error: unknown): TorrentAddingResult {
+        if (error instanceof HttpError) {
+            return { success: false, httpResponseCode: error.status, httpResponseBody: error.body };
+        }
+        return { success: false, httpResponseCode: 0, httpResponseBody: (error as Error)?.message ?? null };
     }
 
     protected addLeadingAndTrimTrailingSlashes(urlPart: string): string {

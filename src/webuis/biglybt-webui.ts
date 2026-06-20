@@ -3,15 +3,25 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class BiglyBTWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        const url = this.createBiglyBTBaseUrl(torrent, config);
+        try {
+            const url = this.createBiglyBTBaseUrl(torrent, config);
 
-        await this.fetchSessionCookie(url);
+            await this.fetchSessionCookie(url);
 
-        const payload = torrent.isMagnet
-            ? this.createPayloadForMagnet(torrent.data as string, config)
-            : this.createPayloadForTorrent(torrent);
+            const payload = torrent.isMagnet
+                ? this.createPayloadForMagnet(torrent.data as string, config)
+                : this.createPayloadForTorrent(torrent);
 
-        return new Promise((resolve, reject) => this.sendRequest(url, payload, resolve, reject));
+            const response = await this.fetch(url, { method: 'POST', body: payload });
+            const responseBody = await response.text();
+            return {
+                success: this.isSuccessResponse(responseBody),
+                httpResponseCode: response.status,
+                httpResponseBody: responseBody,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {
@@ -51,22 +61,18 @@ export class BiglyBTWebUI extends TorrentWebUI {
         return payload;
     }
 
-    sendRequest(url: string, payload: string | FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            const responseBody = await response.text();
-            if (/.*<h1>200: OK<\/h1>.*/.exec(responseBody) || JSON.parse(responseBody)["result"] == "success") {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-                return;
-            }
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
+    private isSuccessResponse(responseBody: string): boolean {
+        if (/<h1>200: OK<\/h1>/.test(responseBody)) {
+            return true;
+        }
+        try {
+            return JSON.parse(responseBody)["result"] === "success";
+        } catch {
+            return false;
+        }
     }
-    
+
+
     get isLabelSupported(): boolean {
         return false;
     }

@@ -42,9 +42,13 @@ describe("RqbitWebUI", () => {
         expect((fetch.mock.calls[0][1].headers as any).Authorization).toBeUndefined();
     });
 
-    it("rejects when the request fails", async () => {
+    it("reports the real status and body when the request fails", async () => {
         queueFetch(mockResponse({ status: 401, body: "unauthorized" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
+            success: false,
+            httpResponseCode: 401,
+            httpResponseBody: "unauthorized",
+        });
     });
 
     it("supports dirs and add-paused only", () => {

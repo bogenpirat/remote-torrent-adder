@@ -39,9 +39,9 @@ describe("BiglyBTWebUI", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejects when the add response is neither OK html nor JSON success", async () => {
+    it("reports failure when the add response is neither OK html nor JSON success", async () => {
         queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, json: { result: "fail" } }));
-        await expect(build().sendTorrent(makeFileTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeFileTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports only add-paused", () => {

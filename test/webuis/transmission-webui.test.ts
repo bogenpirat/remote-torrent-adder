@@ -35,17 +35,17 @@ describe("TransmissionWebUI", () => {
         expect(payload.arguments.paused).toBe(true);
     });
 
-    it("rejects when the session-id request returns an unexpected status", async () => {
+    it("reports failure when the session-id request returns an unexpected status", async () => {
         queueFetch(mockResponse({ status: 500 }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects when the rpc result is not success", async () => {
+    it("reports failure when the rpc result is not success", async () => {
         queueFetch(
             mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
             mockResponse({ status: 200, json: { result: "duplicate torrent" } }),
         );
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports dir and add-paused but not labels", () => {
