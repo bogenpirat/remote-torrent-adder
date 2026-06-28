@@ -1,8 +1,25 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 
 export class FloodWebUI extends TorrentWebUI {
+    public override async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const response = await fetch(this.createBaseUrl() + "/api/auth/authenticate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
+            });
+            if (!response.ok) {
+                return this.toReachableResult(false, response.status);
+            }
+            const json = await response.json();
+            return this.toReachableResult(json.success === true, response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const url = this.createBaseUrl() + (torrent.isMagnet ? "/api/torrents/add-urls" : "/api/torrents/add-files");

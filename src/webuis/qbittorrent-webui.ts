@@ -1,7 +1,24 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QBittorrentWebUI extends TorrentWebUI {
+    public override async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const body = new URLSearchParams();
+            body.append("username", this._settings.username);
+            body.append("password", this._settings.password);
+            const response = await fetch(this.createBaseUrl() + "/api/v2/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+                body
+            });
+            const text = await response.text();
+            return this.toReachableResult(response.ok && text.trim() === "Ok.", response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             await this.authenticate();

@@ -46,6 +46,10 @@ export const PlaySoundMessage: IMessagable = {
     action: "playSound"
 }
 
+export const TestConnectionMessage: IMessagable = {
+    action: "testConnection"
+}
+
 export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
     webUiSettings: WebUISettings;
     serializedTorrent: SerializedTorrent;
@@ -91,6 +95,10 @@ export interface ITestNotificationMessage extends IMessagable {
 
 export interface IPlaySoundMessage extends IMessagable {
     isFailed: boolean;
+}
+
+export interface ITestConnectionMessage extends IMessagable {
+    webUiSettings: WebUISettings;
 }
 
 export interface ILinkCatchingConfig {

@@ -42,6 +42,39 @@ function allocateDynamicRuleId(): number {
     return nextDynamicRuleId;
 }
 
+export async function executeMethodWrappedWithOriginStripped<T>(method: () => Promise<T>, baseUrl: string): Promise<T> {
+    const originStripperRuleId = allocateDynamicRuleId();
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [originStripperRuleId],
+        addRules: [
+            {
+                id: originStripperRuleId,
+                priority: 100,
+                action: {
+                    type: "modifyHeaders",
+                    requestHeaders: [
+                        {
+                            header: "origin",
+                            operation: "remove"
+                        }
+                    ]
+                },
+                condition: {
+                    urlFilter: `|${baseUrl}*`,
+                    resourceTypes: ["xmlhttprequest"]
+                }
+            }
+        ]
+    });
+    try {
+        return await method();
+    } finally {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [originStripperRuleId],
+        });
+    }
+}
+
 export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url: string, referer: string): Promise<T> {
     const refererSetterRuleId = allocateDynamicRuleId();
     await chrome.declarativeNetRequest.updateDynamicRules({

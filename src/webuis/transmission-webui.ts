@@ -1,8 +1,12 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 
 export class TransmissionWebUI extends TorrentWebUI {
+    public override testConnection(): Promise<ConnectionTestResult> {
+        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const sessionId = await this.fetchTransmissionSessionId();

@@ -12,12 +12,16 @@ import {
     UpdateActionBadgeText,
     SaveSettingsMessage,
     IUpdateActionBadgeTextMessage,
-    TestNotificationMessage
+    TestNotificationMessage,
+    TestConnectionMessage,
+    ITestConnectionMessage
 } from "../models/messages";
 import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI, WebUISettings } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI, WebUISettings } from "../models/webui";
+import { WebUIFactory } from "../models/clients";
 import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
+import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { downloadTorrent } from "./download";
 import { showNotification } from "./notifications";
 import { serializeSettings, serializeObject, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
@@ -80,6 +84,13 @@ export function registerMessageListener(): void {
                 case TestNotificationMessage.action: {
                     showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
                     finish({});
+                    break;
+                }
+                case TestConnectionMessage.action: {
+                    willRespondAsync = true;
+                    testConnectionForWebUiSettings((message as ITestConnectionMessage).webUiSettings)
+                        .then(finish)
+                        .catch(respondWithError);
                     break;
                 }
                 case PreAddTorrentMessage.action: {
@@ -186,6 +197,14 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
 export async function addTorrentToWebUiById(webUiId: string, url: string, config: TorrentUploadConfig | null): Promise<void> {
     const webUi = await getWebUiById(webUiId, new Settings());
     downloadAndAddTorrentToWebUi(webUi, url, config, { action: AddTorrentMessage.action, url, webUiId } as IPreAddTorrentMessage);
+}
+
+async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
+    const webUi = WebUIFactory.createWebUI(webUiSettings);
+    if (!webUi) {
+        return { reachable: false, authenticated: null, httpResponseCode: 0, message: "No client selected for this WebUI." };
+    }
+    return executeMethodWrappedWithOriginStripped(() => webUi.testConnection(), webUi.createBaseUrl());
 }
 
 async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]> {

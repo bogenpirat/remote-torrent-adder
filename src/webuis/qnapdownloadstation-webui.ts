@@ -1,7 +1,23 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class QNAPDownloadStationWebUI extends TorrentWebUI {
+    public override async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const payload = new FormData();
+            payload.append("user", this.settings.username);
+            payload.append("pass", btoa(this.settings.password));
+            const response = await fetch(this.createQNAPDownloadStationBaseUrl() + "/Misc/Login", { method: "POST", body: payload });
+            if (!response.ok) {
+                return this.toReachableResult(false, response.status);
+            }
+            const json = await response.json();
+            return this.toReachableResult(!!json["sid"], response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const sessionId = await this.fetchSessionId();

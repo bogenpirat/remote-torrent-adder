@@ -4,7 +4,8 @@ import ChipList from "../components/ChipList";
 import AutoLabelDirSettingsEditor from "../components/AutoLabelDirSettingsEditor";
 import Select from "../components/Select";
 import { Client, ClientClassByClient, ClientDisplayName, WebUIFactory } from "../../models/clients";
-import type { WebUISettings } from "../../models/webui";
+import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
+import { TestConnectionMessage, type ITestConnectionMessage } from "../../models/messages";
 import Toggle from "../components/Toggle";
 import { generateId } from "../../util/utils";
 
@@ -141,8 +142,33 @@ interface WebUIDetailProps {
 
 function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null);
   const clientChosen = isClientSelected(webui.client);
   const webUiInstance = clientChosen ? WebUIFactory.createWebUI(webui) : null;
+
+  // The result reflects a specific endpoint + credentials, so invalidate it
+  // whenever any field that affects the request changes.
+  useEffect(() => {
+    setTestResult(null);
+    setTesting(false);
+  }, [webui.id, webui.client, webui.host, webui.port, webui.secure, webui.relativePath, webui.username, webui.password]);
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const result = await chrome.runtime.sendMessage({
+        action: TestConnectionMessage.action,
+        webUiSettings: webui,
+      } as ITestConnectionMessage);
+      setTestResult(result as ConnectionTestResult);
+    } catch (error) {
+      setTestResult({ reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) });
+    } finally {
+      setTesting(false);
+    }
+  };
 
   return (
     <div>
@@ -243,6 +269,39 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
               <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
             </div>
           </div>
+          {/* Test connection */}
+          {webUiInstance?.isConnectionTestSupported && (
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20, flexWrap: "wrap" }}>
+              <button
+                onClick={handleTest}
+                disabled={testing}
+                style={{
+                  background: "var(--rta-info, #4682B4)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "6px 16px",
+                  fontWeight: 700,
+                  cursor: testing ? "default" : "pointer",
+                  opacity: testing ? 0.7 : 1,
+                  transition: "all 0.15s",
+                }}
+              >{testing ? "Testing…" : "Test connection"}</button>
+              {testResult && (() => {
+                const color = !testResult.reachable
+                  ? "var(--rta-danger, #B22222)"
+                  : testResult.authenticated === false
+                    ? "var(--rta-warning, #B8860B)"
+                    : "var(--rta-success, #228B22)";
+                const icon = !testResult.reachable ? "❌" : testResult.authenticated === false ? "⚠" : "✅";
+                return (
+                  <span style={{ color, fontWeight: 600, fontSize: 14 }}>
+                    {icon} {testResult.message}
+                  </span>
+                );
+              })()}
+            </div>
+          )}
           {/* Only show these fields if supported by the WebUI instance */}
           {webUiInstance?.isAddPausedSupported && (
             <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
