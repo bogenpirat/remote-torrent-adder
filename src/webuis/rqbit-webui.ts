@@ -1,13 +1,19 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class RqbitWebUI extends TorrentWebUI {
+    public override testConnection(): Promise<ConnectionTestResult> {
+        return this.probeWithBasicAuth(this.createBaseUrl() + "/torrents");
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
+        try {
             const url = this.createBaseUrl() + "/torrents" + this.createQueryString(config);
-            const fetchOpts = this.createTorrentFetchOptions(torrent);
-            this.sendRequest(url, fetchOpts, resolve, reject);
-        });
+            const response = await this.fetch(url, this.createTorrentFetchOptions(torrent));
+            return {success: true, httpResponseCode: response.status, httpResponseBody: await response.text()};
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private createQueryString(config: TorrentUploadConfig): string {
@@ -33,8 +39,6 @@ export class RqbitWebUI extends TorrentWebUI {
             headers: this.createAuthHeaders(),
         };
 
-        // rqbit accepts the magnet/URL as a plain-text body or the raw .torrent
-        // file bytes, and decides how to handle it by inspecting the payload.
         fetchOpts.body = torrent.isMagnet ? (torrent.data as string) : (torrent.data as Blob);
 
         return fetchOpts;
@@ -46,15 +50,6 @@ export class RqbitWebUI extends TorrentWebUI {
             headers["Authorization"] = "Basic " + btoa(`${this._settings.username}:${this._settings.password}`);
         }
         return headers;
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts).then(async (response) => {
-            const responseBody = await response.text();
-            resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

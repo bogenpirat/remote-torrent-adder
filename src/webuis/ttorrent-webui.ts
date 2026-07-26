@@ -3,9 +3,9 @@ import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TTorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
-            let payload: FormData;
+        try {
             let url = this.createTTorrentBaseUrl();
+            let payload: FormData;
             if (torrent.isMagnet) {
                 payload = this.createPayloadForMagnet(torrent);
                 url += "/downloadFromUrl";
@@ -14,8 +14,11 @@ export class TTorrentWebUI extends TorrentWebUI {
                 url += "/downloadTorrent";
             }
 
-            this.sendRequest(url, payload, resolve, reject);
-        });
+            const response = await this.fetch(url, { method: 'POST', body: payload });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private createTTorrentBaseUrl(): string {
@@ -26,32 +29,15 @@ export class TTorrentWebUI extends TorrentWebUI {
     }
 
     private async createPayloadForTorrent(torrent: Torrent): Promise<FormData> {
-        return new Promise(async (resolve, reject) => {
-            const payload = new FormData();
-            payload.append("torrentfile", torrent.data as Blob, torrent.name);
-            resolve(payload);
-        });
+        const payload = new FormData();
+        payload.append("torrentfile", torrent.data as Blob, torrent.name);
+        return payload;
     }
 
     private createPayloadForMagnet(torrent: Torrent): FormData {
         const payload = new FormData();
         payload.append("url", torrent.data as string);
         return payload;
-    }
-
-    private sendRequest(url: string, payload: FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            if (response.status === 200) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            }
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

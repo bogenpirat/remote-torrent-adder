@@ -1,149 +1,126 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 
 export class DelugeWebUI extends TorrentWebUI {
-    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            const authPromise = this.authenticate();
-            let latestPromise: Promise<TorrentAddingResult>;
-
-            if (torrent.isMagnet) {
-                latestPromise = authPromise
-                    .then(() => this.startUploadedTorrent(torrent.data as string, config));
-            } else {
-                latestPromise = authPromise
-                    .then(() => this.uploadTorrentFile(torrent))
-                    .then(uploadedFilePath => this.startUploadedTorrent(uploadedFilePath, config));
-            }
-
-            if (config.label) {
-                latestPromise = latestPromise.then(result => this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", config.label!.toLowerCase()));
-            }
-
-            latestPromise
-                .then(resolve)
-                .catch(reject);
-        });
-    }
-
-    private authenticate(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const jsonUrl = this.createBaseUrl() + "/json";
-            const payload = {
-                method: "auth.login",
-                params: [this._settings.password],
-                id: this.randomId()
-            };
-            this.fetch(jsonUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }).then(async response => {
-                if (response.status == 200 && (await response.json())["result"] === true) {
-                    resolve();
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
-    }
-
-    private uploadTorrentFile(torrent: Torrent): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const payload = new FormData();
-            payload.append("file", new Blob([torrent.data], { type: "application/x-bittorrent" }), torrent.name);
-            const fetchOpts = {
-                method: "POST",
-                body: payload
-            };
-            this.fetch(this.createBaseUrl() + "/upload", fetchOpts).then(async (response) => {
-                const responseJson = await response.json();
-                if (response.status === 200 && responseJson["success"] === true && responseJson["files"].length > 0) {
-                    resolve(responseJson["files"][0]);
-                } else {
-                    reject(new Error("File upload failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
-    }
-
-    private startUploadedTorrent(uploadedFilePathOrMagnetLink: string, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            const jsonUrl = this.createBaseUrl() + "/json";
-            const payload = {
-                method: "web.add_torrents",
-                params: [
-                    [
-                        {
-                            path: uploadedFilePathOrMagnetLink,
-                            options: {
-                                add_paused: this.getAddPaused(config),
-                            } as Record<string, unknown>
-                        }
-                    ]
-                ],
-                id: this.randomId()
-            };
-            if(this.getDirectory(config)) {
-                payload.params[0][0].options["download_location"] = this.getDirectory(config);
-            }
-
-            this.fetch(jsonUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }).then(async (response) => {
-                const responseJson = await response.json();
-                const responseText = JSON.stringify(responseJson);
-                if (response.status == 200 && responseJson["result"] && responseJson["result"].length > 0 && responseJson["result"][0].length > 0 && responseJson["result"][0][0] === true) {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
-                } else {
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-                }
-            }).catch(error => {
-                reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-            });
-        });
-    }
-
-    private setLabelForUploadedTorrent(startUploadedTorrentResponseJson: string, label: string): Promise<TorrentAddingResult> {
-        const startUploadedTorrentResponse = JSON.parse(startUploadedTorrentResponseJson);
-        return new Promise((resolve, reject) => {
-            this.fetch(this.createBaseUrl() + "/json", {
+    public override async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const response = await fetch(this.createBaseUrl() + "/json", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    method: "label.add",
-                    params: [label],
-                    id: this.randomId()
-                })
-            }).then(() => {
-                return this.fetch(this.createBaseUrl() + "/json", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        method: "label.set_torrent",
-                        params: [startUploadedTorrentResponse["result"][0][1], label],
-                        id: this.randomId()
-                    })
-                });
-            }).then(async response => {
-                if (response.status === 200) {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(startUploadedTorrentResponse) });
-                } else {
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
-                }
-            }).catch(reject);
+                body: JSON.stringify({ method: "auth.login", params: [this._settings.password], id: this.randomId() })
+            });
+            if (!response.ok) {
+                return this.toReachableResult(false, response.status);
+            }
+            const json = await response.json();
+            return this.toReachableResult(json["result"] === true, response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
+    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+        try {
+            await this.authenticate();
+
+            const pathOrMagnet = torrent.isMagnet
+                ? (torrent.data as string)
+                : await this.uploadTorrentFile(torrent);
+
+            let result = await this.startUploadedTorrent(pathOrMagnet, config);
+
+            const label = this.getLabel(config);
+            if (result.success && label) {
+                result = await this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", label.toLowerCase());
+            }
+
+            return result;
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
+    private async authenticate(): Promise<void> {
+        const payload = {
+            method: "auth.login",
+            params: [this._settings.password],
+            id: this.randomId()
+        };
+        const response = await this.fetch(this.createBaseUrl() + "/json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
+        if ((await response.json())["result"] !== true) {
+            throw new Error("Authentication failed");
+        }
+    }
+
+    private async uploadTorrentFile(torrent: Torrent): Promise<string> {
+        const payload = new FormData();
+        payload.append("file", new Blob([torrent.data], { type: "application/x-bittorrent" }), torrent.name);
+        const response = await this.fetch(this.createBaseUrl() + "/upload", { method: "POST", body: payload });
+        const responseJson = await response.json();
+        if (!(responseJson["success"] === true && responseJson["files"].length > 0)) {
+            throw new Error("File upload failed");
+        }
+        return responseJson["files"][0];
+    }
+
+    private async startUploadedTorrent(uploadedFilePathOrMagnetLink: string, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+        const jsonUrl = this.createBaseUrl() + "/json";
+        const payload = {
+            method: "web.add_torrents",
+            params: [
+                [
+                    {
+                        path: uploadedFilePathOrMagnetLink,
+                        options: {
+                            add_paused: this.getAddPaused(config),
+                        } as Record<string, unknown>
+                    }
+                ]
+            ],
+            id: this.randomId()
+        };
+        if (this.getDirectory(config)) {
+            payload.params[0][0].options["download_location"] = this.getDirectory(config);
+        }
+
+        const response = await this.fetch(jsonUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const responseJson = await response.json();
+        const responseText = JSON.stringify(responseJson);
+        const success = !!(responseJson["result"] && responseJson["result"].length > 0
+            && responseJson["result"][0].length > 0 && responseJson["result"][0][0] === true);
+        return { success, httpResponseCode: response.status, httpResponseBody: responseText };
+    }
+
+    private async setLabelForUploadedTorrent(startUploadedTorrentResponseJson: string, label: string): Promise<TorrentAddingResult> {
+        const startUploadedTorrentResponse = JSON.parse(startUploadedTorrentResponseJson);
+        await this.fetch(this.createBaseUrl() + "/json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                method: "label.add",
+                params: [label],
+                id: this.randomId()
+            })
+        });
+        const response = await this.fetch(this.createBaseUrl() + "/json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                method: "label.set_torrent",
+                params: [startUploadedTorrentResponse["result"][0][1], label],
+                id: this.randomId()
+            })
+        });
+        return { success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(startUploadedTorrentResponse) };
     }
 
     private randomId(): number {

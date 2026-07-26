@@ -1,7 +1,12 @@
 import { observe } from './mutations';
-import { RTASettings } from '../models/settings';
-import { deserializeSettings } from '../util/serializer';
-import { GetSettingsMessage, IPreAddTorrentMessage, IUpdateActionBadgeTextMessage, UpdateActionBadgeText } from '../models/messages';
+import {deserializeObject} from '../util/serializer';
+import {
+    GetLinkCatchingConfig,
+    ILinkCatchingConfig,
+    IPreAddTorrentMessage,
+    IUpdateActionBadgeTextMessage,
+    UpdateActionBadgeText
+} from '../models/messages';
 import { PreAddTorrentMessage } from '../models/messages';
 import { isMatchedByRegexes } from '../util/utils';
 
@@ -12,20 +17,21 @@ loadSettingsAndRegisterActions();
 function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     numFoundLinks = 0;
     chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
-    chrome.runtime.sendMessage(GetSettingsMessage, function (serializedSettings: string) {
-        const settings = deserializeSettings(serializedSettings);
-        console.debug("Received settings from background script:", settings);
-        if (!settings) {
+    chrome.runtime.sendMessage(GetLinkCatchingConfig, function (serializedConfig?: string) {
+        if (chrome.runtime.lastError || !serializedConfig) {
             if (attemptNumber < 3) {
-                console.warn("Service worker might've been asleep. Retrying to load settings...");
-                loadSettingsAndRegisterActions(attemptNumber + 1);
+                console.warn("Service worker might've been asleep. Retrying to load config...");
+                setTimeout(() => loadSettingsAndRegisterActions(attemptNumber + 1), 100 * (attemptNumber + 1));
             }
             return;
         }
 
-        if (settings.linkCatchingEnabled) {
-            registerLinks(settings.linkCatchingRegexes);
-            registerForms(settings.linkCatchingRegexes);
+        const config = deserializeObject(serializedConfig) as ILinkCatchingConfig;
+        console.debug("Received link-catching config from background script:", config);
+
+        if (config.linkCatchingEnabled) {
+            registerLinks(config.linkCatchingRegexes);
+            registerForms(config.linkCatchingRegexes);
         }
     });
 }
@@ -52,7 +58,10 @@ function isMagnetLink(url: string): boolean {
 }
 
 function incrementCounter(): void {
-    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: (++numFoundLinks).toString() } as IUpdateActionBadgeTextMessage);
+    chrome.runtime.sendMessage({
+        action: UpdateActionBadgeText.action,
+        text: (++numFoundLinks).toString()
+    } as IUpdateActionBadgeTextMessage).then();
 }
 
 function registerAction(element: Element, url: string): void {

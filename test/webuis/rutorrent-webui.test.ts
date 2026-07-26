@@ -46,9 +46,9 @@ describe("RuTorrentWebUI", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejects when neither the url nor body signal success", async () => {
+    it("reports failure when neither the url nor body signal success", async () => {
         queueFetch(mockResponse({ status: 200, body: "addTorrentFailure", url: "http://h/x" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports labels, dirs and add-paused", () => {

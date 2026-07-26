@@ -1,19 +1,28 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 
 export class TransmissionWebUI extends TorrentWebUI {
-    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
-            const url = this.createBaseUrl() + "/transmission/rpc";
+    public override testConnection(): Promise<ConnectionTestResult> {
+        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
+    }
 
-            this.fetchTransmissionSessionId()
-                .then((transmissionSessionId) => this.createTorrentFetchOptions(torrent, config, transmissionSessionId))
-                .then(fetchOpts => this.sendRequest(url, fetchOpts, resolve, reject))
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+        try {
+            const sessionId = await this.fetchTransmissionSessionId();
+            const fetchOpts = await this.createTorrentFetchOptions(torrent, config, sessionId);
+            const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
+
+            const responseText = await response.text();
+            const responseData = JSON.parse(responseText);
+            return {
+                success: responseData["result"] === "success",
+                httpResponseCode: response.status,
+                httpResponseBody: responseText,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private fetchTransmissionSessionId(): Promise<string> {
@@ -35,58 +44,39 @@ export class TransmissionWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            let fetchOpts: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8",
-                    "X-Transmission-Session-Id": transmissionSessionId
-                }
+    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
+        const payload: Record<string, string | Record<string, string | boolean>> = {
+            method: "torrent-add",
+            arguments: {}
+        };
+        if (torrent.isMagnet) {
+            payload["arguments"] = {
+                filename: torrent.data as string
             };
-
-            const payload: Record<string, string | Record<string, string>> = {
-                method: "torrent-add",
-                arguments: {}
+        } else {
+            payload["arguments"] = {
+                metainfo: await blobToBase64(torrent.data as Blob)
             };
-            if (torrent.isMagnet) {
-                payload["arguments"] = {
-                    filename: torrent.data as string
-                };
-            } else {
-                payload["arguments"] = {
-                    metainfo: await blobToBase64(torrent.data as Blob)
-                };
-            }
+        }
 
-            const dir = this.getDirectory(config);
-            if (dir) {
-                payload["arguments"]["download-dir"] = dir;
-            }
+        const dir = this.getDirectory(config);
+        if (dir) {
+            payload["arguments"]["download-dir"] = dir;
+        }
 
-            const addPaused = this.getAddPaused(config);
-            if (addPaused !== null) {
-                payload["arguments"]["paused"] = addPaused.toString();
-            }
+        const addPaused = this.getAddPaused(config);
+        if (addPaused !== null) {
+            payload["arguments"]["paused"] = addPaused;
+        }
 
-            fetchOpts["body"] = JSON.stringify(payload);
-            resolve(fetchOpts);
-        });
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts)
-            .then(async (response) => {
-                const responseText = await response.text();
-                const responseData = JSON.parse(responseText);
-                if (responseData["result"] === "success") {
-                    resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseText });
-                } else {
-                    reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseText });
-                }
-            }).catch(error => {
-                reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-            });
+        return {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=UTF-8",
+                "X-Transmission-Session-Id": transmissionSessionId
+            },
+            body: JSON.stringify(payload)
+        };
     }
 
     get isLabelSupported(): boolean {

@@ -1,22 +1,31 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class BiglyBTWebUI extends TorrentWebUI {
+    public override testConnection(): Promise<ConnectionTestResult> {
+        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
+        try {
             const url = this.createBiglyBTBaseUrl(torrent, config);
-            let payload: string | FormData;
 
             await this.fetchSessionCookie(url);
 
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent.data as string, config);
-            } else {
-                payload = this.createPayloadForTorrent(torrent);
-            }
+            const payload = torrent.isMagnet
+                ? this.createPayloadForMagnet(torrent.data as string, config)
+                : this.createPayloadForTorrent(torrent);
 
-            this.sendRequest(url, payload, resolve, reject);
-        });
+            const response = await this.fetch(url, { method: 'POST', body: payload });
+            const responseBody = await response.text();
+            return {
+                success: this.isSuccessResponse(responseBody),
+                httpResponseCode: response.status,
+                httpResponseBody: responseBody,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {
@@ -56,22 +65,18 @@ export class BiglyBTWebUI extends TorrentWebUI {
         return payload;
     }
 
-    sendRequest(url: string, payload: string | FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            const responseBody = await response.text();
-            if (/.*<h1>200: OK<\/h1>.*/.exec(responseBody) || JSON.parse(responseBody)["result"] == "success") {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-                return;
-            }
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
+    private isSuccessResponse(responseBody: string): boolean {
+        if (/<h1>200: OK<\/h1>/.test(responseBody)) {
+            return true;
+        }
+        try {
+            return JSON.parse(responseBody)["result"] === "success";
+        } catch {
+            return false;
+        }
     }
-    
+
+
     get isLabelSupported(): boolean {
         return false;
     }

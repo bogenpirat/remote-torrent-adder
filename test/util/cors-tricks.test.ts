@@ -67,4 +67,22 @@ describe("executeMethodWrappedWithReferer", () => {
         // add + remove => two calls
         expect(chrome.declarativeNetRequest.updateDynamicRules).toHaveBeenCalledTimes(2);
     });
+
+    it("allocates distinct rule ids for concurrent invocations", async () => {
+        const addedIds: number[] = [];
+        (chrome.declarativeNetRequest.updateDynamicRules as any).mockImplementation((arg: any) => {
+            if (arg.addRules) {
+                addedIds.push(arg.addRules[0].id);
+            }
+            return Promise.resolve();
+        });
+
+        await Promise.all([
+            executeMethodWrappedWithReferer(async () => "a", "http://t/1", "http://t"),
+            executeMethodWrappedWithReferer(async () => "b", "http://t/2", "http://t"),
+        ]);
+
+        expect(addedIds).toHaveLength(2);
+        expect(addedIds[0]).not.toBe(addedIds[1]);
+    });
 });

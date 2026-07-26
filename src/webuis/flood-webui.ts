@@ -1,21 +1,42 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 
 export class FloodWebUI extends TorrentWebUI {
+    public override async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const response = await fetch(this.createBaseUrl() + "/api/auth/authenticate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
+            });
+            if (!response.ok) {
+                return this.toReachableResult(false, response.status);
+            }
+            const json = await response.json();
+            return this.toReachableResult(json.success === true, response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise((resolve, reject) => {
+        try {
             const url = this.createBaseUrl() + (torrent.isMagnet ? "/api/torrents/add-urls" : "/api/torrents/add-files");
 
-            this.authenticate()
-                .then(() => this.createTorrentFetchOptions(torrent, config))
-                .then(fetchOpts => {
-                    this.sendRequest(url, fetchOpts, resolve, reject);
-                })
-                .catch(error => {
-                    reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-                });
-        });
+            await this.authenticate();
+            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
+            const response = await this.fetch(url, fetchOpts);
+
+            const success = response.status === 200 || response.status === 202;
+            return {
+                success,
+                httpResponseCode: response.status,
+                httpResponseBody: success ? null : await response.text(),
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private authenticate(): Promise<void> {
@@ -44,23 +65,18 @@ export class FloodWebUI extends TorrentWebUI {
         });
     }
 
-    private createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        return new Promise(async (resolve, reject) => {
-            let fetchOpts: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                }
-            };
+    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
+        const body = torrent.isMagnet
+            ? JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config))
+            : JSON.stringify(await this.createPayloadForTorrent(torrent, config));
 
-            if (torrent.isMagnet) {
-                fetchOpts["body"] = JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config));
-            } else {
-                fetchOpts["body"] = JSON.stringify(await this.createPayloadForTorrent(torrent, config));
-            }
-
-            resolve(fetchOpts);
-        });
+        return {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=UTF-8"
+            },
+            body
+        };
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, any> {
@@ -85,18 +101,6 @@ export class FloodWebUI extends TorrentWebUI {
             isBasePath: false,
             isCompleted: false
         };
-    }
-
-    private sendRequest(url: string, fetchOpts: RequestInit, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(url, fetchOpts).then(async (response) => {
-            if (response.status === 200 || response.status === 202) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: null });
-            } else {
-                reject({ success: false, httpResponseCode: response.status, httpResponseBody: await response.text() });
-            }
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {

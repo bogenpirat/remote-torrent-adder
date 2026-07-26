@@ -53,4 +53,16 @@ describe("observe", () => {
         expect(cb).toHaveBeenCalledTimes(1);
         expect(cb).toHaveBeenCalledWith(link);
     });
+
+    it("invokes the callback for matching descendants of an added subtree", async () => {
+        const cb = vi.fn();
+        observe("a.deep", cb);
+
+        const container = document.createElement("div");
+        container.innerHTML = `<span><a class="deep"></a></span>`;
+        document.body.appendChild(container);
+
+        await new Promise((r) => setTimeout(r, 0));
+        expect(cb).toHaveBeenCalledTimes(1);
+    });
 });

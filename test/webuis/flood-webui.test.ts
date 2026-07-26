@@ -33,17 +33,17 @@ describe("FloodWebUI", () => {
         expect(payload.tags).toEqual([]);
     });
 
-    it("rejects when authentication is unsuccessful", async () => {
+    it("reports failure when authentication is unsuccessful", async () => {
         queueFetch(mockResponse({ status: 200, json: { success: false } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toBeDefined();
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects on a non-success add status (base fetch throws before status is read)", async () => {
+    it("reports the real status and body on a non-2xx add response", async () => {
         queueFetch(authOk(), mockResponse({ status: 500, body: "nope" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
-            httpResponseCode: 0,
-            httpResponseBody: "HTTP error 500",
+            httpResponseCode: 500,
+            httpResponseBody: "nope",
         });
     });
 

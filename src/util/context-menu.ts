@@ -1,8 +1,8 @@
 import { TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
-import { AddTorrentMessage, IAddTorrentMessage, IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
-import { dispatchPreAddTorrent } from "./messaging";
+import { IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./messaging";
 
 let listener: any = null;
 
@@ -66,13 +66,7 @@ function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: 
             dispatchPreAddTorrent(preAddTorrentMessage, tab.windowId);
         } else {
             webUis.forEach(webUi => {
-                const addTorrentMessage: IAddTorrentMessage = {
-                    action: AddTorrentMessage.action,
-                    webUiId: webUi.settings.id,
-                    url: onClickData.linkUrl ?? "",
-                    config: {}
-                };
-                dispatchPreAddTorrent(addTorrentMessage, tab.windowId);
+                addTorrentToWebUiById(webUi.settings.id, onClickData.linkUrl ?? "", null);
             });
         }
     };

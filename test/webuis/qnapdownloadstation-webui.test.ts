@@ -40,14 +40,14 @@ describe("QNAPDownloadStationWebUI", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejects when login does not return a sid", async () => {
+    it("reports failure when login does not return a sid", async () => {
         queueFetch(mockResponse({ status: 200, json: {} }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("rejects on an error code other than 0/8196", async () => {
+    it("reports failure on an error code other than 0/8196", async () => {
         queueFetch(loginOk(), mockResponse({ status: 200, json: { error: 1 } }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({ success: false });
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
     it("supports dirs only", () => {

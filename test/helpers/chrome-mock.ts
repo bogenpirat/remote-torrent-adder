@@ -7,6 +7,7 @@ import { vi } from "vitest";
  */
 export function createChromeMock(): any {
     const storage: Record<string, any> = {};
+    const sessionStorage: Record<string, any> = {};
 
     return {
         // backing store exposed for assertions/seeding in tests
@@ -17,7 +18,7 @@ export function createChromeMock(): any {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },
-            sendMessage: vi.fn(),
+            sendMessage: vi.fn(() => Promise.resolve()),
             lastError: undefined,
         },
 
@@ -37,6 +38,19 @@ export function createChromeMock(): any {
                     cb?.();
                 }),
             },
+            session: {
+                get: vi.fn((key: string) => {
+                    const result: Record<string, any> = {};
+                    if (key in sessionStorage) {
+                        result[key] = sessionStorage[key];
+                    }
+                    return Promise.resolve(result);
+                }),
+                set: vi.fn((items: Record<string, any>) => {
+                    Object.assign(sessionStorage, items);
+                    return Promise.resolve();
+                }),
+            },
         },
 
         action: {
@@ -44,14 +58,17 @@ export function createChromeMock(): any {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },
-            setBadgeText: vi.fn(),
+            setBadgeText: vi.fn(() => Promise.resolve()),
             setPopup: vi.fn(),
             openPopup: vi.fn(() => Promise.resolve()),
         },
 
         notifications: {
             create: vi.fn((id: string, options: any, cb?: (id: string) => void) => cb?.("notif-id")),
-            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => cb?.(true)),
+            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => {
+                cb?.(true);
+                return Promise.resolve(true);
+            }),
             onClicked: {
                 addListener: vi.fn(),
             },
@@ -83,6 +100,14 @@ export function createChromeMock(): any {
 
         webRequest: {
             onAuthRequired: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
+            onCompleted: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
+            onErrorOccurred: {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),
             },

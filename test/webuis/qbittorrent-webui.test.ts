@@ -30,27 +30,29 @@ describe("QBittorrentWebUI", () => {
         expect(body.get("stopped")).toBe("true");
     });
 
-    it("rejects when authentication fails", async () => {
-        queueFetch(mockResponse({ status: 403 }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+    it("reports failure with the real status when authentication fails", async () => {
+        queueFetch(mockResponse({ status: 403, body: "Forbidden" }));
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
+            httpResponseCode: 403,
+            httpResponseBody: "Forbidden",
         });
     });
 
-    it("rejects when the add endpoint returns the literal Fails. body", async () => {
+    it("reports failure when the add endpoint returns the literal Fails. body", async () => {
         queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Fails." }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
             httpResponseBody: "Fails.",
         });
     });
 
-    it("rejects on a non-200 add response (base fetch throws before status is read)", async () => {
+    it("reports the real status and body on a non-2xx add response", async () => {
         queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 500, body: "err" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
-            httpResponseCode: 0,
-            httpResponseBody: "HTTP error 500",
+            httpResponseCode: 500,
+            httpResponseBody: "err",
         });
     });
 

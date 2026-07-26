@@ -29,12 +29,12 @@ describe("TixatiWebUI", () => {
         expect(body.get("noautostart")).toBe("1");
     });
 
-    it("rejects on a non-200 response (base fetch throws before status is read)", async () => {
+    it("reports the real status and body on a non-2xx response", async () => {
         queueFetch(mockResponse({ status: 403, body: "denied" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).rejects.toMatchObject({
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
             success: false,
-            httpResponseCode: 0,
-            httpResponseBody: "HTTP error 403",
+            httpResponseCode: 403,
+            httpResponseBody: "denied",
         });
     });
 

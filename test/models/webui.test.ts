@@ -130,8 +130,12 @@ describe("fetch", () => {
         expect(res.status).toBe(200);
     });
 
-    it("throws on a non-ok response", async () => {
-        (globalThis as any).fetch = async () => ({ ok: false, status: 500 });
-        await expect(build().publicFetch("http://x")).rejects.toThrow("HTTP error 500");
+    it("throws an HttpError carrying the status and body on a non-ok response", async () => {
+        (globalThis as any).fetch = async () => ({ ok: false, status: 500, text: async () => "boom" });
+        await expect(build().publicFetch("http://x")).rejects.toMatchObject({
+            message: "HTTP error 500",
+            status: 500,
+            body: "boom",
+        });
     });
 });

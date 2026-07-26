@@ -50,6 +50,32 @@ describe("getAutoLabelResult", () => {
     });
 });
 
+describe("criteria matching", () => {
+    it("does not match a setting that has no criteria", () => {
+        const noCriteria: AutoLabelDirSetting = { criteria: [], label: "x", dir: null };
+        expect(getAutoLabelResult(torrentWith(["http://x"]), [noCriteria])).toBeNull();
+    });
+
+    it("does not throw and does not match on an invalid regex pattern", () => {
+        expect(getAutoLabelResult(torrentWith(["http://x"]), [setting("(", "bad", null)])).toBeNull();
+    });
+
+    it("requires every criterion to match", () => {
+        const both: AutoLabelDirSetting = {
+            criteria: [
+                { field: "trackerUrl", value: "a\\.org" },
+                { field: "trackerUrl", value: "b\\.org" },
+            ],
+            label: "ab",
+            dir: null,
+        };
+        // only a.org is present, so the b.org criterion fails the whole setting
+        expect(getAutoLabelResult(torrentWith(["http://a.org/announce"]), [both])).toBeNull();
+        // both present -> matches
+        expect(getAutoLabelResult(torrentWith(["http://a.org/announce", "http://b.org/announce"]), [both])).toBe("ab");
+    });
+});
+
 describe("getAutoDirResult", () => {
     it("returns the dir of a matching setting", () => {
         const torrent = torrentWith(["http://tracker.foo.net/announce"]);

@@ -27,6 +27,13 @@ export interface WebUISettings {
     clientSpecificSettings: Record<string, any>;
 }
 
+export class HttpError extends Error {
+    constructor(public readonly status: number, public readonly body: string) {
+        super(`HTTP error ${status}`);
+        this.name = "HttpError";
+    }
+}
+
 export abstract class TorrentWebUI {
     _settings: WebUISettings;
 
@@ -54,7 +61,62 @@ export abstract class TorrentWebUI {
         return this.isLabelSupported || this.isDirSupported || this.isAddPausedSupported;
     }
 
+    get isConnectionTestSupported(): boolean {
+        return true;
+    }
+
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
+
+    public async testConnection(): Promise<ConnectionTestResult> {
+        try {
+            const response = await fetch(this.createBaseUrl(), { method: "GET" });
+            return {
+                reachable: true,
+                authenticated: null,
+                httpResponseCode: response.status,
+                message: "Reachable (credentials not checked for this client)",
+            };
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
+
+    protected toReachableResult(authenticated: boolean, httpResponseCode: number): ConnectionTestResult {
+        return {
+            reachable: true,
+            authenticated,
+            httpResponseCode,
+            message: authenticated
+                ? "Reachable & authenticated"
+                : "Reachable, but authentication failed",
+        };
+    }
+
+    protected toUnreachableResult(error: unknown): ConnectionTestResult {
+        return {
+            reachable: false,
+            authenticated: null,
+            httpResponseCode: error instanceof HttpError ? error.status : 0,
+            message: `Could not reach server: ${(error as Error)?.message ?? error}`,
+        };
+    }
+
+    protected createBasicAuthHeaders(): Record<string, string> {
+        if (this._settings.username || this._settings.password) {
+            return { "Authorization": "Basic " + btoa(`${this._settings.username}:${this._settings.password}`) };
+        }
+        return {};
+    }
+
+    protected async probeWithBasicAuth(url: string): Promise<ConnectionTestResult> {
+        try {
+            const response = await fetch(url, { method: "GET", headers: this.createBasicAuthHeaders() });
+            const authenticated = response.status !== 401 && response.status !== 403;
+            return this.toReachableResult(authenticated, response.status);
+        } catch (error) {
+            return this.toUnreachableResult(error);
+        }
+    }
 
     createBaseUrl(): string {
         let portPart: string;
@@ -82,9 +144,16 @@ export abstract class TorrentWebUI {
     protected async fetch(url: string, options?: RequestInit): Promise<Response> {
         const res: Response = await fetch(url, options);
         if (!res.ok) {
-            throw new Error(`HTTP error ${res.status}`);
+            throw new HttpError(res.status, await res.text().catch(() => ""));
         }
         return res;
+    }
+
+    protected toFailureResult(error: unknown): TorrentAddingResult {
+        if (error instanceof HttpError) {
+            return { success: false, httpResponseCode: error.status, httpResponseBody: error.body };
+        }
+        return { success: false, httpResponseCode: 0, httpResponseBody: (error as Error)?.message ?? null };
     }
 
     protected addLeadingAndTrimTrailingSlashes(urlPart: string): string {
@@ -112,6 +181,13 @@ export interface TorrentAddingResult {
     success: boolean;
     httpResponseCode: number;
     httpResponseBody: string | null;
+}
+
+export interface ConnectionTestResult {
+    reachable: boolean;
+    authenticated: boolean | null;
+    httpResponseCode: number;
+    message: string;
 }
 
 export interface AutoLabelDirSetting {

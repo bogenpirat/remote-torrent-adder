@@ -6,6 +6,10 @@ export const GetSettingsMessage: IMessagable = {
     action: "getSettings"
 }
 
+export const GetLinkCatchingConfig: IMessagable = {
+    action: "getLinkCatchingConfig"
+}
+
 export const SaveSettingsMessage: IMessagable = {
     action: "saveSettings"
 }
@@ -40,6 +44,10 @@ export const UpdateActionBadgeText: IMessagable = {
 
 export const PlaySoundMessage: IMessagable = {
     action: "playSound"
+}
+
+export const TestConnectionMessage: IMessagable = {
+    action: "testConnection"
 }
 
 export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
@@ -87,6 +95,15 @@ export interface ITestNotificationMessage extends IMessagable {
 
 export interface IPlaySoundMessage extends IMessagable {
     isFailed: boolean;
+}
+
+export interface ITestConnectionMessage extends IMessagable {
+    webUiSettings: WebUISettings;
+}
+
+export interface ILinkCatchingConfig {
+    linkCatchingEnabled: boolean;
+    linkCatchingRegexes: RegExp[];
 }
 
 interface IMessagable {

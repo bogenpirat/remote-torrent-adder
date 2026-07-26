@@ -35,9 +35,50 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
     });
 }
 
-export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url: string, referer: string): Promise<T> {
-    const refererSetterRuleId = (await chrome.declarativeNetRequest.getDynamicRules()).length + 1;
+let nextDynamicRuleId = 0;
+
+function allocateDynamicRuleId(): number {
+    nextDynamicRuleId = (nextDynamicRuleId % 2_000_000_000) + 1;
+    return nextDynamicRuleId;
+}
+
+export async function executeMethodWrappedWithOriginStripped<T>(method: () => Promise<T>, baseUrl: string): Promise<T> {
+    const originStripperRuleId = allocateDynamicRuleId();
     await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [originStripperRuleId],
+        addRules: [
+            {
+                id: originStripperRuleId,
+                priority: 100,
+                action: {
+                    type: "modifyHeaders",
+                    requestHeaders: [
+                        {
+                            header: "origin",
+                            operation: "remove"
+                        }
+                    ]
+                },
+                condition: {
+                    urlFilter: `|${baseUrl}*`,
+                    resourceTypes: ["xmlhttprequest"]
+                }
+            }
+        ]
+    });
+    try {
+        return await method();
+    } finally {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [originStripperRuleId],
+        });
+    }
+}
+
+export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url: string, referer: string): Promise<T> {
+    const refererSetterRuleId = allocateDynamicRuleId();
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [refererSetterRuleId],
         addRules: [
             {
                 id: refererSetterRuleId,
@@ -62,7 +103,7 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
     try {
         return await method();
     } finally {
-        chrome.declarativeNetRequest.updateDynamicRules({
+        await chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [refererSetterRuleId],
         });
     }

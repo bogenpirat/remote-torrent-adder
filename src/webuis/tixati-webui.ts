@@ -1,19 +1,23 @@
 import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TixatiWebUI extends TorrentWebUI {
+    public override testConnection(): Promise<ConnectionTestResult> {
+        return this.probeWithBasicAuth(this.createBaseUrl() + "/home");
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        return new Promise(async (resolve, reject) => {
-            let payload: FormData;
-            if (torrent.isMagnet) {
-                payload = this.createPayloadForMagnet(torrent);
-            } else {
-                payload = await this.createPayloadForTorrent(torrent);
-            }
+        try {
+            const payload = torrent.isMagnet
+                ? this.createPayloadForMagnet(torrent)
+                : await this.createPayloadForTorrent(torrent);
             payload.append("noautostart", this.getAddPaused(config) === true ? "1" : "0");
 
-            this.sendRequest(payload, resolve, reject);
-        });
+            const response = await this.fetch(this.createTixatiBaseUrl(), { method: 'POST', body: payload });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
     }
 
     private createTixatiBaseUrl(): string {
@@ -24,15 +28,13 @@ export class TixatiWebUI extends TorrentWebUI {
     }
 
     private async createPayloadForTorrent(torrent: Torrent): Promise<FormData> {
-        return new Promise(async (resolve, reject) => {
-            const payload = new FormData();
-            payload.append("addlinktext", "")
-            const torrentPayload = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
-            payload.append("metafile", torrentPayload, torrent.name);
-            payload.append("addmetafile", "Add");
+        const payload = new FormData();
+        payload.append("addlinktext", "")
+        const torrentPayload = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
+        payload.append("metafile", torrentPayload, torrent.name);
+        payload.append("addmetafile", "Add");
 
-            resolve(payload);
-        });
+        return payload;
     }
 
     private createPayloadForMagnet(torrent: Torrent): FormData {
@@ -42,22 +44,6 @@ export class TixatiWebUI extends TorrentWebUI {
         payload.append("metafile", new Blob(), "");
 
         return payload;
-    }
-
-    private sendRequest(payload: FormData, resolve: (result: TorrentAddingResult) => void, reject: (error: TorrentAddingResult) => void): void {
-        this.fetch(this.createTixatiBaseUrl(), {
-            method: 'POST',
-            body: payload
-        }).then(async (response) => {
-            const responseBody = await response.text();
-            if (response.status === 200) {
-                resolve({ success: true, httpResponseCode: response.status, httpResponseBody: responseBody });
-                return;
-            }
-            reject({ success: false, httpResponseCode: response.status, httpResponseBody: responseBody });
-        }).catch(error => {
-            reject({ success: false, httpResponseCode: 0, httpResponseBody: error.message || null });
-        });
     }
 
     get isLabelSupported(): boolean {
