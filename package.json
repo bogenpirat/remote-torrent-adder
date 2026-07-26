@@ -48,7 +48,7 @@
         "chokidar-cli": "^3.0.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "concurrently": "^10.0.3",
+        "concurrently": "^10.0.4",
         "cpy-cli": "^7.0.0",
         "cross-env": "^10.1.0",
         "jsdom": "^29.1.1",
