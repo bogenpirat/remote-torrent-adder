@@ -6,7 +6,7 @@ import Select from "../components/Select";
 import { Client, ClientClassByClient, ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
 import Toggle from "../components/Toggle";
-import { generateId } from "../../util/utils";
+import { generateId, moveItem } from "../../util/utils";
 
 const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
@@ -49,20 +49,78 @@ function getDefaultWebUISettings(): WebUISettings {
   };
 }
 
+type DropIndicator = "above" | "below" | null;
+
 interface WebUIListItemProps {
   webui: WebUISettings;
+  index: number;
   selected: boolean;
   isPrimary: boolean;
+  isDragging: boolean;
+  dropIndicator: DropIndicator;
   onSelect: () => void;
   onNameChange: (name: string) => void;
+  onMove: (from: number, to: number) => void;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDragEnd: () => void;
+  onDrop: () => void;
 }
 
-function WebUIListItem({ webui, selected, isPrimary, onSelect, onNameChange }: WebUIListItemProps) {
+function WebUIListItem({
+  webui,
+  index,
+  selected,
+  isPrimary,
+  isDragging,
+  dropIndicator,
+  onSelect,
+  onNameChange,
+  onMove,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDrop,
+}: WebUIListItemProps) {
   const subtitle = isClientSelected(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
+  // Only the handle arms dragging, so the inline name input stays selectable.
+  const [dragArmed, setDragArmed] = useState(false);
+
+  useEffect(() => {
+    if (!dragArmed || isDragging) return;
+    const disarm = () => setDragArmed(false);
+    window.addEventListener("pointerup", disarm);
+    window.addEventListener("pointercancel", disarm);
+    return () => {
+      window.removeEventListener("pointerup", disarm);
+      window.removeEventListener("pointercancel", disarm);
+    };
+  }, [dragArmed, isDragging]);
+
+  const indicatorColor = "var(--rta-green-dark, #4e6a57)";
 
   return (
     <div
       onClick={onSelect}
+      draggable={dragArmed}
+      onDragStart={e => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", webui.id);
+        onDragStart();
+      }}
+      onDragOver={e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        onDragOver();
+      }}
+      onDrop={e => {
+        e.preventDefault();
+        onDrop();
+      }}
+      onDragEnd={() => {
+        setDragArmed(false);
+        onDragEnd();
+      }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -70,12 +128,45 @@ function WebUIListItem({ webui, selected, isPrimary, onSelect, onNameChange }: W
         padding: "10px 12px",
         borderRadius: 10,
         cursor: "pointer",
+        opacity: isDragging ? 0.4 : 1,
         background: selected ? "var(--rta-accent, #b7c9a7)" : "transparent",
         border: selected ? "1px solid var(--rta-green-dark, #4e6a57)" : "1px solid transparent",
+        boxShadow:
+          dropIndicator === "above"
+            ? `inset 0 3px 0 0 ${indicatorColor}`
+            : dropIndicator === "below"
+              ? `inset 0 -3px 0 0 ${indicatorColor}`
+              : undefined,
         transition: "background 0.15s",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button
+          type="button"
+          title="Drag to reorder (or use the arrow keys)"
+          aria-label={`Reorder ${webui.name || "Unnamed WebUI"}`}
+          onClick={e => e.stopPropagation()}
+          onPointerDown={() => setDragArmed(true)}
+          onKeyDown={e => {
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              onMove(index, index - 1);
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+              onMove(index, index + 1);
+            }
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            fontSize: 15,
+            lineHeight: 1,
+            cursor: "grab",
+            touchAction: "none",
+            color: selected ? "var(--rta-green-dark, #4e6a57)" : "var(--rta-text-muted, #888)",
+          }}
+        >⠿</button>
         {selected ? (
           <input
             type="text"
@@ -304,6 +395,8 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
 export default function WebUIsPage() {
   const { settings, updateSetting, loading } = useSettings();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   const webuis = settings?.webuiSettings ?? [];
 
@@ -333,13 +426,26 @@ export default function WebUIsPage() {
     updateSetting("webuiSettings", webuis.filter(w => w.id !== id));
   };
 
+  // The stored order is what the context menu and the "primary" WebUI are
+  // derived from, so reordering the list is all this needs to do.
+  const handleMove = (from: number, to: number) => {
+    const reordered = moveItem(webuis, from, to);
+    if (reordered !== webuis) updateSetting("webuiSettings", reordered);
+  };
+
   const handlePromote = (id: string) => {
-    const idx = webuis.findIndex(w => w.id === id);
-    if (idx <= 0) return; // not found or already primary
-    const arr = [...webuis];
-    const [item] = arr.splice(idx, 1);
-    arr.unshift(item);
-    updateSetting("webuiSettings", arr);
+    handleMove(webuis.findIndex(w => w.id === id), 0);
+  };
+
+  const handleDrop = () => {
+    if (dragIndex !== null && overIndex !== null) handleMove(dragIndex, overIndex);
+    setDragIndex(null);
+    setOverIndex(null);
+  };
+
+  const dropIndicatorFor = (idx: number): DropIndicator => {
+    if (dragIndex === null || overIndex !== idx || dragIndex === idx) return null;
+    return dragIndex > idx ? "above" : "below";
   };
 
   const selected = webuis.find(w => w.id === selectedId) ?? null;
@@ -389,10 +495,21 @@ export default function WebUIsPage() {
               <WebUIListItem
                 key={webui.id}
                 webui={webui}
+                index={idx}
                 selected={webui.id === selectedId}
                 isPrimary={idx === 0}
+                isDragging={dragIndex === idx}
+                dropIndicator={dropIndicatorFor(idx)}
                 onSelect={() => setSelectedId(webui.id)}
                 onNameChange={name => handleChange(webui.id, { ...webui, name })}
+                onMove={handleMove}
+                onDragStart={() => setDragIndex(idx)}
+                onDragOver={() => setOverIndex(idx)}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setOverIndex(null);
+                }}
+                onDrop={handleDrop}
               />
             ))
           )}

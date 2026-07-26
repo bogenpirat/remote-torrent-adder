@@ -4,6 +4,16 @@ export function generateId(): string {
     return crypto.randomUUID();
 }
 
+export function moveItem<T>(items: T[], from: number, to: number): T[] {
+    if (from === to || from < 0 || from >= items.length || to < 0 || to >= items.length) {
+        return items;
+    }
+    const reordered = [...items];
+    const [item] = reordered.splice(from, 1);
+    reordered.splice(to, 0, item);
+    return reordered;
+}
+
 export function clearListeners(listeners: RegisteredListeners): void {
     if (listeners.actionIconListener) {
         chrome.action.onClicked.removeListener(listeners.actionIconListener);

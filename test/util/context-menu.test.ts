@@ -39,6 +39,14 @@ describe("createContextMenu", () => {
         expect(created).toContain("server-all");
     });
 
+    it("lists the per-server entries in the order the webuis are given", () => {
+        createContextMenu([webUi("a", "Server A"), webUi("b", "Server B"), webUi("c", "Server C")]);
+        const perServer = (chrome.contextMenus.create as any).mock.calls
+            .map((c: any[]) => c[0])
+            .filter((item: any) => /^server-\d+$/.test(item.id));
+        expect(perServer.map((item: any) => item.title)).toEqual(["Server A", "Server B", "Server C"]);
+    });
+
     it("dispatches a pre-add for the first webui on the main entry", () => {
         createContextMenu([webUi("a", "Server A")]);
         lastClickListener()(clickData("server-main"), tab);
