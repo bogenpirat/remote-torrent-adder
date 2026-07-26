@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
     generateId,
+    moveItem,
     clearListeners,
     isMatchedByRegexes,
     getBaseUrl,
@@ -16,6 +17,38 @@ describe("generateId", () => {
 
     it("returns unique values", () => {
         expect(generateId()).not.toBe(generateId());
+    });
+});
+
+describe("moveItem", () => {
+    it("moves an item down", () => {
+        expect(moveItem(["a", "b", "c"], 0, 2)).toEqual(["b", "c", "a"]);
+    });
+
+    it("moves an item up", () => {
+        expect(moveItem(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    });
+
+    it("swaps neighbours", () => {
+        expect(moveItem(["a", "b", "c"], 1, 0)).toEqual(["b", "a", "c"]);
+    });
+
+    it("does not mutate the input", () => {
+        const items = ["a", "b", "c"];
+        moveItem(items, 0, 2);
+        expect(items).toEqual(["a", "b", "c"]);
+    });
+
+    it("returns the same array reference for a no-op move", () => {
+        const items = ["a", "b", "c"];
+        expect(moveItem(items, 1, 1)).toBe(items);
+    });
+
+    it("returns the same array reference for out-of-range indices", () => {
+        const items = ["a", "b", "c"];
+        expect(moveItem(items, -1, 1)).toBe(items);
+        expect(moveItem(items, 0, 3)).toBe(items);
+        expect(moveItem(items, 3, 0)).toBe(items);
     });
 });
 
