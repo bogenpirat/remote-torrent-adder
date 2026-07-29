@@ -36,14 +36,18 @@ export function parseNameFromDecodedTorrentData(data: any): string | null {
 }
 
 export function parseFilesFromDecodedTorrentData(data: any): string[] {
-    const files: Array<string> = [];
-    if ("info" in data && "files" in data["info"]) {
-        data["info"]["files"].forEach((file: any) => {
-            var thisFilePath = file["path"];
-            files.push(new TextDecoder().decode(thisFilePath[thisFilePath.length - 1]));
-        });
+    if (!data || !("info" in data)) {
+        return [];
     }
-    return files;
+    if (!Array.isArray(data["info"]["files"])) {
+        const name = parseNameFromDecodedTorrentData(data);
+        return name ? [name] : [];
+    }
+    const decoder = new TextDecoder();
+    return data["info"]["files"].map((file: any) =>
+        (Array.isArray(file?.["path"]) ? file["path"] : [])
+            .map((segment: any) => decoder.decode(segment))
+            .join("/"));
 }
 
 export function parsePrivateFlagFromDecodedTorrentData(data: any): boolean {

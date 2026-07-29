@@ -33,7 +33,7 @@ describe("downloadTorrent (file)", () => {
         expect(torrent.name).toBe("ubuntu.iso");
         expect(torrent.data).toBeInstanceOf(Blob);
         expect(torrent.trackers).toEqual(["http://tracker.one/announce", "http://tracker.two/announce"]);
-        expect(torrent.files).toEqual(["a.bin", "b.bin"]);
+        expect(torrent.files).toEqual(["folder/a.bin", "b.bin"]);
         expect(torrent.isPrivate).toBe(true);
     });
 

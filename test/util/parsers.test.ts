@@ -90,7 +90,7 @@ describe("parseNameFromDecodedTorrentData", () => {
 });
 
 describe("parseFilesFromDecodedTorrentData", () => {
-    it("returns the last path segment of each file", () => {
+    it("joins the path segments of each file", () => {
         const data = {
             info: {
                 files: [
@@ -99,15 +99,31 @@ describe("parseFilesFromDecodedTorrentData", () => {
                 ],
             },
         };
-        expect(parseFilesFromDecodedTorrentData(data)).toEqual(["a.mkv", "b.nfo"]);
+        expect(parseFilesFromDecodedTorrentData(data)).toEqual(["dir/a.mkv", "b.nfo"]);
     });
 
-    it("returns an empty array for a single-file torrent (no files key)", () => {
-        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x") } })).toEqual([]);
+    it("falls back to info.name for a single-file torrent (no files key)", () => {
+        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso") } })).toEqual(["x.iso"]);
+    });
+
+    it("returns an empty array when info has neither files nor name", () => {
+        expect(parseFilesFromDecodedTorrentData({ info: {} })).toEqual([]);
     });
 
     it("returns an empty array when info is missing", () => {
         expect(parseFilesFromDecodedTorrentData({})).toEqual([]);
+    });
+
+    it("returns an empty array for null data", () => {
+        expect(parseFilesFromDecodedTorrentData(null)).toEqual([]);
+    });
+
+    it("falls back to info.name when files is not an array", () => {
+        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso"), files: "nope" } })).toEqual(["x.iso"]);
+    });
+
+    it("tolerates a file entry with a missing path", () => {
+        expect(parseFilesFromDecodedTorrentData({ info: { files: [{}, { path: [enc("b.nfo")] }] } })).toEqual(["", "b.nfo"]);
     });
 });
 

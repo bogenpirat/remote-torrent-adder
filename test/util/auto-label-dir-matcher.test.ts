@@ -3,11 +3,18 @@ import { getAutoLabelResult, getAutoDirResult } from "../../src/util/auto-label-
 import { Torrent } from "../../src/models/torrent";
 import { AutoLabelDirSetting } from "../../src/models/webui";
 
-const torrentWith = (trackers?: string[]): Torrent => ({
+const torrentWith = (trackers?: string[], files?: string[]): Torrent => ({
     data: "magnet:?x",
     name: "t",
     isMagnet: true,
     trackers,
+    files,
+});
+
+const fileSetting = (value: string, label: string | null, dir: string | null): AutoLabelDirSetting => ({
+    criteria: [{ field: "filePath", value }],
+    label,
+    dir,
 });
 
 const setting = (value: string, label: string | null, dir: string | null): AutoLabelDirSetting => ({
@@ -73,6 +80,55 @@ describe("criteria matching", () => {
         expect(getAutoLabelResult(torrentWith(["http://a.org/announce"]), [both])).toBeNull();
         // both present -> matches
         expect(getAutoLabelResult(torrentWith(["http://a.org/announce", "http://b.org/announce"]), [both])).toBe("ab");
+    });
+});
+
+describe("filePath criteria", () => {
+    it("matches a regex against a file name inside the torrent", () => {
+        const torrent = torrentWith(undefined, ["Season 01/ep01.mkv", "readme.nfo"]);
+        expect(getAutoLabelResult(torrent, [fileSetting("\\.mkv$", "video", null)])).toBe("video");
+    });
+
+    it("matches against the full relative path, not just the basename", () => {
+        const torrent = torrentWith(undefined, ["Season 01/ep01.mkv"]);
+        expect(getAutoLabelResult(torrent, [fileSetting("^Season 01/", "series", null)])).toBe("series");
+        expect(getAutoLabelResult(torrent, [fileSetting("^ep01", "wrong", null)])).toBeNull();
+    });
+
+    it("matches case-insensitively", () => {
+        const torrent = torrentWith(undefined, ["Movie.MKV"]);
+        expect(getAutoLabelResult(torrent, [fileSetting("\\.mkv$", "video", null)])).toBe("video");
+    });
+
+    it("does not match when the torrent has no file list (magnet link)", () => {
+        expect(getAutoLabelResult(torrentWith(["http://x"], undefined), [fileSetting("\\.mkv$", "video", null)])).toBeNull();
+    });
+
+    it("does not match against an empty file list", () => {
+        expect(getAutoLabelResult(torrentWith(undefined, []), [fileSetting("\\.mkv$", "video", null)])).toBeNull();
+    });
+
+    it("does not throw and does not match on an invalid regex pattern", () => {
+        expect(getAutoLabelResult(torrentWith(undefined, ["a.mkv"]), [fileSetting("(", "bad", null)])).toBeNull();
+    });
+
+    it("requires both a tracker and a file criterion to match", () => {
+        const mixed: AutoLabelDirSetting = {
+            criteria: [
+                { field: "trackerUrl", value: "private\\.org" },
+                { field: "filePath", value: "\\.mkv$" },
+            ],
+            label: "private-video",
+            dir: null,
+        };
+        expect(getAutoLabelResult(torrentWith(["http://private.org/announce"], ["a.iso"]), [mixed])).toBeNull();
+        expect(getAutoLabelResult(torrentWith(["http://other.org/announce"], ["a.mkv"]), [mixed])).toBeNull();
+        expect(getAutoLabelResult(torrentWith(["http://private.org/announce"], ["a.mkv"]), [mixed])).toBe("private-video");
+    });
+
+    it("resolves a dir from a file criterion", () => {
+        const torrent = torrentWith(undefined, ["disc.iso"]);
+        expect(getAutoDirResult(torrent, [fileSetting("\\.iso$", null, "/images")])).toBe("/images");
     });
 });
 

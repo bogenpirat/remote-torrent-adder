@@ -16,7 +16,8 @@ export default function AboutPage() {
       <h2>Relative Path</h2>
       <p>Should be optional for some clients, but is available for all of them in case you use a reverse proxy.</p>
       <h2>Auto Label/Dir Settings</h2>
-      <p>This feature allows you to automatically assign labels and destination directories based on the tracker URLs contained in the torrent files. A sub-string works, but the criterion is evaluated as a regular expression.</p>
+      <p>This feature allows you to automatically assign labels and destination directories based on the contents of a torrent. Each rule can combine two kinds of criteria: <em>Tracker URL</em>, matched against every tracker announced by the torrent, and <em>File in torrent</em>, matched against the full relative path of every file it contains. A sub-string works, but every criterion is evaluated as a regular expression.</p>
+      <p>All criteria of a rule must match for it to apply, and the first matching rule wins. File criteria are matched case-insensitively. Since magnet links carry no metadata until the torrent is fetched by the client, rules never match them — only downloaded torrent files can be inspected.</p>
     </div>
   );
 }

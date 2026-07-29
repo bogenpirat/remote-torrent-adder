@@ -53,7 +53,7 @@ Project-specific security checklist for Remote Torrent Adder. The built-in `/sec
 
 - [ ] Bencode decoder errors are caught — a malformed `.torrent` must not crash the service worker (which would also dismiss the popup mid-flow on the user).
 - [ ] No assumption that `info.name`, `info.files[].path[]`, `announce`, etc. are present or are of the expected type — they come from untrusted bytes.
-- [ ] Tracker URLs from a parsed torrent are never used to build a request URL without explicit validation (auto-label-dir matching is fine because it just runs a string compare; building a `fetch()` URL from one would not be).
+- [ ] Tracker URLs and file paths from a parsed torrent are never used to build a request URL without explicit validation (auto-label-dir matching is fine because they are only the haystack for a user-authored `RegExp`; building a `fetch()` URL from one would not be).
 
 ### Manifest & permissions
 

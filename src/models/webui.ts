@@ -197,6 +197,6 @@ export interface AutoLabelDirSetting {
 }
 
 export interface AutoLabelDirCriterion {
-    field: "trackerUrl";
+    field: "trackerUrl" | "filePath";
     value: string;
 }
