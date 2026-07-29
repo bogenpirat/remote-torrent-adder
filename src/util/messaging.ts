@@ -1,11 +1,9 @@
 import {
     AddTorrentMessage,
-    GetPreAddedTorrentAndSettings,
-    GetPreAddedTorrentAndSettingsResponse,
     GetSettingsMessage,
     GetLinkCatchingConfig,
     type IAddTorrentMessage,
-    type IGetPreAddedTorrentAndSettingsResponse,
+    type IAddTorrentMessageWithLabelAndDir,
     type IPreAddTorrentMessage,
     PreAddTorrentMessage,
     AddTorrentMessageWithLabelAndDir,
@@ -16,7 +14,7 @@ import {
     TestConnectionMessage,
     type ITestConnectionMessage
 } from "../models/messages";
-import { type SerializedTorrent, type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
 import { updateBadgeText } from "./action";
@@ -24,14 +22,14 @@ import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { downloadTorrent } from "./download";
 import { showNotification } from "./notifications";
-import { serializeSettings, serializeObject, convertTorrentToSerialized, convertSerializedToTorrent, deserializeSettings } from "./serializer";
+import { serializeSettings, serializeObject, deserializeSettings } from "./serializer";
+import { clearBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "./buffered-torrent";
 import { Settings } from "./settings";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
 
 
 const POPUP_PAGE = "popup/popup.html";
-const BUFFERED_TORRENT_KEY = "bufferedTorrent";
 
 
 export function registerMessageListener(): void {
@@ -111,40 +109,10 @@ export function registerMessageListener(): void {
                         .catch(respondWithError);
                     break;
                 }
-                case GetPreAddedTorrentAndSettings.action: {
-                    willRespondAsync = true;
-                    getBufferedTorrent()
-                        .then((buffered: BufferedTorrentForPopup | null) => {
-                            if (!buffered) {
-                                finish({ error: "no buffered torrent" });
-                                return;
-                            }
-                            const response: IGetPreAddedTorrentAndSettingsResponse = {
-                                action: GetPreAddedTorrentAndSettingsResponse.action,
-                                webUiSettings: buffered.webUiSettings,
-                                serializedTorrent: buffered.serializedTorrent,
-                                autoLabelDirResult: getAutoLabelDirResultForConfig(buffered.serializedTorrent, buffered.webUiSettings)
-                            };
-                            console.debug("IGetPreAddedTorrentAndSettingsResponse:", response);
-                            finish(response);
-                        })
-                        .catch(respondWithError);
-                    break;
-                }
                 case AddTorrentMessageWithLabelAndDir.action: {
                     willRespondAsync = true;
-                    const torrent = convertSerializedToTorrent(message.serializedTorrent);
-                    getWebUiById(message.webUiId, settingsProvider)
-                        .then(webUi => {
-                            if (webUi) {
-                                sendTorrentToWebUi(webUi, torrent, message.config);
-                            } else {
-                                console.error("No WebUI found for id", message.webUiId);
-                            }
-                            updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories)
-                                .catch(e => console.error("Failed updating labels/dirs", e));
-                            finish({});
-                        })
+                    addBufferedTorrent(message as IAddTorrentMessageWithLabelAndDir, settingsProvider)
+                        .then(() => finish({}))
                         .catch(respondWithError);
                     break;
                 }
@@ -171,10 +139,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
     const webUi = webUiById ?? allWebUis[0] ?? null;
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {
         const torrent = await downloadTorrent(message.url);
-        await setBufferedTorrent({
-            serializedTorrent: await convertTorrentToSerialized(torrent),
-            webUiSettings: webUi.settings
-        });
+        await saveBufferedTorrent({ torrent, webUiSettings: webUi.settings });
         if (webUi.settings.useAlternativeLabelDirChooser) {
             chrome.windows.create({
                 url: POPUP_PAGE,
@@ -255,18 +220,26 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, c
     });
 }
 
-interface BufferedTorrentForPopup {
-    serializedTorrent: SerializedTorrent;
-    webUiSettings: WebUISettings;
-}
+/**
+ * Completes the flow the popup started: the torrent itself is still sitting in
+ * IndexedDB where `dispatchPreAddTorrent` parked it, so the popup only has to
+ * say which WebUI and which label/dir the user picked.
+ */
+async function addBufferedTorrent(message: IAddTorrentMessageWithLabelAndDir, settingsProvider: Settings): Promise<void> {
+    const buffered = await readBufferedTorrent();
+    if (!buffered) {
+        throw new Error("No buffered torrent to add; it may already have been consumed.");
+    }
 
-function setBufferedTorrent(buffered: BufferedTorrentForPopup): Promise<void> {
-    return chrome.storage.session.set({ [BUFFERED_TORRENT_KEY]: buffered });
-}
+    const webUi = await getWebUiById(message.webUiId, settingsProvider);
+    if (!webUi) {
+        throw new Error(`No WebUI found for id ${message.webUiId}`);
+    }
 
-async function getBufferedTorrent(): Promise<BufferedTorrentForPopup | null> {
-    const stored = await chrome.storage.session.get(BUFFERED_TORRENT_KEY);
-    return (stored[BUFFERED_TORRENT_KEY] as BufferedTorrentForPopup | undefined) ?? null;
+    sendTorrentToWebUi(webUi, buffered.torrent, message.config);
+    await clearBufferedTorrent();
+    await updateWebUiSettingsForWebUi(settingsProvider, message.webUiId, message.labels, message.directories)
+        .catch(e => console.error("Failed updating labels/dirs", e));
 }
 
 function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string, labels: string[], directories: string[]): Promise<void> {
@@ -286,13 +259,6 @@ function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string
             }
         });
     });
-}
-
-function getAutoLabelDirResultForConfig(torrent: Torrent, webUiSettings: WebUISettings): { label?: string; directory?: string } {
-    return {
-        label: getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings) ?? undefined,
-        directory: getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings) ?? undefined
-    };
 }
 
 function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null) {

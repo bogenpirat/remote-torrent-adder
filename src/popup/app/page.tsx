@@ -7,7 +7,7 @@ import { Toggle } from '../components/ui/toggle';
 import { type Torrent } from '../../models/torrent';
 
 
-export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;
+export type AddTorrentCallback = (webUiId: string, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;
 
 // Initial options
 const initialLabelOptions = ['Movies', 'TV Shows', 'Music', 'Games', 'Software', 'Books']
@@ -39,7 +39,7 @@ export default function Home() {
   const handleSubmit = () => {
     const augmentedLabels = [label, ...labelOptions.filter(x => x !== label)];
     const augmentedDirectories = [directory, ...directoryOptions.filter(x => x !== directory)];
-    addTorrentCallback!(webUi!.id, torrent!, label, directory, paused, augmentedLabels, augmentedDirectories).then(() => {
+    addTorrentCallback!(webUi!.id, label, directory, paused, augmentedLabels, augmentedDirectories).then(() => {
       window.close();
     });
   }
