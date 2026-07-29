@@ -1,161 +1,162 @@
-import { getTorrentAndSettingsAndFillPopup } from '../chrome-messaging';
-import { type WebUISettings } from "../../models/webui";
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ComboBox } from '../components/ui/combobox';
 import { Button } from '../components/ui/button';
 import { Toggle } from '../components/ui/toggle';
-import { type Torrent } from '../../models/torrent';
+import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 
-
-export type AddTorrentCallback = (webUiId: string, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;
-
-// Initial options
-const initialLabelOptions = ['Movies', 'TV Shows', 'Music', 'Games', 'Software', 'Books']
-const initialDirectoryOptions: string[] = []
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'empty' }
+  | { status: 'failed'; message: string }
+  | { status: 'ready'; data: PopupData };
 
 export default function Home() {
-  const [webUi, setWebUi] = useState<WebUISettings | null>(null)
-  const [addTorrentCallback, setAddTorrentCallback] = useState<AddTorrentCallback | null>(null);
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
 
-  const [torrent, setTorrent] = useState<Torrent | null>(null)
+  useEffect(() => {
+    let cancelled = false;
+    loadPopupData()
+      .then(data => {
+        if (cancelled) return;
+        setState(data ? { status: 'ready', data } : { status: 'empty' });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.error('Failed loading the pending torrent', error);
+        setState({ status: 'failed', message: errorMessage(error) });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const [autoLabeled, setAutoLabeled] = useState(false)
-  const [autoDir, setAutoDir] = useState(false)
+  if (state.status === 'loading') {
+    return <Notice title="Remote Torrent Adder">Loading…</Notice>;
+  }
+  if (state.status === 'empty') {
+    return <Notice title="Nothing to add">No torrent is waiting to be added.</Notice>;
+  }
+  if (state.status === 'failed') {
+    return <Notice title="Could not load the torrent" tone="error">{state.message}</Notice>;
+  }
+  return <AddTorrentForm data={state.data} />;
+}
 
-  const [label, setLabel] = useState('')
-  const [directory, setDirectory] = useState('')
-  const [paused, setPaused] = useState(false)
+// The form only mounts once the data exists, so every field can be initialised
+// straight from it and no value is ever asserted non-null.
+function AddTorrentForm({ data }: { data: PopupData }) {
+  const [label, setLabel] = useState(data.initial.label);
+  const [directory, setDirectory] = useState(data.initial.directory);
+  const [paused, setPaused] = useState(data.initial.paused);
+  const [labelOptions, setLabelOptions] = useState(data.labelOptions);
+  const [directoryOptions, setDirectoryOptions] = useState(data.directoryOptions);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Dynamic options state
-  const [labelOptions, setLabelOptions] = useState(initialLabelOptions)
-  const [directoryOptions, setDirectoryOptions] = useState(initialDirectoryOptions)
-
-  // Visibility controls
-  const [showLabel, setShowLabel] = useState(true)
-  const [showDirectory, setShowDirectory] = useState(true)
-  const [showPaused, setShowPaused] = useState(true)
-
-
-  const handleSubmit = () => {
-    const augmentedLabels = [label, ...labelOptions.filter(x => x !== label)];
-    const augmentedDirectories = [directory, ...directoryOptions.filter(x => x !== directory)];
-    addTorrentCallback!(webUi!.id, label, directory, paused, augmentedLabels, augmentedDirectories).then(() => {
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await submitTorrent({
+        webUiId: data.webUiSettings.id,
+        label,
+        directory,
+        paused,
+        // Whatever was just used moves to the front, so it is offered first next time.
+        labelOptions: moveToFront(label, labelOptions),
+        directoryOptions: moveToFront(directory, directoryOptions),
+      });
       window.close();
-    });
-  }
-
-  // Programmatic setters for external control
-  const setFormData: FormControl = {
-    torrent: setTorrent,
-    label: setLabel,
-    directory: setDirectory,
-    autoDir: setAutoDir,
-    autoLabeled: setAutoLabeled,
-    paused: setPaused,
-    labelOptions: setLabelOptions,
-    directoryOptions: setDirectoryOptions,
-    visibility: {
-      label: setShowLabel,
-      directory: setShowDirectory,
-      paused: setShowPaused
-    },
-    webUiSettings: setWebUi,
-    addTorrentCb: (callback: AddTorrentCallback) => {
-      setAddTorrentCallback(() => callback);
+    } catch (error: unknown) {
+      console.error('Failed adding the torrent', error);
+      setSubmitError(errorMessage(error));
+      setSubmitting(false);
     }
-  }
+  };
 
-  // Make setters available globally for external access
-  useEffect(() => getTorrentAndSettingsAndFillPopup(setFormData), [])
+  const removeLabel = (option: string) => {
+    setLabelOptions(previous => previous.filter(entry => entry !== option));
+    if (label === option) setLabel('');
+  };
 
-  const handleRemoveLabel = (optionToRemove: string) => {
-    setLabelOptions(prev => prev.filter(option => option !== optionToRemove))
-    // Clear selection if the removed option was selected
-    if (label === optionToRemove) {
-      setLabel('')
-    }
-  }
-
-  const handleRemoveDirectory = (optionToRemove: string) => {
-    setDirectoryOptions(prev => prev.filter(option => option !== optionToRemove))
-    // Clear selection if the removed option was selected
-    if (directory === optionToRemove) {
-      setDirectory('')
-    }
-  }
-
+  const removeDirectory = (option: string) => {
+    setDirectoryOptions(previous => previous.filter(entry => entry !== option));
+    if (directory === option) setDirectory('');
+  };
 
   return (
     <div className="h-full bg-background p-6">
       <div className="max-w-sm mx-auto space-y-4">
         <div className="text-center">
           <h1 className="text-xl font-bold text-foreground">Remote Torrent Adder</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            {torrent?.name}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">{data.torrent.name}</p>
         </div>
 
         <div className="space-y-3 bg-card p-4 rounded-lg border border-border shadow-sm">
-          {showLabel && (
+          {data.supports.label && (
             <ComboBox
               label="Label"
               value={label}
               onChange={setLabel}
-              onRemoveOption={handleRemoveLabel}
+              onRemoveOption={removeLabel}
               options={labelOptions}
-              rainbowOutline={autoLabeled}
+              rainbowOutline={data.auto.label}
               placeholder="Select or type label..."
             />
           )}
 
-          {showDirectory && (
+          {data.supports.directory && (
             <ComboBox
               label="Directory"
               value={directory}
               onChange={setDirectory}
-              onRemoveOption={handleRemoveDirectory}
+              onRemoveOption={removeDirectory}
               options={directoryOptions}
-              rainbowOutline={autoDir}
+              rainbowOutline={data.auto.directory}
               placeholder="Select or type directory..."
             />
           )}
 
-          {showPaused && (
-            <Toggle
-              label="Start Paused"
-              checked={paused}
-              onChange={setPaused}
-            />
+          {data.supports.paused && (
+            <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
+          )}
+
+          {submitError && (
+            <p role="alert" className="text-xs text-destructive">{submitError}</p>
           )}
 
           <Button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
+            disabled={submitting}
             className="w-full"
             variant="default"
             size="default"
           >
-            Add Torrent
+            {submitting ? 'Adding…' : 'Add Torrent'}
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export interface FormControl {
-  torrent: (value: Torrent) => void;
-  label: (value: string) => void;
-  directory: (value: string) => void;
-  paused: (value: boolean) => void;
-  autoDir: (value: boolean) => void;
-  autoLabeled: (value: boolean) => void;
-  labelOptions: (options: string[]) => void;
-  directoryOptions: (options: string[]) => void;
-  visibility: {
-    label: (visible: boolean) => void;
-    directory: (visible: boolean) => void;
-    paused: (visible: boolean) => void;
-  };
-  webUiSettings: (webUiSettings: WebUISettings) => void;
-  addTorrentCb: (callback: AddTorrentCallback) => void;
+function Notice({ title, children, tone }: { title: string; children: React.ReactNode; tone?: 'error' }) {
+  return (
+    <div className="h-full bg-background p-6">
+      <div className="max-w-sm mx-auto space-y-2 text-center">
+        <h1 className="text-xl font-bold text-foreground">{title}</h1>
+        <p className={tone === 'error' ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>
+          {children}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function moveToFront(value: string, options: string[]): string[] {
+  return value ? [value, ...options.filter(option => option !== value)] : options;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
