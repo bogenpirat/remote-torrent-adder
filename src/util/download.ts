@@ -1,6 +1,7 @@
+import { type DecodedTorrent } from "../models/decoded-torrent";
 import { type Torrent } from "../models/torrent";
 import { getTorrentNameFromLink } from "./parsers";
-import bencode from "bencode";
+import { decodeTorrentBytes } from "./bencode-decode";
 import { executeMethodWrappedWithReferer } from "./cors-tricks";
 import { getBaseUrl } from "./utils";
 import { buildTorrentFromDecodedData, buildTorrentFromMagnetLink } from "./torrent-source";
@@ -26,9 +27,9 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     return buildTorrentFromDecodedData(decodedTorrentData, getTorrentNameFromLink(url), torrentBlob);
 }
 
-function decodeTorrentDataAndValidate(response: Response, torrentData: Uint8Array): any {
+function decodeTorrentDataAndValidate(response: Response, torrentData: Uint8Array): DecodedTorrent {
     try {
-        return bencode.decode(torrentData as any);
+        return decodeTorrentBytes(torrentData);
     } catch (error) {
         let contentType = response.headers.get("Content-Type");
         if (contentType) {
