@@ -9,9 +9,4 @@ Add a new BitTorrent client integration to this project. Before writing any code
 3. How torrents are uploaded (multipart form with binary `.torrent`, magnet URI string, JSON body, or JSON-RPC)
 4. Which features the client supports: labels, download directories, add-as-paused
 
-Then follow the implementation guide in [`.agents/agents/add-webui-client.md`](../../.agents/agents/add-webui-client.md).
-
-Key steps:
-- Create `src/webuis/<name>-webui.ts` extending `TorrentWebUI`
-- Add to `Client` enum and `ClientClassByClient` in `src/models/clients.ts`
-- Type-check with `npm run typecheck`, then `npm run build`
+Then read [`.agents/skills/add-webui-client.md`](../../.agents/skills/add-webui-client.md) and follow it. Registering a client touches three separate tables and a test file — the guide has the details, and getting it from memory instead will not compile.

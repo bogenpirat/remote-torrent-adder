@@ -4,6 +4,6 @@ description: Review code changes in Remote Torrent Adder with knowledge of Chrom
 
 Review the current changes (or ask me which file/branch/PR to review).
 
-Follow the review checklist in [`.agents/agents/code-reviewer.md`](../../.agents/agents/code-reviewer.md).
+Read [`.agents/skills/rta-code-review.md`](../../.agents/skills/rta-code-review.md) and work through its checklist.
 
-Report findings as **BLOCKER**, **WARNING**, or **SUGGESTION**, then give a one-sentence verdict.
+Report findings as **BLOCKER**, **WARNING**, or **SUGGESTION**, citing `file:line`, then give a one-sentence verdict.
