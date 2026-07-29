@@ -2,6 +2,9 @@
     "name": "remote-torrent-adder",
     "version": "2.0.8",
     "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
     "scripts": {
         "test": "vitest run",
         "test:watch": "vitest",

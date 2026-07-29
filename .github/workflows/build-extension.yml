@@ -4,9 +4,20 @@ on:
   push:
     branches:
       - '**'
+  pull_request:
+
+# Least privilege: nothing here needs to write to the repo.
+permissions:
+  contents: read
+
+# Queue runs per ref rather than cancelling them, so every pushed commit keeps
+# its own result.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  typecheck:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,15 +25,24 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 'latest'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Type check
         run: npm run typecheck
+      - name: Test
+        run: npm run test:coverage
+      - name: Upload coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
 
   build-dev:
-    needs: typecheck
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,10 +50,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 'latest'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Build extension
         run: npm run build
       - name: Upload build artifacts
@@ -44,7 +64,7 @@ jobs:
 
   build-prod:
     if: github.ref == 'refs/heads/master'
-    needs: typecheck
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -52,10 +72,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 'latest'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Build extension (production)
         run: npm run build:prod
       - name: Upload production build artifacts

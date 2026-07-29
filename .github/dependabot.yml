@@ -1,0 +1,48 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # One PR per ecosystem area instead of one per package, which is what
+    # produced the long tail of single-bump PRs in the history.
+    groups:
+      build-toolchain:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vitest"
+          - "@vitest/*"
+          - "typescript"
+          - "typescript-eslint"
+          - "eslint"
+          - "eslint-plugin-*"
+          - "@eslint/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "@radix-ui/*"
+      styling:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tailwindcss-animate"
+          - "tailwind-merge"
+          - "postcss"
+      types:
+        patterns:
+          - "@types/*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
