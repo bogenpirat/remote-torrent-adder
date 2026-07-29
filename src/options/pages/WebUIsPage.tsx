@@ -443,6 +443,8 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
               showDir={!!webUiInstance?.isDirSupported}
               labels={webui.labels}
               dirs={webui.dirs}
+              defaultLabel={webui.defaultLabel}
+              defaultDir={webui.defaultDir}
             />
           )}
         </>

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
+import AutoLabelDirTester from "./AutoLabelDirTester";
+import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 
 interface AutoLabelDirSettingsEditorProps {
   value: AutoLabelDirSetting[];
@@ -8,17 +10,8 @@ interface AutoLabelDirSettingsEditorProps {
   showDir: boolean;
   labels: string[];
   dirs: string[];
-}
-
-type CriterionField = AutoLabelDirCriterion["field"];
-
-const CRITERIA_FIELDS: Array<{ value: CriterionField; label: string; placeholder: string }> = [
-  { value: "trackerUrl", label: "Tracker URL", placeholder: "e.g. tracker\\.private\\.org" },
-  { value: "filePath", label: "File in torrent", placeholder: "e.g. \\.mkv$" }
-];
-
-function fieldLabel(field: string): string {
-  return CRITERIA_FIELDS.find(f => f.value === field)?.label ?? field;
+  defaultLabel: string | null;
+  defaultDir: string | null;
 }
 
 function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterion[]; onChange: (c: AutoLabelDirCriterion[]) => void }) {
@@ -66,15 +59,11 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
         />
         <button onClick={handleAdd} style={{ background: "var(--rta-accent, #b7c9a7)", color: "var(--rta-green-dark, #4e6a57)", border: "none", borderRadius: 8, padding: "4px 12px", fontWeight: 500, cursor: "pointer" }}>Add</button>
       </div>
-      <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginTop: 6 }}>
-        Each value is evaluated as a regular expression; a plain substring works too. All criteria of a rule must match.
-        File criteria are matched case-insensitively against the full path of every file in the torrent, and never match magnet links.
-      </div>
     </div>
   );
 }
 
-function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs }: AutoLabelDirSettingsEditorProps) {
+function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs, defaultLabel, defaultDir }: AutoLabelDirSettingsEditorProps) {
   const handleAdd = () => {
     onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
@@ -160,6 +149,15 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
           </div>
         </div>
       ))}
+      {value.length > 0 && (
+        <AutoLabelDirTester
+          settings={value}
+          defaultLabel={defaultLabel}
+          defaultDir={defaultDir}
+          showLabel={showLabel}
+          showDir={showDir}
+        />
+      )}
     </div>
   );
 }

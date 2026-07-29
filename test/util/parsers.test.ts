@@ -61,6 +61,12 @@ describe("parseTrackersFromDecodedTorrentData", () => {
         ]);
     });
 
+    it("returns no trackers when the torrent has no announce key", () => {
+        expect(parseTrackersFromDecodedTorrentData({ info: {} })).toEqual([]);
+        expect(parseTrackersFromDecodedTorrentData({ "announce-list": [[enc("http://tracker.two/announce")]] }))
+            .toEqual(["http://tracker.two/announce"]);
+    });
+
     it("ignores a non-array entry in announce-list", () => {
         const data = {
             announce: enc("http://tracker.one/announce"),

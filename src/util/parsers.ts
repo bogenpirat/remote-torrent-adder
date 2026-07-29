@@ -13,9 +13,21 @@ export function getTorrentNameFromLink(url: string): string {
     return FALLBACK_TORRENT_NAME;
 }
 
+export function parseTrackersFromMagnetLink(magnetLink: string): string[] {
+    let trackers: string[];
+    try {
+        trackers = new URL(magnetLink).searchParams.getAll("tr");
+    } catch {
+        return [];
+    }
+    return Array.from(new Set(trackers.filter(tracker => tracker.length > 0)));
+}
+
 export function parseTrackersFromDecodedTorrentData(data: any): string[] {
     const trackers = new Set<string>();
-    trackers.add(new TextDecoder().decode(data["announce"]));
+    if ("announce" in data) {
+        trackers.add(new TextDecoder().decode(data["announce"]));
+    }
     if ("announce-list" in data && data["announce-list"].length > 0) {
         data["announce-list"].forEach((announceList: any[]) => {
             if (Array.isArray(announceList)) {

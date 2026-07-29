@@ -17,7 +17,8 @@ export default function AboutPage() {
       <p>Should be optional for some clients, but is available for all of them in case you use a reverse proxy.</p>
       <h2>Auto Label/Dir Settings</h2>
       <p>This feature allows you to automatically assign labels and destination directories based on the contents of a torrent. Each rule can combine two kinds of criteria: <em>Tracker URL</em>, matched against every tracker announced by the torrent, and <em>File in torrent</em>, matched against the full relative path of every file it contains. A sub-string works, but every criterion is evaluated as a regular expression.</p>
-      <p>All criteria of a rule must match for it to apply, and the first matching rule wins. File criteria are matched case-insensitively. Since magnet links carry no metadata until the torrent is fetched by the client, rules never match them — only downloaded torrent files can be inspected.</p>
+      <p>All criteria of a rule must match for it to apply, and the first matching rule wins. File criteria are matched case-insensitively. Magnet links announce their trackers, so tracker criteria apply to them as well; they carry no file list until the torrent is fetched by the client, so file criteria never match a magnet link.</p>
+      <p>To check your rules without adding anything anywhere, use <em>Test these rules</em> below the rule list: drop a .torrent file onto it or paste a magnet link, and it will show you the resulting label and directory along with exactly which criterion matched what. Everything is evaluated locally in your browser.</p>
     </div>
   );
 }
