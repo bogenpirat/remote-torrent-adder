@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
-import ChipList from "./ChipList";
+import AutoLabelDirTester from "./AutoLabelDirTester";
+import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 
 interface AutoLabelDirSettingsEditorProps {
   value: AutoLabelDirSetting[];
@@ -9,18 +10,17 @@ interface AutoLabelDirSettingsEditorProps {
   showDir: boolean;
   labels: string[];
   dirs: string[];
+  defaultLabel: string | null;
+  defaultDir: string | null;
 }
 
-const CRITERIA_FIELDS = [
-  { value: "trackerUrl", label: "Tracker URL" }
-];
-
 function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterion[]; onChange: (c: AutoLabelDirCriterion[]) => void }) {
+  const [field, setField] = useState<CriterionField>("trackerUrl");
   const [value, setValue] = useState("");
 
   const handleAdd = () => {
     if (value.trim()) {
-      onChange([...criteria, { field: "trackerUrl", value: value.trim() }]);
+      onChange([...criteria, { field, value: value.trim() }]);
       setValue("");
     }
   };
@@ -36,7 +36,7 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
           {criteria.map((c, idx) => (
             <span key={idx} style={{ display: "inline-flex", alignItems: "center", background: "var(--rta-chip-bg, #eaf5ea)", border: "1px solid var(--rta-chip-border, #b7c9a7)", borderRadius: 16, padding: "4px 12px", fontFamily: "monospace", fontSize: 15 }}>
-              <span style={{ marginRight: 8 }}>Tracker URL:</span>
+              <span style={{ marginRight: 8 }}>{fieldLabel(c.field)}:</span>
               <span style={{ marginRight: 8 }}>{c.value}</span>
               <button onClick={() => handleRemove(idx)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
             </span>
@@ -44,12 +44,18 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
         </div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: criteria.length > 0 ? 8 : 0 }}>
+        <select
+          value={field}
+          onChange={e => setField(e.target.value as CriterionField)}
+          style={{ fontSize: 15, borderRadius: 8, padding: "4px 10px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)" }}>
+          {CRITERIA_FIELDS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </select>
         <input
           type="text"
           value={value}
           onChange={e => setValue(e.target.value)}
-          placeholder="Value"
-          style={{ fontFamily: "monospace", fontSize: 15, border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", borderRadius: 8, padding: "4px 10px" }}
+          placeholder={CRITERIA_FIELDS.find(f => f.value === field)?.placeholder}
+          style={{ flex: 1, minWidth: 0, fontFamily: "monospace", fontSize: 15, border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", borderRadius: 8, padding: "4px 10px" }}
         />
         <button onClick={handleAdd} style={{ background: "var(--rta-accent, #b7c9a7)", color: "var(--rta-green-dark, #4e6a57)", border: "none", borderRadius: 8, padding: "4px 12px", fontWeight: 500, cursor: "pointer" }}>Add</button>
       </div>
@@ -57,7 +63,7 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
   );
 }
 
-function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs }: AutoLabelDirSettingsEditorProps) {
+function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs, defaultLabel, defaultDir }: AutoLabelDirSettingsEditorProps) {
   const handleAdd = () => {
     onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
@@ -143,6 +149,15 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
           </div>
         </div>
       ))}
+      {value.length > 0 && (
+        <AutoLabelDirTester
+          settings={value}
+          defaultLabel={defaultLabel}
+          defaultDir={defaultDir}
+          showLabel={showLabel}
+          showDir={showDir}
+        />
+      )}
     </div>
   );
 }

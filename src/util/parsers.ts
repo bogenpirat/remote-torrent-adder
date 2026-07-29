@@ -13,9 +13,21 @@ export function getTorrentNameFromLink(url: string): string {
     return FALLBACK_TORRENT_NAME;
 }
 
+export function parseTrackersFromMagnetLink(magnetLink: string): string[] {
+    let trackers: string[];
+    try {
+        trackers = new URL(magnetLink).searchParams.getAll("tr");
+    } catch {
+        return [];
+    }
+    return Array.from(new Set(trackers.filter(tracker => tracker.length > 0)));
+}
+
 export function parseTrackersFromDecodedTorrentData(data: any): string[] {
     const trackers = new Set<string>();
-    trackers.add(new TextDecoder().decode(data["announce"]));
+    if ("announce" in data) {
+        trackers.add(new TextDecoder().decode(data["announce"]));
+    }
     if ("announce-list" in data && data["announce-list"].length > 0) {
         data["announce-list"].forEach((announceList: any[]) => {
             if (Array.isArray(announceList)) {
@@ -36,14 +48,18 @@ export function parseNameFromDecodedTorrentData(data: any): string | null {
 }
 
 export function parseFilesFromDecodedTorrentData(data: any): string[] {
-    const files: Array<string> = [];
-    if ("info" in data && "files" in data["info"]) {
-        data["info"]["files"].forEach((file: any) => {
-            var thisFilePath = file["path"];
-            files.push(new TextDecoder().decode(thisFilePath[thisFilePath.length - 1]));
-        });
+    if (!data || !("info" in data)) {
+        return [];
     }
-    return files;
+    if (!Array.isArray(data["info"]["files"])) {
+        const name = parseNameFromDecodedTorrentData(data);
+        return name ? [name] : [];
+    }
+    const decoder = new TextDecoder();
+    return data["info"]["files"].map((file: any) =>
+        (Array.isArray(file?.["path"]) ? file["path"] : [])
+            .map((segment: any) => decoder.decode(segment))
+            .join("/"));
 }
 
 export function parsePrivateFlagFromDecodedTorrentData(data: any): boolean {

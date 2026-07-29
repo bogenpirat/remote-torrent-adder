@@ -13,6 +13,13 @@ describe("downloadTorrent (magnet)", () => {
         expect(torrent.data).toBe("magnet:?xt=urn:btih:abc&dn=My+Movie");
         expect(torrent.name).toBe("My Movie");
     });
+
+    it("populates the trackers from the magnet's tr parameters", async () => {
+        queueFetch(mockResponse({ status: 200 }));
+        const torrent = await downloadTorrent("magnet:?xt=urn:btih:abc&tr=http%3A%2F%2Ftracker.one%2Fannounce");
+
+        expect(torrent.trackers).toEqual(["http://tracker.one/announce"]);
+    });
 });
 
 describe("downloadTorrent (file)", () => {
@@ -33,7 +40,7 @@ describe("downloadTorrent (file)", () => {
         expect(torrent.name).toBe("ubuntu.iso");
         expect(torrent.data).toBeInstanceOf(Blob);
         expect(torrent.trackers).toEqual(["http://tracker.one/announce", "http://tracker.two/announce"]);
-        expect(torrent.files).toEqual(["a.bin", "b.bin"]);
+        expect(torrent.files).toEqual(["folder/a.bin", "b.bin"]);
         expect(torrent.isPrivate).toBe(true);
     });
 

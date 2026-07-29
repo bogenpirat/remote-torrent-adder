@@ -1,12 +1,13 @@
 import { Torrent } from "../models/torrent";
-import { getTorrentNameFromMagnetLink, getTorrentNameFromLink, parseFilesFromDecodedTorrentData, parseNameFromDecodedTorrentData, parsePrivateFlagFromDecodedTorrentData, parseTrackersFromDecodedTorrentData } from "./parsers";
+import { getTorrentNameFromLink } from "./parsers";
 import bencode from "bencode";
 import { executeMethodWrappedWithReferer } from "./cors-tricks";
 import { getBaseUrl } from "./utils";
+import { buildTorrentFromDecodedData, buildTorrentFromMagnetLink } from "./torrent-source";
 
 export async function downloadTorrent(url: string): Promise<Torrent> {
     if (url.startsWith("magnet:")) {
-        return { data: url, name: getTorrentNameFromMagnetLink(url), isMagnet: true };
+        return buildTorrentFromMagnetLink(url);
     }
 
     let response: Response;
@@ -22,14 +23,7 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     const torrentBlob: Blob = await response.blob();
     const decodedTorrentData = decodeTorrentDataAndValidate(response, new Uint8Array(await torrentBlob.arrayBuffer()));
 
-    return {
-        data: torrentBlob,
-        name: parseNameFromDecodedTorrentData(decodedTorrentData) ?? getTorrentNameFromLink(url),
-        isMagnet: false,
-        trackers: parseTrackersFromDecodedTorrentData(decodedTorrentData),
-        files: parseFilesFromDecodedTorrentData(decodedTorrentData),
-        isPrivate: parsePrivateFlagFromDecodedTorrentData(decodedTorrentData),
-    };
+    return buildTorrentFromDecodedData(decodedTorrentData, getTorrentNameFromLink(url), torrentBlob);
 }
 
 function decodeTorrentDataAndValidate(response: Response, torrentData: Uint8Array): any {

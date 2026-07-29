@@ -26,7 +26,7 @@ Chrome doesn't let extensions hand a downloaded `.torrent` file over to a deskto
 - 🖱️ **One-click adding** — torrent and magnet links are caught as you click them and sent straight to your client
 - 🔗 **Smart link catching** — a mutation observer picks up dynamically added links as they appear, and custom regexes let you tune exactly which links get caught
 - 🖥️ **Multiple servers** — configure as many clients/servers as you like and pick the target per link via the right-click context menu
-- 🏷️ **Labels & download directories** — set defaults per server, choose per torrent in a popup, or let **auto-rules assign a label/directory based on the torrent's tracker URL**
+- 🏷️ **Labels & download directories** — set defaults per server, choose per torrent in a popup, or let **auto-rules assign a label/directory based on the torrent's tracker URL or the files inside it**, and test those rules right in the options page by dropping a .torrent file or pasting a magnet link
 - ⏸️ **Add paused** — optionally add torrents in a stopped state
 - 🔐 **Authentication & HTTPS** — username/password auth and secure connections supported for all clients
 - 🔔 **Rich notifications** — success/failure notifications with configurable duration and **custom notification sounds**
