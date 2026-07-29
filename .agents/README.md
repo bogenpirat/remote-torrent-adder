@@ -109,8 +109,7 @@ Anything intentionally left out and why.
 ### Run a development build
 ```
 npm run build        # one-shot dev build
-npm run watch        # watch mode (assets + rollup, manual Vite rebuild needed)
-npm run dev          # alias for watch
+npm run dev          # watch mode (assets + worker + content script)
 ```
 
 ### Release a new version

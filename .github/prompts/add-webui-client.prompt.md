@@ -14,4 +14,4 @@ Then follow the implementation guide in [`.agents/agents/add-webui-client.md`](.
 Key steps:
 - Create `src/webuis/<name>-webui.ts` extending `TorrentWebUI`
 - Add to `Client` enum and `ClientClassByClient` in `src/models/clients.ts`
-- Type-check with `npx tsc --noEmit -p tsconfig.rollup.json`, then `npm run build`
+- Type-check with `npm run typecheck`, then `npm run build`

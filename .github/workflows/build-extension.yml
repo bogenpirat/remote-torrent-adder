@@ -18,10 +18,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm install
-      - name: Type check (Vite targets)
-        run: npx tsc --noEmit
-      - name: Type check (Rollup targets)
-        run: npx tsc --noEmit -p tsconfig.rollup.json
+      - name: Type check
+        run: npm run typecheck
 
   build-dev:
     needs: typecheck
