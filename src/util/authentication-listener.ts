@@ -1,4 +1,4 @@
-import { TorrentWebUI } from "../models/webui";
+import { type TorrentWebUI } from "../models/webui";
 import { loadWebUis } from "./webuis";
 
 

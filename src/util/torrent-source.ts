@@ -1,5 +1,5 @@
 import bencode from "bencode";
-import { Torrent } from "../models/torrent";
+import { type Torrent } from "../models/torrent";
 import {
     getTorrentNameFromMagnetLink,
     parseFilesFromDecodedTorrentData,

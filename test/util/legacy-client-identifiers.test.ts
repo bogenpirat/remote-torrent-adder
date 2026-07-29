@@ -4,7 +4,7 @@ import {
     migrateSettingsClientIdentifiers,
 } from "../../src/util/legacy-client-identifiers";
 import { Client } from "../../src/models/clients";
-import { RTASettings } from "../../src/models/settings";
+import { type RTASettings } from "../../src/models/settings";
 import { makeWebUISettings } from "../helpers/fixtures";
 import { at } from "../helpers/assert";
 

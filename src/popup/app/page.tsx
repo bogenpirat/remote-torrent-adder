@@ -1,10 +1,10 @@
 import { getTorrentAndSettingsAndFillPopup } from '../chrome-messaging';
-import { WebUISettings } from "../../models/webui";
+import { type WebUISettings } from "../../models/webui";
 import { useState, useEffect } from 'react';
 import { ComboBox } from '../components/ui/combobox';
 import { Button } from '../components/ui/button';
 import { Toggle } from '../components/ui/toggle';
-import { Torrent } from '../../models/torrent';
+import { type Torrent } from '../../models/torrent';
 
 
 export type AddTorrentCallback = (webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]) => Promise<void>;

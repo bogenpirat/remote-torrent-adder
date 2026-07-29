@@ -1,7 +1,7 @@
-import { TorrentWebUI } from "../models/webui";
+import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
-import { IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./messaging";
 import { loadWebUis } from "./webuis";
 

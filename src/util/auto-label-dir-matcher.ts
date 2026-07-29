@@ -1,5 +1,5 @@
-import { Torrent } from "../models/torrent";
-import { AutoLabelDirCriterion, AutoLabelDirSetting } from "../models/webui";
+import { type Torrent } from "../models/torrent";
+import { type AutoLabelDirCriterion, type AutoLabelDirSetting } from "../models/webui";
 
 export interface AutoLabelDirCriterionEvaluation {
     criterion: AutoLabelDirCriterion;

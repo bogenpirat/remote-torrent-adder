@@ -31,6 +31,8 @@ jobs:
         run: npm ci
       - name: Type check
         run: npm run typecheck
+      - name: Lint
+        run: npm run lint
       - name: Test
         run: npm run test:coverage
       - name: Upload coverage

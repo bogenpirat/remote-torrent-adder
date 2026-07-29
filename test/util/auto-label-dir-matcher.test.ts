@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir } from "../../src/util/auto-label-dir-matcher";
-import { Torrent } from "../../src/models/torrent";
-import { AutoLabelDirSetting } from "../../src/models/webui";
+import { type Torrent } from "../../src/models/torrent";
+import { type AutoLabelDirSetting } from "../../src/models/webui";
 import { at } from "../helpers/assert";
 
 const torrentWith = (trackers?: string[], files?: string[]): Torrent => ({

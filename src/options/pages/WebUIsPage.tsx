@@ -231,33 +231,43 @@ interface WebUIDetailProps {
   isPrimary: boolean;
 }
 
+interface TestConnectionState {
+  signature: string;
+  testing: boolean;
+  result: ConnectionTestResult | null;
+}
+
 function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
   const [confirmRemove, setConfirmRemove] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null);
   const clientChosen = isClientSelected(webui.client);
   const webUiInstance = clientChosen ? WebUIFactory.createWebUI(webui) : null;
 
-  // The result reflects a specific endpoint + credentials, so invalidate it
-  // whenever any field that affects the request changes.
-  useEffect(() => {
-    setTestResult(null);
-    setTesting(false);
-  }, [webui.id, webui.client, webui.host, webui.port, webui.secure, webui.relativePath, webui.username, webui.password]);
+  // A result only describes the endpoint + credentials it was produced for, so
+  // it is stored together with a signature of those fields. Anything that would
+  // change the request makes the stored result stale, which is derived during
+  // render rather than cleared from an effect.
+  const endpointSignature = JSON.stringify([
+    webui.id, webui.client, webui.host, webui.port, webui.secure, webui.relativePath, webui.username, webui.password,
+  ]);
+  const [testState, setTestState] = useState<TestConnectionState>({ signature: endpointSignature, testing: false, result: null });
+  const isCurrent = testState.signature === endpointSignature;
+  const testing = isCurrent && testState.testing;
+  const testResult = isCurrent ? testState.result : null;
 
   const handleTest = async () => {
-    setTesting(true);
-    setTestResult(null);
+    setTestState({ signature: endpointSignature, testing: true, result: null });
     try {
       const result = await chrome.runtime.sendMessage({
         action: TestConnectionMessage.action,
         webUiSettings: webui,
       } as ITestConnectionMessage);
-      setTestResult(result as ConnectionTestResult);
+      setTestState({ signature: endpointSignature, testing: false, result: result as ConnectionTestResult });
     } catch (error) {
-      setTestResult({ reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) });
-    } finally {
-      setTesting(false);
+      setTestState({
+        signature: endpointSignature,
+        testing: false,
+        result: { reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) },
+      });
     }
   };
 
@@ -455,21 +465,17 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
 
 export default function WebUIsPage() {
   const { settings, updateSetting, loading } = useSettings();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [requestedId, setRequestedId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
   const webuis = settings?.webuiSettings ?? [];
 
-  // Default to the primary WebUI so the page never opens to an empty panel,
-  // and keep the selection valid if the selected entry is removed.
-  useEffect(() => {
-    if (webuis.length === 0) {
-      if (selectedId !== null) setSelectedId(null);
-    } else if (!webuis.some(w => w.id === selectedId)) {
-      setSelectedId(webuis[0]?.id ?? null);
-    }
-  }, [webuis, selectedId]);
+  // Default to the primary WebUI so the page never opens to an empty panel, and
+  // keep the selection valid if the selected entry is removed. Derived during
+  // render so no effect has to chase the settings list.
+  const selectedId = webuis.some(w => w.id === requestedId) ? requestedId : (webuis[0]?.id ?? null);
+  const setSelectedId = setRequestedId;
 
   if (loading || !settings) return <div>Loading...</div>;
 

@@ -1,6 +1,6 @@
-import { RTASettings } from "./settings";
-import { SerializedTorrent, TorrentUploadConfig } from "./torrent";
-import { WebUISettings } from "./webui";
+import { type RTASettings } from "./settings";
+import { type SerializedTorrent, type TorrentUploadConfig } from "./torrent";
+import { type WebUISettings } from "./webui";
 
 export const GetSettingsMessage: IMessagable = {
     action: "getSettings"

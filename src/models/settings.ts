@@ -1,4 +1,4 @@
-import { WebUISettings } from "./webui";
+import { type WebUISettings } from "./webui";
 
 
 export interface RTASettings {

@@ -6,7 +6,7 @@ export function getTorrentNameFromMagnetLink(magnetLink: string): string {
 }
 
 export function getTorrentNameFromLink(url: string): string {
-    return url.match(/\/([^\/]+.torrent)$/)?.[1] ?? FALLBACK_TORRENT_NAME;
+    return url.match(/\/([^/]+\.torrent)$/)?.[1] ?? FALLBACK_TORRENT_NAME;
 }
 
 export function parseTrackersFromMagnetLink(magnetLink: string): string[] {

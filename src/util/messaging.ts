@@ -4,20 +4,20 @@ import {
     GetPreAddedTorrentAndSettingsResponse,
     GetSettingsMessage,
     GetLinkCatchingConfig,
-    IAddTorrentMessage,
-    IGetPreAddedTorrentAndSettingsResponse,
-    IPreAddTorrentMessage,
+    type IAddTorrentMessage,
+    type IGetPreAddedTorrentAndSettingsResponse,
+    type IPreAddTorrentMessage,
     PreAddTorrentMessage,
     AddTorrentMessageWithLabelAndDir,
     UpdateActionBadgeText,
     SaveSettingsMessage,
-    IUpdateActionBadgeTextMessage,
+    type IUpdateActionBadgeTextMessage,
     TestNotificationMessage,
     TestConnectionMessage,
-    ITestConnectionMessage
+    type ITestConnectionMessage
 } from "../models/messages";
-import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
-import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI, WebUISettings } from "../models/webui";
+import { type SerializedTorrent, type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
 import { updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";

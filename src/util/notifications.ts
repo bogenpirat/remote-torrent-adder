@@ -1,4 +1,4 @@
-import { IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
+import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
 
 const notificationUrls = new Map<string, string>();
 

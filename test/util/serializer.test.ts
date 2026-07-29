@@ -7,7 +7,7 @@ import {
     convertTorrentToSerialized,
     convertSerializedToTorrent,
 } from "../../src/util/serializer";
-import { RTASettings } from "../../src/models/settings";
+import { type RTASettings } from "../../src/models/settings";
 import { makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { at } from "../helpers/assert";
 

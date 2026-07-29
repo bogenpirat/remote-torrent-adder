@@ -1,5 +1,5 @@
-import { RTASettings } from "../models/settings";
-import { SerializedTorrent, Torrent } from "../models/torrent";
+import { type RTASettings } from "../models/settings";
+import { type SerializedTorrent, type Torrent } from "../models/torrent";
 
 
 export function serializeSettings(settings: RTASettings): string {

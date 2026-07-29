@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useSettings } from "../SettingsContext";
-import { ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
-import { deleteCustomSound, getCustomSound, saveCustomSound, SoundKind } from "../../util/sound-storage";
+import { type ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
+import { deleteCustomSound, getCustomSound, saveCustomSound, type SoundKind } from "../../util/sound-storage";
 import Toggle from "../components/Toggle";
 
 // Custom sounds are kept small; they live in IndexedDB but are still loaded

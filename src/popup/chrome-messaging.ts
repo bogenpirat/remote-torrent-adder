@@ -1,8 +1,8 @@
 import { WebUIFactory } from "../models/clients";
-import { GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, IAddTorrentMessageWithLabelAndDir, AddTorrentMessageWithLabelAndDir, IGetPreAddedTorrentAndSettingsResponse } from "../models/messages";
+import { GetPreAddedTorrentAndSettings, GetPreAddedTorrentAndSettingsResponse, type IAddTorrentMessageWithLabelAndDir, AddTorrentMessageWithLabelAndDir, type IGetPreAddedTorrentAndSettingsResponse } from "../models/messages";
 import { convertSerializedToTorrent, convertTorrentToSerialized } from "../util/serializer";
-import { FormControl } from "./app/page";
-import { SerializedTorrent, Torrent, TorrentUploadConfig } from "../models/torrent";
+import { type FormControl } from "./app/page";
+import { type SerializedTorrent, type Torrent, type TorrentUploadConfig } from "../models/torrent";
 
 
 export function getTorrentAndSettingsAndFillPopup(popupControl: FormControl): void {

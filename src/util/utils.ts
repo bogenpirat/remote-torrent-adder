@@ -23,7 +23,7 @@ export function getBaseUrl(url: string): string {
     try {
         const u = new URL(url);
         return u.origin;
-    } catch (e) {
+    } catch {
         return '';
     }
 }

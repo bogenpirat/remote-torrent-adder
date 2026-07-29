@@ -1,5 +1,5 @@
-import { Client } from './clients';
-import { Torrent, TorrentUploadConfig } from './torrent';
+import { type Client } from './clients';
+import { type Torrent, type TorrentUploadConfig } from './torrent';
 
 export interface WebUISettings {
     id: string;
@@ -120,9 +120,9 @@ export abstract class TorrentWebUI {
 
     createBaseUrl(): string {
         let portPart: string;
-        if(this.settings.secure && this._settings.port == 443) {
+        if(this.settings.secure && this._settings.port === 443) {
             portPart = "";
-        } else if(!this.settings.secure && this._settings.port == 80) {
+        } else if(!this.settings.secure && this._settings.port === 80) {
             portPart = "";
         } else {
             portPart = `:${this._settings.port}`;

@@ -1,5 +1,5 @@
 import { Client } from "../models/clients";
-import { RTASettings } from "../models/settings";
+import { type RTASettings } from "../models/settings";
 
 /**
  * Single source of truth for every historical client identifier that may still

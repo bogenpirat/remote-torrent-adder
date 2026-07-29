@@ -1,4 +1,4 @@
-import { Torrent } from "../models/torrent";
+import { type Torrent } from "../models/torrent";
 import { getTorrentNameFromLink } from "./parsers";
 import bencode from "bencode";
 import { executeMethodWrappedWithReferer } from "./cors-tricks";
@@ -14,7 +14,7 @@ export async function downloadTorrent(url: string): Promise<Torrent> {
     try {
         response = await executeMethodWrappedWithReferer(() => fetch(url), url, getBaseUrl(url));
     } catch (error) {
-        throw new Error("Failed to fetch torrent file: " + (error as Error).message);
+        throw new Error("Failed to fetch torrent file: " + (error as Error).message, { cause: error });
     }
     if (!response.ok) {
         throw new Error(`Status not OK: ${response.status} ${response.statusText}`);
@@ -40,6 +40,6 @@ function decodeTorrentDataAndValidate(response: Response, torrentData: Uint8Arra
 
         console.error("Invalid torrent data received", torrentData);
 
-        throw new Error("Received " + contentType + " instead of a torrent file. Please check the devtools view for details.");
+        throw new Error("Received " + contentType + " instead of a torrent file. Please check the devtools view for details.", { cause: error });
     }
 }

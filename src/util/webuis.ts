@@ -1,6 +1,6 @@
 import { WebUIFactory } from "../models/clients";
-import { RTASettings } from "../models/settings";
-import { TorrentWebUI } from "../models/webui";
+import { type RTASettings } from "../models/settings";
+import { type TorrentWebUI } from "../models/webui";
 import { Settings } from "./settings";
 
 export async function initiateWebUis(settings: RTASettings): Promise<TorrentWebUI[]> {

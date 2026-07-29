@@ -1,4 +1,4 @@
-import { TorrentWebUI } from "../models/webui";
+import { type TorrentWebUI } from "../models/webui";
 
 export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI[]): Promise<void> {
     const oldRuleIds = (await chrome.declarativeNetRequest.getSessionRules())
