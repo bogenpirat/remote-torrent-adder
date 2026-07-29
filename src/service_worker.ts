@@ -18,21 +18,32 @@ registerAuthenticationListener();
 chrome.storage.local.onChanged.addListener(
     ((changes: Record<string, chrome.storage.StorageChange>) => {
         if (changes[SETTINGS_KEY]) {
-            void refreshWebUiDerivedState();
+            void rebuildContextMenu();
+            void refreshCorsCircumvention();
         }
     }) as Parameters<typeof chrome.storage.local.onChanged.addListener>[0]
 );
 
-chrome.runtime.onStartup.addListener(() => {
-    clearDynamicRules();
-    void refreshWebUiDerivedState();
+// Context menus outlive a worker restart but not a browser restart or an
+// update, so they are rebuilt on those two events and whenever settings change.
+chrome.runtime.onInstalled.addListener(() => {
+    void rebuildContextMenu();
 });
 
-void refreshWebUiDerivedState();
+chrome.runtime.onStartup.addListener(() => {
+    clearDynamicRules();
+    void rebuildContextMenu();
+});
+
+// Session rules are dropped when the browser session ends, so they are cheap to
+// recompute and worth re-asserting on every worker start.
+void refreshCorsCircumvention();
 
 
-async function refreshWebUiDerivedState(): Promise<void> {
-    const allWebUis = await loadWebUis();
-    refreshContextMenu(allWebUis);
-    await registerCorsCircumventionForWebUis(allWebUis);
+async function rebuildContextMenu(): Promise<void> {
+    await refreshContextMenu(await loadWebUis());
+}
+
+async function refreshCorsCircumvention(): Promise<void> {
+    await registerCorsCircumventionForWebUis(await loadWebUis());
 }

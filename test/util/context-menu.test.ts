@@ -40,14 +40,14 @@ beforeEach(() => {
 });
 
 describe("refreshContextMenu", () => {
-    it("creates only the parent menu for a single webui", () => {
-        refreshContextMenu([webUi("a", "Server A")]);
+    it("creates only the parent menu for a single webui", async () => {
+        await refreshContextMenu([webUi("a", "Server A")]);
         const created = (chrome.contextMenus.create as any).mock.calls.map((c: any[]) => c[0].id);
         expect(created).toEqual(["server-main"]);
     });
 
-    it("creates per-server, separator and send-all entries for multiple webuis", () => {
-        refreshContextMenu([webUi("a", "Server A"), webUi("b", "Server B")]);
+    it("creates per-server, separator and send-all entries for multiple webuis", async () => {
+        await refreshContextMenu([webUi("a", "Server A"), webUi("b", "Server B")]);
         const created = (chrome.contextMenus.create as any).mock.calls.map((c: any[]) => c[0].id);
         expect(created).toContain("server-0");
         expect(created).toContain("server-1");
@@ -55,17 +55,56 @@ describe("refreshContextMenu", () => {
         expect(created).toContain("server-all");
     });
 
-    it("lists the per-server entries in the order the webuis are given", () => {
-        refreshContextMenu([webUi("a", "Server A"), webUi("b", "Server B"), webUi("c", "Server C")]);
+    it("lists the per-server entries in the order the webuis are given", async () => {
+        await refreshContextMenu([webUi("a", "Server A"), webUi("b", "Server B"), webUi("c", "Server C")]);
         const perServer = (chrome.contextMenus.create as any).mock.calls
             .map((c: any[]) => c[0])
             .filter((item: any) => /^server-\d+$/.test(item.id));
         expect(perServer.map((item: any) => item.title)).toEqual(["Server A", "Server B", "Server C"]);
     });
 
-    it("clears the previous menu before rebuilding", () => {
-        refreshContextMenu([webUi("a", "A")]);
-        expect(chrome.contextMenus.removeAll).toHaveBeenCalled();
+    it("waits for the previous menu to be cleared before creating anything", async () => {
+        const order: string[] = [];
+        let resolveRemoveAll: () => void = () => undefined;
+        (chrome.contextMenus.removeAll as any).mockImplementation(
+            () => new Promise<void>(resolve => {
+                order.push("removeAll:start");
+                resolveRemoveAll = () => {
+                    order.push("removeAll:done");
+                    resolve();
+                };
+            })
+        );
+        (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
+            order.push(`create:${opts.id}`);
+            return opts.id;
+        });
+
+        const refreshed = refreshContextMenu([webUi("a", "A")]);
+        expect(order).toEqual(["removeAll:start"]);
+
+        resolveRemoveAll();
+        await refreshed;
+
+        expect(order).toEqual(["removeAll:start", "removeAll:done", "create:server-main"]);
+    });
+
+    it("reports a failed menu creation instead of swallowing it", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.contextMenus.create as any).mockImplementation((opts: any, cb?: () => void) => {
+            (chrome.runtime as any).lastError = { message: "Cannot create item with duplicate id" };
+            cb?.();
+            (chrome.runtime as any).lastError = undefined;
+            return opts.id;
+        });
+
+        await refreshContextMenu([webUi("a", "A")]);
+
+        expect(consoleError).toHaveBeenCalledWith(
+            "Failed creating context menu item server-main",
+            "Cannot create item with duplicate id"
+        );
+        consoleError.mockRestore();
     });
 });
 

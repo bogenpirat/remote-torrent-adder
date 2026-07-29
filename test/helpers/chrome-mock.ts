@@ -19,6 +19,12 @@ export function createChromeMock(): any {
                 removeListener: vi.fn(),
             },
             sendMessage: vi.fn(() => Promise.resolve()),
+            onInstalled: {
+                addListener: vi.fn(),
+            },
+            onStartup: {
+                addListener: vi.fn(),
+            },
             lastError: undefined,
         },
 
@@ -90,8 +96,11 @@ export function createChromeMock(): any {
         },
 
         contextMenus: {
-            create: vi.fn((opts: any) => opts?.id),
-            removeAll: vi.fn(),
+            create: vi.fn((opts: any, cb?: () => void) => {
+                cb?.();
+                return opts?.id;
+            }),
+            removeAll: vi.fn(() => Promise.resolve()),
             onClicked: {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),

@@ -17,10 +17,10 @@ export function registerContextMenuClickListener(): void {
     });
 }
 
-export function refreshContextMenu(allWebUis: TorrentWebUI[]): void {
-    chrome.contextMenus.removeAll();
+export async function refreshContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
+    await chrome.contextMenus.removeAll();
 
-    chrome.contextMenus.create({
+    createMenuItem({
         id: PARENT_MENU_ID,
         title: "Add to Remote WebUI",
         contexts: ["link"]
@@ -28,21 +28,29 @@ export function refreshContextMenu(allWebUis: TorrentWebUI[]): void {
 
     if (allWebUis.length > 1) {
         allWebUis.forEach((webUi, index) => {
-            chrome.contextMenus.create({
+            createMenuItem({
                 id: `${PER_SERVER_MENU_PREFIX}${index}`,
                 title: webUi.name,
                 contexts: ["link"],
                 parentId: PARENT_MENU_ID
             });
         });
-        chrome.contextMenus.create({ id: SEPARATOR_MENU_ID, type: "separator", contexts: ["link"], parentId: PARENT_MENU_ID });
-        chrome.contextMenus.create({
+        createMenuItem({ id: SEPARATOR_MENU_ID, type: "separator", contexts: ["link"], parentId: PARENT_MENU_ID });
+        createMenuItem({
             id: SEND_ALL_MENU_ID,
             title: "send to all",
             contexts: ["link"],
             parentId: PARENT_MENU_ID
         });
     }
+}
+
+function createMenuItem(properties: chrome.contextMenus.CreateProperties): void {
+    chrome.contextMenus.create(properties, () => {
+        if (chrome.runtime.lastError) {
+            console.error(`Failed creating context menu item ${properties.id}`, chrome.runtime.lastError.message);
+        }
+    });
 }
 
 async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Promise<void> {
