@@ -1,6 +1,8 @@
-# Skill: Security Review (project-tailored)
+# Skill: Remote Torrent Adder Security Review
 
-Project-specific security checklist for Remote Torrent Adder. The built-in `/security-review` is generic; this one targets the surfaces this extension actually has. Use alongside `code-reviewer.md`.
+Project-specific security checklist for Remote Torrent Adder. The built-in `/security-review` is generic; this one targets the surfaces this extension actually has. Use alongside `rta-code-review.md`.
+
+Several of these properties are already asserted by the test suite — `test/util/cors-tricks.test.ts` covers rule scoping and cleanup, `test/util/settings.test.ts` covers credential storage round-trips, and `test/util/parsers.test.ts` / `test/util/download.test.ts` cover malformed torrent input. Run `npm test` first, and when you find a gap here, close it with a test rather than only a note.
 
 ## Attack surfaces in this extension
 
@@ -79,4 +81,4 @@ Project-specific security checklist for Remote Torrent Adder. The built-in `/sec
 
 Group by severity, cite `file_path:line_number`, propose the smallest fix that closes the issue. End with a one-line verdict.
 
-Save the full report to `.tmp/security-review-<YYYY-MM-DD>.md` using the structure from `.agents/README.md`. The report must include every checked item (pass/fail/skip) in addition to the findings.
+A security review is one of the cases that always warrants a `.tmp/security-review-<YYYY-MM-DD>.md` write-up — see `.agents/README.md` for the format. The report must include every checked item (pass/fail/skip) in addition to the findings.

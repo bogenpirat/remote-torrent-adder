@@ -1,11 +1,14 @@
 # Skill: Manual Smoke-Test Matrix
 
-There is no automated test suite. This file is the **defined manual test pass** to run before a release, after touching a client class, or as a regression check after refactoring `TorrentWebUI`, `cors-tricks.ts`, `download.ts`, or messaging.
+This file is the **defined manual test pass** to run before a release, after touching a client class, or as a regression check after refactoring `TorrentWebUI`, `cors-tricks.ts`, `download.ts`, or messaging.
 
-Reviewers should ask "did you run the smoke matrix?" instead of "did you test it?".
+It complements the automated suite rather than replacing it. `npm test` covers request construction, parsing, settings, and components; it cannot cover real link interception in a live page, a real round-trip to a running client, desktop notifications, or service-worker lifecycle. Those are what the rows below are for — so a change whose risk is purely in code should get a test, not a matrix run.
+
+Reviewers should ask "which rows did you run?" instead of "did you test it?".
 
 ## Setup
 
+0. `npm test` passes. Do not start a manual pass on a red suite — you will chase failures the runner already explained.
 1. `npm run build` and load `dist/` unpacked in `chrome://extensions/` (Developer mode on).
 2. Have at least two clients configured: one **happy path** client you know works (e.g. local qBittorrent) and one **target** client for the change.
 3. Open the service-worker console (`chrome://extensions/` → "service worker" link) before each case.
@@ -48,7 +51,8 @@ Tick the client off only if BOTH pass.
 | Porla | | |
 | Tixati | | |
 | tTorrent | | |
-| QNAP DownloadStation | | |
+| QNAP Download Station | | |
+| rqbit | | |
 
 ### C. Settings & overrides
 

@@ -94,9 +94,9 @@ For iterating on the extension, `npm run dev` builds once and then rebuilds on e
 
 - **TypeScript** throughout, strict mode on
 - **React + Tailwind CSS** for the options page and per-torrent popup
-- **Vite** (popup, options, notifications) and **Rollup** (service worker, content script)
+- **Vite** for all five bundles — the popup, options and notifications pages, plus the service worker and content script as standalone IIFE files
 - **Vitest** for the test suite
-- Tag-driven release pipeline that auto-deploys to the Chrome Web Store
+- Version-driven release pipeline that auto-deploys to the Chrome Web Store
 
 ## 🤝 Contributing
 
