@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { FloodWebUI } from "../../src/webuis/flood-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -12,8 +13,8 @@ describe("FloodWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), { dir: "/d", label: "tv", addPaused: true });
 
         expect(result.success).toBe(true);
-        expect(fetch.mock.calls[1][0]).toBe("http://h:3000/api/torrents/add-urls");
-        const payload = JSON.parse(fetch.mock.calls[1][1].body as string);
+        expect(callArgs(fetch, 1)[0]).toBe("http://h:3000/api/torrents/add-urls");
+        const payload = JSON.parse(callArgs(fetch, 1)[1].body as string);
         expect(payload.urls).toEqual(["magnet:?xt=urn:btih:abc123&dn=Cool+Torrent"]);
         expect(payload.destination).toBe("/d");
         expect(payload.tags).toEqual(["tv"]);
@@ -25,8 +26,8 @@ describe("FloodWebUI", () => {
         const result = await build().sendTorrent(makeFileTorrent(), {});
 
         expect(result.success).toBe(true);
-        expect(fetch.mock.calls[1][0]).toBe("http://h:3000/api/torrents/add-files");
-        const payload = JSON.parse(fetch.mock.calls[1][1].body as string);
+        expect(callArgs(fetch, 1)[0]).toBe("http://h:3000/api/torrents/add-files");
+        const payload = JSON.parse(callArgs(fetch, 1)[1].body as string);
         expect(Array.isArray(payload.files)).toBe(true);
         expect(payload.files[0]).toBeTypeOf("string");
         expect(payload.start).toBe(true);

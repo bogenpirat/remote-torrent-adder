@@ -49,7 +49,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 'latest'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Normalize and validate version
@@ -76,7 +76,7 @@ jobs:
         run: node scripts/bump-version.mjs "${{ steps.ver.outputs.version }}"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Build both bundles BEFORE moving any git refs, so a build failure aborts
       # the release without leaving a dangling commit or tag behind.

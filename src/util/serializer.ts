@@ -1,5 +1,5 @@
-import { RTASettings } from "../models/settings";
-import { SerializedTorrent, Torrent } from "../models/torrent";
+import { type RTASettings } from "../models/settings";
+import { type SerializedTorrent, type Torrent } from "../models/torrent";
 
 
 export function serializeSettings(settings: RTASettings): string {
@@ -36,14 +36,14 @@ export function convertSerializedToTorrent(serialized: SerializedTorrent): Torre
 }
 
 
-function customReplacer(key: string, value: any): any {
+function customReplacer(_key: string, value: any): any {
     if (value instanceof RegExp) {
         return { __type: "RegExp", source: value.source, flags: value.flags };
     }
     return value;
 }
 
-function customReviver(key: string, value: any): any {
+function customReviver(_key: string, value: any): any {
     if (value) {
         if (value.__type === "RegExp") {
             return new RegExp(value.source, value.flags);
@@ -52,18 +52,37 @@ function customReviver(key: string, value: any): any {
     return value;
 }
 
+// Chunk small enough to stay well inside the argument limit of a spread call.
+const BASE64_CHUNK_SIZE = 0x8000;
+
 async function blobToBase64(blob: Blob): Promise<string> {
-    const buffer = await blob.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    const binary = bytes.reduce((acc, b) => acc + String.fromCharCode(b), "");
-    return btoa(binary);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+
+    if (typeof bytes.toBase64 === "function") {
+        return bytes.toBase64();
+    }
+
+    // The previous `reduce` built the binary string one character at a time,
+    // which is quadratic and got painful on large multi-file torrents.
+    const chunks: string[] = [];
+    for (let offset = 0; offset < bytes.length; offset += BASE64_CHUNK_SIZE) {
+        chunks.push(String.fromCharCode(...bytes.subarray(offset, offset + BASE64_CHUNK_SIZE)));
+    }
+    return btoa(chunks.join(""));
 }
 
 function base64ToBlob(base64: string): Blob {
+    return new Blob([base64ToBytes(base64)], { type: "application/x-bittorrent" });
+}
+
+function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+    if (typeof Uint8Array.fromBase64 === "function") {
+        return Uint8Array.fromBase64(base64);
+    }
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
     }
-    return new Blob([bytes], { type: "application/x-bittorrent" });
+    return bytes;
 }

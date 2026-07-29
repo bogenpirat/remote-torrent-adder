@@ -1,4 +1,4 @@
-import { TorrentWebUI, WebUISettings } from "./webui";
+import { type TorrentWebUI, type WebUISettings } from "./webui";
 import { BiglyBTWebUI } from "../webuis/biglybt-webui";
 import { RuTorrentWebUI } from "../webuis/rutorrent-webui";
 import { FloodWebUI } from "../webuis/flood-webui";

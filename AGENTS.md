@@ -10,7 +10,7 @@ Full agent definitions, skills, and project context: [`.agents/README.md`](.agen
 npm run build          # dev build → dist/
 npm run build:prod     # production build → dist-prod/
 npm run watch          # watch mode
-npx tsc --noEmit -p tsconfig.rollup.json  # type-check service worker + clients
+npm run typecheck      # type-check src/ and test/
 ```
 
 Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode on).

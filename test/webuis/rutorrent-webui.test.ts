@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { RuTorrentWebUI } from "../../src/webuis/rutorrent-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -15,7 +16,7 @@ describe("RuTorrentWebUI", () => {
         });
 
         expect(result.success).toBe(true);
-        const [url, opts] = fetch.mock.calls[0];
+        const [url, opts] = callArgs(fetch, 0);
         expect(url).toContain("/php/addtorrent.php?");
         expect(url).toContain("dir_edit=%2Fdl");
         expect(url).toContain("label=tv");
@@ -28,7 +29,7 @@ describe("RuTorrentWebUI", () => {
         const fetch = queueFetch(mockResponse({ status: 200, body: "addTorrentSuccess" }));
         await build().sendTorrent(makeFileTorrent(), { dir: "/dl", label: "movies" });
 
-        const body = fetch.mock.calls[0][1].body as FormData;
+        const body = callArgs(fetch, 0)[1].body as FormData;
         expect(body.get("dir_edit")).toBe("/dl");
         expect(body.get("label")).toBe("movies");
         expect(body.get("torrent_file")).toBeInstanceOf(Blob);
@@ -37,7 +38,7 @@ describe("RuTorrentWebUI", () => {
     it("includes not_add_path when the client-specific flag is set", async () => {
         const fetch = queueFetch(mockResponse({ status: 200, body: "addTorrentSuccess" }));
         await build({ clientSpecificSettings: { dontAddNamePath: true } }).sendTorrent(makeMagnetTorrent(), {});
-        expect(fetch.mock.calls[0][0]).toContain("not_add_path=1");
+        expect(callArgs(fetch, 0)[0]).toContain("not_add_path=1");
     });
 
     it("treats a success in the response url as success", async () => {

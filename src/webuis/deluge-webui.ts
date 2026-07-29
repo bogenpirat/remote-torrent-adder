@@ -1,5 +1,5 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 
 export class DelugeWebUI extends TorrentWebUI {
@@ -70,23 +70,25 @@ export class DelugeWebUI extends TorrentWebUI {
 
     private async startUploadedTorrent(uploadedFilePathOrMagnetLink: string, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         const jsonUrl = this.createBaseUrl() + "/json";
+        const options: Record<string, unknown> = {
+            add_paused: this.getAddPaused(config),
+        };
+        const directory = this.getDirectory(config);
+        if (directory) {
+            options["download_location"] = directory;
+        }
         const payload = {
             method: "web.add_torrents",
             params: [
                 [
                     {
                         path: uploadedFilePathOrMagnetLink,
-                        options: {
-                            add_paused: this.getAddPaused(config),
-                        } as Record<string, unknown>
+                        options
                     }
                 ]
             ],
             id: this.randomId()
         };
-        if (this.getDirectory(config)) {
-            payload.params[0][0].options["download_location"] = this.getDirectory(config);
-        }
 
         const response = await this.fetch(jsonUrl, {
             method: "POST",

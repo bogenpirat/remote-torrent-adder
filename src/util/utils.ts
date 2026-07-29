@@ -1,5 +1,3 @@
-import { RegisteredListeners } from "../models/messages";
-
 export function generateId(): string {
     return crypto.randomUUID();
 }
@@ -10,15 +8,11 @@ export function moveItem<T>(items: T[], from: number, to: number): T[] {
     }
     const reordered = [...items];
     const [item] = reordered.splice(from, 1);
+    if (item === undefined) {
+        return items;
+    }
     reordered.splice(to, 0, item);
     return reordered;
-}
-
-export function clearListeners(listeners: RegisteredListeners): void {
-    if (listeners.actionIconListener) {
-        chrome.action.onClicked.removeListener(listeners.actionIconListener);
-    }
-
 }
 
 export function isMatchedByRegexes(url: string, regexes: RegExp[]): boolean {
@@ -29,7 +23,7 @@ export function getBaseUrl(url: string): string {
     try {
         const u = new URL(url);
         return u.origin;
-    } catch (e) {
+    } catch {
         return '';
     }
 }

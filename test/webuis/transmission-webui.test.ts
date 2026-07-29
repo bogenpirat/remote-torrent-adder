@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { TransmissionWebUI } from "../../src/webuis/transmission-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -14,7 +15,7 @@ describe("TransmissionWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const [addUrl, addOpts] = fetch.mock.calls[1];
+        const [addUrl, addOpts] = callArgs(fetch, 1);
         expect(addUrl).toBe("http://h:9091/transmission/rpc");
         expect((addOpts.headers as any)["X-Transmission-Session-Id"]).toBe("sess-123");
         const payload = JSON.parse(addOpts.body as string);
@@ -29,7 +30,7 @@ describe("TransmissionWebUI", () => {
         );
         await build().sendTorrent(makeFileTorrent(), { dir: "/data", addPaused: true });
 
-        const payload = JSON.parse(fetch.mock.calls[1][1].body as string);
+        const payload = JSON.parse(callArgs(fetch, 1)[1].body as string);
         expect(payload.arguments.metainfo).toBeTypeOf("string");
         expect(payload.arguments["download-dir"]).toBe("/data");
         expect(payload.arguments.paused).toBe(true);

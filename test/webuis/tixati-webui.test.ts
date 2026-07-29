@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { TixatiWebUI } from "../../src/webuis/tixati-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -11,7 +12,7 @@ describe("TixatiWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const [url, opts] = fetch.mock.calls[0];
+        const [url, opts] = callArgs(fetch, 0);
         expect(url).toBe("http://h:8888/transfers/action");
         const body = opts.body as FormData;
         expect(body.get("addlink")).toBe("Add");
@@ -23,7 +24,7 @@ describe("TixatiWebUI", () => {
         const fetch = queueFetch(mockResponse({ status: 200, body: "ok" }));
         await build().sendTorrent(makeFileTorrent(), { addPaused: true });
 
-        const body = fetch.mock.calls[0][1].body as FormData;
+        const body = callArgs(fetch, 0)[1].body as FormData;
         expect(body.get("addmetafile")).toBe("Add");
         expect(body.get("metafile")).toBeInstanceOf(Blob);
         expect(body.get("noautostart")).toBe("1");

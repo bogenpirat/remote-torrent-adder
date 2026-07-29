@@ -5,21 +5,25 @@
 | Command | Output | Use Case |
 |---|---|---|
 | `npm run build` | `dist/` | Development build, unminified |
-| `npm run build:prod` | `dist-prod/` | Production build, minified with terser |
-| `npm run watch` | `dist/` | Watch mode for development |
+| `npm run build:prod` | `dist-prod/` | Production build, minified |
+| `npm run dev` | `dist/` | Watch mode for development |
 | `npm run clean` | — | Remove `dist/` |
-| `npx tsc --noEmit` | — | Type-check everything (root `tsconfig.json`; bundler-style module resolution, used by Vite for popup/options) |
-| `npx tsc --noEmit -p tsconfig.rollup.json` | — | Type-check with the module resolution Rollup uses (node, no `allowJs`). Both configs include `src/**/*`, but the Rollup one catches the subset of issues that only surface under non-bundler resolution — run it before commits that touch `src/webuis/`, `src/service_worker.ts`, `src/content-script/`, or `src/models/`. |
+| `npm run typecheck` | — | Type-check `src/` and `test/` (`tsc --noEmit`) |
 
 ## Build Pipeline (in order)
 
 1. `rimraf dist` — clean output directory
 2. `copy-assets` — copy `manifest.json`, HTML, CSS, images to `dist/`
-3. `rollup -c` — bundle `service_worker.ts` + `content-script/rta.ts` → IIFE format
-4. Vite builds (parallel):
-   - `vite build --config vite.popup.config.ts` → `dist/popup/`
-   - `vite build --config vite.options.config.ts` → `dist/options/`
-   - `vite build --config vite.notifications.config.ts` → `dist/notifications/`
+3. Vite builds, one per target, all driven by the single `vite.config.ts`
+   selected through the `RTA_TARGET` environment variable:
+   - `RTA_TARGET=worker` → `dist/service_worker.js` (IIFE, self-contained)
+   - `RTA_TARGET=content-script` → `dist/content-script/rta.js` (IIFE)
+   - `RTA_TARGET=popup` → `dist/popup/`
+   - `RTA_TARGET=options` → `dist/options/`
+   - `RTA_TARGET=notifications` → `dist/notifications/`
+
+The two IIFE targets are built through Vite's library mode because the
+service worker and content script each have to be a single standalone file.
 
 ## Loading in Chrome
 

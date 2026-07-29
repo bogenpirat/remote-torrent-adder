@@ -1,10 +1,10 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class ElementumWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
-            const url = this.createElementumBaseUrl(torrent);
+            const url = this.createElementumBaseUrl();
             const payload = torrent.isMagnet
                 ? this.createPayloadForMagnet(torrent.data as string, config)
                 : this.createPayloadForTorrent(torrent);
@@ -16,14 +16,14 @@ export class ElementumWebUI extends TorrentWebUI {
         }
     }
 
-    createElementumBaseUrl(torrent: Torrent): string {
+    createElementumBaseUrl(): string {
         return [
             this.createBaseUrl(),
             "/playuri"
         ].join("");
     }
 
-    createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): FormData {
+    createPayloadForMagnet(magnetUri: string, _config: TorrentUploadConfig): FormData {
         const payload = new FormData();
 
         payload.append("uri", magnetUri);

@@ -1,5 +1,5 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 
 export class TransmissionWebUI extends TorrentWebUI {
@@ -32,7 +32,7 @@ export class TransmissionWebUI extends TorrentWebUI {
                 method: "POST",
                 body: ""
             }).then(response => {
-                if (response.status == 200 || response.status == 409) {
+                if (response.status === 200 || response.status === 409) {
                     const sessionId = response.headers.get("X-Transmission-Session-Id") ?? "";
                     resolve(sessionId);
                 } else {

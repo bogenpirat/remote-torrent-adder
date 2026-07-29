@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { QNAPDownloadStationWebUI } from "../../src/webuis/qnapdownloadstation-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -13,10 +14,10 @@ describe("QNAPDownloadStationWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const loginBody = fetch.mock.calls[0][1].body as FormData;
+        const loginBody = callArgs(fetch, 0)[1].body as FormData;
         expect(loginBody.get("user")).toBe("u");
         expect(loginBody.get("pass")).toBe(btoa("p"));
-        const [addUrl, addOpts] = fetch.mock.calls[1];
+        const [addUrl, addOpts] = callArgs(fetch, 1);
         expect(addUrl).toBe("http://h:8080/downloadstation/V4/Task/AddUrl");
         expect((addOpts.body as FormData).get("url")).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
         expect((addOpts.body as FormData).get("sid")).toBe("sid-1");
@@ -26,7 +27,7 @@ describe("QNAPDownloadStationWebUI", () => {
         const fetch = queueFetch(loginOk(), mockResponse({ status: 200, json: { error: 0 } }));
         await build().sendTorrent(makeFileTorrent(), { dir: "/share/dl" });
 
-        const [addUrl, addOpts] = fetch.mock.calls[1];
+        const [addUrl, addOpts] = callArgs(fetch, 1);
         expect(addUrl).toBe("http://h:8080/downloadstation/V4/Task/AddTorrent");
         const body = addOpts.body as FormData;
         expect(body.get("file")).toBeInstanceOf(Blob);

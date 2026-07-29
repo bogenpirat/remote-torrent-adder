@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { TTorrentWebUI } from "../../src/webuis/ttorrent-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -11,7 +12,7 @@ describe("TTorrentWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const [url, opts] = fetch.mock.calls[0];
+        const [url, opts] = callArgs(fetch, 0);
         expect(url).toBe("http://h:1080/cmd/downloadFromUrl");
         expect((opts.body as FormData).get("url")).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
     });
@@ -20,7 +21,7 @@ describe("TTorrentWebUI", () => {
         const fetch = queueFetch(mockResponse({ status: 200, body: "ok" }));
         await build().sendTorrent(makeFileTorrent(), {});
 
-        const [url, opts] = fetch.mock.calls[0];
+        const [url, opts] = callArgs(fetch, 0);
         expect(url).toBe("http://h:1080/cmd/downloadTorrent");
         expect((opts.body as FormData).get("torrentfile")).toBeInstanceOf(Blob);
     });

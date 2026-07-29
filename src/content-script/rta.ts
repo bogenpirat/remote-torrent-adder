@@ -2,9 +2,9 @@ import { observe } from './mutations';
 import {deserializeObject} from '../util/serializer';
 import {
     GetLinkCatchingConfig,
-    ILinkCatchingConfig,
-    IPreAddTorrentMessage,
-    IUpdateActionBadgeTextMessage,
+    type ILinkCatchingConfig,
+    type IPreAddTorrentMessage,
+    type IUpdateActionBadgeTextMessage,
     UpdateActionBadgeText
 } from '../models/messages';
 import { PreAddTorrentMessage } from '../models/messages';

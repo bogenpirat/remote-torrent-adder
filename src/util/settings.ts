@@ -1,4 +1,4 @@
-import { RTASettings } from "../models/settings";
+import { type RTASettings } from "../models/settings";
 import { getDefaultSettings } from "./settings-defaults";
 import { migrateSettingsClientIdentifiers } from "./legacy-client-identifiers";
 import { serializeSettings, deserializeSettings } from "./serializer";

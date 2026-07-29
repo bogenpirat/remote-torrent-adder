@@ -1,4 +1,4 @@
-import { RTASettings } from "../models/settings";
+import { type RTASettings } from "../models/settings";
 
 export function getDefaultSettings(): RTASettings {
     return {
@@ -8,7 +8,7 @@ export function getDefaultSettings(): RTASettings {
 
         linkCatchingEnabled: true,
         linkCatchingRegexes: [
-            /([\]\[]|\b|\.)\.torrent\b([^\-]|$)/,
+            /([\][]|\b|\.)\.torrent\b([^-]|$)/,
             /torrents\.php\?action=download/
         ],
 

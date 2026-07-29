@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { TorrentWebUI, TorrentAddingResult } from "../../src/models/webui";
-import { Torrent, TorrentUploadConfig } from "../../src/models/torrent";
+import { TorrentWebUI } from "../../src/models/webui";
+import type { TorrentAddingResult } from "../../src/models/webui";
+import type { TorrentUploadConfig } from "../../src/models/torrent";
 import { makeWebUISettings } from "../helpers/fixtures";
 
 /**

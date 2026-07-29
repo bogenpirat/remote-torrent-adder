@@ -1,8 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
     generateId,
     moveItem,
-    clearListeners,
     isMatchedByRegexes,
     getBaseUrl,
     addTrailingSlash,
@@ -49,19 +48,6 @@ describe("moveItem", () => {
         expect(moveItem(items, -1, 1)).toBe(items);
         expect(moveItem(items, 0, 3)).toBe(items);
         expect(moveItem(items, 3, 0)).toBe(items);
-    });
-});
-
-describe("clearListeners", () => {
-    it("removes the action icon listener when present", () => {
-        const listener = vi.fn();
-        clearListeners({ actionIconListener: listener });
-        expect(chrome.action.onClicked.removeListener).toHaveBeenCalledWith(listener);
-    });
-
-    it("does nothing when listener is absent", () => {
-        clearListeners({ actionIconListener: undefined as any });
-        expect(chrome.action.onClicked.removeListener).not.toHaveBeenCalled();
     });
 });
 

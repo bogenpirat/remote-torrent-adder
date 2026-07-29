@@ -1,0 +1,109 @@
+import { WebUIFactory } from "../models/clients";
+import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir } from "../models/messages";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type WebUISettings } from "../models/webui";
+import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
+import { readBufferedTorrent } from "../util/buffered-torrent";
+
+/**
+ * Everything the popup needs, resolved once before the form is rendered, so the
+ * form can initialise its fields directly instead of being filled in field by
+ * field after mounting.
+ */
+export interface PopupData {
+    torrent: Torrent;
+    webUiSettings: WebUISettings;
+    /** Which controls this client understands. */
+    supports: {
+        label: boolean;
+        directory: boolean;
+        paused: boolean;
+    };
+    /** What each control starts out as. */
+    initial: {
+        label: string;
+        directory: string;
+        paused: boolean;
+    };
+    /** Whether the initial value came from an auto-label/dir rule, which the UI highlights. */
+    auto: {
+        label: boolean;
+        directory: boolean;
+    };
+    labelOptions: string[];
+    directoryOptions: string[];
+}
+
+/** Resolves the pending torrent, or null when there is nothing waiting to be added. */
+export async function loadPopupData(): Promise<PopupData | null> {
+    const buffered = await readBufferedTorrent();
+    if (!buffered) {
+        return null;
+    }
+
+    const { torrent, webUiSettings } = buffered;
+    const webUi = WebUIFactory.createWebUI(webUiSettings);
+
+    // The matcher is pure, so the popup resolves this itself rather than having
+    // the service worker compute it and ship the result across a message.
+    const autoLabel = getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings);
+    const autoDir = getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings);
+
+    return {
+        torrent,
+        webUiSettings,
+        supports: {
+            label: webUi?.isLabelSupported ?? false,
+            directory: webUi?.isDirSupported ?? false,
+            paused: webUi?.isAddPausedSupported ?? false,
+        },
+        initial: {
+            label: autoLabel || webUiSettings.defaultLabel || firstEntry(webUiSettings.labels) || "",
+            directory: autoDir || webUiSettings.defaultDir || firstEntry(webUiSettings.dirs) || "",
+            paused: webUiSettings.addPaused,
+        },
+        auto: {
+            label: !!autoLabel,
+            directory: !!autoDir,
+        },
+        labelOptions: webUiSettings.labels,
+        directoryOptions: webUiSettings.dirs,
+    };
+}
+
+export interface AddTorrentRequest {
+    webUiId: string;
+    label: string;
+    directory: string;
+    paused: boolean;
+    labelOptions: string[];
+    directoryOptions: string[];
+}
+
+/**
+ * The torrent bytes stay in IndexedDB; this only reports which WebUI and which
+ * label/dir the user settled on. Rejects if the service worker reports a
+ * problem, so the popup can surface it instead of closing on a failure.
+ */
+export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
+    const message: IAddTorrentMessageWithLabelAndDir = {
+        action: AddTorrentMessageWithLabelAndDir.action,
+        webUiId: request.webUiId,
+        config: {
+            label: request.label,
+            dir: request.directory,
+            addPaused: request.paused,
+        } satisfies TorrentUploadConfig,
+        labels: request.labelOptions,
+        directories: request.directoryOptions,
+    };
+
+    const response = await chrome.runtime.sendMessage(message);
+    if (response && typeof response === "object" && "error" in response) {
+        throw new Error(String(response.error));
+    }
+}
+
+function firstEntry(collection: Array<string>): string | null {
+    return collection?.[0] ?? null;
+}

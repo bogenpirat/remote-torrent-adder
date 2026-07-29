@@ -7,8 +7,9 @@ import {
     convertTorrentToSerialized,
     convertSerializedToTorrent,
 } from "../../src/util/serializer";
-import { RTASettings } from "../../src/models/settings";
+import { type RTASettings } from "../../src/models/settings";
 import { makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
+import { at } from "../helpers/assert";
 
 describe("serializeObject / deserializeObject", () => {
     it("preserves RegExp values across a round-trip", () => {
@@ -43,8 +44,8 @@ describe("serializeSettings / deserializeSettings", () => {
         const restored = deserializeSettings(serializeSettings(settings))!;
         expect(restored.notificationsDurationMs).toBe(2000);
         expect(restored.linkCatchingRegexes[0]).toBeInstanceOf(RegExp);
-        expect(restored.linkCatchingRegexes[0].source).toBe("\\.torrent\\b");
-        expect(restored.linkCatchingRegexes[1].source).toBe("action=download");
+        expect(at(restored.linkCatchingRegexes, 0).source).toBe("\\.torrent\\b");
+        expect(at(restored.linkCatchingRegexes, 1).source).toBe("action=download");
     });
 
     it("returns null for empty input", () => {
@@ -97,5 +98,35 @@ describe("convertSerializedToTorrent", () => {
         const restored = convertSerializedToTorrent(serialized);
         const bytes = new Uint8Array(await (restored.data as Blob).arrayBuffer());
         expect(Array.from(bytes)).toEqual([1, 2, 3, 250]);
+    });
+});
+
+describe("torrent blob round-trip", () => {
+    it("round-trips a payload larger than one base64 chunk", async () => {
+        const size = 0x8000 * 3 + 1234;
+        const original = new Uint8Array(size);
+        for (let i = 0; i < size; i++) {
+            original[i] = i % 256;
+        }
+
+        const serialized = await convertTorrentToSerialized({
+            data: new Blob([original]),
+            name: "big.torrent",
+            isMagnet: false,
+        });
+        const restored = convertSerializedToTorrent(serialized);
+
+        expect(typeof serialized.data).toBe("string");
+        const bytes = new Uint8Array(await (restored.data as Blob).arrayBuffer());
+        expect(bytes.length).toBe(size);
+        expect(Array.from(bytes.slice(0, 300))).toEqual(Array.from(original.slice(0, 300)));
+        expect(Array.from(bytes.slice(-300))).toEqual(Array.from(original.slice(-300)));
+    });
+
+    it("passes a magnet through untouched", async () => {
+        const magnet = "magnet:?xt=urn:btih:abc123&dn=Cool+Torrent";
+        const serialized = await convertTorrentToSerialized({ data: magnet, name: "m", isMagnet: true });
+        expect(serialized.data).toBe(magnet);
+        expect(convertSerializedToTorrent(serialized).data).toBe(magnet);
     });
 });

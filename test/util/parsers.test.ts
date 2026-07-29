@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import type { DecodedTorrent } from "../../src/models/decoded-torrent";
 import {
     getTorrentNameFromMagnetLink,
     getTorrentNameFromLink,
@@ -68,10 +69,11 @@ describe("parseTrackersFromDecodedTorrentData", () => {
     });
 
     it("ignores a non-array entry in announce-list", () => {
+        // deliberately malformed: announce-list entries must themselves be lists
         const data = {
             announce: enc("http://tracker.one/announce"),
             "announce-list": ["not-an-array"],
-        };
+        } as unknown as DecodedTorrent;
         expect(parseTrackersFromDecodedTorrentData(data)).toEqual(["http://tracker.one/announce"]);
     });
 });
@@ -125,7 +127,7 @@ describe("parseFilesFromDecodedTorrentData", () => {
     });
 
     it("falls back to info.name when files is not an array", () => {
-        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso"), files: "nope" } })).toEqual(["x.iso"]);
+        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso"), files: "nope" } } as unknown as DecodedTorrent)).toEqual(["x.iso"]);
     });
 
     it("tolerates a file entry with a missing path", () => {

@@ -1,5 +1,7 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import tailwindcssAnimate from "tailwindcss-animate";
+import type { Config } from "tailwindcss";
+
+export default {
   darkMode: "media", // Automatically follow system preference
   content: [
     './src/popup/**/*.{js,ts,jsx,tsx,html}',
@@ -70,5 +72,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-};
+  plugins: [tailwindcssAnimate],
+} satisfies Config;

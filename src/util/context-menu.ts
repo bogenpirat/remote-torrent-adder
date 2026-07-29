@@ -1,73 +1,101 @@
-import { TorrentWebUI } from "../models/webui";
+import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
-import { IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./messaging";
+import { loadWebUis } from "./webuis";
 
-let listener: any = null;
+const PARENT_MENU_ID = "server-main";
+const SEND_ALL_MENU_ID = "server-all";
+const SEPARATOR_MENU_ID = "sendall-separator";
+const PER_SERVER_MENU_PREFIX = "server-";
 
-export function createContextMenu(allWebUis: TorrentWebUI[]): void {
-    if(listener !== null) {
-        chrome.contextMenus.onClicked.removeListener(listener);
-    }
-    chrome.contextMenus.removeAll();
+export function registerContextMenuClickListener(): void {
+    chrome.contextMenus.onClicked.addListener((onClickData: OnClickData, tab?: Tab) => {
+        handleContextMenuClick(onClickData, tab)
+            .catch(error => console.error("Context menu click failed", error));
+    });
+}
 
-    var parentContextMenuId = chrome.contextMenus.create({
-        id: "server-main",
+export async function refreshContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
+    await chrome.contextMenus.removeAll();
+
+    createMenuItem({
+        id: PARENT_MENU_ID,
         title: "Add to Remote WebUI",
         contexts: ["link"]
     });
 
     if (allWebUis.length > 1) {
-        for (var i = 0; i < allWebUis.length; i++) {
-            chrome.contextMenus.create({
-                id: `server-${i}`,
-                title: allWebUis[i].name,
+        allWebUis.forEach((webUi, index) => {
+            createMenuItem({
+                id: `${PER_SERVER_MENU_PREFIX}${index}`,
+                title: webUi.name,
                 contexts: ["link"],
-                parentId: parentContextMenuId
+                parentId: PARENT_MENU_ID
             });
-        }
-        chrome.contextMenus.create({ id: "sendall-separator", type: "separator", contexts: ["link"], parentId: parentContextMenuId });
-        chrome.contextMenus.create({
-            id: "server-all",
+        });
+        createMenuItem({ id: SEPARATOR_MENU_ID, type: "separator", contexts: ["link"], parentId: PARENT_MENU_ID });
+        createMenuItem({
+            id: SEND_ALL_MENU_ID,
             title: "send to all",
             contexts: ["link"],
-            parentId: parentContextMenuId
+            parentId: PARENT_MENU_ID
         });
     }
-
-    listener = (onClickData: OnClickData, tab: Tab) => {
-        if (onClickData.menuItemId === "server-main") {
-            createOnClick(allWebUis.length > 0 ? [allWebUis[0]] : [])(onClickData, tab);
-        } else if (onClickData.menuItemId === "server-all") {
-            createOnClick(allWebUis)(onClickData, tab);
-        } else if (onClickData.menuItemId.toString().startsWith("server-")) {
-            const index = parseInt(onClickData.menuItemId.toString().split("-")[1], 10);
-            if (index >= 0 && index < allWebUis.length) {
-                createOnClick([allWebUis[index]])(onClickData, tab);
-            }
-        }
-    };
-    chrome.contextMenus.onClicked.addListener(listener);
 }
 
-function createOnClick(webUis: TorrentWebUI[]): (onClickData: OnClickData, tab: Tab) => void {
-    return (onClickData: OnClickData, tab: Tab) => {
-        if (webUis.length === 0) {
-            throw new Error("no servers configured");
+function createMenuItem(properties: chrome.contextMenus.CreateProperties): void {
+    chrome.contextMenus.create(properties, () => {
+        if (chrome.runtime.lastError) {
+            console.error(`Failed creating context menu item ${properties.id}`, chrome.runtime.lastError.message);
         }
+    });
+}
 
-        if (webUis.length === 1) {
-            const preAddTorrentMessage: IPreAddTorrentMessage = {
-                action: PreAddTorrentMessage.action,
-                webUiId: webUis[0].settings.id,
-                url: onClickData.linkUrl ?? ""
-            };
-            dispatchPreAddTorrent(preAddTorrentMessage, tab.windowId);
-        } else {
-            webUis.forEach(webUi => {
-                addTorrentToWebUiById(webUi.settings.id, onClickData.linkUrl ?? "", null);
-            });
-        }
-    };
+async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Promise<void> {
+    const menuItemId = onClickData.menuItemId.toString();
+    if (!menuItemId.startsWith(PER_SERVER_MENU_PREFIX)) {
+        return;
+    }
+
+    const targetWebUis = resolveTargetWebUis(menuItemId, await loadWebUis());
+    if (targetWebUis.length === 0) {
+        console.warn("Context menu clicked, but no matching WebUI is configured.", menuItemId);
+        return;
+    }
+
+    const url = onClickData.linkUrl ?? "";
+
+    const [singleTarget] = targetWebUis;
+    if (targetWebUis.length === 1 && singleTarget) {
+        const preAddTorrentMessage: IPreAddTorrentMessage = {
+            action: PreAddTorrentMessage.action,
+            webUiId: singleTarget.settings.id,
+            url
+        };
+        await dispatchPreAddTorrent(preAddTorrentMessage, await resolveWindowId(tab));
+        return;
+    }
+
+    targetWebUis.forEach(webUi => addTorrentToWebUiById(webUi.settings.id, url, null));
+}
+
+function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): TorrentWebUI[] {
+    if (menuItemId === PARENT_MENU_ID) {
+        return allWebUis.slice(0, 1);
+    }
+    if (menuItemId === SEND_ALL_MENU_ID) {
+        return allWebUis;
+    }
+    const index = Number.parseInt(menuItemId.slice(PER_SERVER_MENU_PREFIX.length), 10);
+    const webUiAtIndex = Number.isInteger(index) ? allWebUis[index] : undefined;
+    return webUiAtIndex ? [webUiAtIndex] : [];
+}
+
+async function resolveWindowId(tab?: Tab): Promise<number> {
+    if (tab?.windowId !== undefined) {
+        return tab.windowId;
+    }
+    return (await chrome.windows.getLastFocused()).id ?? 0;
 }

@@ -1,5 +1,5 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class BiglyBTWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
@@ -41,7 +41,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
         return new Promise((resolve, reject) => {
             fetch(apiBaseUrl)
                 .then(response => {
-                    if (response.status != 200 && response.status != 409) {
+                    if (response.status !== 200 && response.status !== 409) {
                         reject(response);
                     } else {
                         resolve(response);

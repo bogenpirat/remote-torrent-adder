@@ -10,7 +10,7 @@ steps:
       A client implementation or model file was just edited. Run a TypeScript type-check to catch any interface mismatches:
 
       ```
-      npx tsc --noEmit -p tsconfig.rollup.json
+      npm run typecheck
       ```
 
       If there are errors, explain what's wrong and suggest the fix. Common issues:

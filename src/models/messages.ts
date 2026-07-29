@@ -1,6 +1,6 @@
-import { RTASettings } from "./settings";
-import { SerializedTorrent, TorrentUploadConfig } from "./torrent";
-import { WebUISettings } from "./webui";
+import { type RTASettings } from "./settings";
+import { type TorrentUploadConfig } from "./torrent";
+import { type WebUISettings } from "./webui";
 
 export const GetSettingsMessage: IMessagable = {
     action: "getSettings"
@@ -30,14 +30,6 @@ export const AddTorrentMessageWithLabelAndDir: IMessagable = {
     action: "addTorrentMessageWithLabelAndDir"
 }
 
-export const GetPreAddedTorrentAndSettings: IMessagable = {
-    action: "getPreAddedTorrentAndSettings"
-}
-
-export const GetPreAddedTorrentAndSettingsResponse: IMessagable = {
-    action: "getPreAddedTorrentAndSettingsResponse"
-}
-
 export const UpdateActionBadgeText: IMessagable = {
     action: "updateActionBadgeText"
 }
@@ -50,15 +42,6 @@ export const TestConnectionMessage: IMessagable = {
     action: "testConnection"
 }
 
-export interface IGetPreAddedTorrentAndSettingsResponse extends IMessagable {
-    webUiSettings: WebUISettings;
-    serializedTorrent: SerializedTorrent;
-    autoLabelDirResult?: {
-        label?: string;
-        directory?: string;
-    };
-}
-
 export interface IAddTorrentMessage extends IPreAddTorrentMessage {
     webUiId: string;
     config: TorrentUploadConfig;
@@ -67,7 +50,6 @@ export interface IAddTorrentMessage extends IPreAddTorrentMessage {
 export interface IAddTorrentMessageWithLabelAndDir extends IMessagable {
     webUiId: string;
     config: TorrentUploadConfig;
-    serializedTorrent: SerializedTorrent;
     labels: string[];
     directories: string[];
 }
@@ -108,9 +90,4 @@ export interface ILinkCatchingConfig {
 
 interface IMessagable {
     action: string;
-}
-
-
-export interface RegisteredListeners {
-    actionIconListener: (tab: chrome.tabs.Tab) => Promise<void>;
 }

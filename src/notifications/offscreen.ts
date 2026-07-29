@@ -1,5 +1,5 @@
-import { IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
-import { getCustomSound, SoundKind } from "../util/sound-storage";
+import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
+import { getCustomSound, type SoundKind } from "../util/sound-storage";
 
 chrome.runtime.onMessage.addListener(message => {
     if (message.action === PlaySoundMessage.action) {

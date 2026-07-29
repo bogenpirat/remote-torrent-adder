@@ -66,3 +66,138 @@ body::-webkit-scrollbar-thumb:hover { background: var(--rta-green); }
 .rta-border { border: 1px solid var(--rta-border); }
 .rta-surface { background: var(--rta-surface); }
 .rta-surface-alt { background: var(--rta-surface-alt); }
+/* ---- Options shell ------------------------------------------------------ */
+
+.rta-shell {
+  font-family: sans-serif;
+  width: 80%;
+  margin: 40px auto;
+  background: var(--rta-bg);
+  border-radius: 16px;
+  box-shadow: 0 2px 16px var(--rta-shadow-color);
+  border: 1px solid var(--rta-green-dark);
+  min-height: 400px;
+  color: var(--rta-text);
+}
+
+.rta-shell__header {
+  width: 100%;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+
+.rta-shell__title {
+  color: var(--rta-green-dark);
+  font-weight: 700;
+  font-size: 32px;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px var(--rta-accent);
+}
+
+.rta-tablist {
+  display: flex;
+  border-bottom: 2px solid var(--rta-green);
+}
+
+.rta-tab {
+  flex: 1;
+  padding: 16px 0;
+  background: var(--rta-bg);
+  border: none;
+  border-bottom: 4px solid transparent;
+  font-weight: normal;
+  color: var(--rta-green-dark);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rta-tab:hover {
+  background: var(--rta-surface-alt);
+}
+
+/* A visible focus ring matters here: the tablist is keyboard navigable. */
+.rta-tab:focus-visible {
+  outline: 3px solid var(--rta-green-dark);
+  outline-offset: -3px;
+}
+
+.rta-tab[aria-selected="true"] {
+  background: var(--rta-accent);
+  border-bottom-color: var(--rta-green-dark);
+  font-weight: bold;
+}
+
+.rta-tabpanel {
+  padding: 10px;
+  background: var(--rta-surface);
+  min-height: 200px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px var(--rta-accent);
+}
+
+.rta-tabpanel:focus-visible {
+  outline: 3px solid var(--rta-green-dark);
+  outline-offset: -3px;
+}
+
+/* ---- Shared building blocks --------------------------------------------- */
+
+.rta-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.rta-card {
+  background: var(--rta-bg);
+  border: 1px solid var(--rta-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--rta-accent);
+}
+
+.rta-card + .rta-card {
+  margin-top: 32px;
+}
+
+.rta-card__heading {
+  margin-top: 0;
+}
+
+.rta-textarea {
+  width: 100%;
+  height: 120px;
+  font-family: monospace;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rta-border);
+  margin-bottom: 12px;
+  background: var(--rta-surface);
+  color: var(--rta-text);
+}
+
+.rta-button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: var(--rta-green);
+}
+
+.rta-button:focus-visible {
+  outline: 3px solid var(--rta-green-dark);
+  outline-offset: 2px;
+}
+
+.rta-button--accent { background: var(--rta-accent); }
+.rta-button--success { background: var(--rta-success); }
+
+.rta-error {
+  color: var(--rta-danger);
+  margin-top: 8px;
+}

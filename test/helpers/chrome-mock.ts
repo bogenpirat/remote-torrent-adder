@@ -19,6 +19,12 @@ export function createChromeMock(): any {
                 removeListener: vi.fn(),
             },
             sendMessage: vi.fn(() => Promise.resolve()),
+            onInstalled: {
+                addListener: vi.fn(),
+            },
+            onStartup: {
+                addListener: vi.fn(),
+            },
             lastError: undefined,
         },
 
@@ -64,8 +70,8 @@ export function createChromeMock(): any {
         },
 
         notifications: {
-            create: vi.fn((id: string, options: any, cb?: (id: string) => void) => cb?.("notif-id")),
-            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => {
+            create: vi.fn((_id: string, _options: any, cb?: (id: string) => void) => cb?.("notif-id")),
+            clear: vi.fn((_id: string, cb?: (wasCleared: boolean) => void) => {
                 cb?.(true);
                 return Promise.resolve(true);
             }),
@@ -90,8 +96,11 @@ export function createChromeMock(): any {
         },
 
         contextMenus: {
-            create: vi.fn((opts: any) => opts?.id),
-            removeAll: vi.fn(),
+            create: vi.fn((opts: any, cb?: () => void) => {
+                cb?.();
+                return opts?.id;
+            }),
+            removeAll: vi.fn(() => Promise.resolve()),
             onClicked: {
                 addListener: vi.fn(),
                 removeListener: vi.fn(),

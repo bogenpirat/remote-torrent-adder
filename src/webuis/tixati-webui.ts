@@ -1,5 +1,5 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { ConnectionTestResult, TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TixatiWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {

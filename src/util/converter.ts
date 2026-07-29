@@ -1,6 +1,6 @@
 export function convertToBinary(payload: string): Uint8Array {
 	// TODO: note to self: to use this with a fetch() call, set Content-Type to application/octet-stream
-	var ordinals = Array.prototype.map.call(payload, byteValue) as number[];
+	const ordinals = Array.prototype.map.call(payload, byteValue) as number[];
 	return new Uint8Array(ordinals);
 }
 
@@ -25,6 +25,10 @@ export async function blobToBase64(blob: Blob): Promise<string> {
     reader.onloadend = () => {
       const dataUrl = reader.result as string;
       const base64 = dataUrl.split(",")[1];
+      if (base64 === undefined) {
+        reject(new Error("FileReader produced an unexpected data URL"));
+        return;
+      }
       resolve(base64);
     };
     reader.onerror = reject;

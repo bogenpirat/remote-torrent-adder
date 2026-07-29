@@ -1,21 +1,43 @@
-import { describe, it, expect, vi } from "vitest";
-import { registerClickActionForIcon, updateBadgeText } from "../../src/util/action";
-import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
-import { makeWebUISettings } from "../helpers/fixtures";
+import { describe, it, expect } from "vitest";
+import { registerActionClickListener, openPrimaryWebUi, updateBadgeText } from "../../src/util/action";
+import { makeWebUISettings, seedWebUISettings } from "../helpers/fixtures";
 
-describe("registerClickActionForIcon", () => {
-    it("registers a click listener and opens the webui base url on click", async () => {
-        const webUi = new QBittorrentWebUI(makeWebUISettings({ host: "h", port: 8080 }));
-        const listener = registerClickActionForIcon(webUi);
+function registeredClickListener() {
+    registerActionClickListener();
+    const calls = (chrome.action.onClicked.addListener as any).mock.calls;
+    return calls[calls.length - 1][0];
+}
 
-        expect(chrome.action.onClicked.addListener).toHaveBeenCalledWith(listener);
-        await listener({} as chrome.tabs.Tab);
-        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h:8080/", active: true });
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+
+describe("registerActionClickListener", () => {
+    it("registers the listener without needing any settings loaded first", () => {
+        registerActionClickListener();
+        expect(chrome.action.onClicked.addListener).toHaveBeenCalledTimes(1);
+        expect(chrome.storage.local.get).not.toHaveBeenCalled();
     });
 
-    it("does nothing on click when there is no webui", async () => {
-        const listener = registerClickActionForIcon(null);
-        await listener({} as chrome.tabs.Tab);
+    it("resolves the webui at click time and opens it", async () => {
+        seedWebUISettings([makeWebUISettings({ host: "h", port: 8080 })]);
+        registeredClickListener()({} as chrome.tabs.Tab);
+        await flush();
+        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h:8080/", active: true });
+    });
+});
+
+describe("openPrimaryWebUi", () => {
+    it("opens the first configured webui", async () => {
+        seedWebUISettings([
+            makeWebUISettings({ id: "a", host: "first", port: 8080 }),
+            makeWebUISettings({ id: "b", host: "second", port: 9090 }),
+        ]);
+        await openPrimaryWebUi();
+        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://first:8080/", active: true });
+    });
+
+    it("does nothing when no webui is configured", async () => {
+        seedWebUISettings([]);
+        await openPrimaryWebUi();
         expect(chrome.tabs.create).not.toHaveBeenCalled();
     });
 });

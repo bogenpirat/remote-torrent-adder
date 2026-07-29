@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { PorlaWebUI } from "../../src/webuis/porla-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -12,7 +13,7 @@ describe("PorlaWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), { dir: "/movies" });
 
         expect(result.success).toBe(true);
-        const [rpcUrl, rpcOpts] = fetch.mock.calls[1];
+        const [rpcUrl, rpcOpts] = callArgs(fetch, 1);
         expect(rpcUrl).toBe("http://h:1337/api/v1/jsonrpc");
         expect((rpcOpts.headers as any).Authorization).toBe("Bearer jwt-abc");
         const payload = JSON.parse(rpcOpts.body as string);
@@ -25,7 +26,7 @@ describe("PorlaWebUI", () => {
         const fetch = queueFetch(tokenOk(), mockResponse({ status: 200, json: { result: {} } }));
         await build().sendTorrent(makeFileTorrent(), {});
 
-        const payload = JSON.parse(fetch.mock.calls[1][1].body as string);
+        const payload = JSON.parse(callArgs(fetch, 1)[1].body as string);
         expect(payload.params.ti).toBeTypeOf("string");
         expect(payload.params.save_path).toBe("./");
     });

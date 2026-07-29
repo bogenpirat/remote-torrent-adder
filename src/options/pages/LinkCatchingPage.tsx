@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, type JSX } from "react";
+import { useState, type ChangeEvent, type JSX } from "react";
 import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
 
@@ -11,6 +11,15 @@ function stringToRegex(s: string): RegExp | null {
     return new RegExp(s);
   } catch {
     return null;
+  }
+}
+
+/** A stored pattern can be anything the user pasted, so a throw means "no match". */
+function testRegexSafely(regex: RegExp, value: string): boolean {
+  try {
+    return regex.test(value);
+  } catch {
+    return false;
   }
 }
 
@@ -41,7 +50,7 @@ export default function LinkCatchingPage(): JSX.Element {
 
   const handleEdit = (idx: number): void => {
     setEditIdx(idx);
-    setEditValue(regexStrings[idx]);
+    setEditValue(regexStrings[idx] ?? "");
   };
 
   const handleEditSave = (idx: number): void => {
@@ -162,10 +171,7 @@ export default function LinkCatchingPage(): JSX.Element {
           {testerValue && (
             <ul style={{ paddingLeft: 20 }}>
               {settings.linkCatchingRegexes.map((reg: RegExp, idx: number) => {
-                let match = false;
-                try {
-                  match = reg.test(testerValue);
-                } catch { }
+                const match = testRegexSafely(reg, testerValue);
                 return (
                   <li key={idx} style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, color: match ? "var(--rta-success, #228B22)" : "var(--rta-danger, #B22222)" }}>
                     <span style={{ fontFamily: "monospace" }}>{reg.source}</span>

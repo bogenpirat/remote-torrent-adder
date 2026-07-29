@@ -1,8 +1,8 @@
-import { Torrent, TorrentUploadConfig } from "../models/torrent";
-import { TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
+import { type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 export class TTorrentWebUI extends TorrentWebUI {
-    public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
+    public override async sendTorrent(torrent: Torrent, _config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             let url = this.createTTorrentBaseUrl();
             let payload: FormData;
