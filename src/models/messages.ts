@@ -109,8 +109,3 @@ export interface ILinkCatchingConfig {
 interface IMessagable {
     action: string;
 }
-
-
-export interface RegisteredListeners {
-    actionIconListener: (tab: chrome.tabs.Tab) => Promise<void>;
-}

@@ -3,6 +3,20 @@ import { Buffer } from "buffer";
 import { Client } from "../../src/models/clients";
 import { Torrent } from "../../src/models/torrent";
 import { WebUISettings } from "../../src/models/webui";
+import { getDefaultSettings } from "../../src/util/settings-defaults";
+import { serializeSettings } from "../../src/util/serializer";
+import { SETTINGS_KEY } from "../../src/util/settings";
+
+/**
+ * Writes the given WebUIs into the mocked chrome.storage.local, so code that
+ * resolves clients lazily (context menu clicks, auth challenges, the action
+ * icon) sees them without any listener having been handed a WebUI up front.
+ */
+export function seedWebUISettings(webuiSettings: WebUISettings[]): void {
+    const settings = getDefaultSettings();
+    settings.webuiSettings = webuiSettings;
+    (chrome as any).__storage[SETTINGS_KEY] = serializeSettings(settings);
+}
 
 /**
  * Produces a WebUISettings object with sensible defaults that individual tests

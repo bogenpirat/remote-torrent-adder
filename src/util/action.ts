@@ -1,18 +1,23 @@
-import { TorrentWebUI } from "../models/webui";
 import { addTrailingSlash } from "./utils";
+import { loadWebUis } from "./webuis";
 
 
-export function registerClickActionForIcon(webUi: TorrentWebUI | null): (tab: chrome.tabs.Tab) => Promise<void> {
-    const clickActionListener = async (tab: chrome.tabs.Tab) => {
-        if (webUi) {
-            await chrome.tabs.create({
-                url: addTrailingSlash(webUi.createBaseUrl()),
-                active: true,
-            });
-        }
-    };
-    chrome.action.onClicked.addListener(clickActionListener);
-    return clickActionListener;
+export function registerActionClickListener(): void {
+    chrome.action.onClicked.addListener(() => {
+        openPrimaryWebUi().catch(error => console.error("Failed opening WebUI from the action icon", error));
+    });
+}
+
+export async function openPrimaryWebUi(): Promise<void> {
+    const [primaryWebUi] = await loadWebUis();
+    if (!primaryWebUi) {
+        console.warn("Action icon clicked, but no WebUI is configured.");
+        return;
+    }
+    await chrome.tabs.create({
+        url: addTrailingSlash(primaryWebUi.createBaseUrl()),
+        active: true,
+    });
 }
 
 export function updateBadgeText(text: string, tabId: number): void {

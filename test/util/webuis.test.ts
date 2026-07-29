@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { initiateWebUis } from "../../src/util/webuis";
+import { initiateWebUis, loadWebUis } from "../../src/util/webuis";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
-import { makeWebUISettings } from "../helpers/fixtures";
+import { makeWebUISettings, seedWebUISettings } from "../helpers/fixtures";
 
 describe("initiateWebUis", () => {
     it("constructs a TorrentWebUI per configured setting", async () => {
@@ -30,5 +30,18 @@ describe("initiateWebUis", () => {
 
     it("returns an empty array when no webuis are configured", async () => {
         expect(await initiateWebUis(getDefaultSettings())).toEqual([]);
+    });
+});
+
+describe("loadWebUis", () => {
+    it("reads the current settings from storage on every call", async () => {
+        seedWebUISettings([makeWebUISettings({ id: "a", client: Client.QBittorrentWebUI })]);
+        expect((await loadWebUis()).map(webUi => webUi.settings.id)).toEqual(["a"]);
+
+        seedWebUISettings([
+            makeWebUISettings({ id: "a", client: Client.QBittorrentWebUI }),
+            makeWebUISettings({ id: "b", client: Client.DelugeWebUI }),
+        ]);
+        expect((await loadWebUis()).map(webUi => webUi.settings.id)).toEqual(["a", "b"]);
     });
 });
