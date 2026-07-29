@@ -46,21 +46,17 @@
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.2",
         "@vitest/coverage-v8": "^4.1.9",
+        "buffer": "^6.0.3",
         "chokidar-cli": "^3.0.0",
-        "class-variance-authority": "^0.7.1",
-        "clsx": "^2.1.1",
         "concurrently": "^10.0.4",
         "cpy-cli": "^7.0.0",
         "cross-env": "^10.1.0",
         "jsdom": "^29.1.1",
-        "lucide-react": "^1.21.0",
         "postcss": "^8.5.23",
         "rimraf": "^6.1.3",
         "rollup": "^4.62.2",
-        "tailwind-merge": "^3.6.0",
         "tailwindcss": "^4.3.1",
         "tailwindcss-animate": "^1.0.7",
-        "ts-loader": "^9.6.1",
         "typescript": "^6.0.3",
         "vite": "^8.0.16",
         "vitest": "^4.1.9"
@@ -69,8 +65,11 @@
         "@radix-ui/react-select": "^2.3.1",
         "@radix-ui/react-slot": "^1.3.0",
         "bencode": "^4.0.1",
-        "buffer": "^6.0.3",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^1.21.0",
         "react": "^19.2.7",
-        "react-dom": "^19.2.7"
+        "react-dom": "^19.2.7",
+        "tailwind-merge": "^3.6.0"
     }
 }
