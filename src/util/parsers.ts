@@ -1,16 +1,12 @@
 const FALLBACK_TORRENT_NAME = "file.torrent";
 
 export function getTorrentNameFromMagnetLink(magnetLink: string): string {
-    const nameMatch = magnetLink.match(/dn=([^&]+)/);
-    return nameMatch ? decodeURIComponent(nameMatch[1]).replace(/\+/g, ' ') : "Some magnet link you clicked there, buddy.";
+    const encodedName = magnetLink.match(/dn=([^&]+)/)?.[1];
+    return encodedName ? decodeURIComponent(encodedName).replace(/\+/g, ' ') : "Some magnet link you clicked there, buddy.";
 }
 
 export function getTorrentNameFromLink(url: string): string {
-    const match = url.match(/\/([^\/]+.torrent)$/);
-    if (match) {
-        return match[1];
-    }
-    return FALLBACK_TORRENT_NAME;
+    return url.match(/\/([^\/]+.torrent)$/)?.[1] ?? FALLBACK_TORRENT_NAME;
 }
 
 export function parseTrackersFromMagnetLink(magnetLink: string): string[] {

@@ -70,8 +70,8 @@ export function createChromeMock(): any {
         },
 
         notifications: {
-            create: vi.fn((id: string, options: any, cb?: (id: string) => void) => cb?.("notif-id")),
-            clear: vi.fn((id: string, cb?: (wasCleared: boolean) => void) => {
+            create: vi.fn((_id: string, _options: any, cb?: (id: string) => void) => cb?.("notif-id")),
+            clear: vi.fn((_id: string, cb?: (wasCleared: boolean) => void) => {
                 cb?.(true);
                 return Promise.resolve(true);
             }),

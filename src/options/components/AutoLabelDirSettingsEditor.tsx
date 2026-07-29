@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
 import AutoLabelDirTester from "./AutoLabelDirTester";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
@@ -72,21 +72,18 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
     arr.splice(idx, 1);
     onChange(arr);
   };
-  const handleCriteriaChange = (idx: number, criteria: AutoLabelDirCriterion[]) => {
+  const updateAt = (idx: number, patch: Partial<AutoLabelDirSetting>) => {
+    const existing = value[idx];
+    if (!existing) {
+      return;
+    }
     const arr = [...value];
-    arr[idx] = { ...arr[idx], criteria };
+    arr[idx] = { ...existing, ...patch };
     onChange(arr);
   };
-  const handleLabelChange = (idx: number, label: string | null) => {
-    const arr = [...value];
-    arr[idx] = { ...arr[idx], label };
-    onChange(arr);
-  };
-  const handleDirChange = (idx: number, dir: string | null) => {
-    const arr = [...value];
-    arr[idx] = { ...arr[idx], dir };
-    onChange(arr);
-  };
+  const handleCriteriaChange = (idx: number, criteria: AutoLabelDirCriterion[]) => updateAt(idx, { criteria });
+  const handleLabelChange = (idx: number, label: string | null) => updateAt(idx, { label });
+  const handleDirChange = (idx: number, dir: string | null) => updateAt(idx, { dir });
   return (
     <div style={{ marginBottom: 20, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 10, padding: 16, background: "var(--rta-surface-alt, #f7faf7)" }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>

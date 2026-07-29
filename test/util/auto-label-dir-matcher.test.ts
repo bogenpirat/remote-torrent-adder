@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir } from "../../src/util/auto-label-dir-matcher";
 import { Torrent } from "../../src/models/torrent";
 import { AutoLabelDirSetting } from "../../src/models/webui";
+import { at } from "../helpers/assert";
 
 const torrentWith = (trackers?: string[], files?: string[]): Torrent => ({
     data: "magnet:?x",
@@ -148,40 +149,40 @@ describe("explainAutoLabelDir", () => {
         const torrent = torrentWith(["http://a.org/announce", "http://b.org/announce", "http://a.org/announce2"]);
         const explanation = explainAutoLabelDir(torrent, [setting("a\\.org", "l", "/d")]);
 
-        expect(explanation.rules[0].matched).toBe(true);
-        expect(explanation.rules[0].criteria[0].matchedCandidates)
+        expect(at(explanation.rules, 0).matched).toBe(true);
+        expect(at(at(explanation.rules, 0).criteria, 0).matchedCandidates)
             .toEqual(["http://a.org/announce", "http://a.org/announce2"]);
-        expect(explanation.rules[0].criteria[0].invalidPattern).toBe(false);
+        expect(at(at(explanation.rules, 0).criteria, 0).invalidPattern).toBe(false);
     });
 
     it("reports which files matched a criterion", () => {
         const torrent = torrentWith(undefined, ["Season 01/ep01.mkv", "readme.nfo", "Season 01/ep02.MKV"]);
         const explanation = explainAutoLabelDir(torrent, [fileSetting("\\.mkv$", "video", null)]);
 
-        expect(explanation.rules[0].criteria[0].matchedCandidates)
+        expect(at(at(explanation.rules, 0).criteria, 0).matchedCandidates)
             .toEqual(["Season 01/ep01.mkv", "Season 01/ep02.MKV"]);
     });
 
     it("flags an invalid regex without matching", () => {
         const explanation = explainAutoLabelDir(torrentWith(["http://x"]), [setting("(", "bad", null)]);
 
-        expect(explanation.rules[0].criteria[0].invalidPattern).toBe(true);
-        expect(explanation.rules[0].criteria[0].matched).toBe(false);
-        expect(explanation.rules[0].matched).toBe(false);
+        expect(at(at(explanation.rules, 0).criteria, 0).invalidPattern).toBe(true);
+        expect(at(at(explanation.rules, 0).criteria, 0).matched).toBe(false);
+        expect(at(explanation.rules, 0).matched).toBe(false);
     });
 
     it("treats an empty criterion value as a vacuous match", () => {
         const explanation = explainAutoLabelDir(torrentWith([]), [setting("", "l", null)]);
 
-        expect(explanation.rules[0].criteria[0].matched).toBe(true);
-        expect(explanation.rules[0].criteria[0].matchedCandidates).toEqual([]);
-        expect(explanation.rules[0].matched).toBe(true);
+        expect(at(at(explanation.rules, 0).criteria, 0).matched).toBe(true);
+        expect(at(at(explanation.rules, 0).criteria, 0).matchedCandidates).toEqual([]);
+        expect(at(explanation.rules, 0).matched).toBe(true);
     });
 
     it("does not match a rule without criteria", () => {
         const explanation = explainAutoLabelDir(torrentWith(["http://x"]), [{ criteria: [], label: "x", dir: null }]);
 
-        expect(explanation.rules[0].matched).toBe(false);
+        expect(at(explanation.rules, 0).matched).toBe(false);
         expect(explanation.winningRuleIndex).toBeNull();
     });
 
@@ -206,7 +207,7 @@ describe("explainAutoLabelDir", () => {
         ]);
 
         expect(explanation.rules.map(rule => rule.index)).toEqual([0, 1]);
-        expect(explanation.rules[1].setting.label).toBe("second");
+        expect(at(explanation.rules, 1).setting.label).toBe("second");
     });
 
     it("resolves label and dir from the same winning rule, even when null", () => {

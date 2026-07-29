@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { DelugeWebUI } from "../../src/webuis/deluge-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -14,10 +15,10 @@ describe("DelugeWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const authPayload = JSON.parse(fetch.mock.calls[0][1].body as string);
+        const authPayload = JSON.parse(callArgs(fetch, 0)[1].body as string);
         expect(authPayload.method).toBe("auth.login");
         expect(authPayload.params).toEqual(["pass"]);
-        const addPayload = JSON.parse(fetch.mock.calls[1][1].body as string);
+        const addPayload = JSON.parse(callArgs(fetch, 1)[1].body as string);
         expect(addPayload.method).toBe("web.add_torrents");
         expect(addPayload.params[0][0].path).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
     });
@@ -30,8 +31,8 @@ describe("DelugeWebUI", () => {
         );
         await build().sendTorrent(makeFileTorrent(), { dir: "/media" });
 
-        expect(fetch.mock.calls[1][0]).toBe("http://h:8112/upload");
-        const addPayload = JSON.parse(fetch.mock.calls[2][1].body as string);
+        expect(callArgs(fetch, 1)[0]).toBe("http://h:8112/upload");
+        const addPayload = JSON.parse(callArgs(fetch, 2)[1].body as string);
         expect(addPayload.params[0][0].path).toBe("/tmp/uploaded.torrent");
         expect(addPayload.params[0][0].options.download_location).toBe("/media");
     });
@@ -46,10 +47,10 @@ describe("DelugeWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), { label: "Movies" });
 
         expect(result.success).toBe(true);
-        const labelAdd = JSON.parse(fetch.mock.calls[2][1].body as string);
+        const labelAdd = JSON.parse(callArgs(fetch, 2)[1].body as string);
         expect(labelAdd.method).toBe("label.add");
         expect(labelAdd.params).toEqual(["movies"]); // lower-cased
-        const labelSet = JSON.parse(fetch.mock.calls[3][1].body as string);
+        const labelSet = JSON.parse(callArgs(fetch, 3)[1].body as string);
         expect(labelSet.method).toBe("label.set_torrent");
         expect(labelSet.params).toEqual(["torrent-hash", "movies"]);
     });
@@ -64,7 +65,7 @@ describe("DelugeWebUI", () => {
         const result = await build({ defaultLabel: "Shows" }).sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const labelAdd = JSON.parse(fetch.mock.calls[2][1].body as string);
+        const labelAdd = JSON.parse(callArgs(fetch, 2)[1].body as string);
         expect(labelAdd.method).toBe("label.add");
         expect(labelAdd.params).toEqual(["shows"]); // default label, lower-cased
     });

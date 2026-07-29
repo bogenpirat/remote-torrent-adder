@@ -467,7 +467,7 @@ export default function WebUIsPage() {
     if (webuis.length === 0) {
       if (selectedId !== null) setSelectedId(null);
     } else if (!webuis.some(w => w.id === selectedId)) {
-      setSelectedId(webuis[0].id);
+      setSelectedId(webuis[0]?.id ?? null);
     }
   }, [webuis, selectedId]);
 

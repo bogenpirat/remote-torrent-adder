@@ -168,7 +168,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
     const settingsProvider = new Settings();
     const allWebUis = await getAllWebUis(settingsProvider);
     const webUiById = await getWebUiById(message.webUiId ?? "", settingsProvider);
-    const webUi = webUiById ?? (allWebUis.length > 0 ? allWebUis[0] : null);
+    const webUi = webUiById ?? allWebUis[0] ?? null;
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {
         const torrent = await downloadTorrent(message.url);
         await setBufferedTorrent({

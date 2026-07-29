@@ -67,10 +67,11 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
 
     const url = onClickData.linkUrl ?? "";
 
-    if (targetWebUis.length === 1) {
+    const [singleTarget] = targetWebUis;
+    if (targetWebUis.length === 1 && singleTarget) {
         const preAddTorrentMessage: IPreAddTorrentMessage = {
             action: PreAddTorrentMessage.action,
-            webUiId: targetWebUis[0].settings.id,
+            webUiId: singleTarget.settings.id,
             url
         };
         await dispatchPreAddTorrent(preAddTorrentMessage, await resolveWindowId(tab));
@@ -88,10 +89,8 @@ function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): Tor
         return allWebUis;
     }
     const index = Number.parseInt(menuItemId.slice(PER_SERVER_MENU_PREFIX.length), 10);
-    if (!Number.isInteger(index) || index < 0 || index >= allWebUis.length) {
-        return [];
-    }
-    return [allWebUis[index]];
+    const webUiAtIndex = Number.isInteger(index) ? allWebUis[index] : undefined;
+    return webUiAtIndex ? [webUiAtIndex] : [];
 }
 
 async function resolveWindowId(tab?: Tab): Promise<number> {

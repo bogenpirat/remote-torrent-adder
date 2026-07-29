@@ -41,7 +41,7 @@ function setPopupStateForMessage(message: IGetPreAddedTorrentAndSettingsResponse
 }
 
 function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torrent, label: string, dir: string, paused: boolean, labelOptions: string[], directoryOptions: string[]): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         convertTorrentToSerialized(torrent).then((serializedTorrent: SerializedTorrent) => {
             chrome.runtime.sendMessage({
                 action: AddTorrentMessageWithLabelAndDir.action,
@@ -54,7 +54,7 @@ function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torr
                 } as TorrentUploadConfig,
                 labels: labelOptions,
                 directories: directoryOptions
-            } as IAddTorrentMessageWithLabelAndDir).then((response: any) => {
+            } as IAddTorrentMessageWithLabelAndDir).then(() => {
                 resolve();
             });
         })
@@ -62,5 +62,5 @@ function sendAddTorrentAndLabelDirSettingsMessage(webUiId: string, torrent: Torr
 }
 
 function getFirstEntry(collection: Array<string>): string | null {
-    return collection && collection.length > 0 ? collection[0] : null;
+    return collection?.[0] ?? null;
 }

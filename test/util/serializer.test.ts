@@ -9,6 +9,7 @@ import {
 } from "../../src/util/serializer";
 import { RTASettings } from "../../src/models/settings";
 import { makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
+import { at } from "../helpers/assert";
 
 describe("serializeObject / deserializeObject", () => {
     it("preserves RegExp values across a round-trip", () => {
@@ -43,8 +44,8 @@ describe("serializeSettings / deserializeSettings", () => {
         const restored = deserializeSettings(serializeSettings(settings))!;
         expect(restored.notificationsDurationMs).toBe(2000);
         expect(restored.linkCatchingRegexes[0]).toBeInstanceOf(RegExp);
-        expect(restored.linkCatchingRegexes[0].source).toBe("\\.torrent\\b");
-        expect(restored.linkCatchingRegexes[1].source).toBe("action=download");
+        expect(at(restored.linkCatchingRegexes, 0).source).toBe("\\.torrent\\b");
+        expect(at(restored.linkCatchingRegexes, 1).source).toBe("action=download");
     });
 
     it("returns null for empty input", () => {

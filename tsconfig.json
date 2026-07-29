@@ -6,7 +6,6 @@
       "ESNext",
       "DOM"
     ],
-    "rootDir": "./src",
     "strict": true,
     "allowJs": true,
     "checkJs": false,
@@ -14,16 +13,31 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
+    "noEmit": true,
+    "isolatedModules": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
     "types": [
-      "chrome"
+      "chrome",
+      "node",
+      "vitest/globals"
     ],
     "jsx": "react-jsx"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tailwind.config.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "dist-prod"
   ]
 }

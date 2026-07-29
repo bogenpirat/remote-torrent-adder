@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -11,8 +12,8 @@ describe("QBittorrentWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
 
         expect(result.success).toBe(true);
-        const [authUrl] = fetch.mock.calls[0];
-        const [addUrl, addOpts] = fetch.mock.calls[1];
+        const [authUrl] = callArgs(fetch, 0);
+        const [addUrl, addOpts] = callArgs(fetch, 1);
         expect(authUrl).toBe("http://h:8080/api/v2/auth/login");
         expect(addUrl).toBe("http://h:8080/api/v2/torrents/add");
         const body = addOpts.body as FormData;
@@ -23,7 +24,7 @@ describe("QBittorrentWebUI", () => {
         const fetch = queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Ok." }));
         await build().sendTorrent(makeFileTorrent(), { dir: "/downloads", label: "movies", addPaused: true });
 
-        const body = fetch.mock.calls[1][1].body as FormData;
+        const body = callArgs(fetch, 1)[1].body as FormData;
         expect(body.get("torrents")).toBeInstanceOf(File);
         expect(body.get("savepath")).toBe("/downloads");
         expect(body.get("category")).toBe("movies");

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { at, callArgs } from "../helpers/assert";
 
 // Mock the heavy collaborators so the dispatcher can be exercised in isolation.
 const { showNotification, downloadTorrent } = vi.hoisted(() => ({
@@ -114,7 +115,7 @@ describe("AddTorrent flow", () => {
 
         expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x");
         expect(showNotification).toHaveBeenCalled();
-        expect(showNotification.mock.calls[0][0]).toBe("Torrent added successfully");
+        expect(callArgs(showNotification, 0)[0]).toBe("Torrent added successfully");
     });
 
     it("notifies the user when downloading the torrent fails", async () => {
@@ -125,7 +126,7 @@ describe("AddTorrent flow", () => {
         await new Promise((r) => setTimeout(r, 0));
 
         expect(showNotification).toHaveBeenCalled();
-        expect(showNotification.mock.calls[0][0]).toBe("Error downloading torrent");
+        expect(callArgs(showNotification, 0)[0]).toBe("Error downloading torrent");
     });
 
     it("persists updated labels and dirs for AddTorrentMessageWithLabelAndDir", async () => {
@@ -145,8 +146,8 @@ describe("AddTorrent flow", () => {
         await new Promise((r) => setTimeout(r, 0));
 
         const persisted = deserializeSettings((chrome as any).__storage.settings)!;
-        expect(persisted.webuiSettings[0].labels).toEqual(["movies", "tv"]);
-        expect(persisted.webuiSettings[0].dirs).toEqual(["/data"]);
+        expect(at(persisted.webuiSettings, 0).labels).toEqual(["movies", "tv"]);
+        expect(at(persisted.webuiSettings, 0).dirs).toEqual(["/data"]);
     });
 });
 

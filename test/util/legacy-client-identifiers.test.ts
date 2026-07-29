@@ -6,6 +6,7 @@ import {
 import { Client } from "../../src/models/clients";
 import { RTASettings } from "../../src/models/settings";
 import { makeWebUISettings } from "../helpers/fixtures";
+import { at } from "../helpers/assert";
 
 describe("resolveClientIdentifier", () => {
     it("returns a current identifier unchanged", () => {
@@ -48,8 +49,8 @@ describe("migrateSettingsClientIdentifiers", () => {
         const original = settingsWithClients(["qBittorrent WebUI", "Deluge WebUI"]);
         const migrated = migrateSettingsClientIdentifiers(original);
         expect(migrated).not.toBe(original);
-        expect(migrated.webuiSettings[0].client).toBe(Client.QBittorrentWebUI);
-        expect(migrated.webuiSettings[1].client).toBe(Client.DelugeWebUI);
+        expect(at(migrated.webuiSettings, 0).client).toBe(Client.QBittorrentWebUI);
+        expect(at(migrated.webuiSettings, 1).client).toBe(Client.DelugeWebUI);
     });
 
     it("returns the very same reference when nothing needs migrating", () => {
@@ -61,14 +62,14 @@ describe("migrateSettingsClientIdentifiers", () => {
         const original = settingsWithClients(["totally-unknown"]);
         const migrated = migrateSettingsClientIdentifiers(original);
         expect(migrated).toBe(original);
-        expect(migrated.webuiSettings[0].client).toBe("totally-unknown");
+        expect(at(migrated.webuiSettings, 0).client).toBe("totally-unknown");
     });
 
     it("migrates only the legacy entries in a mixed list", () => {
         const original = settingsWithClients(["qbittorrent", "Deluge WebUI"]);
         const migrated = migrateSettingsClientIdentifiers(original);
         expect(migrated).not.toBe(original);
-        expect(migrated.webuiSettings[0].client).toBe(Client.QBittorrentWebUI);
-        expect(migrated.webuiSettings[1].client).toBe(Client.DelugeWebUI);
+        expect(at(migrated.webuiSettings, 0).client).toBe(Client.QBittorrentWebUI);
+        expect(at(migrated.webuiSettings, 1).client).toBe(Client.DelugeWebUI);
     });
 });

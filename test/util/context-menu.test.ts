@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { callArgs } from "../helpers/assert";
 
 // Stub out the messaging module so we can observe dispatched torrents without
 // pulling in the whole service-worker dependency graph.
@@ -118,7 +119,7 @@ describe("registerContextMenuClickListener", () => {
     it("dispatches a pre-add for the first webui on the main entry", async () => {
         await click("server-main", [settingsFor("a", "Server A")]);
         expect(dispatchPreAddTorrent).toHaveBeenCalledTimes(1);
-        const [message, windowId] = dispatchPreAddTorrent.mock.calls[0];
+        const [message, windowId] = callArgs(dispatchPreAddTorrent, 0);
         expect(message.action).toBe(PreAddTorrentMessage.action);
         expect(message.webUiId).toBe("a");
         expect(message.url).toBe("http://x/file.torrent");
@@ -127,7 +128,7 @@ describe("registerContextMenuClickListener", () => {
 
     it("dispatches a pre-add for the indexed webui", async () => {
         await click("server-1", [settingsFor("a", "A"), settingsFor("b", "B")]);
-        expect(dispatchPreAddTorrent.mock.calls[0][0].webUiId).toBe("b");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("b");
     });
 
     it("adds the torrent directly to every webui on send-all, bypassing the selector", async () => {
@@ -142,7 +143,7 @@ describe("registerContextMenuClickListener", () => {
         seedWebUISettings([settingsFor("late", "Added Later")]);
         clickListener()(clickData("server-main"), tab);
         await flush();
-        expect(dispatchPreAddTorrent.mock.calls[0][0].webUiId).toBe("late");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("late");
     });
 
     it("falls back to the last focused window when the click carries no tab", async () => {
@@ -150,7 +151,7 @@ describe("registerContextMenuClickListener", () => {
         registerContextMenuClickListener();
         clickListener()(clickData("server-main"), undefined);
         await flush();
-        expect(dispatchPreAddTorrent.mock.calls[0][1]).toBe(1);
+        expect(callArgs(dispatchPreAddTorrent, 0)[1]).toBe(1);
     });
 
     it("ignores clicks on unrelated menu entries", async () => {

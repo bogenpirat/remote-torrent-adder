@@ -71,8 +71,9 @@ const targets: Record<string, UserConfig> = {
 
 export default defineConfig(() => {
     const target = process.env.RTA_TARGET;
-    if (!target || !(target in targets)) {
+    const config = target ? targets[target] : undefined;
+    if (!config) {
         throw new Error(`Set RTA_TARGET to one of: ${Object.keys(targets).join(', ')} (got ${target ?? 'nothing'})`);
     }
-    return targets[target];
+    return config;
 });

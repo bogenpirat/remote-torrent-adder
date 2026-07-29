@@ -36,14 +36,14 @@ export function convertSerializedToTorrent(serialized: SerializedTorrent): Torre
 }
 
 
-function customReplacer(key: string, value: any): any {
+function customReplacer(_key: string, value: any): any {
     if (value instanceof RegExp) {
         return { __type: "RegExp", source: value.source, flags: value.flags };
     }
     return value;
 }
 
-function customReviver(key: string, value: any): any {
+function customReviver(_key: string, value: any): any {
     if (value) {
         if (value.__type === "RegExp") {
             return new RegExp(value.source, value.flags);

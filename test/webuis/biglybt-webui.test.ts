@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { BiglyBTWebUI } from "../../src/webuis/biglybt-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -14,7 +15,7 @@ describe("BiglyBTWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), { addPaused: true });
 
         expect(result.success).toBe(true);
-        const [url, opts] = fetch.mock.calls[1];
+        const [url, opts] = callArgs(fetch, 1);
         expect(url).toBe("http://h:9091/transmission/rpc");
         const payload = JSON.parse(opts.body as string);
         expect(payload.method).toBe("torrent-add");
@@ -29,8 +30,8 @@ describe("BiglyBTWebUI", () => {
         const result = await build().sendTorrent(makeFileTorrent(), { addPaused: true });
 
         expect(result.success).toBe(true);
-        expect(fetch.mock.calls[1][0]).toBe("http://h:9091/transmission/upload?paused=true");
-        expect(fetch.mock.calls[1][1].body).toBeInstanceOf(FormData);
+        expect(callArgs(fetch, 1)[0]).toBe("http://h:9091/transmission/upload?paused=true");
+        expect(callArgs(fetch, 1)[1].body).toBeInstanceOf(FormData);
     });
 
     it("recognizes a JSON success body", async () => {

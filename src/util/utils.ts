@@ -8,6 +8,9 @@ export function moveItem<T>(items: T[], from: number, to: number): T[] {
     }
     const reordered = [...items];
     const [item] = reordered.splice(from, 1);
+    if (item === undefined) {
+        return items;
+    }
     reordered.splice(to, 0, item);
     return reordered;
 }

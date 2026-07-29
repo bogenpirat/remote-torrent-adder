@@ -41,7 +41,7 @@ export default function LinkCatchingPage(): JSX.Element {
 
   const handleEdit = (idx: number): void => {
     setEditIdx(idx);
-    setEditValue(regexStrings[idx]);
+    setEditValue(regexStrings[idx] ?? "");
   };
 
   const handleEditSave = (idx: number): void => {

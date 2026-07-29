@@ -4,6 +4,7 @@ import { serializeSettings } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { makeWebUISettings } from "../helpers/fixtures";
+import { at } from "../helpers/assert";
 
 describe("Settings.loadSettings", () => {
     it("initializes with defaults and persists them when storage is empty", async () => {
@@ -31,10 +32,10 @@ describe("Settings.loadSettings", () => {
         (chrome as any).__storage.settings = serializeSettings(stored);
 
         const loaded = await new Settings().loadSettings();
-        expect(loaded.webuiSettings[0].client).toBe(Client.QBittorrentWebUI);
+        expect(at(loaded.webuiSettings, 0).client).toBe(Client.QBittorrentWebUI);
         // re-persisted in migrated form
         const reloaded = await new Settings().loadSettings();
-        expect(reloaded.webuiSettings[0].client).toBe(Client.QBittorrentWebUI);
+        expect(at(reloaded.webuiSettings, 0).client).toBe(Client.QBittorrentWebUI);
     });
 
     it("falls back to defaults when stored data cannot be parsed", async () => {

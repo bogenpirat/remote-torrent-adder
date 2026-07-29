@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { callArgs } from "../helpers/assert";
 import { RqbitWebUI } from "../../src/webuis/rqbit-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -12,7 +13,7 @@ describe("RqbitWebUI", () => {
         const result = await build().sendTorrent(makeMagnetTorrent(), { dir: "/movies", addPaused: true });
 
         expect(result.success).toBe(true);
-        const [url, opts] = fetch.mock.calls[0];
+        const [url, opts] = callArgs(fetch, 0);
         expect(url).toBe("http://h:1337/torrents?output_folder=%2Fmovies&paused=true");
         expect(opts.method).toBe("POST");
         expect(opts.body).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
@@ -24,7 +25,7 @@ describe("RqbitWebUI", () => {
         const torrent = makeFileTorrent();
         await build().sendTorrent(torrent, {});
 
-        const [, opts] = fetch.mock.calls[0];
+        const [, opts] = callArgs(fetch, 0);
         expect(opts.body).toBe(torrent.data);
     });
 
@@ -32,14 +33,14 @@ describe("RqbitWebUI", () => {
         const fetch = queueFetch(addOk());
         await build().sendTorrent(makeMagnetTorrent(), {});
 
-        expect(fetch.mock.calls[0][0]).toBe("http://h:1337/torrents?paused=false");
+        expect(callArgs(fetch, 0)[0]).toBe("http://h:1337/torrents?paused=false");
     });
 
     it("omits the Authorization header when no credentials are configured", async () => {
         const fetch = queueFetch(addOk());
         await build({ username: "", password: "" }).sendTorrent(makeMagnetTorrent(), {});
 
-        expect((fetch.mock.calls[0][1].headers as any).Authorization).toBeUndefined();
+        expect((callArgs(fetch, 0)[1].headers as any).Authorization).toBeUndefined();
     });
 
     it("reports the real status and body when the request fails", async () => {
