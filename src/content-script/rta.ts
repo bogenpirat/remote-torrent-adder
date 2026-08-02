@@ -54,7 +54,7 @@ function registerForms(linkRegexes: RegExp[]): void {
 }
 
 function isMagnetLink(url?: string): boolean {
-    return !!url && url.startsWith('magnet:');
+    return typeof url === 'string' && url.startsWith('magnet:');
 }
 
 function incrementCounter(): void {
