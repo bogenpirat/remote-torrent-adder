@@ -1,7 +1,7 @@
 
-export function observe(selector: string, callback: (element: any) => void): void {
+export function observe<T extends Element = Element>(selector: string, callback: (element: T) => void): void {
     const bind = (element: Element) => {
-        const bindableElement = element as Element & { __bound?: boolean };
+        const bindableElement = element as T & { __bound?: boolean };
         if (!bindableElement.__bound) {
             bindableElement.__bound = true;
             callback(bindableElement);

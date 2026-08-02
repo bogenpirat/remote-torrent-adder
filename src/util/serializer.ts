@@ -7,18 +7,18 @@ export function serializeSettings(settings: RTASettings): string {
 }
 
 export function deserializeSettings(serialized: string): RTASettings | null {
-    return deserializeObject(serialized);
+    return deserializeObject<RTASettings>(serialized);
 }
 
-export function serializeObject(obj: any): string {
+export function serializeObject<T>(obj: T): string {
     return JSON.stringify(obj, customReplacer);
 }
 
-export function deserializeObject(serialized: string): any {
+export function deserializeObject<T>(serialized: string): T | null {
     if (!serialized) {
         return null;
     }
-    return JSON.parse(serialized, customReviver);
+    return JSON.parse(serialized, customReviver) as T;
 }
 
 export async function convertTorrentToSerialized(torrent: Torrent): Promise<SerializedTorrent> {
@@ -36,18 +36,26 @@ export function convertSerializedToTorrent(serialized: SerializedTorrent): Torre
 }
 
 
-function customReplacer(_key: string, value: any): any {
+function customReplacer(_key: string, value: unknown): unknown {
     if (value instanceof RegExp) {
         return { __type: "RegExp", source: value.source, flags: value.flags };
     }
     return value;
 }
 
-function customReviver(_key: string, value: any): any {
-    if (value) {
-        if (value.__type === "RegExp") {
-            return new RegExp(value.source, value.flags);
-        }
+interface SerializedRegExp {
+    __type: "RegExp";
+    source: string;
+    flags: string;
+}
+
+function isSerializedRegExp(value: unknown): value is SerializedRegExp {
+    return typeof value === "object" && value !== null && (value as { __type?: unknown }).__type === "RegExp";
+}
+
+function customReviver(_key: string, value: unknown): unknown {
+    if (isSerializedRegExp(value)) {
+        return new RegExp(value.source, value.flags);
     }
     return value;
 }

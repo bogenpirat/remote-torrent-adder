@@ -24,7 +24,7 @@ export interface WebUISettings {
     addPaused: boolean;
     autoLabelDirSettings: Array<AutoLabelDirSetting>;
 
-    clientSpecificSettings: Record<string, any>;
+    clientSpecificSettings: Record<string, unknown>;
 }
 
 export class HttpError extends Error {

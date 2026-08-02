@@ -79,7 +79,7 @@ export class PorlaWebUI extends TorrentWebUI {
         };
     }
 
-    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, any> {
+    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {
         return {
             jsonrpc: "2.0",
             method: "torrents.add",
@@ -92,7 +92,7 @@ export class PorlaWebUI extends TorrentWebUI {
         };
     }
 
-    private async createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, any>> {
+    private async createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, unknown>> {
         return {
             jsonrpc: "2.0",
             method: "torrents.add",

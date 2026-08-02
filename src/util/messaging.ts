@@ -12,7 +12,10 @@ import {
     type IUpdateActionBadgeTextMessage,
     TestNotificationMessage,
     TestConnectionMessage,
-    type ITestConnectionMessage
+    type ITestConnectionMessage,
+    type ISaveSettingsMessage,
+    type ITestNotificationMessage,
+    type IMessagable
 } from "../models/messages";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
@@ -31,12 +34,11 @@ import { initiateWebUis } from "./webuis";
 
 const POPUP_PAGE = "popup/popup.html";
 
-
 export function registerMessageListener(): void {
-    chrome.runtime.onMessage.addListener((message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    chrome.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
         let willRespondAsync = false;
 
-        const finish = (payload?: any) => {
+        const finish = (payload?: unknown) => {
             try { sendResponse(payload); } catch { /* channel maybe closed */ }
         };
 
@@ -74,13 +76,21 @@ export function registerMessageListener(): void {
                 }
                 case SaveSettingsMessage.action: {
                     willRespondAsync = true;
-                    settingsProvider.saveSettings(deserializeSettings(message.settings)!)
+                    const saveSettingsMessage = message as ISaveSettingsMessage & { settings: string };
+                    settingsProvider.saveSettings(deserializeSettings(saveSettingsMessage.settings)!)
                         .then(() => finish({}))
                         .catch(respondWithError);
                     break;
                 }
                 case TestNotificationMessage.action: {
-                    showNotification(message.title, message.message, message.isFailed, message.popupDurationMs, message.playSound);
+                    const testNotificationMessage = message as ITestNotificationMessage;
+                    showNotification(
+                        testNotificationMessage.title,
+                        testNotificationMessage.message,
+                        testNotificationMessage.isFailed,
+                        testNotificationMessage.popupDurationMs,
+                        testNotificationMessage.playSound
+                    );
                     finish({});
                     break;
                 }

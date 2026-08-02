@@ -88,6 +88,6 @@ export interface ILinkCatchingConfig {
     linkCatchingRegexes: RegExp[];
 }
 
-interface IMessagable {
+export interface IMessagable {
     action: string;
 }

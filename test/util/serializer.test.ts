@@ -14,7 +14,7 @@ import { at } from "../helpers/assert";
 describe("serializeObject / deserializeObject", () => {
     it("preserves RegExp values across a round-trip", () => {
         const obj = { pattern: /foo.*bar/gi, plain: "x" };
-        const restored = deserializeObject(serializeObject(obj));
+        const restored = deserializeObject<typeof obj>(serializeObject(obj))!;
         expect(restored.pattern).toBeInstanceOf(RegExp);
         expect(restored.pattern.source).toBe("foo.*bar");
         expect(restored.pattern.flags).toBe("gi");
