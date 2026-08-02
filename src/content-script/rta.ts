@@ -37,7 +37,7 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
 }
 
 function registerLinks(linkRegexes: RegExp[]): void {
-    observe('a', (element) => {
+    observe<HTMLAnchorElement>('a', (element) => {
         if (element.href && (isMatchedByRegexes(element.href, linkRegexes) || isMagnetLink(element.href))) {
             registerAction(element, element.href);
         }
@@ -45,7 +45,7 @@ function registerLinks(linkRegexes: RegExp[]): void {
 }
 
 function registerForms(linkRegexes: RegExp[]): void {
-    observe('input,button', (element) => {
+    observe<HTMLInputElement | HTMLButtonElement>('input,button', (element) => {
         const form = element.form;
         if (form && form.action && (isMatchedByRegexes(form.action, linkRegexes) || isMagnetLink(form.action))) {
             registerAction(element, form.action);

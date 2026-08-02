@@ -79,7 +79,7 @@ export class FloodWebUI extends TorrentWebUI {
         };
     }
 
-    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, any> {
+    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {
         const tags = this.getLabel(config) ? [this.getLabel(config)] : [];
         return {
             urls: [magnetUri],
@@ -91,7 +91,7 @@ export class FloodWebUI extends TorrentWebUI {
         };
     }
 
-    private async createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, any>> {
+    private async createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, unknown>> {
         const tags = this.getLabel(config) ? [this.getLabel(config)] : [];
         return {
             files: [await blobToBase64(torrent.data as Blob)],
