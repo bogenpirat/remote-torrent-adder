@@ -53,7 +53,7 @@ function registerForms(linkRegexes: RegExp[]): void {
     });
 }
 
-function isMagnetLink(url?: string): boolean {
+function isMagnetLink(url: string): boolean {
     return typeof url === 'string' && url.startsWith('magnet:');
 }
 
