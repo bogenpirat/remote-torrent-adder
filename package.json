@@ -48,8 +48,8 @@
         "@types/node": "^26.1.2",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
-        "@vitejs/plugin-react": "^6.0.2",
-        "@vitest/coverage-v8": "^4.1.9",
+        "@vitejs/plugin-react": "^6.0.5",
+        "@vitest/coverage-v8": "^4.1.10",
         "buffer": "^6.0.3",
         "chokidar-cli": "^3.0.0",
         "concurrently": "^10.0.4",
@@ -67,7 +67,7 @@
         "tailwindcss-animate": "^1.0.7",
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.65.0",
-        "vite": "^8.0.16",
+        "vite": "^8.2.0",
         "vitest": "^4.1.9"
     },
     "dependencies": {
