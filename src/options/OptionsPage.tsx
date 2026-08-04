@@ -3,6 +3,7 @@ import { SettingsProvider } from "./SettingsContext";
 import WebUIsPage from "./pages/WebUIsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import LinkCatchingPage from "./pages/LinkCatchingPage";
+import IconClickPage from "./pages/IconClickPage";
 import AboutPage from "./pages/AboutPage";
 import ImportExportPage from "./pages/ImportExportPage";
 
@@ -14,6 +15,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: "webuis", title: "WebUIs", Content: WebUIsPage },
+  { id: "icon-click", title: "Icon Click", Content: IconClickPage },
   { id: "notifications", title: "Notifications", Content: NotificationsPage },
   { id: "link-catching", title: "Link Catching", Content: LinkCatchingPage },
   { id: "import-export", title: "Import/Export Settings", Content: ImportExportPage },
