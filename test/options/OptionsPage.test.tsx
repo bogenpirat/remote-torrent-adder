@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 // The tab panels each pull in the whole settings stack; this suite is about the
 // tablist itself, so they are replaced with markers.
 vi.mock("../../src/options/pages/WebUIsPage", () => ({ default: () => <div>WebUIs panel</div> }));
+vi.mock("../../src/options/pages/IconClickPage", () => ({ default: () => <div>Icon Click panel</div> }));
 vi.mock("../../src/options/pages/NotificationsPage", () => ({ default: () => <div>Notifications panel</div> }));
 vi.mock("../../src/options/pages/LinkCatchingPage", () => ({ default: () => <div>Link Catching panel</div> }));
 vi.mock("../../src/options/pages/ImportExportPage", () => ({ default: () => <div>Import Export panel</div> }));
@@ -15,7 +16,7 @@ vi.mock("../../src/options/SettingsContext", () => ({
 
 import OptionsPage from "../../src/options/OptionsPage";
 
-const tabNames = ["WebUIs", "Notifications", "Link Catching", "Import/Export Settings", "About"];
+const tabNames = ["WebUIs", "Icon Click", "Notifications", "Link Catching", "Import/Export Settings", "About"];
 
 describe("options tablist semantics", () => {
     it("exposes a labelled tablist with one tab per section", () => {
@@ -76,13 +77,13 @@ describe("switching tabs", () => {
 
         await userEvent.keyboard("{ArrowRight}");
 
-        expect(screen.getByRole("tab", { name: "Notifications" })).toHaveFocus();
-        expect(screen.getByText("Notifications panel")).toBeInTheDocument();
+        expect(screen.getByRole("tab", { name: "Icon Click" })).toHaveFocus();
+        expect(screen.getByText("Icon Click panel")).toBeInTheDocument();
     });
 
     it("moves to the previous tab with the left arrow", async () => {
         render(<OptionsPage />);
-        screen.getByRole("tab", { name: "Notifications" }).focus();
+        screen.getByRole("tab", { name: "Icon Click" }).focus();
 
         await userEvent.keyboard("{ArrowLeft}");
 

@@ -7,6 +7,8 @@ const { loadPopupData, submitTorrent } = vi.hoisted(() => ({
     submitTorrent: vi.fn(),
 }));
 vi.mock("../../src/popup/popup-data", () => ({ loadPopupData, submitTorrent }));
+vi.mock("../../src/popup/app/WebUiPickerView", () => ({ default: () => <div>WebUI picker view</div> }));
+vi.mock("../../src/popup/app/PageLinksView", () => ({ default: () => <div>Page links view</div> }));
 
 import Home from "../../src/popup/app/page";
 import type { PopupData } from "../../src/popup/popup-data";
@@ -31,6 +33,32 @@ beforeEach(() => {
     submitTorrent.mockReset();
     submitTorrent.mockResolvedValue(undefined);
     vi.spyOn(window, "close").mockImplementation(() => undefined);
+    window.history.replaceState(null, "", "/popup.html");
+});
+
+describe("mode routing", () => {
+    it("renders the buffered-torrent form when no mode is given", async () => {
+        loadPopupData.mockResolvedValue(null);
+        render(<Home />);
+
+        expect(await screen.findByText("Nothing to add")).toBeInTheDocument();
+    });
+
+    it("renders the WebUI picker when mode=picker", () => {
+        window.history.replaceState(null, "", "/popup.html?mode=picker");
+        render(<Home />);
+
+        expect(screen.getByText("WebUI picker view")).toBeInTheDocument();
+        expect(loadPopupData).not.toHaveBeenCalled();
+    });
+
+    it("renders the page links view when mode=links", () => {
+        window.history.replaceState(null, "", "/popup.html?mode=links");
+        render(<Home />);
+
+        expect(screen.getByText("Page links view")).toBeInTheDocument();
+        expect(loadPopupData).not.toHaveBeenCalled();
+    });
 });
 
 describe("popup states", () => {

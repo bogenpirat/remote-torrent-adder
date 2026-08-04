@@ -10,6 +10,10 @@ export const GetLinkCatchingConfig: IMessagable = {
     action: "getLinkCatchingConfig"
 }
 
+export const GetPageLinksMessage: IMessagable = {
+    action: "getPageLinks"
+}
+
 export const SaveSettingsMessage: IMessagable = {
     action: "saveSettings"
 }
@@ -86,6 +90,15 @@ export interface ITestConnectionMessage extends IMessagable {
 export interface ILinkCatchingConfig {
     linkCatchingEnabled: boolean;
     linkCatchingRegexes: RegExp[];
+}
+
+export interface IPageLinkInfo {
+    url: string;
+    label: string;
+}
+
+export interface IPageLinksResponse {
+    links: IPageLinkInfo[];
 }
 
 export interface IMessagable {

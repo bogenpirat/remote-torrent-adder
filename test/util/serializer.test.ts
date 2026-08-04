@@ -39,6 +39,7 @@ describe("serializeSettings / deserializeSettings", () => {
             notificationsSoundEnabled: false,
             linkCatchingEnabled: true,
             linkCatchingRegexes: [/\.torrent\b/, /action=download/],
+            iconClickAction: "openPrimaryWebUi",
             webuiSettings: [],
         };
         const restored = deserializeSettings(serializeSettings(settings))!;

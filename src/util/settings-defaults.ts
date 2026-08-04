@@ -12,6 +12,8 @@ export function getDefaultSettings(): RTASettings {
             /torrents\.php\?action=download/
         ],
 
+        iconClickAction: "openPrimaryWebUi",
+
         webuiSettings: [] // TODO: should probably add an empty one? or not? who knows, i sure don't
     };
 }

@@ -1,8 +1,12 @@
 import { observe } from './mutations';
+import { deriveLinkLabel, isMagnetLink } from './link-labels';
 import {deserializeObject} from '../util/serializer';
 import {
     GetLinkCatchingConfig,
+    GetPageLinksMessage,
     type ILinkCatchingConfig,
+    type IPageLinkInfo,
+    type IPageLinksResponse,
     type IPreAddTorrentMessage,
     type IUpdateActionBadgeTextMessage,
     UpdateActionBadgeText
@@ -12,10 +16,22 @@ import { isMatchedByRegexes } from '../util/utils';
 
 
 let numFoundLinks: number;
+let foundLinks: IPageLinkInfo[];
+let seenLinkUrls: Set<string>;
 loadSettingsAndRegisterActions();
+
+chrome.runtime.onMessage.addListener((message: { action?: string }, _sender, sendResponse: (response: IPageLinksResponse) => void) => {
+    if (message?.action === GetPageLinksMessage.action) {
+        sendResponse({ links: foundLinks });
+        return false;
+    }
+    return false;
+});
 
 function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     numFoundLinks = 0;
+    foundLinks = [];
+    seenLinkUrls = new Set<string>();
     chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
     chrome.runtime.sendMessage(GetLinkCatchingConfig, function (serializedConfig?: string) {
         if (chrome.runtime.lastError || !serializedConfig) {
@@ -53,10 +69,6 @@ function registerForms(linkRegexes: RegExp[]): void {
     });
 }
 
-function isMagnetLink(url: string): boolean {
-    return typeof url === 'string' && url.startsWith('magnet:');
-}
-
 function incrementCounter(): void {
     chrome.runtime.sendMessage({
         action: UpdateActionBadgeText.action,
@@ -64,8 +76,17 @@ function incrementCounter(): void {
     } as IUpdateActionBadgeTextMessage).then();
 }
 
+function recordFoundLink(element: Element, url: string): void {
+    if (seenLinkUrls.has(url)) {
+        return;
+    }
+    seenLinkUrls.add(url);
+    foundLinks.push({ url, label: deriveLinkLabel(element, url) });
+}
+
 function registerAction(element: Element, url: string): void {
     incrementCounter();
+    recordFoundLink(element, url);
     console.debug(`Registered action for element: ${element.tagName}, URL: ${url}`);
     element.addEventListener('click', (event: Event) => {
         const mouseEvent = event as MouseEvent;

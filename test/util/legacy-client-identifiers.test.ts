@@ -42,6 +42,7 @@ describe("migrateSettingsClientIdentifiers", () => {
         notificationsSoundEnabled: false,
         linkCatchingEnabled: true,
         linkCatchingRegexes: [],
+        iconClickAction: "openPrimaryWebUi",
         webuiSettings: clients.map((c, i) => makeWebUISettings({ id: `id-${i}`, client: c as Client })),
     });
 

@@ -1,6 +1,8 @@
 import { type WebUISettings } from "./webui";
 
 
+export type IconClickAction = "openPrimaryWebUi" | "showWebUiPicker" | "showPageLinks";
+
 export interface RTASettings {
     notificationsEnabled: boolean;
     notificationsDurationMs: number;
@@ -8,6 +10,8 @@ export interface RTASettings {
 
     linkCatchingEnabled: boolean;
     linkCatchingRegexes: RegExp[];
+
+    iconClickAction: IconClickAction;
 
     webuiSettings: WebUISettings[];
 }

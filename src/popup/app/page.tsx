@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { ComboBox } from '../components/ui/combobox';
 import { Button } from '../components/ui/button';
 import { Toggle } from '../components/ui/toggle';
+import Notice from './Notice';
+import WebUiPickerView from './WebUiPickerView';
+import PageLinksView from './PageLinksView';
 import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 
 type LoadState =
@@ -11,6 +14,18 @@ type LoadState =
   | { status: 'ready'; data: PopupData };
 
 export default function Home() {
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  if (mode === 'picker') {
+    return <WebUiPickerView />;
+  }
+  if (mode === 'links') {
+    return <PageLinksView />;
+  }
+
+  return <BufferedTorrentForm />;
+}
+
+function BufferedTorrentForm() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   useEffect(() => {
@@ -135,19 +150,6 @@ function AddTorrentForm({ data }: { data: PopupData }) {
             {submitting ? 'Adding…' : 'Add Torrent'}
           </Button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Notice({ title, children, tone }: { title: string; children: React.ReactNode; tone?: 'error' }) {
-  return (
-    <div className="h-full bg-background p-6">
-      <div className="max-w-sm mx-auto space-y-2 text-center">
-        <h1 className="text-xl font-bold text-foreground">{title}</h1>
-        <p className={tone === 'error' ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>
-          {children}
-        </p>
       </div>
     </div>
   );

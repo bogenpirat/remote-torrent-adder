@@ -20,7 +20,7 @@ import {
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
-import { updateBadgeText } from "./action";
+import { openActionPopup, POPUP_PAGE, updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { downloadTorrent } from "./download";
@@ -31,8 +31,6 @@ import { Settings } from "./settings";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
 
-
-const POPUP_PAGE = "popup/popup.html";
 
 export function registerMessageListener(): void {
     chrome.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
@@ -160,8 +158,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
             });
         } else {
             chrome.windows.update(windowId, { focused: true });
-            chrome.action.setPopup({ popup: POPUP_PAGE });
-            chrome.action.openPopup({ windowId: windowId }).then(() => chrome.action.setPopup({ popup: "" }));
+            openActionPopup(windowId);
         }
     } else {
         downloadAndAddTorrentToWebUi(webUi, message.url, null, message);

@@ -87,6 +87,8 @@ export function createChromeMock(): any {
 
         tabs: {
             create: vi.fn(() => Promise.resolve()),
+            query: vi.fn(() => Promise.resolve([])),
+            sendMessage: vi.fn(() => Promise.resolve(undefined)),
         },
 
         windows: {
