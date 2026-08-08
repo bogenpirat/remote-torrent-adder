@@ -17,13 +17,14 @@ import {
     type ITestNotificationMessage,
     type IMessagable
 } from "../models/messages";
+import { type RTASettings } from "../models/settings";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
 import { openActionPopup, POPUP_PAGE, updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
-import { downloadTorrent } from "./download";
+import { CloudflareChallengeError, downloadTorrent, type TorrentDownloadContext } from "./download";
 import { showNotification } from "./notifications";
 import { serializeSettings, serializeObject, deserializeSettings } from "./serializer";
 import { clearBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "./buffered-torrent";
@@ -101,9 +102,14 @@ export function registerMessageListener(): void {
                 }
                 case PreAddTorrentMessage.action: {
                     willRespondAsync = true;
+                    const preAddTorrentMessage = message as IPreAddTorrentMessage;
                     chrome.windows.getLastFocused().then(lastFocusedWindow => {
                         try {
-                            dispatchPreAddTorrent(message as IPreAddTorrentMessage, sender.tab?.windowId ?? lastFocusedWindow.id ?? 0);
+                            dispatchPreAddTorrent(
+                                preAddTorrentMessage,
+                                sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
+                                resolveDownloadContext(preAddTorrentMessage, sender)
+                            );
                             finish({});
                         } catch (e) { respondWithError(e); }
                     }).catch(respondWithError);
@@ -112,7 +118,12 @@ export function registerMessageListener(): void {
                 case AddTorrentMessage.action: {
                     willRespondAsync = true;
                     const addTorrentMessage = message as IAddTorrentMessage;
-                    addTorrentToWebUiById(addTorrentMessage.webUiId, addTorrentMessage.url, addTorrentMessage.config)
+                    addTorrentToWebUiById(
+                        addTorrentMessage.webUiId,
+                        addTorrentMessage.url,
+                        addTorrentMessage.config,
+                        resolveDownloadContext(addTorrentMessage, sender)
+                    )
                         .then(() => finish({}))
                         .catch(respondWithError);
                     break;
@@ -140,13 +151,29 @@ export function registerMessageListener(): void {
     });
 }
 
-export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, windowId: number): Promise<void> {
+export function resolveDownloadContext(message: IPreAddTorrentMessage, sender: chrome.runtime.MessageSender): TorrentDownloadContext {
+    const senderPageUrl = sender.tab ? sender.url ?? sender.tab.url ?? null : null;
+    return {
+        tabId: sender.tab?.id ?? message.tabId ?? null,
+        frameId: (sender.tab ? sender.frameId : message.frameId) ?? 0,
+        pageUrl: senderPageUrl ?? message.pageUrl ?? null
+    };
+}
+
+export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, windowId: number, context: TorrentDownloadContext = {}): Promise<void> {
     const settingsProvider = new Settings();
     const allWebUis = await getAllWebUis(settingsProvider);
     const webUiById = await getWebUiById(message.webUiId ?? "", settingsProvider);
     const webUi = webUiById ?? allWebUis[0] ?? null;
     if (webUi && webUi.settings.showPerTorrentConfigSelector) {
-        const torrent = await downloadTorrent(message.url);
+        let torrent: Torrent;
+        try {
+            torrent = await downloadTorrent(message.url, context);
+        } catch (error) {
+            console.error("Error downloading torrent:", error);
+            notifyDownloadFailure(error, await settingsProvider.loadSettings(), addTrailingSlash(webUi.createBaseUrl()));
+            return;
+        }
         await saveBufferedTorrent({ torrent, webUiSettings: webUi.settings });
         if (webUi.settings.useAlternativeLabelDirChooser) {
             chrome.windows.create({
@@ -161,14 +188,14 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
             openActionPopup(windowId);
         }
     } else {
-        downloadAndAddTorrentToWebUi(webUi, message.url, null, message);
+        downloadAndAddTorrentToWebUi(webUi, message.url, null, message, context);
     }
 }
 
 
-export async function addTorrentToWebUiById(webUiId: string, url: string, config: TorrentUploadConfig | null): Promise<void> {
+export async function addTorrentToWebUiById(webUiId: string, url: string, config: TorrentUploadConfig | null, context: TorrentDownloadContext = {}): Promise<void> {
     const webUi = await getWebUiById(webUiId, new Settings());
-    downloadAndAddTorrentToWebUi(webUi, url, config, { action: AddTorrentMessage.action, url, webUiId } as IPreAddTorrentMessage);
+    downloadAndAddTorrentToWebUi(webUi, url, config, { action: AddTorrentMessage.action, url, webUiId } as IPreAddTorrentMessage, context);
 }
 
 async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
@@ -196,10 +223,10 @@ async function getWebUiById(webUiId: string, settingsProvider: Settings): Promis
     return allWebUis.find(webUi => webUi.settings.id === webUiId) ?? null;
 }
 
-function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, config: TorrentUploadConfig | null, message: IPreAddTorrentMessage): void {
+function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, config: TorrentUploadConfig | null, message: IPreAddTorrentMessage, context: TorrentDownloadContext = {}): void {
     new Settings().loadSettings().then(settings => {
         if (webUi) {
-            downloadTorrent(url).then(torrent => {
+            downloadTorrent(url, context).then(torrent => {
                 const fallbackConfig: TorrentUploadConfig = {
                     addPaused: webUi.settings.addPaused,
                     dir: getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultDir ?? undefined,
@@ -209,12 +236,7 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, c
                 sendTorrentToWebUi(webUi, torrent, config ?? fallbackConfig);
             }).catch(error => {
                 console.error("Error downloading torrent:", error);
-                showNotification("Error downloading torrent",
-                            `Error: ${error}`,
-                            true,
-                            settings.notificationsDurationMs,
-                            settings.notificationsSoundEnabled,
-                            addTrailingSlash(webUi.createBaseUrl()));
+                notifyDownloadFailure(error, settings, addTrailingSlash(webUi.createBaseUrl()));
             });
         } else {
             console.error("No WebUI found for addTorrentMessage:", message);
@@ -225,6 +247,25 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, c
                         settings.notificationsSoundEnabled);
         }
     });
+}
+
+function notifyDownloadFailure(error: unknown, settings: RTASettings, webUiUrl: string): void {
+    if (error instanceof CloudflareChallengeError) {
+        showNotification("Cloudflare is blocking this download",
+            error.message,
+            true,
+            settings.notificationsDurationMs,
+            settings.notificationsSoundEnabled,
+            error.challengeUrl);
+        return;
+    }
+
+    showNotification("Error downloading torrent",
+        `Error: ${error}`,
+        true,
+        settings.notificationsDurationMs,
+        settings.notificationsSoundEnabled,
+        webUiUrl);
 }
 
 /**

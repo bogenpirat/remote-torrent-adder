@@ -2,8 +2,11 @@ import { observe } from './mutations';
 import { deriveLinkLabel, isMagnetLink } from './link-labels';
 import {deserializeObject} from '../util/serializer';
 import {
+    FetchTorrentInPageMessage,
     GetLinkCatchingConfig,
     GetPageLinksMessage,
+    type IFetchTorrentInPageMessage,
+    type IFetchTorrentInPageResponse,
     type ILinkCatchingConfig,
     type IPageLinkInfo,
     type IPageLinksResponse,
@@ -13,6 +16,7 @@ import {
 } from '../models/messages';
 import { PreAddTorrentMessage } from '../models/messages';
 import { isMatchedByRegexes } from '../util/utils';
+import { fetchTorrentInPage } from './torrent-fetch';
 
 
 let numFoundLinks: number;
@@ -20,10 +24,20 @@ let foundLinks: IPageLinkInfo[];
 let seenLinkUrls: Set<string>;
 loadSettingsAndRegisterActions();
 
-chrome.runtime.onMessage.addListener((message: { action?: string }, _sender, sendResponse: (response: IPageLinksResponse) => void) => {
+chrome.runtime.onMessage.addListener((
+    message: { action?: string },
+    _sender,
+    sendResponse: (response: IPageLinksResponse | IFetchTorrentInPageResponse) => void
+) => {
     if (message?.action === GetPageLinksMessage.action) {
         sendResponse({ links: foundLinks });
         return false;
+    }
+    if (message?.action === FetchTorrentInPageMessage.action) {
+        fetchTorrentInPage((message as IFetchTorrentInPageMessage).url)
+            .then(fetched => sendResponse({ fetched }))
+            .catch((error: unknown) => sendResponse({ error: (error as Error)?.message ?? String(error) }));
+        return true;
     }
     return false;
 });

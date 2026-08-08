@@ -6,7 +6,7 @@ import { GetPageLinksMessage, PreAddTorrentMessage } from "../../src/models/mess
 
 beforeEach(() => {
     vi.spyOn(window, "close").mockImplementation(() => undefined);
-    (chrome.tabs.query as any).mockResolvedValue([{ id: 42 }]);
+    (chrome.tabs.query as any).mockResolvedValue([{ id: 42, url: "https://tracker.org/browse" }]);
 });
 
 describe("PageLinksView", () => {
@@ -53,6 +53,9 @@ describe("PageLinksView", () => {
         expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
             action: PreAddTorrentMessage.action,
             url: "https://example.com/a.torrent",
+            tabId: 42,
+            frameId: 0,
+            pageUrl: "https://tracker.org/browse",
         });
         expect(window.close).toHaveBeenCalled();
     });

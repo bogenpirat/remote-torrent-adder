@@ -7,7 +7,10 @@ const { showNotification, downloadTorrent } = vi.hoisted(() => ({
     downloadTorrent: vi.fn(),
 }));
 vi.mock("../../src/util/notifications", () => ({ showNotification }));
-vi.mock("../../src/util/download", () => ({ downloadTorrent }));
+vi.mock("../../src/util/download", async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    downloadTorrent,
+}));
 
 import { registerMessageListener, dispatchPreAddTorrent } from "../../src/util/messaging";
 import {
@@ -23,6 +26,7 @@ import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { readBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
+import { CloudflareChallengeError } from "../../src/util/download";
 
 /** Registers the listener and returns it so tests can invoke it directly. */
 function getListener() {
@@ -108,7 +112,7 @@ describe("AddTorrent flow", () => {
         await dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url: "magnet:?x", config: {} });
         await new Promise((r) => setTimeout(r, 0));
 
-        expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x");
+        expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x", { tabId: null, frameId: 0, pageUrl: null });
         expect(showNotification).toHaveBeenCalled();
         expect(callArgs(showNotification, 0)[0]).toBe("Torrent added successfully");
     });
@@ -122,6 +126,37 @@ describe("AddTorrent flow", () => {
 
         expect(showNotification).toHaveBeenCalled();
         expect(callArgs(showNotification, 0)[0]).toBe("Error downloading torrent");
+    });
+
+    it("hands the download over to the tab the link was clicked in", async () => {
+        seedWebUi();
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+        (globalThis as any).fetch = vi.fn(() =>
+            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
+        );
+
+        await dispatch(
+            { action: AddTorrentMessage.action, webUiId: "w1", url: "https://tracker.org/get/1.torrent", config: {} },
+            { tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 },
+        );
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(downloadTorrent).toHaveBeenCalledWith("https://tracker.org/get/1.torrent", {
+            tabId: 9,
+            frameId: 3,
+            pageUrl: "https://tracker.org/browse",
+        });
+    });
+
+    it("points the notification at the tracker when Cloudflare challenges the download", async () => {
+        seedWebUi();
+        downloadTorrent.mockRejectedValue(new CloudflareChallengeError("https://tracker.org/get/1.torrent"));
+
+        await dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url: "https://tracker.org/get/1.torrent", config: {} });
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(callArgs(showNotification, 0)[0]).toBe("Cloudflare is blocking this download");
+        expect(callArgs(showNotification, 0)[5]).toBe("https://tracker.org/get/1.torrent");
     });
 
     it("persists updated labels and dirs for AddTorrentMessageWithLabelAndDir", async () => {
@@ -224,10 +259,30 @@ describe("dispatchPreAddTorrent", () => {
             Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
         );
 
-        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 1);
+        await dispatchPreAddTorrent(
+            { action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" },
+            1,
+            { tabId: 4, frameId: 0, pageUrl: "https://tracker.org/browse" },
+        );
         await new Promise((r) => setTimeout(r, 0));
 
-        expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x");
+        expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x", { tabId: 4, frameId: 0, pageUrl: "https://tracker.org/browse" });
+    });
+
+    it("notifies instead of opening the popup when the download fails", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockRejectedValue(new CloudflareChallengeError("https://tracker.org/get/1.torrent"));
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "https://tracker.org/get/1.torrent", webUiId: "w1" }, 7);
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(callArgs(showNotification, 0)[0]).toBe("Cloudflare is blocking this download");
+        expect(chrome.action.openPopup).not.toHaveBeenCalled();
+        expect(await readBufferedTorrent()).toBeNull();
     });
 
     it("buffers the torrent and opens the popup when the selector is enabled", async () => {

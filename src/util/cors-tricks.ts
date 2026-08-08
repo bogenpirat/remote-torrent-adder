@@ -90,6 +90,10 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
                             header: "Referer",
                             operation: "set",
                             value: referer
+                        },
+                        {
+                            header: "Origin",
+                            operation: "remove"
                         }
                     ]
                 },
