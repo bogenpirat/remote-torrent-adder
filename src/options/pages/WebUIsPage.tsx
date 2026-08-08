@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSettings } from "../SettingsContext";
 import ChipList from "../components/ChipList";
 import AutoLabelDirSettingsEditor from "../components/AutoLabelDirSettingsEditor";
+import ClientSpecificSettingsEditor from "../components/ClientSpecificSettingsEditor";
 import Select from "../components/Select";
 import { Client, ClientClassByClient, ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
@@ -414,6 +415,13 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
               <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
               <Toggle checked={webui.useAlternativeLabelDirChooser ?? false} onChange={v => onChange({ ...webui, useAlternativeLabelDirChooser: v })} label="Use alternative container (window instead of popup)" />
             </div>
+          )}
+          {webUiInstance && webUiInstance.clientSpecificSettingDescriptors.length > 0 && (
+            <ClientSpecificSettingsEditor
+              descriptors={webUiInstance.clientSpecificSettingDescriptors}
+              value={webui.clientSpecificSettings ?? {}}
+              onChange={clientSpecificSettings => onChange({ ...webui, clientSpecificSettings })}
+            />
           )}
           {webUiInstance?.isLabelSupported && (
             <>

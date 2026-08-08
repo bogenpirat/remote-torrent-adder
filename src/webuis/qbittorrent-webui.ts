@@ -1,5 +1,16 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+
+const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
+    {
+        key: "forceStart",
+        label: "Force start",
+        type: "boolean",
+        default: false,
+        perTorrent: true,
+        description: "Bypass the queueing system and start immediately. Needs WebAPI 2.11 or newer; older servers ignore it.",
+    },
+];
 
 export class QBittorrentWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
@@ -71,7 +82,15 @@ export class QBittorrentWebUI extends TorrentWebUI {
             body.append("stopped", addPaused.toString());
         }
 
+        if (this.getClientSpecific("forceStart", config)) {
+            body.append("forced", "true");
+        }
+
         return { method: "POST", body };
+    }
+
+    override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
+        return CLIENT_SPECIFIC_SETTINGS;
     }
 
     get isLabelSupported(): boolean {

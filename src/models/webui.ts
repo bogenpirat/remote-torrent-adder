@@ -27,6 +27,15 @@ export interface WebUISettings {
     clientSpecificSettings: Record<string, unknown>;
 }
 
+export interface ClientSpecificSettingDescriptor {
+    key: string;
+    label: string;
+    type: "boolean";
+    default: boolean;
+    perTorrent: boolean;
+    description?: string;
+}
+
 export class HttpError extends Error {
     constructor(public readonly status: number, public readonly body: string) {
         super(`HTTP error ${status}`);
@@ -63,6 +72,10 @@ export abstract class TorrentWebUI {
 
     get isConnectionTestSupported(): boolean {
         return true;
+    }
+
+    get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
+        return [];
     }
 
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
@@ -173,6 +186,14 @@ export abstract class TorrentWebUI {
 
     protected getAddPaused(config: TorrentUploadConfig): boolean | null {
         return config.addPaused ?? this.settings.addPaused ?? false;
+    }
+
+    protected getClientSpecific(key: string, config: TorrentUploadConfig): boolean {
+        const descriptor = this.clientSpecificSettingDescriptors.find(candidate => candidate.key === key);
+        return config.clientSpecificSettings?.[key]
+            ?? (this.settings.clientSpecificSettings?.[key] as boolean | undefined)
+            ?? descriptor?.default
+            ?? false;
     }
 
 }
