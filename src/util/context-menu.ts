@@ -2,6 +2,7 @@ import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
 import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
+import { type TorrentDownloadContext } from "./download";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./messaging";
 import { loadWebUis } from "./webuis";
 
@@ -66,6 +67,7 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
     }
 
     const url = onClickData.linkUrl ?? "";
+    const context = resolveDownloadContext(onClickData, tab);
 
     const [singleTarget] = targetWebUis;
     if (targetWebUis.length === 1 && singleTarget) {
@@ -74,11 +76,11 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
             webUiId: singleTarget.settings.id,
             url
         };
-        await dispatchPreAddTorrent(preAddTorrentMessage, await resolveWindowId(tab));
+        await dispatchPreAddTorrent(preAddTorrentMessage, await resolveWindowId(tab), context);
         return;
     }
 
-    targetWebUis.forEach(webUi => addTorrentToWebUiById(webUi.settings.id, url, null));
+    targetWebUis.forEach(webUi => addTorrentToWebUiById(webUi.settings.id, url, null, context));
 }
 
 function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): TorrentWebUI[] {
@@ -91,6 +93,14 @@ function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): Tor
     const index = Number.parseInt(menuItemId.slice(PER_SERVER_MENU_PREFIX.length), 10);
     const webUiAtIndex = Number.isInteger(index) ? allWebUis[index] : undefined;
     return webUiAtIndex ? [webUiAtIndex] : [];
+}
+
+function resolveDownloadContext(onClickData: OnClickData, tab?: Tab): TorrentDownloadContext {
+    return {
+        tabId: tab?.id ?? null,
+        frameId: onClickData.frameId ?? 0,
+        pageUrl: onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url ?? null
+    };
 }
 
 async function resolveWindowId(tab?: Tab): Promise<number> {

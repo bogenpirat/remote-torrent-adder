@@ -16,6 +16,7 @@ type LoadState =
 
 export default function PageLinksView() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [sourceTab, setSourceTab] = useState<{ tabId: number; pageUrl: string | null } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,6 +27,7 @@ export default function PageLinksView() {
           if (!cancelled) setState({ status: 'empty' });
           return;
         }
+        if (!cancelled) setSourceTab({ tabId: tab.id, pageUrl: tab.url ?? null });
         const response = (await chrome.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
           | IPageLinksResponse
           | undefined;
@@ -44,7 +46,13 @@ export default function PageLinksView() {
   }, []);
 
   const addLink = (url: string) => {
-    chrome.runtime.sendMessage({ action: PreAddTorrentMessage.action, url } as IPreAddTorrentMessage);
+    chrome.runtime.sendMessage({
+      action: PreAddTorrentMessage.action,
+      url,
+      tabId: sourceTab?.tabId ?? null,
+      frameId: 0,
+      pageUrl: sourceTab?.pageUrl ?? null,
+    } as IPreAddTorrentMessage);
     window.close();
   };
 

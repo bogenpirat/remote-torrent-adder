@@ -46,6 +46,10 @@ export const TestConnectionMessage: IMessagable = {
     action: "testConnection"
 }
 
+export const FetchTorrentInPageMessage: IMessagable = {
+    action: "fetchTorrentInPage"
+}
+
 export interface IAddTorrentMessage extends IPreAddTorrentMessage {
     webUiId: string;
     config: TorrentUploadConfig;
@@ -61,6 +65,28 @@ export interface IAddTorrentMessageWithLabelAndDir extends IMessagable {
 export interface IPreAddTorrentMessage extends IMessagable {
     url: string;
     webUiId?: string | null;
+    tabId?: number | null;
+    frameId?: number | null;
+    pageUrl?: string | null;
+}
+
+export interface IFetchTorrentInPageMessage extends IMessagable {
+    url: string;
+}
+
+export interface IFetchedTorrentFile {
+    ok: boolean;
+    status: number;
+    statusText: string;
+    contentType: string | null;
+    cfMitigated: string | null;
+    finalUrl: string;
+    base64: string;
+}
+
+export interface IFetchTorrentInPageResponse {
+    fetched?: IFetchedTorrentFile;
+    error?: string;
 }
 
 export interface IUpdateActionBadgeTextMessage extends IMessagable {

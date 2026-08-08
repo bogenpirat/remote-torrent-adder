@@ -58,6 +58,15 @@ describe("executeMethodWrappedWithReferer", () => {
         });
     });
 
+    it("also strips the extension origin from the request", async () => {
+        (chrome.declarativeNetRequest.getDynamicRules as any).mockResolvedValue([]);
+
+        await executeMethodWrappedWithReferer(async () => "result", "http://t/file", "http://t/page");
+
+        const addArg = (chrome.declarativeNetRequest.updateDynamicRules as any).mock.calls[0][0];
+        expect(addArg.addRules[0].action.requestHeaders[1]).toEqual({ header: "Origin", operation: "remove" });
+    });
+
     it("removes the referer rule even when the method throws", async () => {
         (chrome.declarativeNetRequest.getDynamicRules as any).mockResolvedValue([]);
         const failing = vi.fn(async () => {
