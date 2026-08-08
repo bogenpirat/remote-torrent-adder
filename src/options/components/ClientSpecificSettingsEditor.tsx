@@ -13,14 +13,13 @@ const ClientSpecificSettingsEditor: React.FC<ClientSpecificSettingsEditorProps> 
     <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>Client-specific settings</div>
     {descriptors.map(descriptor => (
       <div key={descriptor.key} style={{ marginBottom: 12 }}>
-        <Toggle
-          checked={(value[descriptor.key] as boolean | undefined) ?? descriptor.default}
-          onChange={v => onChange({ ...value, [descriptor.key]: v })}
-          label={descriptor.label}
-        />
-        {descriptor.description && (
-          <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginTop: 4 }}>{descriptor.description}</div>
-        )}
+        <span style={{ display: "inline-flex" }} title={descriptor.description}>
+          <Toggle
+            checked={(value[descriptor.key] as boolean | undefined) ?? descriptor.default}
+            onChange={v => onChange({ ...value, [descriptor.key]: v })}
+            label={descriptor.label}
+          />
+        </span>
       </div>
     ))}
   </div>
