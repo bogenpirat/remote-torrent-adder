@@ -12,8 +12,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
                 body
             });
-            const text = await response.text();
-            return this.toReachableResult(response.ok && text.trim() === "Ok.", response.status);
+            return this.toReachableResult(response.ok, response.status);
         } catch (error) {
             return this.toUnreachableResult(error);
         }
