@@ -6,7 +6,7 @@ This folder is the central source of truth for AI-assisted development on this p
 
 **Remote Torrent Adder** is a Chrome Manifest V3 browser extension. When a user clicks a `.torrent` or magnet link on any web page, the extension intercepts it, shows a popup for label/directory selection, then sends the torrent directly to a configured BitTorrent client WebUI — no local file download needed.
 
-Supported clients (12): ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementum, Transmission, Porla, Tixati, tTorrent, QNAP Download Station, rqbit.
+Supported clients (13): ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementum, Transmission, Porla, Tixati, tTorrent, QNAP Download Station, Synology Download Station, rqbit.
 
 ## Architecture Summary
 

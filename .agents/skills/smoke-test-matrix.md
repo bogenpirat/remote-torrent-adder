@@ -52,6 +52,7 @@ Tick the client off only if BOTH pass.
 | Tixati | | |
 | tTorrent | | |
 | QNAP Download Station | | |
+| Synology Download Station | | |
 | rqbit | | |
 
 ### C. Settings & overrides

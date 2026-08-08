@@ -49,6 +49,7 @@ Chrome doesn't let extensions hand a downloaded `.torrent` file over to a deskto
 | [rqbit](https://github.com/ikatson/rqbit) | |
 | [tTorrent](https://ttorrent.org/) | Android |
 | QNAP Download Station | |
+| [Synology Download Station](https://www.synology.com/en-global/dsm/packages/DownloadStation) | DSM 6 & 7; no 2FA yet |
 
 Missing your client? [Open an issue](https://github.com/bogenpirat/remote-torrent-adder/issues) — or better yet, [add it yourself](#-contributing); client integrations are small, self-contained classes.
 
