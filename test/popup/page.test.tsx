@@ -24,6 +24,7 @@ function popupData(overrides: Partial<PopupData> = {}): PopupData {
         auto: { label: false, directory: false },
         labelOptions: ["movies", "tv"],
         directoryOptions: ["/data", "/other"],
+        clientSpecific: { descriptors: [], initial: {} },
         ...overrides,
     };
 }
@@ -126,6 +127,29 @@ describe("control visibility", () => {
         expect(screen.getByText("Directory")).toBeInTheDocument();
         expect(screen.queryByText("Start Paused")).not.toBeInTheDocument();
     });
+
+    it("renders a toggle for each per-torrent client-specific setting", async () => {
+        loadPopupData.mockResolvedValue(popupData({
+            clientSpecific: {
+                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
+                initial: { forceStart: false },
+            },
+        }));
+
+        render(<Home />);
+        await screen.findByRole("button", { name: "Add Torrent" });
+
+        expect(screen.getByText("Force start")).toBeInTheDocument();
+    });
+
+    it("renders no client-specific toggles when the client declares none", async () => {
+        loadPopupData.mockResolvedValue(popupData());
+
+        render(<Home />);
+        await screen.findByRole("button", { name: "Add Torrent" });
+
+        expect(screen.queryByText("Force start")).not.toBeInTheDocument();
+    });
 });
 
 describe("submitting", () => {
@@ -141,6 +165,22 @@ describe("submitting", () => {
         expect(request.label).toBe("movies");
         expect(request.directory).toBe("/data");
         expect(window.close).toHaveBeenCalled();
+    });
+
+    it("sends the toggled client-specific value", async () => {
+        loadPopupData.mockResolvedValue(popupData({
+            clientSpecific: {
+                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
+                initial: { forceStart: false },
+            },
+        }));
+        render(<Home />);
+
+        await userEvent.click(await screen.findByText("Force start"));
+        await userEvent.click(screen.getByRole("button", { name: "Add Torrent" }));
+
+        await waitFor(() => expect(submitTorrent).toHaveBeenCalled());
+        expect(callArgs(submitTorrent, 0)[0].clientSpecific).toEqual({ forceStart: true });
     });
 
     it("moves the chosen value to the front so it is offered first next time", async () => {

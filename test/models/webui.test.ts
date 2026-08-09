@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TorrentWebUI } from "../../src/models/webui";
-import type { TorrentAddingResult } from "../../src/models/webui";
+import type { ClientSpecificSettingDescriptor, TorrentAddingResult } from "../../src/models/webui";
 import type { TorrentUploadConfig } from "../../src/models/torrent";
 import { makeWebUISettings } from "../helpers/fixtures";
 
@@ -12,6 +12,13 @@ class TestWebUI extends TorrentWebUI {
     isLabelSupported = true;
     isDirSupported = true;
     isAddPausedSupported = true;
+
+    override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
+        return [
+            { key: "flagOn", label: "Flag on", type: "boolean", default: true, perTorrent: true },
+            { key: "flagOff", label: "Flag off", type: "boolean", default: false, perTorrent: false },
+        ];
+    }
 
     async sendTorrent(): Promise<TorrentAddingResult> {
         return { success: true, httpResponseCode: 200, httpResponseBody: null };
@@ -25,6 +32,9 @@ class TestWebUI extends TorrentWebUI {
     }
     publicGetAddPaused(config: TorrentUploadConfig) {
         return this.getAddPaused(config);
+    }
+    publicGetClientSpecific(key: string, config: TorrentUploadConfig) {
+        return this.getClientSpecific(key, config);
     }
     publicAddLeadingAndTrim(part: string) {
         return this.addLeadingAndTrimTrailingSlashes(part);
@@ -103,6 +113,31 @@ describe("config resolution helpers", () => {
         expect(build({ addPaused: false }).publicGetAddPaused({ addPaused: true })).toBe(true);
         expect(build({ addPaused: true }).publicGetAddPaused({})).toBe(true);
         expect(build({ addPaused: false }).publicGetAddPaused({})).toBe(false);
+    });
+
+    it("getClientSpecific prefers config, then the stored setting, then the declared default", () => {
+        const stored = { clientSpecificSettings: { flagOff: true } };
+        expect(build(stored).publicGetClientSpecific("flagOff", { clientSpecificSettings: { flagOff: false } })).toBe(false);
+        expect(build(stored).publicGetClientSpecific("flagOff", {})).toBe(true);
+        expect(build({ clientSpecificSettings: {} }).publicGetClientSpecific("flagOff", {})).toBe(false);
+        expect(build({ clientSpecificSettings: {} }).publicGetClientSpecific("flagOn", {})).toBe(true);
+    });
+
+    it("getClientSpecific lets a stored false override a default of true", () => {
+        expect(build({ clientSpecificSettings: { flagOn: false } }).publicGetClientSpecific("flagOn", {})).toBe(false);
+    });
+
+    it("getClientSpecific returns false for a key no descriptor declares", () => {
+        expect(build({ clientSpecificSettings: {} }).publicGetClientSpecific("unknown", {})).toBe(false);
+    });
+
+    it("getClientSpecific tolerates settings saved before clientSpecificSettings existed", () => {
+        const settings = makeWebUISettings();
+        delete (settings as Partial<typeof settings>).clientSpecificSettings;
+        const ui = new TestWebUI(settings);
+
+        expect(ui.publicGetClientSpecific("flagOn", {})).toBe(true);
+        expect(ui.publicGetClientSpecific("flagOff", {})).toBe(false);
     });
 });
 

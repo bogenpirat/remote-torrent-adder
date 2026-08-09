@@ -63,6 +63,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
   const [label, setLabel] = useState(data.initial.label);
   const [directory, setDirectory] = useState(data.initial.directory);
   const [paused, setPaused] = useState(data.initial.paused);
+  const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
   const [labelOptions, setLabelOptions] = useState(data.labelOptions);
   const [directoryOptions, setDirectoryOptions] = useState(data.directoryOptions);
   const [submitting, setSubmitting] = useState(false);
@@ -77,6 +78,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
         label,
         directory,
         paused,
+        clientSpecific,
         // Whatever was just used moves to the front, so it is offered first next time.
         labelOptions: moveToFront(label, labelOptions),
         directoryOptions: moveToFront(directory, directoryOptions),
@@ -135,6 +137,15 @@ function AddTorrentForm({ data }: { data: PopupData }) {
           {data.supports.paused && (
             <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
           )}
+
+          {data.clientSpecific.descriptors.map(descriptor => (
+            <Toggle
+              key={descriptor.key}
+              label={descriptor.label}
+              checked={clientSpecific[descriptor.key] ?? descriptor.default}
+              onChange={value => setClientSpecific(previous => ({ ...previous, [descriptor.key]: value }))}
+            />
+          ))}
 
           {submitError && (
             <p role="alert" className="text-xs text-destructive">{submitError}</p>

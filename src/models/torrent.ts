@@ -16,4 +16,5 @@ export interface TorrentUploadConfig {
     dir?: string;
     label?: string;
     addPaused?: boolean;
+    clientSpecificSettings?: Record<string, boolean>;
 }

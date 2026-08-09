@@ -1,5 +1,16 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+
+const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
+    {
+        key: "dontAddNamePath",
+        label: "Don't add name path",
+        type: "boolean",
+        default: false,
+        perTorrent: false,
+        description: "Put content directly in the destination directory instead of letting rTorrent append the torrent's own folder name.",
+    },
+];
 
 export class RuTorrentWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
@@ -38,8 +49,12 @@ export class RuTorrentWebUI extends TorrentWebUI {
             targetDir ? `dir_edit=${encodeURIComponent(targetDir)}&` : "",
             targetLabel ? `label=${encodeURIComponent(targetLabel)}&` : "",
             addPaused ? "torrents_start_stopped=1&" : "",
-            this._settings.clientSpecificSettings["dontAddNamePath"] ? "not_add_path=1&" : "", // TODO: what
+            this.getClientSpecific("dontAddNamePath", config) ? "not_add_path=1&" : "",
         ].join("");
+    }
+
+    override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
+        return CLIENT_SPECIFIC_SETTINGS;
     }
 
     createPayloadForMagnet(magnetUri: string): string {
