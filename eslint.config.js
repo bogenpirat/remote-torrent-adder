@@ -60,6 +60,19 @@ export default tseslint.config(
     },
 
     {
+        files: ['e2e/**/*.ts'],
+        languageOptions: {
+            globals: { ...globals.node, ...globals.browser, chrome: 'readonly' },
+        },
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'off',
+            // Playwright's fixture signature is `async ({}, use) => {}`.
+            'no-empty-pattern': 'off',
+        },
+    },
+
+    {
         files: ['**/*.{js,cjs,mjs}'],
         extends: [tseslint.configs.disableTypeChecked],
         languageOptions: {

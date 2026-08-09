@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import Notice from './Notice';
 import { WebUIFactory } from '../../models/clients';
-import { GetSettingsMessage } from '../../models/messages';
 import { deserializeSettings } from '../../util/serializer';
+import { requestSerializedSettings } from '../../util/request-settings';
 import { addTrailingSlash } from '../../util/utils';
 
 interface WebUiOption {
@@ -21,7 +21,7 @@ export default function WebUiPickerView() {
 
   useEffect(() => {
     let cancelled = false;
-    chrome.runtime.sendMessage(GetSettingsMessage, (serialized?: string) => {
+    void requestSerializedSettings().then((serialized) => {
       if (cancelled) return;
       const settings = serialized ? deserializeSettings(serialized) : null;
       const options: WebUiOption[] = (settings?.webuiSettings ?? [])

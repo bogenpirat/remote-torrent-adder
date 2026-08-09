@@ -1,6 +1,6 @@
 # Skill: Testing the Extension
 
-Testing happens at two levels: an automated vitest suite that covers logic and components, and a manual Chrome pass that covers what a test runner structurally cannot.
+Testing happens at three levels: an automated vitest suite that covers logic and components, a Playwright suite that boots real headless Chrome with the extension loaded, and a manual Chrome pass that covers what neither runner can.
 
 ## Automated tests
 
@@ -44,11 +44,38 @@ npm run lint
 npm test
 ```
 
-`npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three plus `npm audit --audit-level=high` in a `verify` job gating both build jobs.
+`npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three plus `npm audit --audit-level=high` in a `verify` job gating both build jobs. `npm run test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
+
+## End-to-end tests in headless Chrome
+
+The suite lives in `e2e/` and runs on Playwright, separately from vitest.
+
+```bash
+npm run build         # required first: the suite loads dist/ as an unpacked extension
+npm run test:e2e
+npm run test:e2e:headed   # watch it happen
+npm run test:e2e:ui       # Playwright's UI mode
+```
+
+First-time setup needs `npx playwright install chromium`. Extensions only load in headless mode under `channel: 'chromium'` (the default headless shell cannot load them), which the fixture already sets.
+
+What it covers: the service worker booting on an empty, a configured, a corrupt and a half-configured profile; the options page and every tab; the popup in all three modes; content-script link catching on a real page; and a full add-torrent round-trip against a stub qBittorrent server.
+
+| Piece | Purpose |
+|---|---|
+| `e2e/fixtures/extension.ts` | Launches the profile, exposes the worker, seeds storage, restarts the browser |
+| `e2e/fixtures/console-collector.ts` | Captures console output from every surface and decides what counts as a failure |
+| `e2e/fixtures/fake-qbittorrent.ts` | Stub client that records the requests it receives |
+| `e2e/fixtures/static-site.ts` | Serves a page with torrent links and a real bencoded `.torrent` |
+
+Two things to know before adding a spec:
+
+- **Seeding races the boot.** On a fresh profile the worker writes its own defaults. `launch()` waits that out, so `seedSettings` is safe, but a seed followed immediately by a browser close can still be overtaken. Use `extension.restart()` (which closes and reopens the same profile) rather than `chrome.runtime.reload()` — a reloaded extension has no pending event, so Chrome leaves its worker dormant and the test hangs.
+- **Only errors fail.** The extension logs plenty at `debug`/`log` level, and a few warnings are normal (a cold worker, the service-worker download fallback). `console-collector.ts` fails on any `error`, any page exception, and any warning not on its allowlist. Adding to that allowlist needs a source reference; a spec that legitimately expects an error passes it to `unexpectedProblems([/pattern/])` instead.
 
 ## Manual testing in Chrome
 
-The automated suite cannot cover real link interception in a live page, a real round-trip to a running client, desktop notifications, or service-worker lifecycle. Those need a browser.
+Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser.
 
 For a structured pre-release or post-refactor pass, use `smoke-test-matrix.md`. The scenarios below are the quick version.
 

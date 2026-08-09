@@ -30,6 +30,29 @@ describe("registerCorsCircumventionForWebUis", () => {
         const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
         expect(arg.addRules).toHaveLength(0);
     });
+
+    it("skips half-configured webuis whose host is still blank", async () => {
+        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
+        await registerCorsCircumventionForWebUis([
+            webUi({ host: "", port: 80 }),
+            webUi({ host: "   ", port: 8080 }),
+        ]);
+
+        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
+        expect(arg.addRules).toHaveLength(0);
+    });
+
+    it("still registers valid webuis alongside a blank-host sibling", async () => {
+        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
+        await registerCorsCircumventionForWebUis([
+            webUi({ host: "", port: 80 }),
+            webUi({ host: "127.0.0.1", port: 8080 }),
+        ]);
+
+        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
+        expect(arg.addRules).toHaveLength(1);
+        expect(arg.addRules[0].condition.urlFilter).toBe("|http://127.0.0.1:8080*");
+    });
 });
 
 describe("executeMethodWrappedWithReferer", () => {

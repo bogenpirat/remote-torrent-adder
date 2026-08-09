@@ -1,5 +1,16 @@
 import { type TorrentWebUI } from "../models/webui";
 
+function hasUsableHost(baseUrl: string): boolean {
+    if (!baseUrl) {
+        return false;
+    }
+    try {
+        return new URL(baseUrl).hostname !== "";
+    } catch {
+        return false;
+    }
+}
+
 export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI[]): Promise<void> {
     const oldRuleIds = (await chrome.declarativeNetRequest.getSessionRules())
         .map(rule => rule.id);
@@ -7,7 +18,7 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
 
     allWebUis.forEach((webUi, index) => {
         const webUiBaseUrl = webUi.createBaseUrl();
-        if (webUiBaseUrl) {
+        if (hasUsableHost(webUiBaseUrl)) {
             const rule: chrome.declarativeNetRequest.Rule = {
                 id: index + 1,
                 priority: 100,
