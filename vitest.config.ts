@@ -14,7 +14,6 @@ export default defineConfig({
             include: ["src/**/*.{ts,tsx}"],
             exclude: [
                 "src/**/*.d.ts",
-                "src/service_worker.ts",
                 "src/notifications/offscreen.ts",
             ],
             reporter: ["text", "html"],
