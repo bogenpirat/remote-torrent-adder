@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { RTASettings } from "../models/settings";
-import { GetSettingsMessage, SaveSettingsMessage } from "../models/messages";
+import { SaveSettingsMessage } from "../models/messages";
 import { deserializeSettings, serializeSettings } from "../util/serializer";
+import { requestSerializedSettings } from "../util/request-settings";
 
 interface SettingsContextType {
   settings: RTASettings | null;
@@ -18,11 +19,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Fetch settings from service worker on mount
   useEffect(() => {
-    chrome.runtime.sendMessage(GetSettingsMessage, (serializedSettings) => {
-      const settings: RTASettings | null = deserializeSettings(serializedSettings);
+    let cancelled = false;
+    void requestSerializedSettings().then((serializedSettings) => {
+      if (cancelled) return;
+      const settings: RTASettings | null = serializedSettings ? deserializeSettings(serializedSettings) : null;
       setSettings(settings);
       setLoading(false);
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Save settings to service worker whenever they change

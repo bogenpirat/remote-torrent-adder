@@ -30,6 +30,7 @@
   "include": [
     "src/**/*",
     "test/**/*",
+    "e2e/**/*",
     "scripts/**/*",
     "vite.config.ts",
     "vitest.config.ts",

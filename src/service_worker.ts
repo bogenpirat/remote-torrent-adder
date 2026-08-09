@@ -41,9 +41,17 @@ void refreshCorsCircumvention();
 
 
 async function rebuildContextMenu(): Promise<void> {
-    await refreshContextMenu(await loadWebUis());
+    try {
+        await refreshContextMenu(await loadWebUis());
+    } catch (error) {
+        console.error("Failed to rebuild the context menu", error);
+    }
 }
 
 async function refreshCorsCircumvention(): Promise<void> {
-    await registerCorsCircumventionForWebUis(await loadWebUis());
+    try {
+        await registerCorsCircumventionForWebUis(await loadWebUis());
+    } catch (error) {
+        console.error("Failed to refresh CORS circumvention rules", error);
+    }
 }
