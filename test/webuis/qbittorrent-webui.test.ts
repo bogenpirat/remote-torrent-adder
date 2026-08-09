@@ -31,6 +31,41 @@ describe("QBittorrentWebUI", () => {
         expect(body.get("stopped")).toBe("true");
     });
 
+    it("omits the forced flag by default", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Ok." }));
+        await build().sendTorrent(makeMagnetTorrent(), {});
+
+        expect((callArgs(fetch, 1)[1].body as FormData).get("forced")).toBeNull();
+    });
+
+    it("sends the forced flag when force start is enabled for the client", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Ok." }));
+        await build({ clientSpecificSettings: { forceStart: true } }).sendTorrent(makeMagnetTorrent(), {});
+
+        expect((callArgs(fetch, 1)[1].body as FormData).get("forced")).toBe("true");
+    });
+
+    it("lets the per-torrent config turn force start on for a client that has it off", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Ok." }));
+        await build().sendTorrent(makeMagnetTorrent(), { clientSpecificSettings: { forceStart: true } });
+
+        expect((callArgs(fetch, 1)[1].body as FormData).get("forced")).toBe("true");
+    });
+
+    it("lets the per-torrent config turn force start off for a client that has it on", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200 }), mockResponse({ status: 200, body: "Ok." }));
+        await build({ clientSpecificSettings: { forceStart: true } })
+            .sendTorrent(makeMagnetTorrent(), { clientSpecificSettings: { forceStart: false } });
+
+        expect((callArgs(fetch, 1)[1].body as FormData).get("forced")).toBeNull();
+    });
+
+    it("declares force start as a per-torrent client-specific setting", () => {
+        expect(build().clientSpecificSettingDescriptors).toEqual([
+            expect.objectContaining({ key: "forceStart", type: "boolean", default: false, perTorrent: true }),
+        ]);
+    });
+
     it("reports failure with the real status when authentication fails", async () => {
         queueFetch(mockResponse({ status: 403, body: "Forbidden" }));
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({

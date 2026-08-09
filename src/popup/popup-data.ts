@@ -1,7 +1,7 @@
 import { WebUIFactory } from "../models/clients";
 import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir } from "../models/messages";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type WebUISettings } from "../models/webui";
+import { type ClientSpecificSettingDescriptor, type WebUISettings } from "../models/webui";
 import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
 import { readBufferedTorrent } from "../util/buffered-torrent";
 
@@ -32,6 +32,11 @@ export interface PopupData {
     };
     labelOptions: string[];
     directoryOptions: string[];
+    /** Extra options the selected client understands and offers per torrent. */
+    clientSpecific: {
+        descriptors: ReadonlyArray<ClientSpecificSettingDescriptor>;
+        initial: Record<string, boolean>;
+    };
 }
 
 /** Resolves the pending torrent, or null when there is nothing waiting to be added. */
@@ -48,6 +53,8 @@ export async function loadPopupData(): Promise<PopupData | null> {
     // the service worker compute it and ship the result across a message.
     const autoLabel = getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings);
     const autoDir = getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings);
+
+    const clientSpecificDescriptors = (webUi?.clientSpecificSettingDescriptors ?? []).filter(descriptor => descriptor.perTorrent);
 
     return {
         torrent,
@@ -68,6 +75,13 @@ export async function loadPopupData(): Promise<PopupData | null> {
         },
         labelOptions: webUiSettings.labels,
         directoryOptions: webUiSettings.dirs,
+        clientSpecific: {
+            descriptors: clientSpecificDescriptors,
+            initial: Object.fromEntries(clientSpecificDescriptors.map(descriptor => [
+                descriptor.key,
+                (webUiSettings.clientSpecificSettings?.[descriptor.key] as boolean | undefined) ?? descriptor.default,
+            ])),
+        },
     };
 }
 
@@ -78,6 +92,7 @@ export interface AddTorrentRequest {
     paused: boolean;
     labelOptions: string[];
     directoryOptions: string[];
+    clientSpecific: Record<string, boolean>;
 }
 
 /**
@@ -93,6 +108,7 @@ export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
             label: request.label,
             dir: request.directory,
             addPaused: request.paused,
+            clientSpecificSettings: request.clientSpecific,
         } satisfies TorrentUploadConfig,
         labels: request.labelOptions,
         directories: request.directoryOptions,

@@ -18,7 +18,16 @@ export function registerContextMenuClickListener(): void {
     });
 }
 
-export async function refreshContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
+let pendingRefresh: Promise<void> = Promise.resolve();
+
+export function refreshContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
+    pendingRefresh = pendingRefresh
+        .catch(() => undefined)
+        .then(() => rebuildContextMenu(allWebUis));
+    return pendingRefresh;
+}
+
+async function rebuildContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
     await chrome.contextMenus.removeAll();
 
     createMenuItem({

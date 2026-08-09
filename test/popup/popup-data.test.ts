@@ -103,6 +103,34 @@ describe("loadPopupData", () => {
         await park({ addPaused: true });
         expect((await loadPopupData())!.initial.paused).toBe(true);
     });
+
+    it("offers the client's per-torrent client-specific settings", async () => {
+        await park();
+
+        const { descriptors, initial } = (await loadPopupData())!.clientSpecific;
+        expect(descriptors.map(descriptor => descriptor.key)).toEqual(["forceStart"]);
+        expect(initial).toEqual({ forceStart: false });
+    });
+
+    it("seeds a client-specific setting from the stored per-client value", async () => {
+        await park({ clientSpecificSettings: { forceStart: true } });
+
+        expect((await loadPopupData())!.clientSpecific.initial).toEqual({ forceStart: true });
+    });
+
+    it("omits client-specific settings the client does not offer per torrent", async () => {
+        await park({ client: Client.RuTorrentWebUI });
+
+        expect((await loadPopupData())!.clientSpecific.descriptors).toEqual([]);
+    });
+
+    it("offers nothing for a client that declares no client-specific settings", async () => {
+        await park({ client: Client.TransmissionWebUI });
+
+        const { descriptors, initial } = (await loadPopupData())!.clientSpecific;
+        expect(descriptors).toEqual([]);
+        expect(initial).toEqual({});
+    });
 });
 
 describe("submitTorrent", () => {
@@ -113,6 +141,7 @@ describe("submitTorrent", () => {
         paused: true,
         labelOptions: ["movies", "tv"],
         directoryOptions: ["/data"],
+        clientSpecific: { forceStart: true },
     };
 
     it("sends the choices without the torrent, which stays in IndexedDB", async () => {
@@ -121,7 +150,7 @@ describe("submitTorrent", () => {
         const message = callArgs(chrome.runtime.sendMessage as any, 0)[0];
         expect(message.action).toBe(AddTorrentMessageWithLabelAndDir.action);
         expect(message.webUiId).toBe("w1");
-        expect(message.config).toEqual({ label: "movies", dir: "/data", addPaused: true });
+        expect(message.config).toEqual({ label: "movies", dir: "/data", addPaused: true, clientSpecificSettings: { forceStart: true } });
         expect(message.labels).toEqual(["movies", "tv"]);
         expect(message.directories).toEqual(["/data"]);
         expect(message).not.toHaveProperty("serializedTorrent");
@@ -159,6 +188,7 @@ describe("message payload", () => {
             paused: false,
             labelOptions: [],
             directoryOptions: [],
+            clientSpecific: {},
         });
 
         const serialized = JSON.stringify(callArgs(chrome.runtime.sendMessage as any, 0)[0]);

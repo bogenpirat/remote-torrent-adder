@@ -41,6 +41,21 @@ describe("RuTorrentWebUI", () => {
         expect(callArgs(fetch, 0)[0]).toContain("not_add_path=1");
     });
 
+    it("omits not_add_path for settings saved before clientSpecificSettings existed", async () => {
+        const settings = makeWebUISettings({ host: "h", port: 80 });
+        delete (settings as Partial<typeof settings>).clientSpecificSettings;
+        const fetch = queueFetch(mockResponse({ status: 200, body: "addTorrentSuccess" }));
+
+        await new RuTorrentWebUI(settings).sendTorrent(makeMagnetTorrent(), {});
+        expect(callArgs(fetch, 0)[0]).not.toContain("not_add_path=1");
+    });
+
+    it("declares don't-add-name-path as a client-only setting", () => {
+        expect(build().clientSpecificSettingDescriptors).toEqual([
+            expect.objectContaining({ key: "dontAddNamePath", default: false, perTorrent: false }),
+        ]);
+    });
+
     it("treats a success in the response url as success", async () => {
         queueFetch(mockResponse({ status: 200, body: "", url: "http://h/x?result[]=Success" }));
         const result = await build().sendTorrent(makeMagnetTorrent(), {});
