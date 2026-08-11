@@ -81,7 +81,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Download the built extension
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: chrome-extension-dist
           path: dist
