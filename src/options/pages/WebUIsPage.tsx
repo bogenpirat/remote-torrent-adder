@@ -595,6 +595,7 @@ export default function WebUIsPage() {
       <div style={{ flex: 1, minWidth: 0 }}>
         {selected ? (
           <WebUIDetail
+            key={selected.id}
             webui={selected}
             onChange={updated => handleChange(selected.id, updated)}
             onRemove={() => handleRemove(selected.id)}
