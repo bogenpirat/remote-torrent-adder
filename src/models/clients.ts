@@ -10,6 +10,7 @@ import { PorlaWebUI } from "../webuis/porla-webui";
 import { TixatiWebUI } from "../webuis/tixati-webui";
 import { TTorrentWebUI } from "../webuis/ttorrent-webui";
 import { QNAPDownloadStationWebUI } from "../webuis/qnapdownloadstation-webui";
+import { SynologyDownloadStationWebUI } from "../webuis/synologydownloadstation-webui";
 import { RqbitWebUI } from "../webuis/rqbit-webui";
 
 /**
@@ -31,6 +32,7 @@ export enum Client {
     TTorrentWebUI = "ttorrent",
     PorlaWebUI = "porla",
     QNAPDownloadStationWebUI = "qnap-download-station",
+    SynologyDownloadStationWebUI = "synology-download-station",
     RqbitWebUI = "rqbit",
 }
 
@@ -50,6 +52,7 @@ export const ClientDisplayName: Record<Client, string> = {
     [Client.TTorrentWebUI]: "tTorrent",
     [Client.PorlaWebUI]: "Porla",
     [Client.QNAPDownloadStationWebUI]: "QNAP Download Station",
+    [Client.SynologyDownloadStationWebUI]: "Synology Download Station",
     [Client.RqbitWebUI]: "rqbit",
 };
 
@@ -67,6 +70,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
     [Client.TTorrentWebUI]: TTorrentWebUI,
     [Client.PorlaWebUI]: PorlaWebUI,
     [Client.QNAPDownloadStationWebUI]: QNAPDownloadStationWebUI,
+    [Client.SynologyDownloadStationWebUI]: SynologyDownloadStationWebUI,
     [Client.RqbitWebUI]: RqbitWebUI,
 };
 

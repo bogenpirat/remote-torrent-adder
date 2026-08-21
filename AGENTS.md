@@ -25,7 +25,7 @@ Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode o
 - **`src/content-script/rta.ts`** — injected into all pages, intercepts torrent/magnet link clicks
 - **`src/popup/`** — React app: torrent preview + add configuration
 - **`src/options/`** — React app: all settings (clients, notifications, link catching)
-- **`src/webuis/<name>-webui.ts`** — one class per BitTorrent client (12), extends `TorrentWebUI`
+- **`src/webuis/<name>-webui.ts`** — one class per BitTorrent client (13), extends `TorrentWebUI`
 - **`src/models/clients.ts`** — `Client` enum + `ClientDisplayName` + `ClientClassByClient` + `WebUIFactory`
 - **`src/models/webui.ts`** — abstract `TorrentWebUI` base class
 - **`test/`** — vitest suite mirroring `src/`; every client has a `test/webuis/<name>-webui.test.ts`
