@@ -83,6 +83,37 @@ describe("loadPopupData", () => {
         expect(data.auto).toEqual({ label: true, directory: true });
     });
 
+    it("applies a rule matching the torrent name", async () => {
+        await park({
+            autoLabelDirSettings: [
+                { criteria: [{ field: "torrentName", value: "cool" }], label: "auto-name", dir: "/by-name" },
+            ],
+        });
+
+        const data = (await loadPopupData())!;
+        // the parked magnet's name is "Cool Torrent"; the match is case-insensitive
+        expect(data.initial.label).toBe("auto-name");
+        expect(data.initial.directory).toBe("/by-name");
+        expect(data.auto).toEqual({ label: true, directory: true });
+    });
+
+    it("ignores matching rules when auto label/dir is disabled for the client", async () => {
+        await park(
+            {
+                defaultLabel: "manual",
+                autoLabelDirEnabled: false,
+                autoLabelDirSettings: [
+                    { criteria: [{ field: "trackerUrl", value: "tracker\\.example" }], label: "auto-tv", dir: "/auto" },
+                ],
+            },
+            { trackers: ["http://tracker.example/announce"] },
+        );
+
+        const data = (await loadPopupData())!;
+        expect(data.initial.label).toBe("manual");
+        expect(data.auto).toEqual({ label: false, directory: false });
+    });
+
     it("does not flag values as automatic when no rule matched", async () => {
         await park(
             {

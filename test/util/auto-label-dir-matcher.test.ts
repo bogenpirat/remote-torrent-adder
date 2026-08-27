@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir } from "../../src/util/auto-label-dir-matcher";
+import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir, isAutoLabelDirEnabled } from "../../src/util/auto-label-dir-matcher";
 import { type Torrent } from "../../src/models/torrent";
 import { type AutoLabelDirSetting } from "../../src/models/webui";
 import { at } from "../helpers/assert";
 
-const torrentWith = (trackers?: string[], files?: string[]): Torrent => ({
+const torrentWith = (trackers?: string[], files?: string[], name = "t"): Torrent => ({
     data: "magnet:?x",
-    name: "t",
+    name,
     isMagnet: true,
     trackers,
     files,
@@ -14,6 +14,12 @@ const torrentWith = (trackers?: string[], files?: string[]): Torrent => ({
 
 const fileSetting = (value: string, label: string | null, dir: string | null): AutoLabelDirSetting => ({
     criteria: [{ field: "filePath", value }],
+    label,
+    dir,
+});
+
+const nameSetting = (value: string, label: string | null, dir: string | null): AutoLabelDirSetting => ({
+    criteria: [{ field: "torrentName", value }],
     label,
     dir,
 });
@@ -130,6 +136,77 @@ describe("filePath criteria", () => {
     it("resolves a dir from a file criterion", () => {
         const torrent = torrentWith(undefined, ["disc.iso"]);
         expect(getAutoDirResult(torrent, [fileSetting("\\.iso$", null, "/images")])).toBe("/images");
+    });
+});
+
+describe("torrentName criteria", () => {
+    const movieName = "Kartoffelsalat.Im.Weltall.2099.German.DL.2160p.UHD.BluRay.DV.HDR.x265-KAROTTE";
+
+    it("matches a regex against the torrent name", () => {
+        const torrent = torrentWith(undefined, undefined, movieName);
+        expect(getAutoLabelResult(torrent, [nameSetting("2160p", "MOVIES/2160p", "/movies/2160p")])).toBe("MOVIES/2160p");
+        expect(getAutoDirResult(torrent, [nameSetting("2160p", "MOVIES/2160p", "/movies/2160p")])).toBe("/movies/2160p");
+    });
+
+    it("matches case-insensitively", () => {
+        const torrent = torrentWith(undefined, undefined, movieName);
+        expect(getAutoLabelResult(torrent, [nameSetting("2160P\\.uhd", "uhd", null)])).toBe("uhd");
+    });
+
+    it("works for magnet links that carry no file list", () => {
+        const torrent = torrentWith(["http://x"], undefined, "Some.Show.S01E01.1080p.WEB-DL");
+        expect(getAutoLabelResult(torrent, [nameSetting("1080p", "hd", null)])).toBe("hd");
+    });
+
+    it("returns null when the name does not match", () => {
+        const torrent = torrentWith(undefined, undefined, movieName);
+        expect(getAutoLabelResult(torrent, [nameSetting("720p", "sd", null)])).toBeNull();
+    });
+
+    it("does not throw and does not match on an invalid regex pattern", () => {
+        expect(getAutoLabelResult(torrentWith(undefined, undefined, movieName), [nameSetting("(", "bad", null)])).toBeNull();
+    });
+
+    it("reports the name as the matched candidate in the explanation", () => {
+        const explanation = explainAutoLabelDir(torrentWith(undefined, undefined, movieName), [nameSetting("2160p", "l", null)]);
+        expect(at(at(explanation.rules, 0).criteria, 0).matchedCandidates).toEqual([movieName]);
+    });
+
+    it("can be combined with a tracker criterion", () => {
+        const mixed: AutoLabelDirSetting = {
+            criteria: [
+                { field: "trackerUrl", value: "private\\.org" },
+                { field: "torrentName", value: "2160p" },
+            ],
+            label: "private-uhd",
+            dir: null,
+        };
+        expect(getAutoLabelResult(torrentWith(["http://private.org/announce"], undefined, "a.1080p"), [mixed])).toBeNull();
+        expect(getAutoLabelResult(torrentWith(["http://other.org/announce"], undefined, movieName), [mixed])).toBeNull();
+        expect(getAutoLabelResult(torrentWith(["http://private.org/announce"], undefined, movieName), [mixed])).toBe("private-uhd");
+    });
+});
+
+describe("unknown criterion fields", () => {
+    it("does not match a criterion with an unknown field", () => {
+        const unknown: AutoLabelDirSetting = {
+            criteria: [{ field: "bogus" as any, value: "x" }],
+            label: "l",
+            dir: null,
+        };
+        expect(getAutoLabelResult(torrentWith(["http://x"]), [unknown])).toBeNull();
+    });
+});
+
+describe("isAutoLabelDirEnabled", () => {
+    it("treats an absent flag (older configs) as enabled", () => {
+        expect(isAutoLabelDirEnabled({})).toBe(true);
+        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: undefined })).toBe(true);
+    });
+
+    it("reflects an explicit flag", () => {
+        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: true })).toBe(true);
+        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: false })).toBe(false);
     });
 });
 

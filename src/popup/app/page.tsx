@@ -117,7 +117,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
               onChange={setLabel}
               onRemoveOption={removeLabel}
               options={labelOptions}
-              rainbowOutline={data.auto.label}
+              autoGlow={data.auto.label}
               placeholder="Select or type label..."
             />
           )}
@@ -129,7 +129,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
               onChange={setDirectory}
               onRemoveOption={removeDirectory}
               options={directoryOptions}
-              rainbowOutline={data.auto.directory}
+              autoGlow={data.auto.directory}
               placeholder="Select or type directory..."
             />
           )}

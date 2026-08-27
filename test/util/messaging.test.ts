@@ -269,6 +269,64 @@ describe("dispatchPreAddTorrent", () => {
         expect(downloadTorrent).toHaveBeenCalledWith("magnet:?x", { tabId: 4, frameId: 0, pageUrl: "https://tracker.org/browse" });
     });
 
+    it("applies a torrent-name auto-label rule in the direct-add path", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({
+                id: "w1",
+                client: Client.QBittorrentWebUI,
+                showPerTorrentConfigSelector: false,
+                defaultLabel: "fallback",
+                autoLabelDirSettings: [
+                    { criteria: [{ field: "torrentName", value: "cool" }], label: "auto-movies", dir: null },
+                ],
+            }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        // the magnet fixture's name is "Cool Torrent"
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+        const fetchMock = vi.fn(() =>
+            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
+        );
+        (globalThis as any).fetch = fetchMock;
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 1);
+        await new Promise((r) => setTimeout(r, 0));
+
+        const uploadCall = (fetchMock.mock.calls as any[][]).find(call => String(call[0]).includes("/torrents/add"));
+        expect(uploadCall).toBeDefined();
+        expect((uploadCall![1].body as FormData).get("category")).toBe("auto-movies");
+    });
+
+    it("falls back to the default label in the direct-add path when auto label/dir is disabled", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({
+                id: "w1",
+                client: Client.QBittorrentWebUI,
+                showPerTorrentConfigSelector: false,
+                defaultLabel: "fallback",
+                autoLabelDirEnabled: false,
+                autoLabelDirSettings: [
+                    { criteria: [{ field: "torrentName", value: "cool" }], label: "auto-movies", dir: null },
+                ],
+            }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+        const fetchMock = vi.fn(() =>
+            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
+        );
+        (globalThis as any).fetch = fetchMock;
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 1);
+        await new Promise((r) => setTimeout(r, 0));
+
+        const uploadCall = (fetchMock.mock.calls as any[][]).find(call => String(call[0]).includes("/torrents/add"));
+        expect(uploadCall).toBeDefined();
+        expect((uploadCall![1].body as FormData).get("category")).toBe("fallback");
+    });
+
     it("notifies instead of opening the popup when the download fails", async () => {
         const settings = getDefaultSettings();
         settings.webuiSettings = [

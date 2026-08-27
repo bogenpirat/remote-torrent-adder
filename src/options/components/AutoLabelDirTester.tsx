@@ -258,7 +258,7 @@ function AutoLabelDirTester({ settings, defaultLabel, defaultDir, showLabel, sho
 
           {torrent.isMagnet && hasFileCriteria && (
             <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginTop: 8 }}>
-              This is a magnet link, so it carries trackers but no file list — file criteria can never match it.
+              This is a magnet link, so it carries a name and trackers but no file list — file criteria can never match it, while torrent name and tracker criteria still work.
             </div>
           )}
 

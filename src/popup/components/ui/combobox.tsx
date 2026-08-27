@@ -9,11 +9,12 @@ interface ComboBoxProps {
   placeholder?: string
   label?: string
   className?: string
-  rainbowOutline?: boolean
+  /** Marks a field whose value was pre-filled by an auto label/dir rule. */
+  autoGlow?: boolean
   ref?: React.Ref<HTMLDivElement>
 }
 
-function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Select or type...", label, className, rainbowOutline = false, ref }: ComboBoxProps) {
+function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Select or type...", label, className, autoGlow = false, ref }: ComboBoxProps) {
     const [isOpen, setIsOpen] = React.useState(false)
 
     // Check if current value is a new option (not in the options list)
@@ -61,7 +62,7 @@ function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Sel
             placeholder={placeholder}
             className={cn(
               "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-              rainbowOutline && "rainbow-outline"
+              autoGlow && "auto-glow"
             )}
           />
           {isNewValue && (
@@ -103,14 +104,5 @@ function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Sel
 }
 
 ComboBox.displayName = "ComboBox"
-
-// Rainbow outline CSS
-// Add this style to your global CSS or inject here if needed
-// .rainbow-outline {
-//   outline: 2px solid transparent;
-//   box-shadow: 0 0 0 3px
-//     linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
-//   border-radius: 0.375rem;
-// }
 
 export { ComboBox }

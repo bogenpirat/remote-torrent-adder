@@ -2,7 +2,7 @@ import { WebUIFactory } from "../models/clients";
 import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir } from "../models/messages";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type WebUISettings } from "../models/webui";
-import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
+import { getAutoDirResult, getAutoLabelResult, isAutoLabelDirEnabled } from "../util/auto-label-dir-matcher";
 import { readBufferedTorrent } from "../util/buffered-torrent";
 
 /**
@@ -51,8 +51,9 @@ export async function loadPopupData(): Promise<PopupData | null> {
 
     // The matcher is pure, so the popup resolves this itself rather than having
     // the service worker compute it and ship the result across a message.
-    const autoLabel = getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings);
-    const autoDir = getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings);
+    const autoEnabled = isAutoLabelDirEnabled(webUiSettings);
+    const autoLabel = autoEnabled ? getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings) : null;
+    const autoDir = autoEnabled ? getAutoDirResult(torrent, webUiSettings.autoLabelDirSettings) : null;
 
     const clientSpecificDescriptors = (webUi?.clientSpecificSettingDescriptors ?? []).filter(descriptor => descriptor.perTorrent);
 

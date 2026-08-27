@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
 import AutoLabelDirTester from "./AutoLabelDirTester";
+import Toggle from "./Toggle";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 
 interface AutoLabelDirSettingsEditorProps {
   value: AutoLabelDirSetting[];
   onChange: (settings: AutoLabelDirSetting[]) => void;
+  enabled: boolean;
+  onEnabledChange: (enabled: boolean) => void;
   showLabel: boolean;
   showDir: boolean;
   labels: string[];
@@ -32,6 +35,9 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
   return (
     <div style={{ marginBottom: 12 }}>
       <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Criteria</label>
+      <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginBottom: 6 }}>
+        All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
+      </div>
       {criteria.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
           {criteria.map((c, idx) => (
@@ -63,7 +69,7 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
   );
 }
 
-function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs, defaultLabel, defaultDir }: AutoLabelDirSettingsEditorProps) {
+function AutoLabelDirSettingsEditor({ value, onChange, enabled, onEnabledChange, showLabel, showDir, labels, dirs, defaultLabel, defaultDir }: AutoLabelDirSettingsEditorProps) {
   const handleAdd = () => {
     onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
@@ -86,10 +92,12 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
   const handleDirChange = (idx: number, dir: string | null) => updateAt(idx, { dir });
   return (
     <div style={{ marginBottom: 20, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 10, padding: 16, background: "var(--rta-surface-alt, #f7faf7)" }}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 600, fontSize: 16, marginRight: 12 }}>Auto Label/Dir Settings</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+        <span style={{ fontWeight: 600, fontSize: 16 }}>Auto Label/Dir Settings</span>
+        <Toggle checked={enabled} onChange={onEnabledChange} label="Enabled" />
         <button onClick={handleAdd} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 16px", fontWeight: 500, cursor: "pointer" }}>Add Rule</button>
       </div>
+      {!enabled && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>Rules are disabled and will not be applied.</div>}
       {value.length === 0 && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>No rules defined yet.</div>}
       {value.map((setting, idx) => (
         <div key={idx} style={{ marginBottom: 18, padding: 12, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 8, background: "var(--rta-surface, #fff)", position: "relative" }}>

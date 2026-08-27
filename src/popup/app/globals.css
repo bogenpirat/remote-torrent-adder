@@ -31,6 +31,8 @@
     --input: 240 5.9% 90%;
     --ring: 240 5% 64.9%;
 
+    --auto-glow: 142 72% 29%;
+
     --radius: 0.5rem;
   }
 
@@ -63,6 +65,8 @@
       --border: 240 3.7% 15.9%;
       --input: 240 3.7% 15.9%;
       --ring: 240 4.9% 83.9%;
+
+      --auto-glow: 142 69% 58%;
     }
   }
 }
@@ -94,9 +98,8 @@
   }
 }
 
-/* Rainbow outline for ComboBox */
-.rainbow-outline {
-  border: 3px solid;
-  border-radius: 0.375rem;
-  border-image: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet) 1;
+/* Subtle glow marking fields pre-filled by an auto label/dir rule */
+.auto-glow {
+  border-color: hsl(var(--auto-glow));
+  box-shadow: 0 0 0 1px hsl(var(--auto-glow) / 0.4), 0 0 8px 1px hsl(var(--auto-glow) / 0.35);
 }
