@@ -11,8 +11,11 @@ const FALLBACK_TORRENT_NAME = "file.torrent";
 const FALLBACK_MAGNET_NAME = "Some magnet link you clicked there, buddy.";
 
 export function getDeclaredTorrentNameFromMagnetLink(magnetLink: string): string | null {
-    const encodedName = magnetLink.match(/dn=([^&]+)/)?.[1];
-    return encodedName ? decodeURIComponent(encodedName).replace(/\+/g, ' ') : null;
+    try {
+        return new URL(magnetLink).searchParams.get("dn") || null;
+    } catch {
+        return null;
+    }
 }
 
 export function getTorrentNameFromMagnetLink(magnetLink: string): string {

@@ -30,6 +30,10 @@ describe("getTorrentNameFromMagnetLink", () => {
             "Some magnet link you clicked there, buddy.",
         );
     });
+
+    it("does not throw on a name containing a bare percent sign", () => {
+        expect(getTorrentNameFromMagnetLink("magnet:?dn=50%+off")).toBe("50% off");
+    });
 });
 
 describe("getDeclaredTorrentNameFromMagnetLink", () => {
@@ -43,6 +47,20 @@ describe("getDeclaredTorrentNameFromMagnetLink", () => {
 
     it("returns null for a malformed magnet link", () => {
         expect(getDeclaredTorrentNameFromMagnetLink("magnet:")).toBeNull();
+    });
+
+    it("returns null when dn is present but empty", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc&dn=")).toBeNull();
+    });
+
+    it("keeps a name containing a bare percent sign instead of throwing", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc&dn=Deadpool.100%.Fun"))
+            .toBe("Deadpool.100%.Fun");
+    });
+
+    it("ignores a dn= that only appears inside another parameter's value", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc&as=http://mirror.example/get?hdn=Bogus"))
+            .toBeNull();
     });
 });
 

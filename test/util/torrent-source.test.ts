@@ -36,6 +36,21 @@ describe("buildTorrentFromMagnetLink", () => {
         expect(buildTorrentFromMagnetLink("magnet:").trackers).toEqual([]);
     });
 
+    it("builds a torrent for a name containing a bare percent sign", () => {
+        const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&dn=Deadpool.100%.Fun&tr=http%3A%2F%2Ft");
+
+        expect(torrent.name).toBe("Deadpool.100%.Fun");
+        expect(torrent.declaredName).toBe("Deadpool.100%.Fun");
+        expect(torrent.trackers).toEqual(["http://t"]);
+    });
+
+    it("does not take a dn= that only appears inside another parameter's value", () => {
+        const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&as=http://mirror.example/get?hdn=Bogus");
+
+        expect(torrent.declaredName).toBeUndefined();
+        expect(torrent.name).toBe("Some magnet link you clicked there, buddy.");
+    });
+
     it("leaves declaredName unset when the magnet has no dn parameter", () => {
         const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&tr=http%3A%2F%2Ft");
 
