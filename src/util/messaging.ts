@@ -22,7 +22,7 @@ import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
 import { openActionPopup, POPUP_PAGE, updateBadgeText } from "./action";
-import { getAutoDirResult, getAutoLabelResult, isAutoLabelDirEnabled } from "./auto-label-dir-matcher";
+import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { CloudflareChallengeError, downloadTorrent, type TorrentDownloadContext } from "./download";
 import { showNotification } from "./notifications";
@@ -227,11 +227,10 @@ function downloadAndAddTorrentToWebUi(webUi: TorrentWebUI | null, url: string, c
     new Settings().loadSettings().then(settings => {
         if (webUi) {
             downloadTorrent(url, context).then(torrent => {
-                const autoEnabled = isAutoLabelDirEnabled(webUi.settings);
                 const fallbackConfig: TorrentUploadConfig = {
                     addPaused: webUi.settings.addPaused,
-                    dir: (autoEnabled ? getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) : null) ?? webUi.settings.defaultDir ?? undefined,
-                    label: (autoEnabled ? getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) : null) ?? webUi.settings.defaultLabel ?? undefined
+                    dir: getAutoDirResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultDir ?? undefined,
+                    label: getAutoLabelResult(torrent, webUi._settings.autoLabelDirSettings) ?? webUi.settings.defaultLabel ?? undefined
                 };
 
                 sendTorrentToWebUi(webUi, torrent, config ?? fallbackConfig);

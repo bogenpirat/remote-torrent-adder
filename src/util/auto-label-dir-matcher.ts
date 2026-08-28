@@ -1,5 +1,5 @@
 import { type Torrent } from "../models/torrent";
-import { type AutoLabelDirCriterion, type AutoLabelDirSetting, type WebUISettings } from "../models/webui";
+import { type AutoLabelDirCriterion, type AutoLabelDirSetting } from "../models/webui";
 
 export interface AutoLabelDirCriterionEvaluation {
     criterion: AutoLabelDirCriterion;
@@ -20,10 +20,6 @@ export interface AutoLabelDirExplanation {
     winningRuleIndex: number | null;
     label: string | null;
     dir: string | null;
-}
-
-export function isAutoLabelDirEnabled(settings: Pick<WebUISettings, "autoLabelDirEnabled">): boolean {
-    return settings.autoLabelDirEnabled ?? true;
 }
 
 export function getAutoLabelResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | null {

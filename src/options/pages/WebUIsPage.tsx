@@ -46,7 +46,6 @@ function getDefaultWebUISettings(): WebUISettings {
     dirs: [],
     addPaused: false,
     autoLabelDirSettings: [],
-    autoLabelDirEnabled: true,
     clientSpecificSettings: {},
     useAlternativeLabelDirChooser: false,
   };
@@ -458,8 +457,6 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
             <AutoLabelDirSettingsEditor
               value={webui.autoLabelDirSettings ?? []}
               onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
-              enabled={webui.autoLabelDirEnabled ?? true}
-              onEnabledChange={autoLabelDirEnabled => onChange({ ...webui, autoLabelDirEnabled })}
               showLabel={!!webUiInstance?.isLabelSupported}
               showDir={!!webUiInstance?.isDirSupported}
               labels={webui.labels}

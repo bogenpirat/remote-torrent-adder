@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir, isAutoLabelDirEnabled } from "../../src/util/auto-label-dir-matcher";
+import { getAutoLabelResult, getAutoDirResult, explainAutoLabelDir } from "../../src/util/auto-label-dir-matcher";
 import { type Torrent } from "../../src/models/torrent";
 import { type AutoLabelDirSetting } from "../../src/models/webui";
 import { at } from "../helpers/assert";
@@ -195,18 +195,6 @@ describe("unknown criterion fields", () => {
             dir: null,
         };
         expect(getAutoLabelResult(torrentWith(["http://x"]), [unknown])).toBeNull();
-    });
-});
-
-describe("isAutoLabelDirEnabled", () => {
-    it("treats an absent flag (older configs) as enabled", () => {
-        expect(isAutoLabelDirEnabled({})).toBe(true);
-        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: undefined })).toBe(true);
-    });
-
-    it("reflects an explicit flag", () => {
-        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: true })).toBe(true);
-        expect(isAutoLabelDirEnabled({ autoLabelDirEnabled: false })).toBe(false);
     });
 });
 

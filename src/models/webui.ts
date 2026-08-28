@@ -23,8 +23,6 @@ export interface WebUISettings {
     dirs: Array<string>;
     addPaused: boolean;
     autoLabelDirSettings: Array<AutoLabelDirSetting>;
-    /** Whether auto label/dir rules are applied for this client. Absent on older configs; treat as enabled. */
-    autoLabelDirEnabled?: boolean;
 
     clientSpecificSettings: Record<string, unknown>;
 }
