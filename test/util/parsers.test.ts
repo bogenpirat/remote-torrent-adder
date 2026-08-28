@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { DecodedTorrent } from "../../src/models/decoded-torrent";
 import {
+    getDeclaredTorrentNameFromMagnetLink,
     getTorrentNameFromMagnetLink,
     getTorrentNameFromLink,
     parseTrackersFromDecodedTorrentData,
@@ -28,6 +29,20 @@ describe("getTorrentNameFromMagnetLink", () => {
         expect(getTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc")).toBe(
             "Some magnet link you clicked there, buddy.",
         );
+    });
+});
+
+describe("getDeclaredTorrentNameFromMagnetLink", () => {
+    it("returns the decoded dn parameter", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc&dn=My%20Torrent")).toBe("My Torrent");
+    });
+
+    it("returns null when dn is absent, rather than the display fallback", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:?xt=urn:btih:abc")).toBeNull();
+    });
+
+    it("returns null for a malformed magnet link", () => {
+        expect(getDeclaredTorrentNameFromMagnetLink("magnet:")).toBeNull();
     });
 });
 

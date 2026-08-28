@@ -7,6 +7,7 @@ import { at } from "../helpers/assert";
 const torrentWith = (trackers?: string[], files?: string[], name = "t"): Torrent => ({
     data: "magnet:?x",
     name,
+    declaredName: name,
     isMagnet: true,
     trackers,
     files,
@@ -172,6 +173,30 @@ describe("torrentName criteria", () => {
         expect(at(at(explanation.rules, 0).criteria, 0).matchedCandidates).toEqual([movieName]);
     });
 
+    it("does not match a torrent that declares no name of its own", () => {
+        const undeclared: Torrent = {
+            data: "magnet:?xt=urn:btih:abc",
+            name: "Some magnet link you clicked there, buddy.",
+            isMagnet: true,
+            trackers: ["http://x"],
+        };
+
+        expect(getAutoLabelResult(undeclared, [nameSetting("magnet", "l", null)])).toBeNull();
+        expect(getAutoLabelResult(undeclared, [nameSetting("link", "l", null)])).toBeNull();
+        expect(getAutoLabelResult(undeclared, [nameSetting("buddy", "l", null)])).toBeNull();
+    });
+
+    it("matches the declared name rather than the display fallback", () => {
+        const torrent: Torrent = {
+            data: "magnet:?xt=urn:btih:abc&dn=Real.Name.2160p",
+            name: "Real.Name.2160p",
+            declaredName: "Real.Name.2160p",
+            isMagnet: true,
+        };
+
+        expect(getAutoLabelResult(torrent, [nameSetting("2160p", "uhd", null)])).toBe("uhd");
+    });
+
     it("can be combined with a tracker criterion", () => {
         const mixed: AutoLabelDirSetting = {
             criteria: [
@@ -195,6 +220,24 @@ describe("unknown criterion fields", () => {
             dir: null,
         };
         expect(getAutoLabelResult(torrentWith(["http://x"]), [unknown])).toBeNull();
+    });
+
+    it("does not match a criterion with an unknown field and an empty pattern", () => {
+        const unknown: AutoLabelDirSetting = {
+            criteria: [{ field: "bogus" as any, value: "" }],
+            label: "l",
+            dir: null,
+        };
+        expect(getAutoLabelResult(torrentWith(["http://x"]), [unknown])).toBeNull();
+    });
+
+    it("still lets an empty pattern on a known field match anything", () => {
+        const empty: AutoLabelDirSetting = {
+            criteria: [{ field: "trackerUrl", value: "" }],
+            label: "l",
+            dir: null,
+        };
+        expect(getAutoLabelResult(torrentWith(["http://x"]), [empty])).toBe("l");
     });
 });
 

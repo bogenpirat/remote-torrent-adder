@@ -2,6 +2,7 @@ import { type DecodedTorrent } from "../models/decoded-torrent";
 import { type Torrent } from "../models/torrent";
 import { decodeTorrentBytes } from "./bencode-decode";
 import {
+    getDeclaredTorrentNameFromMagnetLink,
     getTorrentNameFromMagnetLink,
     parseFilesFromDecodedTorrentData,
     parseNameFromDecodedTorrentData,
@@ -14,15 +15,19 @@ export function buildTorrentFromMagnetLink(magnetLink: string): Torrent {
     return {
         data: magnetLink,
         name: getTorrentNameFromMagnetLink(magnetLink),
+        declaredName: getDeclaredTorrentNameFromMagnetLink(magnetLink) ?? undefined,
         isMagnet: true,
         trackers: parseTrackersFromMagnetLink(magnetLink)
     };
 }
 
 export function buildTorrentFromDecodedData(decodedTorrentData: DecodedTorrent, fallbackName: string, data: Blob): Torrent {
+    const declaredName = parseNameFromDecodedTorrentData(decodedTorrentData);
+
     return {
         data: data,
-        name: parseNameFromDecodedTorrentData(decodedTorrentData) ?? fallbackName,
+        name: declaredName ?? fallbackName,
+        declaredName: declaredName ?? undefined,
         isMagnet: false,
         trackers: parseTrackersFromDecodedTorrentData(decodedTorrentData),
         files: parseFilesFromDecodedTorrentData(decodedTorrentData),
