@@ -455,7 +455,7 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
           )}
           {webUiInstance?.isLabelDirChooserSupported && (
             <AutoLabelDirSettingsEditor
-              value={webui.autoLabelDirSettings}
+              value={webui.autoLabelDirSettings ?? []}
               onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
               showLabel={!!webUiInstance?.isLabelSupported}
               showDir={!!webUiInstance?.isDirSupported}

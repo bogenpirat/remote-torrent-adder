@@ -2,6 +2,7 @@
 export interface Torrent {
     data: Blob | string;
     name: string;
+    declaredName?: string;
     isMagnet: boolean;
     trackers?: string[];
     files?: string[];

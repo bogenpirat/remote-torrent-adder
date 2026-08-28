@@ -14,6 +14,7 @@ describe("buildTorrentFromMagnetLink", () => {
 
         expect(torrent.isMagnet).toBe(true);
         expect(torrent.name).toBe("My Movie");
+        expect(torrent.declaredName).toBe("My Movie");
         expect(torrent.data).toBe(magnet);
         expect(torrent.trackers).toEqual(["http://tracker.one/announce", "udp://tracker.two:6969/announce"]);
     });
@@ -34,6 +35,28 @@ describe("buildTorrentFromMagnetLink", () => {
     it("does not throw on a malformed magnet link", () => {
         expect(buildTorrentFromMagnetLink("magnet:").trackers).toEqual([]);
     });
+
+    it("builds a torrent for a name containing a bare percent sign", () => {
+        const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&dn=Deadpool.100%.Fun&tr=http%3A%2F%2Ft");
+
+        expect(torrent.name).toBe("Deadpool.100%.Fun");
+        expect(torrent.declaredName).toBe("Deadpool.100%.Fun");
+        expect(torrent.trackers).toEqual(["http://t"]);
+    });
+
+    it("does not take a dn= that only appears inside another parameter's value", () => {
+        const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&as=http://mirror.example/get?hdn=Bogus");
+
+        expect(torrent.declaredName).toBeUndefined();
+        expect(torrent.name).toBe("Some magnet link you clicked there, buddy.");
+    });
+
+    it("leaves declaredName unset when the magnet has no dn parameter", () => {
+        const torrent = buildTorrentFromMagnetLink("magnet:?xt=urn:btih:abc&tr=http%3A%2F%2Ft");
+
+        expect(torrent.name).toBe("Some magnet link you clicked there, buddy.");
+        expect(torrent.declaredName).toBeUndefined();
+    });
 });
 
 describe("parseTorrentFile", () => {
@@ -51,6 +74,7 @@ describe("parseTorrentFile", () => {
         const torrent = await parseTorrentFile(file);
         expect(torrent.isMagnet).toBe(false);
         expect(torrent.name).toBe("ubuntu.iso");
+        expect(torrent.declaredName).toBe("ubuntu.iso");
         expect(torrent.trackers).toEqual(["http://tracker.one/announce", "http://tracker.two/announce"]);
         expect(torrent.files).toEqual(["folder/a.bin", "b.bin"]);
         expect(torrent.isPrivate).toBe(true);
@@ -58,8 +82,10 @@ describe("parseTorrentFile", () => {
 
     it("falls back to the file name when the torrent has no name", async () => {
         const file = torrentFile(buildBencodedTorrent({ announce: "http://t/announce", info: {} }), "cool.torrent");
+        const torrent = await parseTorrentFile(file);
 
-        expect((await parseTorrentFile(file)).name).toBe("cool.torrent");
+        expect(torrent.name).toBe("cool.torrent");
+        expect(torrent.declaredName).toBeUndefined();
     });
 
     it("rejects a file that is not bencoded", async () => {

@@ -49,6 +49,7 @@ export function makeMagnetTorrent(overrides: Partial<Torrent> = {}): Torrent {
     return {
         data: "magnet:?xt=urn:btih:abc123&dn=Cool+Torrent",
         name: "Cool Torrent",
+        declaredName: "Cool Torrent",
         isMagnet: true,
         ...overrides,
     };

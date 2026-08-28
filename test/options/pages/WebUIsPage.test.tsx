@@ -6,6 +6,7 @@ import WebUIsPage from "../../../src/options/pages/WebUIsPage";
 import { GetSettingsMessage, SaveSettingsMessage } from "../../../src/models/messages";
 import { serializeSettings, deserializeSettings } from "../../../src/util/serializer";
 import { getDefaultSettings } from "../../../src/util/settings-defaults";
+import { type WebUISettings } from "../../../src/models/webui";
 import { makeWebUISettings } from "../../helpers/fixtures";
 
 function respondWithWebUIs(webuiSettings = [makeWebUISettings({ id: "a", name: "Alpha" }), makeWebUISettings({ id: "b", name: "Beta" })]) {
@@ -27,6 +28,12 @@ const savedWebUIs = () => {
 };
 
 const renderPage = () => render(<SettingsProvider><WebUIsPage /></SettingsProvider>);
+
+const webUIWithoutAutoLabelDirSettings = () => {
+    const webui = makeWebUISettings({ id: "a", name: "Alpha" });
+    delete (webui as Partial<WebUISettings>).autoLabelDirSettings;
+    return webui;
+};
 
 describe("WebUIsPage", () => {
     it("removes the selected WebUI once the removal is confirmed", async () => {
@@ -73,5 +80,38 @@ describe("WebUIsPage", () => {
 
         expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
         expect(savedWebUIs()).toBeNull();
+    });
+
+    it("renders a WebUI whose stored settings predate autoLabelDirSettings", async () => {
+        respondWithWebUIs([webUIWithoutAutoLabelDirSettings()]);
+        renderPage();
+
+        expect(await screen.findByText("Auto Label/Dir Settings")).toBeInTheDocument();
+        expect(screen.getByText("No rules defined yet.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
+    });
+
+    it("keeps a rule editable after adding one to a WebUI that had no autoLabelDirSettings", async () => {
+        respondWithWebUIs([webUIWithoutAutoLabelDirSettings()]);
+        renderPage();
+
+        await userEvent.click(await screen.findByRole("button", { name: "Add Rule" }));
+
+        expect(screen.queryByText("No rules defined yet.")).not.toBeInTheDocument();
+        expect(savedWebUIs()![0]!.autoLabelDirSettings).toEqual([{ criteria: [], label: "", dir: "" }]);
+    });
+
+    it("renders the stored rules, including torrent name criteria", async () => {
+        respondWithWebUIs([makeWebUISettings({
+            id: "a",
+            name: "Alpha",
+            autoLabelDirSettings: [{ criteria: [{ field: "torrentName", value: "2160p" }], label: "uhd", dir: null }],
+        })]);
+        renderPage();
+
+        expect(await screen.findByText("Auto Label/Dir Settings")).toBeInTheDocument();
+        expect(screen.queryByText("No rules defined yet.")).not.toBeInTheDocument();
+        expect(screen.getByText("Torrent name:")).toBeInTheDocument();
+        expect(screen.getByText("2160p")).toBeInTheDocument();
     });
 });

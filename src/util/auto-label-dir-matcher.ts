@@ -54,14 +54,25 @@ function evaluateSetting(setting: AutoLabelDirSetting, index: number, torrent: T
 }
 
 function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): AutoLabelDirCriterionEvaluation {
+    const candidates = candidatesForField(criterion.field, torrent);
+
+    if (candidates === null) {
+        return { criterion, matched: false, matchedCandidates: [], invalidPattern: false };
+    }
+
     if (!criterion.value) {
         return { criterion, matched: true, matchedCandidates: [], invalidPattern: false };
     }
 
-    switch (criterion.field) {
-        case "trackerUrl": return matchCandidates(criterion, torrent.trackers, "");
-        case "filePath": return matchCandidates(criterion, torrent.files, "i");
-        default: return { criterion, matched: true, matchedCandidates: [], invalidPattern: false };
+    return matchCandidates(criterion, candidates.values, candidates.flags);
+}
+
+function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): { values: string[] | undefined; flags: string } | null {
+    switch (field) {
+        case "trackerUrl": return { values: torrent.trackers, flags: "" };
+        case "filePath": return { values: torrent.files, flags: "i" };
+        case "torrentName": return { values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" };
+        default: return null;
     }
 }
 

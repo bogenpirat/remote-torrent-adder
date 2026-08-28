@@ -188,6 +188,7 @@ function AutoLabelDirTester({ settings, defaultLabel, defaultDir, showLabel, sho
   const labelSource = explanation?.label != null ? `from rule ${winningRule}` : (defaultLabel ? "from the default label" : null);
   const dirSource = explanation?.dir != null ? `from rule ${winningRule}` : (defaultDir ? "from the default directory" : null);
   const hasFileCriteria = settings.some(setting => setting.criteria.some(criterion => criterion.field === "filePath"));
+  const hasNameCriteria = settings.some(setting => setting.criteria.some(criterion => criterion.field === "torrentName"));
 
   return (
     <div style={{ marginTop: 16, borderTop: "1px solid var(--rta-border, #b7c9a7)", paddingTop: 14 }}>
@@ -259,6 +260,13 @@ function AutoLabelDirTester({ settings, defaultLabel, defaultDir, showLabel, sho
           {torrent.isMagnet && hasFileCriteria && (
             <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginTop: 8 }}>
               This is a magnet link, so it carries trackers but no file list — file criteria can never match it.
+              {torrent.declaredName ? " Torrent name and tracker criteria still work." : ""}
+            </div>
+          )}
+
+          {!torrent.declaredName && hasNameCriteria && (
+            <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginTop: 8 }}>
+              This torrent declares no name of its own, so torrent name criteria can never match it — “{torrent.name}” is only a stand-in for display.
             </div>
           )}
 

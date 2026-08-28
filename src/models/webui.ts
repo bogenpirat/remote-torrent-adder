@@ -218,6 +218,6 @@ export interface AutoLabelDirSetting {
 }
 
 export interface AutoLabelDirCriterion {
-    field: "trackerUrl" | "filePath";
+    field: "trackerUrl" | "filePath" | "torrentName";
     value: string;
 }

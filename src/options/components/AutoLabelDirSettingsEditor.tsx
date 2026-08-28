@@ -32,6 +32,9 @@ function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterio
   return (
     <div style={{ marginBottom: 12 }}>
       <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Criteria</label>
+      <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginBottom: 6 }}>
+        All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
+      </div>
       {criteria.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
           {criteria.map((c, idx) => (
