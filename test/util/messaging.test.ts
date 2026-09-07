@@ -329,6 +329,58 @@ describe("dispatchPreAddTorrent", () => {
         expect(chrome.action.openPopup).toHaveBeenCalled();
     });
 
+    it("falls back to a popup window when the action popup cannot be opened", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+        (chrome.action.openPopup as any).mockRejectedValue(new Error("openPopup requires a user gesture"));
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(chrome.windows.create).toHaveBeenCalledWith(
+            expect.objectContaining({ url: "popup/popup.html", type: "popup" })
+        );
+    });
+
+    it("clears the registered popup even when opening it fails", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+        (chrome.action.openPopup as any).mockRejectedValue(new Error("nope"));
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(chrome.action.setPopup).toHaveBeenLastCalledWith({ popup: "" });
+    });
+
+    it("uses a popup window directly when the alternative chooser is enabled", async () => {
+        const settings = getDefaultSettings();
+        settings.webuiSettings = [
+            makeWebUISettings({
+                id: "w1",
+                client: Client.QBittorrentWebUI,
+                showPerTorrentConfigSelector: true,
+                useAlternativeLabelDirChooser: true,
+            }),
+        ];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent());
+
+        await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(chrome.action.openPopup).not.toHaveBeenCalled();
+        expect(chrome.windows.create).toHaveBeenCalled();
+    });
+
     it("parks the buffered torrent in IndexedDB so the popup can read it directly", async () => {
         const settings = getDefaultSettings();
         settings.webuiSettings = [

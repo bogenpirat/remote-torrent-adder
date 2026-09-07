@@ -27,6 +27,7 @@ export function createChromeMock(): any {
             addListener: vi.fn(),
         },
         lastError: undefined as { message: string } | undefined,
+        getURL: vi.fn((path: string) => `chrome-extension://rta-test-id/${path.replace(/^\//, "")}`),
     };
 
     return {
@@ -117,6 +118,19 @@ export function createChromeMock(): any {
             }),
             onClicked: {
                 addListener: vi.fn(),
+            },
+        },
+
+        permissions: {
+            contains: vi.fn(() => Promise.resolve(true)),
+            request: vi.fn(() => Promise.resolve(true)),
+            onAdded: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
+            onRemoved: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
             },
         },
 

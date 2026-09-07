@@ -1,5 +1,7 @@
 import { ext, sendMessageAndForget } from "./browser-api";
 import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
+import { canUseOffscreen } from "./platform";
+import { playNotificationSound } from "./play-sound";
 
 const notificationUrls = new Map<string, string>();
 
@@ -32,13 +34,17 @@ export function showNotification(title: string, message: string, isFailed: boole
     });
 
     if (playSound) {
-        ensureOffscreenDocument().then(() => {
-            const playSoundMessage = {
-                action: PlaySoundMessage.action,
-                isFailed
-            } as IPlaySoundMessage;
-            sendMessageAndForget(playSoundMessage);
-        });
+        if (canUseOffscreen()) {
+            void ensureOffscreenDocument().then(() => {
+                const playSoundMessage = {
+                    action: PlaySoundMessage.action,
+                    isFailed
+                } as IPlaySoundMessage;
+                sendMessageAndForget(playSoundMessage);
+            });
+        } else {
+            void playNotificationSound(isFailed);
+        }
     }
 }
 

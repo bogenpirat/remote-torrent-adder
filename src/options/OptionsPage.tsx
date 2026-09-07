@@ -6,6 +6,7 @@ import LinkCatchingPage from "./pages/LinkCatchingPage";
 import IconClickPage from "./pages/IconClickPage";
 import AboutPage from "./pages/AboutPage";
 import ImportExportPage from "./pages/ImportExportPage";
+import HostPermissionNotice from "./components/HostPermissionNotice";
 
 interface Tab {
   id: string;
@@ -57,6 +58,8 @@ export default function OptionsPage() {
         <div className="rta-shell__header">
           <h1 className="rta-shell__title">Remote Torrent Adder Options</h1>
         </div>
+
+        <HostPermissionNotice />
 
         <div className="rta-tablist" role="tablist" aria-label="Options sections">
           {TABS.map((tab, index) => (

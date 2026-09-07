@@ -51,8 +51,24 @@ export async function openPrimaryWebUi(): Promise<void> {
 export async function openActionPopup(windowId: number, mode?: PopupMode): Promise<void> {
     const popup = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
     await ext.action.setPopup({ popup });
-    await ext.action.openPopup({ windowId });
-    await ext.action.setPopup({ popup: "" });
+    try {
+        await ext.action.openPopup({ windowId });
+    } finally {
+        // Leaving a popup registered would stop action.onClicked from firing at
+        // all, so it has to be cleared even when openPopup rejects.
+        await ext.action.setPopup({ popup: "" });
+    }
+}
+
+export function openPopupWindow(mode?: PopupMode): void {
+    const url = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
+    void ext.windows.create({
+        url,
+        type: "popup",
+        width: 420,
+        height: 600,
+        focused: true
+    });
 }
 
 export function updateBadgeText(text: string, tabId: number): void {
