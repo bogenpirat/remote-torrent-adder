@@ -9,7 +9,7 @@ Reviewers should ask "which rows did you run?" instead of "did you test it?".
 ## Setup
 
 0. `npm test` passes. Do not start a manual pass on a red suite — you will chase failures the runner already explained.
-1. `npm run build` and load `dist/` unpacked in `chrome://extensions/` (Developer mode on).
+1. `npm run build` and load `dist/chrome/` unpacked in `chrome://extensions/` (Developer mode on).
 2. Have at least two clients configured: one **happy path** client you know works (e.g. local qBittorrent) and one **target** client for the change.
 3. Open the service-worker console (`chrome://extensions/` → "service worker" link) before each case.
 4. Keep a `.torrent` file and a `magnet:?xt=urn:btih:...` URL handy — any public test tracker works.
@@ -98,7 +98,7 @@ Tick the client off only if BOTH pass.
 |---|---|---|
 | G1 | Service-worker idles for >30s, then add a torrent | Worker wakes, add succeeds (catches stateful bugs) |
 | G2 | Open the popup, close it without acting, reopen on a different link | Second popup shows the new torrent, not stale state |
-| G3 | Build prod (`npm run build:prod`) and load `dist-prod/` | Same matrix passes on the minified bundle |
+| G3 | Build prod (`npm run build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
 
 ## What to record
 

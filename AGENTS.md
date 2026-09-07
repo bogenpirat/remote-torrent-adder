@@ -10,14 +10,17 @@ Full skill definitions and project context: [`.agents/README.md`](.agents/README
 npm run typecheck      # tsc --noEmit over src/, test/, scripts/, configs
 npm run lint           # eslint (npm run lint:fix to autofix)
 npm test               # vitest suite (npm run test:watch, npm run test:coverage)
-npm run build          # dev build → dist/
-npm run build:prod     # production build → dist-prod/
+npm run build          # Chrome dev build → dist/chrome/
+npm run build:prod     # Chrome prod build → dist-prod/chrome/
+npm run build:firefox  # Firefox dev build → dist/firefox/
+npm run build:all      # all four bundles, verified once
 npm run dev            # watch mode
 ```
 
 `npm run build` runs `typecheck && lint && test` first via `prebuild` — a "build failure" is often one of those three. Run them directly while iterating.
 
-Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode on).
+Load unpacked extension from `dist/chrome/` in `chrome://extensions/` (Developer mode on).
+For Firefox, `npm run dev:firefox` launches a scratch profile with `dist/firefox/` loaded.
 
 ## Architecture
 

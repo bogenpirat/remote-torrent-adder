@@ -20,7 +20,7 @@ Supported clients (13): ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementu
 | Factory | `src/models/clients.ts` | `Client` enum + `ClientDisplayName` + `ClientClassByClient` + `WebUIFactory` |
 | Base Class | `src/models/webui.ts` | Abstract `TorrentWebUI` with `sendTorrent()` / `testConnection()` |
 
-**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/` (dev), `dist-prod/` (prod).
+**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/<browser>/` (dev), `dist-prod/<browser>/` (prod), where `<browser>` is `chrome` or `firefox`. `scripts/build.mjs` drives the whole browser x prod x target matrix; `scripts/generate-manifest.mjs` derives the Firefox manifest from `src/manifest.json`.
 
 ## Key Conventions
 
@@ -143,7 +143,7 @@ npm run dev          # watch mode (assets + worker + content script)
 1. `npm run build`
 2. Open `chrome://extensions/`
 3. Enable Developer mode
-4. "Load unpacked" → select `dist/`
+4. "Load unpacked" → select `dist/chrome/`
 5. Reload the extension after changes
 
 ## Releasing

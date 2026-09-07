@@ -51,7 +51,7 @@ npm test
 The suite lives in `e2e/` and runs on Playwright, separately from vitest.
 
 ```bash
-npm run build         # required first: the suite loads dist/ as an unpacked extension
+npm run build         # required first: the suite loads dist/chrome/ as an unpacked extension
 npm run test:e2e
 npm run test:e2e:headed   # watch it happen
 npm run test:e2e:ui       # Playwright's UI mode
@@ -82,7 +82,7 @@ For a structured pre-release or post-refactor pass, use `smoke-test-matrix.md`. 
 ### Setup
 
 1. `npm run build`
-2. Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode on)
+2. Load unpacked extension from `dist/chrome/` in `chrome://extensions/` (Developer mode on)
 3. Have at least one torrent client configured in the extension options
 
 ### Test Scenarios

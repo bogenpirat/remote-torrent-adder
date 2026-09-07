@@ -71,8 +71,10 @@ git clone https://github.com/bogenpirat/remote-torrent-adder.git
 cd remote-torrent-adder
 npm install
 
-npm run build        # development build → dist/
-npm run build:prod   # minified production build → dist-prod/
+npm run build            # development build  → dist/chrome/
+npm run build:prod       # production build   → dist-prod/chrome/
+npm run build:firefox    # Firefox dev build   → dist/firefox/
+npm run build:all        # all four bundles
 ```
 
 Tests run automatically before every build; you can also run them directly:
@@ -87,7 +89,7 @@ To load your build into Chrome:
 
 1. Open `chrome://extensions/`
 2. Enable **Developer mode** (top right)
-3. Click **Load unpacked** and select the `dist/` (or `dist-prod/`) folder
+3. Click **Load unpacked** and select the `dist/chrome/` (or `dist-prod/chrome/`) folder
 
 For iterating on the extension, `npm run dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
 
