@@ -16,4 +16,18 @@ export default defineConfig({
     use: {
         trace: "retain-on-failure",
     },
+    projects: [
+        {
+            // Chromium, driven by Playwright with the unpacked dist/chrome loaded.
+            name: "chrome",
+            testIgnore: "firefox/**",
+        },
+        {
+            // Real Firefox, driven by geckodriver: Playwright cannot install a
+            // Firefox add-on, so these specs bring their own harness.
+            name: "firefox",
+            testMatch: "firefox/**/*.spec.ts",
+            timeout: 120_000,
+        },
+    ],
 });
