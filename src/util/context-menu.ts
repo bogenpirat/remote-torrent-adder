@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
@@ -12,7 +13,7 @@ const SEPARATOR_MENU_ID = "sendall-separator";
 const PER_SERVER_MENU_PREFIX = "server-";
 
 export function registerContextMenuClickListener(): void {
-    chrome.contextMenus.onClicked.addListener((onClickData: OnClickData, tab?: Tab) => {
+    ext.contextMenus.onClicked.addListener((onClickData: OnClickData, tab?: Tab) => {
         handleContextMenuClick(onClickData, tab)
             .catch(error => console.error("Context menu click failed", error));
     });
@@ -28,7 +29,7 @@ export function refreshContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
 }
 
 async function rebuildContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
-    await chrome.contextMenus.removeAll();
+    await ext.contextMenus.removeAll();
 
     createMenuItem({
         id: PARENT_MENU_ID,
@@ -56,9 +57,9 @@ async function rebuildContextMenu(allWebUis: TorrentWebUI[]): Promise<void> {
 }
 
 function createMenuItem(properties: chrome.contextMenus.CreateProperties): void {
-    chrome.contextMenus.create(properties, () => {
-        if (chrome.runtime.lastError) {
-            console.error(`Failed creating context menu item ${properties.id}`, chrome.runtime.lastError.message);
+    ext.contextMenus.create(properties, () => {
+        if (ext.runtime.lastError) {
+            console.error(`Failed creating context menu item ${properties.id}`, ext.runtime.lastError.message);
         }
     });
 }
@@ -116,5 +117,5 @@ async function resolveWindowId(tab?: Tab): Promise<number> {
     if (tab?.windowId !== undefined) {
         return tab.windowId;
     }
-    return (await chrome.windows.getLastFocused()).id ?? 0;
+    return (await ext.windows.getLastFocused()).id ?? 0;
 }

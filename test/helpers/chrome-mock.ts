@@ -27,6 +27,7 @@ export function createChromeMock(): any {
             addListener: vi.fn(),
         },
         lastError: undefined as { message: string } | undefined,
+        getURL: vi.fn((path: string) => `chrome-extension://rta-test-id/${path.replace(/^\//, "")}`),
     };
 
     return {
@@ -40,17 +41,22 @@ export function createChromeMock(): any {
 
         storage: {
             local: {
-                // Chrome answers reads over IPC, so the callback never runs in
-                // the caller's tick. Deferring here is what lets concurrent
-                // readers interleave the way they do in the browser.
-                get: vi.fn((keys: string[], cb: (items: Record<string, any>) => void) => {
+                // The browser answers reads over IPC, so the promise never
+                // settles in the caller's tick. Deferring here is what lets
+                // concurrent readers interleave the way they do in the browser.
+                get: vi.fn((keys: string[], cb?: (items: Record<string, any>) => void) => {
                     const result: Record<string, any> = {};
                     for (const key of keys) {
                         if (key in storage) {
                             result[key] = storage[key];
                         }
                     }
-                    queueMicrotask(() => cb(result));
+                    return new Promise<Record<string, any>>(resolve => {
+                        queueMicrotask(() => {
+                            cb?.(result);
+                            resolve(result);
+                        });
+                    });
                 }),
                 set: vi.fn((items: Record<string, any>, cb?: () => void) => {
                     const changes: Record<string, any> = {};
@@ -62,6 +68,7 @@ export function createChromeMock(): any {
                     // Chrome dispatches change events out of band, after the
                     // write has already been acknowledged.
                     queueMicrotask(() => storageListeners.forEach(listener => listener(changes, "local")));
+                    return Promise.resolve();
                 }),
                 onChanged: {
                     addListener: vi.fn((listener: (changes: Record<string, any>, areaName: string) => void) => {
@@ -101,13 +108,29 @@ export function createChromeMock(): any {
         },
 
         notifications: {
-            create: vi.fn((_id: string, _options: any, cb?: (id: string) => void) => cb?.("notif-id")),
+            create: vi.fn((_id: string, _options: any, cb?: (id: string) => void) => {
+                cb?.("notif-id");
+                return Promise.resolve("notif-id");
+            }),
             clear: vi.fn((_id: string, cb?: (wasCleared: boolean) => void) => {
                 cb?.(true);
                 return Promise.resolve(true);
             }),
             onClicked: {
                 addListener: vi.fn(),
+            },
+        },
+
+        permissions: {
+            contains: vi.fn(() => Promise.resolve(true)),
+            request: vi.fn(() => Promise.resolve(true)),
+            onAdded: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+            },
+            onRemoved: {
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
             },
         },
 

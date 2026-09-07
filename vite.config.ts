@@ -2,11 +2,17 @@ import { defineConfig, type Plugin, type UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { distDirFor, parseBrowser, targetsFor } from './scripts/browsers.mjs';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
+const browser = parseBrowser(process.env.RTA_BROWSER);
 const isProd = process.env.PROD === 'true';
-const distDir = isProd ? 'dist-prod' : 'dist';
+const distDir = distDirFor(browser, isProd);
+
+const shared = {
+    define: { __RTA_BROWSER__: JSON.stringify(browser) },
+} satisfies UserConfig;
 
 // Chrome serves extension pages from chrome-extension://, where the crossorigin
 // attribute Vite emits on module scripts buys nothing and trips some CSPs.
@@ -20,6 +26,7 @@ const removeCrossOrigin: Plugin = {
 /** An extension page: an HTML entry processed by Vite with React. */
 function pageTarget(name: string, entryHtml: string): UserConfig {
     return {
+        ...shared,
         root: path.resolve(rootDir, 'src', name),
         base: './',
         plugins: [react(), removeCrossOrigin],
@@ -45,6 +52,7 @@ function pageTarget(name: string, entryHtml: string): UserConfig {
  */
 function scriptTarget(entry: string, globalName: string, outSubDir: string, fileName: string): UserConfig {
     return {
+        ...shared,
         root: rootDir,
         build: {
             outDir: path.resolve(rootDir, distDir, outSubDir),
@@ -71,9 +79,12 @@ const targets: Record<string, UserConfig> = {
 
 export default defineConfig(() => {
     const target = process.env.RTA_TARGET;
-    const config = target ? targets[target] : undefined;
+    const allowed = targetsFor(browser);
+    const config = target && allowed.includes(target) ? targets[target] : undefined;
     if (!config) {
-        throw new Error(`Set RTA_TARGET to one of: ${Object.keys(targets).join(', ')} (got ${target ?? 'nothing'})`);
+        throw new Error(
+            `Set RTA_TARGET to one of: ${allowed.join(', ')} (RTA_BROWSER=${browser}, got ${target ?? 'nothing'})`
+        );
     }
     return config;
 });

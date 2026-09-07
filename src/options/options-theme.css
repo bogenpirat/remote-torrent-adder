@@ -201,3 +201,40 @@ body::-webkit-scrollbar-thumb:hover { background: var(--rta-green); }
   color: var(--rta-danger);
   margin-top: 8px;
 }
+
+.rta-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.rta-notice--warning {
+  background: var(--rta-surface);
+  border: 2px solid var(--rta-danger);
+  color: var(--rta-text);
+}
+
+.rta-notice__action {
+  flex: none;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--rta-danger);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rta-notice__action:hover {
+  background: var(--rta-danger-dark);
+}

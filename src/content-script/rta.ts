@@ -1,3 +1,4 @@
+import { ext, sendMessageAndForget, trySendMessage } from '../util/browser-api';
 import { observe } from './mutations';
 import { deriveLinkLabel, isMagnetLink } from './link-labels';
 import {deserializeObject} from '../util/serializer';
@@ -24,7 +25,7 @@ let foundLinks: IPageLinkInfo[];
 let seenLinkUrls: Set<string>;
 loadSettingsAndRegisterActions();
 
-chrome.runtime.onMessage.addListener((
+ext.runtime.onMessage.addListener((
     message: { action?: string },
     _sender,
     sendResponse: (response: IPageLinksResponse | IFetchTorrentInPageResponse) => void
@@ -46,9 +47,9 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     numFoundLinks = 0;
     foundLinks = [];
     seenLinkUrls = new Set<string>();
-    chrome.runtime.sendMessage({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
-    chrome.runtime.sendMessage(GetLinkCatchingConfig, function (serializedConfig?: string) {
-        if (chrome.runtime.lastError || !serializedConfig) {
+    sendMessageAndForget({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
+    void trySendMessage<string>(GetLinkCatchingConfig).then(serializedConfig => {
+        if (!serializedConfig) {
             if (attemptNumber < 3) {
                 console.warn("Service worker might've been asleep. Retrying to load config...");
                 setTimeout(() => loadSettingsAndRegisterActions(attemptNumber + 1), 100 * (attemptNumber + 1));
@@ -84,10 +85,10 @@ function registerForms(linkRegexes: RegExp[]): void {
 }
 
 function incrementCounter(): void {
-    chrome.runtime.sendMessage({
+    sendMessageAndForget({
         action: UpdateActionBadgeText.action,
         text: (++numFoundLinks).toString()
-    } as IUpdateActionBadgeTextMessage).then();
+    } as IUpdateActionBadgeTextMessage);
 }
 
 function recordFoundLink(element: Element, url: string): void {
@@ -111,6 +112,6 @@ function registerAction(element: Element, url: string): void {
         mouseEvent.preventDefault();
         console.debug("Clicked form input");
 
-        chrome.runtime.sendMessage({ action: PreAddTorrentMessage.action, url: url } as IPreAddTorrentMessage);
+        sendMessageAndForget({ action: PreAddTorrentMessage.action, url: url } as IPreAddTorrentMessage);
     });
 }

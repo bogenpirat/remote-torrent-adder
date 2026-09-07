@@ -4,9 +4,10 @@ name: Release
 #
 # Trigger from the Actions tab (or: gh workflow run Release -f version=2.0.6),
 # supplying the version. The workflow bumps the version in source, builds the
-# dev and prod bundles, then commits + tags THAT commit so the tag always lands
-# on the commit carrying the version. Finally it publishes a GitHub Release with
-# both bundles attached and uploads the prod bundle to the Chrome Web Store.
+# Chrome and Firefox bundles in both dev and prod flavours, then commits + tags
+# THAT commit so the tag always lands on the commit carrying the version.
+# Finally it publishes a GitHub Release with all four bundles attached and
+# uploads the Chrome prod bundle to the Chrome Web Store.
 #
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
@@ -15,6 +16,8 @@ name: Release
 #   RELEASE_TOKEN
 #     a fine-grained PAT with Contents: read & write, owned by someone with a
 #     bypass entry in the master ruleset, so the bump-commit + tag can be pushed.
+#   AMO_JWT_ISSUER, AMO_JWT_SECRET  (not needed yet - see the commented block)
+#     from addons.mozilla.org -> Tools -> Manage API Keys.
 
 on:
   workflow_dispatch:
@@ -78,18 +81,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build both bundles BEFORE moving any git refs, so a build failure aborts
+      # Build every bundle BEFORE moving any git refs, so a build failure aborts
       # the release without leaving a dangling commit or tag behind.
-      - name: Build dev bundle
-        run: npm run build
+      - name: Build all bundles
+        run: npm run build:all
 
-      - name: Build prod bundle
-        run: npm run build:prod
+      - name: Lint the Firefox bundle
+        run: npm run lint:firefox
 
       - name: Zip bundles
         run: |
-          (cd dist && zip -r "../remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip" .)
-          (cd dist-prod && zip -r "../remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip" .)
+          V="${{ steps.ver.outputs.version }}"
+          (cd dist/chrome && zip -qr "../../remote-torrent-adder-$V-dev.zip" .)
+          (cd dist-prod/chrome && zip -qr "../../remote-torrent-adder-$V-prod.zip" .)
+          (cd dist/firefox && zip -qr "../../remote-torrent-adder-$V-firefox-dev.zip" .)
+          (cd dist-prod/firefox && zip -qr "../../remote-torrent-adder-$V-firefox-prod.zip" .)
 
       - name: Commit, tag and push
         run: |
@@ -110,6 +116,8 @@ jobs:
           files: |
             remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
             remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-dev.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-prod.zip
 
       - name: Upload to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v6.0.0
@@ -124,3 +132,17 @@ jobs:
           #   publish: false -> upload only; the new version sits as a draft and
           #                     you click "Publish" in the dashboard.
           publish: true
+
+      # - name: Package source for AMO review
+      #   run: git archive --format=zip -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
+      #
+      # - name: Upload to addons.mozilla.org
+      #   env:
+      #     WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+      #     WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+      #   run: >
+      #     npx web-ext sign
+      #     --source-dir dist-prod/firefox
+      #     --channel listed
+      #     --upload-source-code "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip"
+      #     --artifacts-dir web-ext-artifacts

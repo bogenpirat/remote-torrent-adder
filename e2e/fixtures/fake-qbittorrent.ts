@@ -4,6 +4,7 @@ import { type AddressInfo } from "node:net";
 export interface RecordedRequest {
     method: string;
     path: string;
+    headers: Record<string, string>;
     fields: Record<string, string>;
     files: Record<string, { filename: string; size: number }>;
 }
@@ -63,7 +64,11 @@ export class FakeQBittorrent {
     private async handle(req: IncomingMessage): Promise<[number, string]> {
         const path = (req.url ?? "").split("?")[0] ?? "";
         const body = await readBody(req);
-        const recorded: RecordedRequest = { method: req.method ?? "GET", path, fields: {}, files: {} };
+        const headers: Record<string, string> = {};
+        for (const [name, value] of Object.entries(req.headers)) {
+            headers[name.toLowerCase()] = Array.isArray(value) ? value.join(", ") : String(value ?? "");
+        }
+        const recorded: RecordedRequest = { method: req.method ?? "GET", path, headers, fields: {}, files: {} };
 
         const contentType = req.headers["content-type"] ?? "";
         if (contentType.includes("multipart/form-data")) {

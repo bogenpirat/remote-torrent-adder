@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import {
     AddTorrentMessage,
     GetSettingsMessage,
@@ -21,7 +22,7 @@ import { type RTASettings } from "../models/settings";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
-import { openActionPopup, POPUP_PAGE, updateBadgeText } from "./action";
+import { openActionPopup, openPopupWindow, updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { CloudflareChallengeError, downloadTorrent, type TorrentDownloadContext } from "./download";
@@ -34,7 +35,7 @@ import { initiateWebUis } from "./webuis";
 
 
 export function registerMessageListener(): void {
-    chrome.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
+    ext.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
         let willRespondAsync = false;
 
         const finish = (payload?: unknown) => {
@@ -103,7 +104,7 @@ export function registerMessageListener(): void {
                 case PreAddTorrentMessage.action: {
                     willRespondAsync = true;
                     const preAddTorrentMessage = message as IPreAddTorrentMessage;
-                    chrome.windows.getLastFocused().then(lastFocusedWindow => {
+                    ext.windows.getLastFocused().then(lastFocusedWindow => {
                         try {
                             dispatchPreAddTorrent(
                                 preAddTorrentMessage,
@@ -176,16 +177,15 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
         }
         await saveBufferedTorrent({ torrent, webUiSettings: webUi.settings });
         if (webUi.settings.useAlternativeLabelDirChooser) {
-            chrome.windows.create({
-                url: POPUP_PAGE,
-                type: "popup",
-                width: 420,
-                height: 600,
-                focused: true
-            });
+            openPopupWindow();
         } else {
-            chrome.windows.update(windowId, { focused: true });
-            openActionPopup(windowId);
+            await ext.windows.update(windowId, { focused: true });
+            try {
+                await openActionPopup(windowId);
+            } catch (error) {
+                console.warn("Could not open the action popup; falling back to a window.", error);
+                openPopupWindow();
+            }
         }
     } else {
         downloadAndAddTorrentToWebUi(webUi, message.url, null, message, context);

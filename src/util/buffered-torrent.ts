@@ -37,7 +37,18 @@ export async function readBufferedTorrent(): Promise<BufferedTorrent | null> {
         "readonly",
         store => store.get(BUFFERED_TORRENT_KEY),
     );
-    return buffered ?? null;
+    if (!buffered) {
+        return null;
+    }
+    return { ...buffered, torrent: await detachTorrentData(buffered.torrent) };
+}
+
+async function detachTorrentData(torrent: Torrent): Promise<Torrent> {
+    const data = torrent.data;
+    if (typeof data === "string" || typeof data?.arrayBuffer !== "function") {
+        return torrent;
+    }
+    return { ...torrent, data: new Blob([await data.arrayBuffer()], { type: data.type }) };
 }
 
 export function clearBufferedTorrent(): Promise<void> {

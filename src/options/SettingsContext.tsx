@@ -1,3 +1,4 @@
+import { sendMessageAndForget } from "../util/browser-api";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { RTASettings } from "../models/settings";
 import { SaveSettingsMessage } from "../models/messages";
@@ -34,7 +35,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Save settings to service worker whenever they change
   const saveSettings = (newSettings: RTASettings) => {
     setSettings(newSettings);
-    chrome.runtime.sendMessage({ action: SaveSettingsMessage.action, settings: serializeSettings(newSettings) });
+    sendMessageAndForget({ action: SaveSettingsMessage.action, settings: serializeSettings(newSettings) });
   };
 
   const updateSetting = <K extends keyof RTASettings>(key: K, value: RTASettings[K]) => {

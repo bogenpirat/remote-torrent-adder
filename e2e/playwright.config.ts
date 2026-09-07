@@ -16,4 +16,15 @@ export default defineConfig({
     use: {
         trace: "retain-on-failure",
     },
+    projects: [
+        {
+            name: "chrome",
+            testIgnore: "firefox/**",
+        },
+        {
+            name: "firefox",
+            testMatch: "firefox/**/*.spec.ts",
+            timeout: 120_000,
+        },
+    ],
 });

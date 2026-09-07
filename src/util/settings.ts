@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { type RTASettings } from "../models/settings";
 import { getDefaultSettings } from "./settings-defaults";
 import { migrateSettingsClientIdentifiers } from "./legacy-client-identifiers";
@@ -18,41 +19,33 @@ export class Settings {
         this.saveSettings(settings);
     }
 
-    public loadSettings(): Promise<RTASettings> {
-        return new Promise((resolve) => {
-            chrome.storage.local.get([SETTINGS_KEY], async (response: Record<string, string>) => {
-                console.debug("Loaded serialized RTAv2 settings:", response);
-                if (!response[SETTINGS_KEY]) {
-                    console.log("Initializing with default settings.");
-                    const defaults = getDefaultSettings();
-                    await this.saveSettings(defaults);
-                    resolve(defaults);
-                    return;
-                }
-                try {
-                    const loaded = deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings();
-                    const migrated = migrateSettingsClientIdentifiers(loaded);
-                    if (migrated !== loaded) {
-                        await this.saveSettings(migrated);
-                    }
-                    resolve(migrated);
-                } catch (e) {
-                    console.error("Failed to deserialize settings, resetting to defaults", e);
-                    const defaults = getDefaultSettings();
-                    await this.saveSettings(defaults);
-                    resolve(defaults);
-                }
-            });
-        });
+    public async loadSettings(): Promise<RTASettings> {
+        const response = await ext.storage.local.get([SETTINGS_KEY]) as Record<string, string>;
+        console.debug("Loaded serialized RTAv2 settings:", response);
+        if (!response[SETTINGS_KEY]) {
+            console.log("Initializing with default settings.");
+            const defaults = getDefaultSettings();
+            await this.saveSettings(defaults);
+            return defaults;
+        }
+        try {
+            const loaded = deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings();
+            const migrated = migrateSettingsClientIdentifiers(loaded);
+            if (migrated !== loaded) {
+                await this.saveSettings(migrated);
+            }
+            return migrated;
+        } catch (e) {
+            console.error("Failed to deserialize settings, resetting to defaults", e);
+            const defaults = getDefaultSettings();
+            await this.saveSettings(defaults);
+            return defaults;
+        }
     }
 
-    public saveSettings(settings: RTASettings): Promise<void> {
-        return new Promise((resolve) => {
-            chrome.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) }, () => {
-                console.log("Settings saved: ", settings);
-                resolve();
-            });
-        });
+    public async saveSettings(settings: RTASettings): Promise<void> {
+        await ext.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) });
+        console.log("Settings saved: ", settings);
     }
 
     public serialize(): string {

@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 export function generateId(): string {
     return crypto.randomUUID();
 }
@@ -36,10 +37,10 @@ export function addTrailingSlash(url: string): string {
 }
 
 export function clearDynamicRules(): void {
-    chrome.declarativeNetRequest.getDynamicRules().then(rules => {
+    ext.declarativeNetRequest.getDynamicRules().then(rules => {
         const ruleIds = rules.map(rule => rule.id);
         if (ruleIds.length > 0) {
-            chrome.declarativeNetRequest.updateDynamicRules({
+            ext.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: ruleIds
             });
         }

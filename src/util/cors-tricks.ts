@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
 
 function hasUsableHost(baseUrl: string): boolean {
@@ -12,7 +13,7 @@ function hasUsableHost(baseUrl: string): boolean {
 }
 
 export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI[]): Promise<void> {
-    const oldRuleIds = (await chrome.declarativeNetRequest.getSessionRules())
+    const oldRuleIds = (await ext.declarativeNetRequest.getSessionRules())
         .map(rule => rule.id);
     const newRules: chrome.declarativeNetRequest.Rule[] = [];
 
@@ -40,7 +41,7 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
         }
     });
 
-    await chrome.declarativeNetRequest.updateSessionRules({
+    await ext.declarativeNetRequest.updateSessionRules({
         removeRuleIds: oldRuleIds,
         addRules: newRules
     });
@@ -55,7 +56,7 @@ function allocateDynamicRuleId(): number {
 
 export async function executeMethodWrappedWithOriginStripped<T>(method: () => Promise<T>, baseUrl: string): Promise<T> {
     const originStripperRuleId = allocateDynamicRuleId();
-    await chrome.declarativeNetRequest.updateDynamicRules({
+    await ext.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [originStripperRuleId],
         addRules: [
             {
@@ -80,7 +81,7 @@ export async function executeMethodWrappedWithOriginStripped<T>(method: () => Pr
     try {
         return await method();
     } finally {
-        await chrome.declarativeNetRequest.updateDynamicRules({
+        await ext.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [originStripperRuleId],
         });
     }
@@ -88,7 +89,7 @@ export async function executeMethodWrappedWithOriginStripped<T>(method: () => Pr
 
 export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T>, url: string, referer: string): Promise<T> {
     const refererSetterRuleId = allocateDynamicRuleId();
-    await chrome.declarativeNetRequest.updateDynamicRules({
+    await ext.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [refererSetterRuleId],
         addRules: [
             {
@@ -118,7 +119,7 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
     try {
         return await method();
     } finally {
-        await chrome.declarativeNetRequest.updateDynamicRules({
+        await ext.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [refererSetterRuleId],
         });
     }

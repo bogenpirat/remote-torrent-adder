@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
 import { loadWebUis } from "./webuis";
 
@@ -6,7 +7,7 @@ const MAX_TRACKED_REQUESTS = 256;
 const triedRequestIds: Set<string> = new Set();
 
 export function registerAuthenticationListener(): void {
-    chrome.webRequest.onAuthRequired.addListener(
+    ext.webRequest.onAuthRequired.addListener(
         (details, asyncCallback) => {
             if (!asyncCallback) {
                 return {};

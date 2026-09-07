@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+    define: { __RTA_BROWSER__: JSON.stringify(process.env.RTA_BROWSER ?? "chrome") },
     test: {
         environment: "jsdom",
         globals: true,
@@ -15,6 +16,7 @@ export default defineConfig({
             exclude: [
                 "src/**/*.d.ts",
                 "src/notifications/offscreen.ts",
+                "src/util/play-sound.ts",
             ],
             reporter: ["text", "html"],
         },

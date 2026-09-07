@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { showNotification, registerNotificationClickListener } from "../../src/util/notifications";
+import { BROWSER } from "../../src/util/platform";
 
 describe("showNotification", () => {
     it("creates a basic notification with the success icon by default", () => {
@@ -20,37 +21,40 @@ describe("showNotification", () => {
         expect(options.iconUrl).toBe("assets/icons/BitTorrent128-red.png");
     });
 
-    it("clears the notification after the configured duration", () => {
+    it("clears the notification after the configured duration", async () => {
         vi.useFakeTimers();
         try {
             showNotification("T", "B", false, 1500);
+            await vi.advanceTimersByTimeAsync(0);
             expect(chrome.notifications.clear).not.toHaveBeenCalled();
-            vi.advanceTimersByTime(1500);
+            await vi.advanceTimersByTimeAsync(1500);
             expect(chrome.notifications.clear).toHaveBeenCalledWith("notif-id");
         } finally {
             vi.useRealTimers();
         }
     });
 
-    it("opens the webui when its notification is clicked", () => {
+    it("opens the webui when its notification is clicked", async () => {
         registerNotificationClickListener();
         showNotification("T", "B", false, 2000, false, "http://h/");
+        await Promise.resolve();
         const onClicked = (chrome.notifications.onClicked.addListener as any).mock.calls[0][0];
 
         onClicked("notif-id");
         expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h/" });
     });
 
-    it("ignores clicks on notifications without a stored url", () => {
+    it("ignores clicks on notifications without a stored url", async () => {
         registerNotificationClickListener();
         showNotification("T", "B", false); // no webui url
+        await Promise.resolve();
         const onClicked = (chrome.notifications.onClicked.addListener as any).mock.calls[0][0];
 
         onClicked("notif-id");
         expect(chrome.tabs.create).not.toHaveBeenCalled();
     });
 
-    it("creates an offscreen document to play sound when requested", async () => {
+    it.skipIf(BROWSER !== "chrome")("creates an offscreen document to play sound when requested", async () => {
         showNotification("T", "B", false, 2000, true);
         await Promise.resolve();
         await Promise.resolve();

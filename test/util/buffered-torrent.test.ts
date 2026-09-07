@@ -53,6 +53,14 @@ describe("buffered torrent store", () => {
         expect((await readBufferedTorrent())!.torrent.name).toBe("second");
     });
 
+    it("leaves a magnet payload alone", async () => {
+        await saveBufferedTorrent({ torrent: makeMagnetTorrent(), webUiSettings: makeWebUISettings() });
+
+        const buffered = await readBufferedTorrent();
+
+        expect(typeof buffered!.torrent.data).toBe("string");
+    });
+
     it("clears the entry", async () => {
         await saveBufferedTorrent({ torrent: makeMagnetTorrent(), webUiSettings: makeWebUISettings() });
         await clearBufferedTorrent();

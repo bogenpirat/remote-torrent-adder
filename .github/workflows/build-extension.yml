@@ -1,4 +1,4 @@
-name: Build Chrome Extension
+name: Build Extension
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
           name: coverage
           path: coverage
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: npm run audit
 
   build-dev:
     needs: verify
@@ -56,13 +56,22 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Build extension
+      - name: Build Chrome extension
         run: npm run build:run
-      - name: Upload build artifacts
+      - name: Build Firefox extension
+        run: npm run build:firefox:run
+      - name: Lint the Firefox bundle
+        run: npm run lint:firefox
+      - name: Upload Chrome build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: chrome-extension-dist
-          path: dist
+          path: dist/chrome
+      - name: Upload Firefox build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: firefox-extension-dist
+          path: dist/firefox
 
   e2e:
     # Launching a real browser is slow and flakier than the unit suite, so it
@@ -80,15 +89,24 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Download the built extension
+      - name: Download the built Chrome extension
         uses: actions/download-artifact@v8
         with:
           name: chrome-extension-dist
-          path: dist
+          path: dist/chrome
+      - name: Download the built Firefox extension
+        uses: actions/download-artifact@v8
+        with:
+          name: firefox-extension-dist
+          path: dist/firefox
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Install Firefox
+        uses: browser-actions/setup-firefox@v1
       - name: Run end-to-end tests
         run: npm run test:e2e
+        env:
+          MOZ_HEADLESS: '1'
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v7
@@ -111,10 +129,17 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Build extension (production)
+      - name: Build Chrome extension (production)
         run: npm run build:prod:run
-      - name: Upload production build artifacts
+      - name: Build Firefox extension (production)
+        run: npm run build:firefox:prod:run
+      - name: Upload Chrome production build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: chrome-extension-dist-prod
-          path: dist-prod
+          path: dist-prod/chrome
+      - name: Upload Firefox production build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: firefox-extension-dist-prod
+          path: dist-prod/firefox

@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { type DecodedTorrent } from "../models/decoded-torrent";
 import {
     FetchTorrentInPageMessage,
@@ -79,7 +80,7 @@ async function fetchTorrentFileFromPage(url: string, context: TorrentDownloadCon
     const message: IFetchTorrentInPageMessage = { action: FetchTorrentInPageMessage.action, url };
     let response: IFetchTorrentInPageResponse | undefined;
     try {
-        response = await chrome.tabs.sendMessage(context.tabId, message, { frameId: context.frameId ?? 0 }) as IFetchTorrentInPageResponse | undefined;
+        response = await ext.tabs.sendMessage(context.tabId, message, { frameId: context.frameId ?? 0 }) as IFetchTorrentInPageResponse | undefined;
     } catch (error) {
         console.warn("No content script answered in tab " + context.tabId + "; downloading from the service worker instead.", error);
         return null;

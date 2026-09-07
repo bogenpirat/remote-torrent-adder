@@ -1,6 +1,6 @@
 # Remote Torrent Adder
 
-Chrome MV3 extension that intercepts torrent/magnet links and sends them to BitTorrent client WebUIs.
+MV3 browser extension that intercepts torrent/magnet links and sends them to BitTorrent client WebUIs. One codebase builds for both Chrome and Firefox (149+).
 
 Full skill definitions and project context: [`.agents/README.md`](.agents/README.md)
 
@@ -10,29 +10,39 @@ Full skill definitions and project context: [`.agents/README.md`](.agents/README
 npm run typecheck      # tsc --noEmit over src/, test/, scripts/, configs
 npm run lint           # eslint (npm run lint:fix to autofix)
 npm test               # vitest suite (npm run test:watch, npm run test:coverage)
-npm run build          # dev build → dist/
-npm run build:prod     # production build → dist-prod/
+npm run audit          # npm audit --audit-level=high, minus a reviewed allowlist
+npm run build          # Chrome dev build → dist/chrome/
+npm run build:prod     # Chrome prod build → dist-prod/chrome/
+npm run build:firefox  # Firefox dev build → dist/firefox/
+npm run build:all      # all four bundles, verified once
 npm run dev            # watch mode
 ```
 
 `npm run build` runs `typecheck && lint && test` first via `prebuild` — a "build failure" is often one of those three. Run them directly while iterating.
 
-Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode on).
+Load unpacked extension from `dist/chrome/` in `chrome://extensions/` (Developer mode on).
+For Firefox, `npm run dev:firefox` launches a scratch profile with `dist/firefox/` loaded.
 
 ## Architecture
 
-- **`src/service_worker.ts`** — stateless background process (MV3: no persistent state, use `chrome.storage`)
+- **`src/service_worker.ts`** — stateless background process (MV3: no persistent state, use `ext.storage`). A service worker on Chrome, an event page on Firefox; the same IIFE bundle serves both.
 - **`src/content-script/rta.ts`** — injected into all pages, intercepts torrent/magnet link clicks
 - **`src/popup/`** — React app: torrent preview + add configuration
 - **`src/options/`** — React app: all settings (clients, notifications, link catching)
 - **`src/webuis/<name>-webui.ts`** — one class per BitTorrent client (13), extends `TorrentWebUI`
 - **`src/models/clients.ts`** — `Client` enum + `ClientDisplayName` + `ClientClassByClient` + `WebUIFactory`
 - **`src/models/webui.ts`** — abstract `TorrentWebUI` base class
+- **`src/util/browser-api.ts`** — the `ext` shim; **all** extension API calls go through it
+- **`src/util/platform.ts`** — build-time browser constant (`isFirefox()`, `canUseOffscreen()`)
+- **`scripts/build.mjs` / `scripts/browsers.mjs` / `scripts/generate-manifest.mjs`** — the build matrix and the derived Firefox manifest
 - **`test/`** — vitest suite mirroring `src/`; every client has a `test/webuis/<name>-webui.test.ts`
+- **`e2e/`** — Playwright drives Chrome; `e2e/firefox/` drives real Firefox through geckodriver
 
 ## Critical Constraints
 
-- Service worker **must be stateless** — no module-level mutable state. Persist to `chrome.storage`.
+- **Never call `chrome.*` directly.** Use `ext` from `src/util/browser-api.ts`; on Firefox the bare `chrome` namespace is callback-only and returns `undefined`, so `.then()` on it throws. An eslint rule enforces this. Type positions (`chrome.tabs.Tab`) are fine.
+- Anything Chrome-only (`ext.offscreen`, …) must be behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`, and a permission only Chrome understands must be filtered out in `scripts/generate-manifest.mjs`.
+- Service worker **must be stateless** — no module-level mutable state. Persist to `ext.storage`.
 - Use `this.fetch()` (not raw `fetch()`) — it throws `HttpError` on non-OK responses. Return `this.toFailureResult(error)` from the `catch`.
 - **Never** set `Content-Type: multipart/form-data` manually with FormData — browser sets it with boundary.
 - `Torrent.data` is `Blob | string` — Blob for `.torrent` uploads, magnet URI string when `torrent.isMagnet === true`. Always branch on `torrent.isMagnet`. (There is no `torrent.url` or `torrent.blob`.)
@@ -42,7 +52,7 @@ Load unpacked extension from `dist/` in `chrome://extensions/` (Developer mode o
 
 ## Releasing
 
-Do not bump versions or create tags locally. Releases run through the manually-triggered `.github/workflows/release.yml` (`gh workflow run Release -f version=X.Y.Z`), which owns the version bump, tag, GitHub Release, and Chrome Web Store upload. The CWS step publishes immediately, so a human triggers it. Details in [`.agents/README.md`](.agents/README.md#releasing).
+Do not bump versions or create tags locally. Releases run through the manually-triggered `.github/workflows/release.yml` (`gh workflow run Release -f version=X.Y.Z`), which owns the version bump, tag, GitHub Release, and Chrome Web Store upload. The CWS step publishes immediately, so a human triggers it. The addons.mozilla.org steps are written out but commented out until the AMO listing exists. Details in [`.agents/README.md`](.agents/README.md#releasing).
 
 ## Task guides — read the matching file before you start
 

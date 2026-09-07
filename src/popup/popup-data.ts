@@ -1,3 +1,4 @@
+import { ext } from "../util/browser-api";
 import { WebUIFactory } from "../models/clients";
 import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir } from "../models/messages";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
@@ -114,7 +115,7 @@ export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
         directories: request.directoryOptions,
     };
 
-    const response = await chrome.runtime.sendMessage(message);
+    const response = await ext.runtime.sendMessage(message);
     if (response && typeof response === "object" && "error" in response) {
         throw new Error(String(response.error));
     }

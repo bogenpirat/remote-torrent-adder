@@ -1,9 +1,12 @@
+import { ext, sendMessageAndForget } from "./browser-api";
 import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
+import { canUseOffscreen } from "./platform";
+import { playNotificationSound } from "./play-sound";
 
 const notificationUrls = new Map<string, string>();
 
 export function registerNotificationClickListener(): void {
-    chrome.notifications.onClicked.addListener((notificationId) => {
+    ext.notifications.onClicked.addListener((notificationId) => {
         const url = notificationUrls.get(notificationId);
         if (url) {
             openWebUi(url);
@@ -17,11 +20,10 @@ export function showNotification(title: string, message: string, isFailed: boole
         type: "basic",
         iconUrl: isFailed ? "assets/icons/BitTorrent128-red.png" : "assets/icons/BitTorrent128.png",
         title: title,
-        priority: 0,
         message: message
     };
 
-    chrome.notifications.create("", notificationCreateOptions, myId => {
+    void ext.notifications.create("", notificationCreateOptions).then(myId => {
         if (webUiUrl) {
             notificationUrls.set(myId, webUiUrl);
         } else {
@@ -32,24 +34,28 @@ export function showNotification(title: string, message: string, isFailed: boole
     });
 
     if (playSound) {
-        ensureOffscreenDocument().then(() => {
-            const playSoundMessage = {
-                action: PlaySoundMessage.action,
-                isFailed
-            } as IPlaySoundMessage;
-            chrome.runtime.sendMessage(playSoundMessage).then();
-        });
+        if (canUseOffscreen()) {
+            void ensureOffscreenDocument().then(() => {
+                const playSoundMessage = {
+                    action: PlaySoundMessage.action,
+                    isFailed
+                } as IPlaySoundMessage;
+                sendMessageAndForget(playSoundMessage);
+            });
+        } else {
+            void playNotificationSound(isFailed);
+        }
     }
 }
 
 function forgetNotification(notificationId: string): void {
     notificationUrls.delete(notificationId);
-    chrome.notifications.clear(notificationId).then();
+    ext.notifications.clear(notificationId).then();
 }
 
 async function ensureOffscreenDocument(): Promise<void> {
-    if (await chrome.offscreen.hasDocument()) return;
-    await chrome.offscreen.createDocument({
+    if (await ext.offscreen.hasDocument()) return;
+    await ext.offscreen.createDocument({
         reasons: ["AUDIO_PLAYBACK"],
         url: 'notifications/offscreen.html',
         justification: "playing a lil audio along with the notification"
@@ -57,5 +63,5 @@ async function ensureOffscreenDocument(): Promise<void> {
 }
 
 function openWebUi(url: string): void {
-    chrome.tabs.create({url: url}).then();
+    ext.tabs.create({url: url}).then();
 }

@@ -152,7 +152,7 @@ npm test
 npm run lint
 ```
 
-`npm run build` runs all three first via `prebuild`. Then load the unpacked `dist/` in Chrome and verify:
+`npm run build` runs all three first via `prebuild`. Then load the unpacked `dist/chrome/` in Chrome and verify:
 - New field appears correctly in Options
 - Default value is applied to configs saved before the change
 - If per-torrent: popup shows the control and the chosen value reaches the client

@@ -1,3 +1,4 @@
+import { ext } from '../../util/browser-api';
 import { useEffect, useState } from 'react';
 import Notice from './Notice';
 import { WebUIFactory } from '../../models/clients';
@@ -43,7 +44,7 @@ export default function WebUiPickerView() {
   }, []);
 
   const openWebUi = (url: string) => {
-    chrome.tabs.create({ url, active: true });
+    ext.tabs.create({ url, active: true });
     window.close();
   };
 

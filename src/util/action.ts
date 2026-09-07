@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis, loadWebUis } from "./webuis";
 import { Settings } from "./settings";
@@ -8,7 +9,7 @@ export const POPUP_PAGE = "popup/popup.html";
 export type PopupMode = "picker" | "links";
 
 export function registerActionClickListener(): void {
-    chrome.action.onClicked.addListener((tab) => {
+    ext.action.onClicked.addListener((tab) => {
         handleActionClick(tab).catch(error => console.error("Failed handling action icon click", error));
     });
 }
@@ -41,7 +42,7 @@ export async function openPrimaryWebUi(): Promise<void> {
         console.warn("Action icon clicked, but no WebUI is configured.");
         return;
     }
-    await chrome.tabs.create({
+    await ext.tabs.create({
         url: addTrailingSlash(primaryWebUi.createBaseUrl()),
         active: true,
     });
@@ -49,11 +50,25 @@ export async function openPrimaryWebUi(): Promise<void> {
 
 export async function openActionPopup(windowId: number, mode?: PopupMode): Promise<void> {
     const popup = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
-    await chrome.action.setPopup({ popup });
-    await chrome.action.openPopup({ windowId });
-    await chrome.action.setPopup({ popup: "" });
+    await ext.action.setPopup({ popup });
+    try {
+        await ext.action.openPopup({ windowId });
+    } finally {
+        await ext.action.setPopup({ popup: "" });
+    }
+}
+
+export function openPopupWindow(mode?: PopupMode): void {
+    const url = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
+    void ext.windows.create({
+        url,
+        type: "popup",
+        width: 420,
+        height: 600,
+        focused: true
+    });
 }
 
 export function updateBadgeText(text: string, tabId: number): void {
-    chrome.action.setBadgeText({text, tabId}).then();
+    ext.action.setBadgeText({text, tabId}).then();
 }

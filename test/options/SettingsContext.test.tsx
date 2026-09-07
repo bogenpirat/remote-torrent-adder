@@ -9,9 +9,9 @@ import { callArgs } from "../helpers/assert";
 
 /** Answers GetSettings with the given settings, like the service worker does. */
 function respondWithSettings(settings = getDefaultSettings()) {
-    (chrome.runtime.sendMessage as any).mockImplementation((message: any, callback?: (r: any) => void) => {
+    (chrome.runtime.sendMessage as any).mockImplementation((message: any) => {
         if (message.action === GetSettingsMessage.action) {
-            callback?.(serializeSettings(settings));
+            return Promise.resolve(serializeSettings(settings));
         }
         return Promise.resolve();
     });
