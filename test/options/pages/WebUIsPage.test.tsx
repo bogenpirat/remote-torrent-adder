@@ -82,6 +82,38 @@ describe("WebUIsPage", () => {
         expect(savedWebUIs()).toBeNull();
     });
 
+    it("stores no port at all when the port field is cleared", async () => {
+        respondWithWebUIs([makeWebUISettings({ id: "a", name: "Alpha", port: 8080 })]);
+        renderPage();
+
+        await userEvent.clear(await screen.findByLabelText("Port"));
+
+        expect(savedWebUIs()![0]!.port).toBeNull();
+        expect(screen.getByLabelText("Port")).toHaveValue(null);
+    });
+
+    it("clamps a port above the maximum instead of storing it", async () => {
+        respondWithWebUIs([makeWebUISettings({ id: "a", name: "Alpha", port: 8080 })]);
+        renderPage();
+
+        const port = await screen.findByLabelText("Port");
+        await userEvent.clear(port);
+        await userEvent.type(port, "99999");
+
+        expect(savedWebUIs()![0]!.port).toBe(65535);
+    });
+
+    it("refuses a negative port", async () => {
+        respondWithWebUIs([makeWebUISettings({ id: "a", name: "Alpha", port: 8080 })]);
+        renderPage();
+
+        const port = await screen.findByLabelText("Port");
+        await userEvent.clear(port);
+        await userEvent.type(port, "-1");
+
+        expect(savedWebUIs()![0]!.port).toBe(1);
+    });
+
     it("renders a WebUI whose stored settings predate autoLabelDirSettings", async () => {
         respondWithWebUIs([webUIWithoutAutoLabelDirSettings()]);
         renderPage();
