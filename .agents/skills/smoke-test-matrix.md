@@ -100,12 +100,38 @@ Tick the client off only if BOTH pass.
 | G2 | Open the popup, close it without acting, reopen on a different link | Second popup shows the new torrent, not stale state |
 | G3 | Build prod (`npm run build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
 
+### H. Firefox
+
+Run these after touching anything under **Firefox port hotspots**: `browser-api.ts`,
+`platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`,
+`authentication-listener.ts`, or `scripts/generate-manifest.mjs`.
+
+Setup: `npm run dev:firefox` (or `about:debugging#/runtime/this-firefox` → **Load
+Temporary Add-on…** → `dist/firefox/manifest.json`). Needs **Firefox 149+**.
+
+`npm run test:e2e:firefox` already covers boot, link catching, the CORS session
+rules, the Origin strip and the add round-trip against a fake client. The rows
+below are the ones it *cannot* reach.
+
+| # | Scenario | Expected |
+|---|---|---|
+| H1 | Click a `.torrent` link on a client with **Show per-torrent selector** on | The label/dir popup opens. Watch for it closing instantly — `openActionPopup` unregisters the popup right after opening it, which is unverified on Firefox. If it flickers shut, defer the reset or force the window container |
+| H2 | Same, with **Use alternative container** on | A 420x600 popup window opens with the same form |
+| H3 | Add succeeds with notification sound enabled | Sound plays once, from the event page — there is no offscreen document on Firefox |
+| H4 | Add fails (stop the client) | Error notification appears; it carries no buttons, which is expected — Firefox only supports basic notifications |
+| H5 | Click the notification | The client WebUI opens in a new tab |
+| H6 | Revoke host access in `about:addons` → Permissions, reopen the options page | The "cannot access websites" banner appears; **Grant access** restores it and the banner disappears |
+| H7 | Right-click a torrent link → context menu → "Send to <client>" | Torrent added directly, no popup |
+| H8 | A client behind HTTP Basic auth (ruTorrent, Tixati) | Stored credentials are supplied; no browser auth prompt appears |
+| H9 | Icon click with each `iconClickAction` setting | Same behaviour as Chrome |
+| H10 | Options and popup side by side with Chrome | Identical layout, colours and fonts in both light and dark themes |
+
 ## What to record
 
 When reporting a smoke-test pass on a PR, include:
 
 - Which rows ran (e.g. "ran A1–A5, B1–B2 for qBittorrent + Transmission, D1–D5")
-- Chrome version and OS
+- Browser and version, and OS
 - Anything that surprised you (even if it passed)
 
 That's enough to make "I tested it" auditable.

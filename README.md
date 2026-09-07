@@ -32,6 +32,7 @@ Chrome doesn't let extensions hand a downloaded `.torrent` file over to a deskto
 - 🔔 **Rich notifications** — success/failure notifications with configurable duration and **custom notification sounds**
 - 📦 **Import/export** — back up and restore your complete configuration as a file
 - ⚡ **Manifest V3** — built for Chrome's current extension platform, with a modern React-based settings UI
+- 🦊 **Chrome and Firefox** — one codebase, identical features on both
 
 ## 🧩 Supported clients
 
@@ -55,7 +56,9 @@ Missing your client? [Open an issue](https://github.com/bogenpirat/remote-torren
 
 ## 🚀 Installation
 
-1. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
+1. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci).
+   Firefox support is built from the same codebase and needs **Firefox 149 or newer**;
+   it is not on addons.mozilla.org yet, so for now [build it from source](#-building-from-source).
 2. Open the extension's **options** and add your server(s): client type, host, port, credentials
 3. Click a torrent link — done!
 
@@ -91,6 +94,16 @@ To load your build into Chrome:
 2. Enable **Developer mode** (top right)
 3. Click **Load unpacked** and select the `dist/chrome/` (or `dist-prod/chrome/`) folder
 
+To load your build into Firefox, either run `npm run dev:firefox`, which launches a
+scratch Firefox profile with the add-on already installed, or load it by hand:
+
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on…** and pick `dist/firefox/manifest.json`
+
+A temporary add-on is gone on restart. Release Firefox refuses to install an
+unsigned `.xpi` permanently, so a persistent local install needs Firefox
+Developer Edition or Nightly with `xpinstall.signatures.required` set to `false`.
+
 For iterating on the extension, `npm run dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
 
 ## 🏗️ Tech stack
@@ -98,7 +111,8 @@ For iterating on the extension, `npm run dev` builds once and then rebuilds on e
 - **TypeScript** throughout, strict mode on
 - **React + Tailwind CSS** for the options page and per-torrent popup
 - **Vite** for all five bundles — the popup, options and notifications pages, plus the service worker and content script as standalone IIFE files
-- **Vitest** for the test suite
+- **One codebase, two browsers** — `scripts/generate-manifest.mjs` derives the Firefox manifest from the Chrome one, and a build-time constant folds away the branches that do not apply
+- **Vitest** for the unit suite, **Playwright** for Chrome end-to-end tests and **geckodriver** for the Firefox ones
 - Version-driven release pipeline that auto-deploys to the Chrome Web Store
 
 ## 🤝 Contributing

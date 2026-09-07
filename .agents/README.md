@@ -144,6 +144,11 @@ npm run dev          # watch mode (assets + worker + content script)
 2. Open `chrome://extensions/`
 3. Enable Developer mode
 4. "Load unpacked" → select `dist/chrome/`
+
+For Firefox, `npm run dev:firefox` launches a scratch profile with the add-on
+installed, or load `dist/firefox/manifest.json` by hand from
+`about:debugging#/runtime/this-firefox`. Firefox 149+ is required: that is the
+first version where `action.openPopup()` works without a live user gesture.
 5. Reload the extension after changes
 
 ## Releasing
@@ -160,11 +165,28 @@ gh workflow run Release -f version=X.Y.Z
 
 1. Validates the version and checks the tag does not already exist
 2. Runs `node scripts/bump-version.mjs X.Y.Z` — `src/manifest.json` is the source of truth; `package.json` and `package-lock.json` are synced from it
-3. `npm ci`, then builds **both** the dev and prod bundles — a build failure aborts before any ref moves
-4. Commits `chore: release vX.Y.Z`, tags it, and pushes both to `master`
-5. Publishes a GitHub Release with `generate_release_notes: true` and both zips attached
-6. Uploads the prod zip to the Chrome Web Store with `publish: true` — **this submits for review immediately**
+3. `npm ci`, then `npm run build:all` — all four bundles (Chrome and Firefox, dev and prod) with the typecheck/lint/test gate run once. A build failure aborts before any ref moves
+4. Runs `web-ext lint` over the Firefox bundle
+5. Commits `chore: release vX.Y.Z`, tags it, and pushes both to `master`
+6. Publishes a GitHub Release with `generate_release_notes: true` and all four zips attached
+7. Uploads the Chrome prod zip to the Chrome Web Store with `publish: true` — **this submits for review immediately**
 
-Because step 6 is irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
+Because step 7 is irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
 
 Required secrets: `CWS_EXTENSION_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `RELEASE_TOKEN`.
+
+### addons.mozilla.org
+
+Not wired up yet. The upload steps are written out at the end of `release.yml`
+but commented out, because `web-ext sign` cannot *create* an AMO listing — the
+first submission has to be done by hand, which is what claims
+`browser_specific_settings.gecko.id` (`remote-torrent-adder@bogenpirat`, fixed in
+`scripts/generate-manifest.mjs` and asserted by `test/build/manifest.test.ts`;
+it is permanent once the listing exists).
+
+To go live: upload `remote-torrent-adder-<version>-firefox-prod.zip` from the
+GitHub Release to AMO by hand, fill in the listing, then uncomment the two steps
+and add the `AMO_JWT_ISSUER` / `AMO_JWT_SECRET` secrets. AMO also requires a
+source archive alongside any minified upload, which the commented `git archive`
+step produces — it must stay *after* the bump commit or the source zip ships a
+version that does not match the bundle.

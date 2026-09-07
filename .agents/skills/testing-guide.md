@@ -52,6 +52,7 @@ The suite lives in `e2e/` and runs on Playwright, separately from vitest.
 
 ```bash
 npm run build         # required first: the suite loads dist/chrome/ as an unpacked extension
+npm run build:firefox # required too: the firefox project loads dist/firefox/
 npm run test:e2e
 npm run test:e2e:headed   # watch it happen
 npm run test:e2e:ui       # Playwright's UI mode
