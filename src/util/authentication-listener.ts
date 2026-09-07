@@ -57,7 +57,7 @@ export async function resolveAuthCredentials(
 }
 
 function isRequestForWebUi(url: string, webUi: TorrentWebUI): boolean {
-    if (!webUi.settings.host || !webUi.settings.port || !url) {
+    if (!webUi.settings.host || !url) {
         return false;
     }
     const baseUrl = webUi.createBaseUrl().replace(/\/+$/, "");

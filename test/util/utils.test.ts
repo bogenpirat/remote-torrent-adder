@@ -6,6 +6,7 @@ import {
     getBaseUrl,
     addTrailingSlash,
     clearDynamicRules,
+    parsePortInput,
 } from "../../src/util/utils";
 
 describe("generateId", () => {
@@ -100,5 +101,35 @@ describe("clearDynamicRules", () => {
         await Promise.resolve();
         await Promise.resolve();
         expect(chrome.declarativeNetRequest.updateDynamicRules).not.toHaveBeenCalled();
+    });
+});
+
+describe("parsePortInput", () => {
+    it("returns null for an empty field", () => {
+        expect(parsePortInput("")).toBeNull();
+    });
+
+    it("parses a plain port number", () => {
+        expect(parsePortInput("8080")).toBe(8080);
+    });
+
+    it("drops a leading minus so negative ports cannot be entered", () => {
+        expect(parsePortInput("-8080")).toBe(8080);
+        expect(parsePortInput("-")).toBeNull();
+    });
+
+    it("clamps anything above the maximum port", () => {
+        expect(parsePortInput("65536")).toBe(65535);
+        expect(parsePortInput("999999")).toBe(65535);
+    });
+
+    it("treats zero and leading zeroes as no port", () => {
+        expect(parsePortInput("0")).toBeNull();
+        expect(parsePortInput("00080")).toBe(80);
+    });
+
+    it("ignores non-digit characters", () => {
+        expect(parsePortInput("8e4")).toBe(84);
+        expect(parsePortInput("abc")).toBeNull();
     });
 });

@@ -63,6 +63,11 @@ describe("createBaseUrl", () => {
         expect(build({ host: "h", port: 443, secure: true }).createBaseUrl()).toBe("https://h");
     });
 
+    it("omits the port entirely when none is configured", () => {
+        expect(build({ host: "h", port: null, secure: false }).createBaseUrl()).toBe("http://h");
+        expect(build({ host: "h", port: null, secure: true }).createBaseUrl()).toBe("https://h");
+    });
+
     it("keeps port 443 when not secure", () => {
         expect(build({ host: "h", port: 443, secure: false }).createBaseUrl()).toBe("http://h:443");
     });

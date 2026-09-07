@@ -8,7 +8,7 @@ export interface WebUISettings {
     name: string;
 
     host: string;
-    port: number;
+    port: number | null;
     secure: boolean;
     relativePath: string | null;
 
@@ -133,7 +133,9 @@ export abstract class TorrentWebUI {
 
     createBaseUrl(): string {
         let portPart: string;
-        if(this.settings.secure && this._settings.port === 443) {
+        if(this._settings.port === null || this._settings.port === undefined) {
+            portPart = "";
+        } else if(this.settings.secure && this._settings.port === 443) {
             portPart = "";
         } else if(!this.settings.secure && this._settings.port === 80) {
             portPart = "";

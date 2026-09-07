@@ -9,7 +9,7 @@ import { Client, ClientClassByClient, ClientDisplayName, WebUIFactory } from "..
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
 import { TestConnectionMessage, type ITestConnectionMessage } from "../../models/messages";
 import Toggle from "../components/Toggle";
-import { generateId, moveItem } from "../../util/utils";
+import { generateId, moveItem, parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
 
 const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
@@ -35,7 +35,7 @@ function getDefaultWebUISettings(): WebUISettings {
     client: "" as Client,
     name: "",
     host: "",
-    port: 80,
+    port: null,
     secure: false,
     relativePath: "",
     username: "",
@@ -351,8 +351,18 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
               <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
             </div>
             <div>
-              <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Port</label>
-              <input type="number" value={webui.port} onChange={e => onChange({ ...webui, port: Number(e.target.value) })} style={{ ...fieldInputStyle, minWidth: 80 }} />
+              <label htmlFor="rta-webui-port" style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Port</label>
+              <input
+                id="rta-webui-port"
+                type="number"
+                inputMode="numeric"
+                min={MIN_PORT}
+                max={MAX_PORT}
+                placeholder={webui.secure ? "443" : "80"}
+                value={webui.port ?? ""}
+                onChange={e => onChange({ ...webui, port: parsePortInput(e.target.value) })}
+                style={{ ...fieldInputStyle, minWidth: 80 }}
+              />
             </div>
             <Toggle checked={webui.secure} onChange={v => onChange({ ...webui, secure: v })} label="Secure (HTTPS)" />
             <div>
