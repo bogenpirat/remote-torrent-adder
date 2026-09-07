@@ -16,7 +16,7 @@ name: Release
 #   RELEASE_TOKEN
 #     a fine-grained PAT with Contents: read & write, owned by someone with a
 #     bypass entry in the master ruleset, so the bump-commit + tag can be pushed.
-#   AMO_JWT_ISSUER, AMO_JWT_SECRET  (not needed yet - see the commented block)
+#   AMO_JWT_ISSUER, AMO_JWT_SECRET
 #     from addons.mozilla.org -> Tools -> Manage API Keys.
 
 on:
@@ -133,16 +133,18 @@ jobs:
           #                     you click "Publish" in the dashboard.
           publish: true
 
-      # - name: Package source for AMO review
-      #   run: git archive --format=zip -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
-      #
-      # - name: Upload to addons.mozilla.org
-      #   env:
-      #     WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
-      #     WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
-      #   run: >
-      #     npx web-ext sign
-      #     --source-dir dist-prod/firefox
-      #     --channel listed
-      #     --upload-source-code "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip"
-      #     --artifacts-dir web-ext-artifacts
+      - name: Package source for AMO review
+        run: >
+          git -c core.autocrlf=false archive --format=zip
+          -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
+
+      - name: Upload to addons.mozilla.org
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: >
+          npx web-ext sign
+          --source-dir dist-prod/firefox
+          --channel listed
+          --upload-source-code "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip"
+          --artifacts-dir web-ext-artifacts

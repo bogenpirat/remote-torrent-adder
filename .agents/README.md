@@ -170,23 +170,35 @@ gh workflow run Release -f version=X.Y.Z
 5. Commits `chore: release vX.Y.Z`, tags it, and pushes both to `master`
 6. Publishes a GitHub Release with `generate_release_notes: true` and all four zips attached
 7. Uploads the Chrome prod zip to the Chrome Web Store with `publish: true` — **this submits for review immediately**
+8. Packages the source with `git archive` and uploads the Firefox prod bundle to addons.mozilla.org with `web-ext sign --channel listed` — **this also submits for review immediately**
 
-Because step 7 is irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
+Because steps 7 and 8 are irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
 
-Required secrets: `CWS_EXTENSION_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `RELEASE_TOKEN`.
+Required secrets: `CWS_EXTENSION_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `RELEASE_TOKEN`, `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`.
 
 ### addons.mozilla.org
 
-Not wired up yet. The upload steps are written out at the end of `release.yml`
-but commented out, because `web-ext sign` cannot *create* an AMO listing — the
-first submission has to be done by hand, which is what claims
-`browser_specific_settings.gecko.id` (`remote-torrent-adder@bogenpirat`, fixed in
-`scripts/generate-manifest.mjs` and asserted by `test/build/manifest.test.ts`;
-it is permanent once the listing exists).
+Live. The listing was created by hand for the first submission, because
+`web-ext sign` can upload a new version but cannot *create* a listing. That first
+upload is what permanently claimed `browser_specific_settings.gecko.id`
+(`remote-torrent-adder@bogenpirat`, fixed in `scripts/generate-manifest.mjs` and
+asserted by `test/build/manifest.test.ts`).
 
-To go live: upload `remote-torrent-adder-<version>-firefox-prod.zip` from the
-GitHub Release to AMO by hand, fill in the listing, then uncomment the two steps
-and add the `AMO_JWT_ISSUER` / `AMO_JWT_SECRET` secrets. AMO also requires a
-source archive alongside any minified upload, which the commented `git archive`
-step produces — it must stay *after* the bump commit or the source zip ships a
-version that does not match the bundle.
+Credentials come from addons.mozilla.org -> Tools -> Manage API Keys and are
+stored as the `AMO_JWT_ISSUER` / `AMO_JWT_SECRET` repository secrets, which the
+workflow maps onto `WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET`. They are
+account-wide, not scoped to this add-on.
+
+Two constraints the two steps depend on, neither of them obvious:
+
+- **`git archive` must run after the bump commit.** AMO requires a source
+  archive alongside any minified upload, and running it earlier ships a source
+  zip whose version does not match the bundle.
+- **`-c core.autocrlf=false` is load-bearing on a Windows checkout.** Without
+  it, `git archive` applies the working-tree line-ending conversion and the
+  source differs from the repository on every line. CI runs on Linux where
+  autocrlf is off anyway, so the flag is insurance rather than a fix.
+
+AMO rejects a version that already exists, so a re-run with an
+already-published version fails at the sign step. The workflow always bumps
+first, so this only bites when re-triggering with a stale version number.
