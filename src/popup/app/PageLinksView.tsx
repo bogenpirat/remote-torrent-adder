@@ -1,3 +1,4 @@
+import { ext, sendMessageAndForget } from '../../util/browser-api';
 import { useEffect, useState } from 'react';
 import Notice from './Notice';
 import {
@@ -22,13 +23,13 @@ export default function PageLinksView() {
     let cancelled = false;
     (async () => {
       try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
         if (!tab?.id) {
           if (!cancelled) setState({ status: 'empty' });
           return;
         }
         if (!cancelled) setSourceTab({ tabId: tab.id, pageUrl: tab.url ?? null });
-        const response = (await chrome.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
+        const response = (await ext.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
           | IPageLinksResponse
           | undefined;
         if (cancelled) return;
@@ -46,7 +47,7 @@ export default function PageLinksView() {
   }, []);
 
   const addLink = (url: string) => {
-    chrome.runtime.sendMessage({
+    sendMessageAndForget({
       action: PreAddTorrentMessage.action,
       url,
       tabId: sourceTab?.tabId ?? null,

@@ -1,3 +1,4 @@
+import { ext } from "../../util/browser-api";
 import { useEffect, useState } from "react";
 import { useSettings } from "../SettingsContext";
 import ChipList from "../components/ChipList";
@@ -258,7 +259,7 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
   const handleTest = async () => {
     setTestState({ signature: endpointSignature, testing: true, result: null });
     try {
-      const result = await chrome.runtime.sendMessage({
+      const result = await ext.runtime.sendMessage({
         action: TestConnectionMessage.action,
         webUiSettings: webui,
       } as ITestConnectionMessage);

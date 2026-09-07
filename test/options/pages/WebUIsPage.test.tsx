@@ -12,9 +12,9 @@ import { makeWebUISettings } from "../../helpers/fixtures";
 function respondWithWebUIs(webuiSettings = [makeWebUISettings({ id: "a", name: "Alpha" }), makeWebUISettings({ id: "b", name: "Beta" })]) {
     const settings = getDefaultSettings();
     settings.webuiSettings = webuiSettings;
-    (chrome.runtime.sendMessage as any).mockImplementation((message: any, callback?: (r: any) => void) => {
+    (chrome.runtime.sendMessage as any).mockImplementation((message: any) => {
         if (message.action === GetSettingsMessage.action) {
-            callback?.(serializeSettings(settings));
+            return Promise.resolve(serializeSettings(settings));
         }
         return Promise.resolve();
     });

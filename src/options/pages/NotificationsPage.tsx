@@ -1,3 +1,4 @@
+import { sendMessageAndForget } from "../../util/browser-api";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useSettings } from "../SettingsContext";
 import { type ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
@@ -57,7 +58,7 @@ export default function NotificationsPage() {
   if (loading || !settings) return <div>Loading...</div>;
 
   const sendTest = (isFailed: boolean) => {
-    chrome.runtime.sendMessage({
+    sendMessageAndForget({
       action: TestNotificationMessage.action,
       title: "Test Notification",
       message: isFailed ? "This is a failed notification." : "This is a successful notification.",

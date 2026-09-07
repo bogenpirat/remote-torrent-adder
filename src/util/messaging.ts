@@ -1,3 +1,4 @@
+import { ext } from "./browser-api";
 import {
     AddTorrentMessage,
     GetSettingsMessage,
@@ -34,7 +35,7 @@ import { initiateWebUis } from "./webuis";
 
 
 export function registerMessageListener(): void {
-    chrome.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
+    ext.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
         let willRespondAsync = false;
 
         const finish = (payload?: unknown) => {
@@ -103,7 +104,7 @@ export function registerMessageListener(): void {
                 case PreAddTorrentMessage.action: {
                     willRespondAsync = true;
                     const preAddTorrentMessage = message as IPreAddTorrentMessage;
-                    chrome.windows.getLastFocused().then(lastFocusedWindow => {
+                    ext.windows.getLastFocused().then(lastFocusedWindow => {
                         try {
                             dispatchPreAddTorrent(
                                 preAddTorrentMessage,
@@ -176,7 +177,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
         }
         await saveBufferedTorrent({ torrent, webUiSettings: webUi.settings });
         if (webUi.settings.useAlternativeLabelDirChooser) {
-            chrome.windows.create({
+            ext.windows.create({
                 url: POPUP_PAGE,
                 type: "popup",
                 width: 420,
@@ -184,7 +185,7 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
                 focused: true
             });
         } else {
-            chrome.windows.update(windowId, { focused: true });
+            ext.windows.update(windowId, { focused: true });
             openActionPopup(windowId);
         }
     } else {

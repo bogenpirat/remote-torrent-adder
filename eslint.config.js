@@ -37,6 +37,26 @@ export default tseslint.config(
 
     {
         files: ['src/**/*.{ts,tsx}'],
+        ignores: ['src/util/browser-api.ts'],
+        languageOptions: {
+            globals: { ...globals.browser, chrome: 'readonly' },
+        },
+        rules: {
+            // Firefox only exposes promises on `browser`; `chrome` there is
+            // callback-only. Go through the `ext` shim so both browsers behave
+            // the same. Type positions (chrome.tabs.Tab) are unaffected.
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: 'MemberExpression[object.name="chrome"]',
+                    message: "Use `ext` from util/browser-api instead of the bare `chrome` namespace.",
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['src/util/browser-api.ts'],
         languageOptions: {
             globals: { ...globals.browser, chrome: 'readonly' },
         },

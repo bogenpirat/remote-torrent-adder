@@ -8,9 +8,9 @@ import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { makeWebUISettings } from "../helpers/fixtures";
 
 function respondWithSettings(settings = getDefaultSettings()) {
-    (chrome.runtime.sendMessage as any).mockImplementation((message: any, callback?: (r: any) => void) => {
+    (chrome.runtime.sendMessage as any).mockImplementation((message: any) => {
         if (message.action === GetSettingsMessage.action) {
-            callback?.(serializeSettings(settings));
+            return Promise.resolve(serializeSettings(settings));
         }
         return Promise.resolve();
     });

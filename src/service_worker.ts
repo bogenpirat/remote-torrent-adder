@@ -1,3 +1,4 @@
+import { ext } from './util/browser-api';
 import { refreshContextMenu, registerContextMenuClickListener } from './util/context-menu';
 import { registerAuthenticationListener } from './util/authentication-listener';
 import { SETTINGS_KEY } from './util/settings';
@@ -15,22 +16,22 @@ registerActionClickListener();
 registerContextMenuClickListener();
 registerAuthenticationListener();
 
-chrome.storage.local.onChanged.addListener(
+ext.storage.local.onChanged.addListener(
     ((changes: Record<string, chrome.storage.StorageChange>) => {
         if (changes[SETTINGS_KEY]) {
             void rebuildContextMenu();
             void refreshCorsCircumvention();
         }
-    }) as Parameters<typeof chrome.storage.local.onChanged.addListener>[0]
+    }) as Parameters<typeof ext.storage.local.onChanged.addListener>[0]
 );
 
 // Context menus outlive a worker restart but not a browser restart or an
 // update, so they are rebuilt on those two events and whenever settings change.
-chrome.runtime.onInstalled.addListener(() => {
+ext.runtime.onInstalled.addListener(() => {
     void rebuildContextMenu();
 });
 
-chrome.runtime.onStartup.addListener(() => {
+ext.runtime.onStartup.addListener(() => {
     clearDynamicRules();
     void rebuildContextMenu();
 });
