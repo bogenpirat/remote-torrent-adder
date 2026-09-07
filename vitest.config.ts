@@ -1,8 +1,6 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-    // Mirrors vite.config.ts so src/util/platform.ts folds the same way under
-    // test. `RTA_BROWSER=firefox npm test` runs the suite as the Firefox build.
     define: { __RTA_BROWSER__: JSON.stringify(process.env.RTA_BROWSER ?? "chrome") },
     test: {
         environment: "jsdom",

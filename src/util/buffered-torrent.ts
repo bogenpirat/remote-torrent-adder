@@ -43,20 +43,8 @@ export async function readBufferedTorrent(): Promise<BufferedTorrent | null> {
     return { ...buffered, torrent: await detachTorrentData(buffered.torrent) };
 }
 
-/**
- * Copies the payload out of the record it was stored in.
- *
- * Firefox backs an IndexedDB Blob with the stored record, so deleting the
- * record invalidates every Blob still referencing it: reads then fail with
- * "NotFoundError: Node was not found". Chrome refcounts blob data separately
- * and does not care. Since the caller clears the record as soon as it has taken
- * the torrent, the bytes have to stop depending on it here.
- */
 async function detachTorrentData(torrent: Torrent): Promise<Torrent> {
     const data = torrent.data;
-    // A magnet is a plain string, and a record written by an older version (or
-    // by a store that could not hold a Blob) may be neither - leave both as
-    // they are rather than failing the read here.
     if (typeof data === "string" || typeof data?.arrayBuffer !== "function") {
         return torrent;
     }

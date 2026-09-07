@@ -2,11 +2,6 @@ import { createServer, type IncomingMessage, type Server } from "node:http";
 import { type AddressInfo } from "node:net";
 
 export interface FakeFloodOptions {
-    /**
-     * Milliseconds to stall /api/auth/authenticate. flood authenticates before
-     * it encodes the torrent, so this is what puts real network latency between
-     * the popup's add message and the payload being read.
-     */
     authenticateDelayMs?: number;
 }
 

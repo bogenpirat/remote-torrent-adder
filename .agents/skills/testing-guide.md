@@ -46,9 +46,12 @@ npm test
 
 `npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three plus `npm audit --audit-level=high` in a `verify` job gating both build jobs. `npm run test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
 
-## End-to-end tests in headless Chrome
+## End-to-end tests in headless browsers
 
-The suite lives in `e2e/` and runs on Playwright, separately from vitest.
+The suite lives in `e2e/` and runs on Playwright, separately from vitest, as two
+projects: `chrome` (everything outside `e2e/firefox/`) and `firefox`
+(`e2e/firefox/**`). `npm run test:e2e` runs both; `test:e2e:chrome` and
+`test:e2e:firefox` run one.
 
 ```bash
 npm run build         # required first: the suite loads dist/chrome/ as an unpacked extension
@@ -68,6 +71,46 @@ What it covers: the service worker booting on an empty, a configured, a corrupt 
 | `e2e/fixtures/console-collector.ts` | Captures console output from every surface and decides what counts as a failure |
 | `e2e/fixtures/fake-qbittorrent.ts` | Stub client that records the requests it receives |
 | `e2e/fixtures/static-site.ts` | Serves a page with torrent links and a real bencoded `.torrent` |
+| `e2e/fixtures/firefox-extension.ts` | The Firefox harness: installs the add-on, exposes the same helpers |
+| `e2e/fixtures/fake-flood.ts` | Stub flood, with a configurable delay on authenticate |
+
+### Why Firefox needs its own harness
+
+Playwright cannot install a Firefox add-on — extension support is Chromium-only,
+and Puppeteer's `installExtension` for Firefox is broken and closed as
+not-planned. `e2e/firefox/` therefore drives a real Firefox through geckodriver
+and `selenium-webdriver`, kept as a second Playwright *project* so there is still
+one command and one report. It needs a system Firefox (149+); Selenium Manager
+fetches geckodriver itself, and CI installs Firefox with
+`browser-actions/setup-firefox`.
+
+Three Firefox facts shape `firefox-extension.ts`, and they are the reason it
+cannot simply mirror `extension.ts`:
+
+1. **There is no service worker to evaluate in.** The MV3 background is an event
+   page that Selenium cannot address, so every extension API call is routed
+   through an extension page, which shares the same storage, the same
+   declarativeNetRequest rules and the same messaging bus.
+2. **The add-on gets a random per-profile UUID**, so `moz-extension://` origins
+   cannot be hardcoded. The harness reads it back out of the profile's
+   `prefs.js`. Seeding the pref up front does not work: on a fresh profile
+   Firefox rewrites the whole map as it registers its built-ins.
+3. **Extension pages are not web accessible**, so a content-initiated navigation
+   to one is refused. The tab is opened from chrome context with the system
+   principal, which is why geckodriver is started with `--allow-system-access`.
+   The alternative — declaring `web_accessible_resources` — would expose the
+   options and popup pages to every website purely to suit the tests.
+
+Two Firefox-specific gotchas when writing a spec there:
+
+- **Match patterns cannot carry a port.** `tabs.query({url})` rejects
+  `http://127.0.0.1:1234/*` on Firefox where Chrome tolerates it; use
+  `http://127.0.0.1/*`, which matches any port.
+- **Latency can be load-bearing.** `buffered-add.e2e.spec.ts` gives the stub
+  client a 3s delay on authenticate on purpose: flood authenticates before it
+  encodes the torrent, and without that gap the payload read wins the race
+  against the buffered record being cleared, hiding the bug the spec exists to
+  catch.
 
 Two things to know before adding a spec:
 

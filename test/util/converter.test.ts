@@ -44,9 +44,6 @@ describe("blobToBase64", () => {
         expect(await blobToBase64(new Blob([]))).toBe("");
     });
 
-    // A failed read leaves reader.result null and fires loadend as well as
-    // error. Reading result there threw a TypeError out of the event handler,
-    // which surfaced as an uncaught error and hid the real cause.
     it("rejects with the reader's own error when the blob cannot be read", async () => {
         const failure = new DOMException("Node was not found", "NotFoundError");
         const reader = {
@@ -57,13 +54,10 @@ describe("blobToBase64", () => {
             readAsDataURL() {
                 queueMicrotask(() => {
                     this.onerror?.();
-                    // The browser fires loadend after error too; nothing here
-                    // may throw when it does.
                     (this as unknown as { onloadend?: () => void }).onloadend?.();
                 });
             },
         };
-        // A plain function expression: `new FileReader()` has to construct.
         vi.stubGlobal("FileReader", function FakeFileReader() { return reader; });
 
         await expect(blobToBase64(new Blob([new Uint8Array([1])]))).rejects.toBe(failure);

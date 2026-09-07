@@ -54,8 +54,6 @@ describe("showNotification", () => {
         expect(chrome.tabs.create).not.toHaveBeenCalled();
     });
 
-    // Chrome-only: Firefox's event page plays the sound itself, which
-    // test/util/notifications-firefox.test.ts covers.
     it.skipIf(BROWSER !== "chrome")("creates an offscreen document to play sound when requested", async () => {
         showNotification("T", "B", false, 2000, true);
         await Promise.resolve();

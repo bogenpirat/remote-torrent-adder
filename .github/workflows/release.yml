@@ -9,9 +9,6 @@ name: Release
 # Finally it publishes a GitHub Release with all four bundles attached and
 # uploads the Chrome prod bundle to the Chrome Web Store.
 #
-# The addons.mozilla.org upload is written out below but commented out until the
-# AMO listing exists; see the block at the end of this file.
-#
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
 #     obtained by enabling the Chrome Web Store API in a Google Cloud project
@@ -85,12 +82,10 @@ jobs:
         run: npm ci
 
       # Build every bundle BEFORE moving any git refs, so a build failure aborts
-      # the release without leaving a dangling commit or tag behind. build:all
-      # runs the typecheck/lint/test gate once for all four.
+      # the release without leaving a dangling commit or tag behind.
       - name: Build all bundles
         run: npm run build:all
 
-      # AMO's own linter, as a last gate before the Firefox bundle is published.
       - name: Lint the Firefox bundle
         run: npm run lint:firefox
 
@@ -137,25 +132,6 @@ jobs:
           #   publish: false -> upload only; the new version sits as a draft and
           #                     you click "Publish" in the dashboard.
           publish: true
-
-      # ----------------------------------------------------------------------
-      # addons.mozilla.org
-      # ----------------------------------------------------------------------
-      # Commented out until the AMO listing exists. `web-ext sign` cannot CREATE
-      # a listing: the first submission has to be done by hand on AMO, which is
-      # what claims browser_specific_settings.gecko.id and fills in the store
-      # metadata. Upload remote-torrent-adder-<version>-firefox-prod.zip from
-      # the GitHub Release for that first submission, then uncomment both steps
-      # below and add the AMO_JWT_ISSUER / AMO_JWT_SECRET secrets.
-      #
-      # AMO requires the source alongside any minified upload, which the prod
-      # build is. `git archive HEAD` MUST run after the bump commit or it ships a
-      # source zip whose version does not match the bundle. README.md carries the
-      # build instructions the reviewer needs and is included by the archive.
-      #
-      # web-ext is called directly rather than through a third-party action: it
-      # is Mozilla's own CLI, it is already a devDependency for lint:firefox, and
-      # this workflow holds store-publishing credentials.
 
       # - name: Package source for AMO review
       #   run: git archive --format=zip -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD

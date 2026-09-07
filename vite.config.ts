@@ -10,7 +10,6 @@ const browser = parseBrowser(process.env.RTA_BROWSER);
 const isProd = process.env.PROD === 'true';
 const distDir = distDirFor(browser, isProd);
 
-// Folded at build time and read only through src/util/platform.ts.
 const shared = {
     define: { __RTA_BROWSER__: JSON.stringify(browser) },
 } satisfies UserConfig;

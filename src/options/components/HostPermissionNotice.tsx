@@ -3,9 +3,6 @@ import { ext } from "../../util/browser-api";
 
 const ALL_URLS = { origins: ["<all_urls>"] };
 
-// Firefox grants host permissions at install, but the user can revoke them in
-// about:addons, and nothing in the extension works without them: the content
-// script stops injecting and every request to a client WebUI is blocked.
 export default function HostPermissionNotice() {
   const [granted, setGranted] = useState(true);
 
@@ -40,8 +37,6 @@ export default function HostPermissionNotice() {
         type="button"
         className="rta-notice__action"
         onClick={() => {
-          // Must run inside the click handler: the request is only allowed
-          // while a user gesture is active.
           void ext.permissions.request(ALL_URLS).then(setGranted);
         }}
       >

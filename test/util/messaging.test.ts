@@ -201,9 +201,6 @@ describe("AddTorrent flow", () => {
             labels: [],
             directories: [],
         });
-        // The send is fire-and-forget and reads the parked payload
-        // asynchronously, so wait for the upload rather than for a fixed
-        // number of ticks.
         const uploadCall = await vi.waitFor(() => {
             const call = (fetchMock.mock.calls as any[][]).find(c => String(c[0]).includes("/torrents/add"));
             expect(call).toBeDefined();

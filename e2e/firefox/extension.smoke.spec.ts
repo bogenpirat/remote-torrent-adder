@@ -24,7 +24,6 @@ test.describe("firefox event page", () => {
         );
 
         expect(background.hasServiceWorker).toBe(false);
-        // Firefox resolves manifest paths to absolute moz-extension:// URLs.
         expect(background.scripts).toHaveLength(1);
         expect(background.scripts[0]).toMatch(/\/service_worker\.js$/);
     });
@@ -79,8 +78,6 @@ test.describe("firefox event page", () => {
 });
 
 test.describe("firefox content script", () => {
-    // Match patterns cannot carry a port, and Firefox rejects one where Chrome
-    // tolerates it. The port is irrelevant: the pattern matches any.
     const SITE_PATTERN = "http://127.0.0.1/*";
     let site: StaticSite;
 

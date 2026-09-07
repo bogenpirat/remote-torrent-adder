@@ -11,21 +11,6 @@ import { SETTINGS_KEY } from "../../src/util/settings";
 
 const HEADLESS = process.env.RTA_FIREFOX_HEADED !== "1";
 
-/**
- * Drives one real Firefox profile with the unpacked add-on installed.
- *
- * Firefox differs from Chrome in three ways this class exists to hide:
- *
- * 1. There is no service worker to evaluate in - the MV3 background is an event
- *    page that Selenium cannot address. Every extension API call is therefore
- *    routed through an extension page, which shares the same storage, the same
- *    declarativeNetRequest rules and the same messaging bus.
- * 2. The add-on gets a random per-profile UUID, so moz-extension:// origins
- *    cannot be hardcoded. It is read back out of the profile's prefs.js.
- * 3. Extension pages are not web accessible, so a content-initiated navigation
- *    to one is refused. The tab is opened from chrome context with the system
- *    principal instead, which is why geckodriver needs --allow-system-access.
- */
 export class FirefoxExtensionHarness {
     driver!: firefox.Driver;
     uuid!: string;
@@ -56,31 +41,31 @@ export class FirefoxExtensionHarness {
         await this.awaitSettledBoot();
     }
 
-    /**
-     * Firefox writes the add-on's generated UUID into the profile's prefs.js
-     * shortly after installing it. Seeding the pref up front does not work: on a
-     * fresh profile Firefox rewrites the whole map as it registers its built-ins.
-     */
     private async readAssignedUuid(): Promise<string> {
         const deadline = Date.now() + 30_000;
         while (Date.now() < deadline) {
-            try {
-                const prefs = await readFile(join(this.profileDir, "prefs.js"), "utf8");
-                const match = /user_pref\("extensions\.webextensions\.uuids",\s*"(.*)"\);/.exec(prefs);
-                const raw = match?.[1];
-                if (raw) {
-                    const uuids = JSON.parse(raw.replace(/\\"/g, '"')) as Record<string, string>;
-                    const uuid = uuids[GECKO_ID];
-                    if (uuid) {
-                        return uuid;
-                    }
-                }
-            } catch {
-                // prefs.js has not been written yet.
+            const uuid = await this.readUuidFromPrefs();
+            if (uuid) {
+                return uuid;
             }
             await this.driver.sleep(200);
         }
         throw new Error(`Firefox never assigned a UUID to ${GECKO_ID}`);
+    }
+
+    private async readUuidFromPrefs(): Promise<string | null> {
+        let prefs: string;
+        try {
+            prefs = await readFile(join(this.profileDir, "prefs.js"), "utf8");
+        } catch {
+            return null;
+        }
+        const raw = /user_pref\("extensions\.webextensions\.uuids",\s*"(.*)"\);/.exec(prefs)?.[1];
+        if (!raw) {
+            return null;
+        }
+        const uuids = JSON.parse(raw.replace(/\\"/g, '"')) as Record<string, string>;
+        return uuids[GECKO_ID] ?? null;
     }
 
     private async openExtensionTab(url: string): Promise<string> {
@@ -112,7 +97,6 @@ export class FirefoxExtensionHarness {
         throw new Error(`Extension page never opened: ${url}`);
     }
 
-    /** The event page writes its defaults during boot; hold until they land. */
     private async awaitSettledBoot(): Promise<void> {
         const deadline = Date.now() + 20_000;
         while (Date.now() < deadline) {
@@ -138,12 +122,6 @@ export class FirefoxExtensionHarness {
         return `moz-extension://${this.uuid}/${path.replace(/^\//, "")}`;
     }
 
-    /**
-     * Runs `body` inside the extension page, where the full browser.* API is
-     * available. This is the Firefox counterpart of evaluating in Chrome's
-     * service worker. `body` is a function body and reads its parameters from
-     * the `args` array.
-     */
     async evaluate<R>(body: string, ...args: unknown[]): Promise<R> {
         await this.driver.switchTo().window(this.extensionHandle);
         const outcome = await this.driver.executeAsyncScript<{ value?: R; error?: string }>(
@@ -165,16 +143,11 @@ export class FirefoxExtensionHarness {
         return outcome.value as R;
     }
 
-    /**
-     * Opens another extension page (the popup, say) in its own tab and makes it
-     * the target of evaluateHere/clickHereByText.
-     */
     async openExtensionPage(url: string): Promise<string> {
         this.activeHandle = await this.openExtensionTab(url);
         return this.activeHandle;
     }
 
-    /** Evaluates in the tab opened by openExtensionPage. */
     async evaluateHere<R>(body: string, ...args: unknown[]): Promise<R> {
         if (!this.activeHandle) {
             throw new Error("evaluateHere needs a page opened by openExtensionPage first");
@@ -199,7 +172,6 @@ export class FirefoxExtensionHarness {
         return outcome.value as R;
     }
 
-    /** Clicks the first button in the active extension page whose text matches. */
     async clickHereByText(text: string): Promise<void> {
         if (!this.activeHandle) {
             throw new Error("clickHereByText needs a page opened by openExtensionPage first");
@@ -208,7 +180,6 @@ export class FirefoxExtensionHarness {
         await this.driver.findElement(By.xpath(`//button[normalize-space(.)=${JSON.stringify(text)}]`)).click();
     }
 
-    /** Opens a web page in its own tab and leaves it focused. */
     async openPage(url: string): Promise<string> {
         await this.driver.switchTo().newWindow("tab");
         await this.driver.get(url);
@@ -216,11 +187,6 @@ export class FirefoxExtensionHarness {
         return this.pageHandle;
     }
 
-    /**
-     * Clicks in the most recently opened web page. Reading extension state
-     * switches the driver to the extension tab, so the focus has to be moved
-     * back before the click lands.
-     */
     async clickInPage(selector: string): Promise<void> {
         if (!this.pageHandle) {
             throw new Error("clickInPage needs a page opened by openPage first");
@@ -252,7 +218,6 @@ export class FirefoxExtensionHarness {
         return this.evaluate("return await browser.declarativeNetRequest.getSessionRules();");
     }
 
-    /** Asks the content script in the matching tab which links it caught. */
     async pageLinks(tabUrlPattern: string): Promise<{ url: string; label: string }[]> {
         return this.evaluate(
             [
@@ -265,7 +230,6 @@ export class FirefoxExtensionHarness {
         );
     }
 
-    /** Whether the worker has parked a torrent for the label/dir popup. */
     async hasBufferedTorrent(): Promise<boolean> {
         return this.evaluate<boolean>(
             [
@@ -284,7 +248,6 @@ export class FirefoxExtensionHarness {
         );
     }
 
-    /** Rewrites settings with one field nudged so storage.onChanged actually fires. */
     async provokeSettingsChange(): Promise<void> {
         const stored = await this.readSettings();
         const settings = JSON.parse(stored ?? "{}") as { notificationsDurationMs?: number };

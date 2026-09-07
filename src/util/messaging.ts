@@ -183,9 +183,6 @@ export async function dispatchPreAddTorrent(message: IPreAddTorrentMessage, wind
             try {
                 await openActionPopup(windowId);
             } catch (error) {
-                // Both containers render the same form off the same buffered
-                // torrent, so a browser that refuses to open the action popup
-                // programmatically still gets the picker.
                 console.warn("Could not open the action popup; falling back to a window.", error);
                 openPopupWindow();
             }

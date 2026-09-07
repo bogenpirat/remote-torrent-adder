@@ -40,8 +40,6 @@ jobs:
         with:
           name: coverage
           path: coverage
-      # npm audit --audit-level=high, minus a reviewed allowlist for advisories
-      # that have no fixed release upstream. See scripts/audit.mjs.
       - name: Audit dependencies
         run: npm run audit
 
@@ -62,8 +60,6 @@ jobs:
         run: npm run build:run
       - name: Build Firefox extension
         run: npm run build:firefox:run
-      # AMO's own linter. It runs in seconds and catches manifest mistakes long
-      # before a rejected submission would.
       - name: Lint the Firefox bundle
         run: npm run lint:firefox
       - name: Upload Chrome build artifacts
@@ -105,8 +101,6 @@ jobs:
           path: dist/firefox
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      # The Firefox project drives a real Firefox through geckodriver, not
-      # Playwright's bundled build. Selenium Manager fetches geckodriver itself.
       - name: Install Firefox
         uses: browser-actions/setup-firefox@v1
       - name: Run end-to-end tests

@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-// `npm audit --audit-level=high` with a reviewed allowlist.
-//
-// npm has no way to waive a single advisory, so an unfixable one in a build
-// tool would otherwise mean either a permanently red CI or dropping the audit
-// altogether. This fails on every high/critical advisory except the ones listed
-// below, so a new one still breaks the build.
-//
-// Adding an entry is a security decision: it needs an upstream reason the
-// advisory cannot be fixed, and why it cannot affect the shipped extension.
-
 import { spawnSync } from "node:child_process";
 
 /**
@@ -36,10 +26,6 @@ const ALLOWLIST = [
 
 const BLOCKING = new Set(["high", "critical"]);
 
-// One static command string rather than an args array: Node refuses to spawn
-// npm.cmd on Windows without a shell, and passing args alongside shell:true is
-// deprecated. `npm audit` exits non-zero whenever it finds anything, so the
-// status is deliberately ignored in favour of parsing the report.
 const result = spawnSync("npm audit --json", { encoding: "utf8", shell: true });
 if (!result.stdout) {
     console.error("npm audit produced no output.");

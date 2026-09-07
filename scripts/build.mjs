@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-// One driver for the whole build matrix: browser x prod x target.
-//
-//   node scripts/build.mjs --browser=firefox --prod
-//   node scripts/build.mjs --only=worker --watch
-//   node scripts/build.mjs --only=assets
-//
-// Every path decision lives here or in browsers.mjs rather than in an npm
-// script, because npm scripts run under cmd.exe on Windows where $VAR does not
-// expand.
-
 import { cp, rm } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -35,14 +25,11 @@ function run(args, extraEnv) {
     }
 }
 
-// A full build starts clean; a targeted rebuild must not wipe its siblings.
 if (!only) {
     await rm(distDir, { recursive: true, force: true });
 }
 
 if (!only || only === 'assets') {
-    // src/assets is the only static tree that survives into the bundle: the page
-    // targets emptyOutDir their own directories and re-emit their own HTML/CSS.
     await cp(path.join(rootDir, 'src', 'assets'), path.join(distDir, 'assets'), { recursive: true });
     run([path.join(rootDir, 'scripts', 'generate-manifest.mjs'), browser, distDir]);
 }

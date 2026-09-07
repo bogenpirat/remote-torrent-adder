@@ -54,8 +54,6 @@ export async function openActionPopup(windowId: number, mode?: PopupMode): Promi
     try {
         await ext.action.openPopup({ windowId });
     } finally {
-        // Leaving a popup registered would stop action.onClicked from firing at
-        // all, so it has to be cleared even when openPopup rejects.
         await ext.action.setPopup({ popup: "" });
     }
 }

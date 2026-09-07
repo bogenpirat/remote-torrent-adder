@@ -1,7 +1,3 @@
-// fake-indexeddb clones every value on read, so it cannot show whether the
-// payload still depends on the stored record - which is the whole point of the
-// detach. The store is mocked here instead, so the Blob handed to
-// readBufferedTorrent is the one whose bytes we can watch being copied out.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -16,11 +12,6 @@ describe("readBufferedTorrent detaching the payload", () => {
         withStore.mockReset();
     });
 
-    /**
-     * Firefox backs an IndexedDB Blob with the record it came from, so once the
-     * caller clears the record the upload fails with "NotFoundError: Node was
-     * not found". Copying the bytes out is what breaks that dependency.
-     */
     it("copies the bytes out of the stored Blob", async () => {
         const stored = new Blob([new Uint8Array([9, 8, 7])], { type: "application/x-bittorrent" });
         const arrayBuffer = vi.spyOn(stored, "arrayBuffer");

@@ -3,7 +3,6 @@ import { FakeQBittorrent, type FakeQBittorrentOptions } from "../fixtures/fake-q
 import { makeSettings, makeWebUISettings } from "../fixtures/settings";
 import { StaticSite } from "../fixtures/static-site";
 
-// Match patterns carry no port, and Firefox rejects one where Chrome tolerates it.
 const SITE_PATTERN = "http://127.0.0.1/*";
 
 let site: StaticSite;
@@ -65,18 +64,10 @@ test.describe("adding a torrent end to end on firefox", () => {
         expect(add.files.torrents!.size).toBeGreaterThan(0);
     });
 
-    /**
-     * The declarativeNetRequest rules in cors-tricks.ts exist to strip the
-     * Origin header, which most torrent WebUIs reject outright. If this
-     * regresses on Firefox every client integration fails at once, so it is
-     * asserted against a real request rather than by reading the rule back.
-     */
     test("strips the moz-extension Origin header from client requests", async ({ extension }) => {
         await startServers();
         await configure(extension, client.port);
 
-        // A second server the extension has no rule for, proving the assertion
-        // below would actually fail if the rules stopped applying.
         const control = new FakeQBittorrent();
         await control.start();
 
