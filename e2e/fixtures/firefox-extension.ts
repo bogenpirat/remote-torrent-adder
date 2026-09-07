@@ -32,6 +32,7 @@ export class FirefoxExtensionHarness {
     private profileDir!: string;
     private extensionHandle!: string;
     private pageHandle?: string;
+    private activeHandle?: string;
 
     async launch(): Promise<void> {
         this.profileDir ??= await mkdtemp(join(tmpdir(), "rta-ff-e2e-"));
@@ -164,6 +165,49 @@ export class FirefoxExtensionHarness {
         return outcome.value as R;
     }
 
+    /**
+     * Opens another extension page (the popup, say) in its own tab and makes it
+     * the target of evaluateHere/clickHereByText.
+     */
+    async openExtensionPage(url: string): Promise<string> {
+        this.activeHandle = await this.openExtensionTab(url);
+        return this.activeHandle;
+    }
+
+    /** Evaluates in the tab opened by openExtensionPage. */
+    async evaluateHere<R>(body: string, ...args: unknown[]): Promise<R> {
+        if (!this.activeHandle) {
+            throw new Error("evaluateHere needs a page opened by openExtensionPage first");
+        }
+        await this.driver.switchTo().window(this.activeHandle);
+        const outcome = await this.driver.executeAsyncScript<{ value?: R; error?: string }>(
+            [
+                "const done = arguments[arguments.length - 1];",
+                "const args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);",
+                "(async () => {",
+                body,
+                "})().then(",
+                "    value => done({ value }),",
+                "    error => done({ error: String((error && error.message) || error) }),",
+                ");",
+            ].join("\n"),
+            ...args,
+        );
+        if (outcome.error !== undefined) {
+            throw new Error(`Extension page evaluate failed: ${outcome.error}`);
+        }
+        return outcome.value as R;
+    }
+
+    /** Clicks the first button in the active extension page whose text matches. */
+    async clickHereByText(text: string): Promise<void> {
+        if (!this.activeHandle) {
+            throw new Error("clickHereByText needs a page opened by openExtensionPage first");
+        }
+        await this.driver.switchTo().window(this.activeHandle);
+        await this.driver.findElement(By.xpath(`//button[normalize-space(.)=${JSON.stringify(text)}]`)).click();
+    }
+
     /** Opens a web page in its own tab and leaves it focused. */
     async openPage(url: string): Promise<string> {
         await this.driver.switchTo().newWindow("tab");
@@ -218,6 +262,25 @@ export class FirefoxExtensionHarness {
                 "return (response && response.links) || [];",
             ].join("\n"),
             tabUrlPattern,
+        );
+    }
+
+    /** Whether the worker has parked a torrent for the label/dir popup. */
+    async hasBufferedTorrent(): Promise<boolean> {
+        return this.evaluate<boolean>(
+            [
+                "const record = await new Promise((res, rej) => {",
+                '  const open = indexedDB.open("rta-torrents", 1);',
+                "  open.onerror = () => rej(open.error);",
+                "  open.onsuccess = () => {",
+                '    const tx = open.result.transaction("buffered", "readonly");',
+                '    const get = tx.objectStore("buffered").get("pending");',
+                "    get.onsuccess = () => res(get.result); get.onerror = () => rej(get.error);",
+                "    tx.oncomplete = () => open.result.close();",
+                "  };",
+                "});",
+                "return Boolean(record && record.torrent);",
+            ].join("\n"),
         );
     }
 

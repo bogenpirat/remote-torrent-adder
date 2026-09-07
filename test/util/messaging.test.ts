@@ -201,11 +201,15 @@ describe("AddTorrent flow", () => {
             labels: [],
             directories: [],
         });
-        await new Promise((r) => setTimeout(r, 0));
-
-        const uploadCall = (fetchMock.mock.calls as any[][]).find(call => String(call[0]).includes("/torrents/add"));
-        expect(uploadCall).toBeDefined();
-        const body = uploadCall![1].body as FormData;
+        // The send is fire-and-forget and reads the parked payload
+        // asynchronously, so wait for the upload rather than for a fixed
+        // number of ticks.
+        const uploadCall = await vi.waitFor(() => {
+            const call = (fetchMock.mock.calls as any[][]).find(c => String(c[0]).includes("/torrents/add"));
+            expect(call).toBeDefined();
+            return call!;
+        });
+        const body = uploadCall[1].body as FormData;
         expect((body.get("torrents") as File).name).toBe("parked.torrent");
         expect(body.get("category")).toBe("movies");
     });

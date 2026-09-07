@@ -22,7 +22,10 @@ export async function convertBlobToString(blob: Blob): Promise<string> {
 export async function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
+    // onload, not onloadend: onloadend also fires after a failed read, where
+    // reader.result is null. Reading it there threw a TypeError from inside the
+    // event handler, which surfaced as an uncaught error and hid the real one.
+    reader.onload = () => {
       const dataUrl = reader.result as string;
       const base64 = dataUrl.split(",")[1];
       if (base64 === undefined) {
@@ -31,7 +34,7 @@ export async function blobToBase64(blob: Blob): Promise<string> {
       }
       resolve(base64);
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(reader.error ?? new Error("Failed reading the torrent data"));
     reader.readAsDataURL(blob);
   });
 }
