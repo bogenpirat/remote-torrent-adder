@@ -80,10 +80,7 @@ jobs:
   e2e:
     # Launching a real browser is slow and flakier than the unit suite, so it
     # guards master rather than every push.
-    # TEMPORARY: also run on feature/firefox-support to prove the new Firefox
-    # harness works on a CI runner before it reaches master. Revert to the
-    # master-only condition once it has passed.
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/feature/firefox-support'
+    if: github.ref == 'refs/heads/master'
     needs: build-dev
     runs-on: ubuntu-latest
     steps:
