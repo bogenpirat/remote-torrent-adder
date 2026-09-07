@@ -12,6 +12,7 @@
 | `npm run dev` | `dist/chrome/` | Watch mode for development |
 | `npm run dev:firefox` | `dist/firefox/` | Build, then launch Firefox with the add-on loaded |
 | `npm run lint:firefox` | — | `web-ext lint` — AMO's own linter, over `dist/firefox/` |
+| `npm run audit` | — | `npm audit --audit-level=high` minus a reviewed allowlist (`scripts/audit.mjs`) |
 | `npm run clean` | — | Remove `dist/` |
 | `npm run typecheck` | — | Type-check `src/`, `test/`, `scripts/`, configs (`tsc --noEmit`) |
 | `npm run lint` | — | ESLint over the repo (`npm run lint:fix` to autofix) |
@@ -29,7 +30,9 @@ npm run lint
 npm test
 ```
 
-CI (`.github/workflows/build-extension.yml`) runs the same three plus `npm audit --audit-level=high` in a `verify` job that gates both the dev and prod build jobs.
+CI (`.github/workflows/build-extension.yml`) runs the same three plus `npm run audit` in a `verify` job that gates both the dev and prod build jobs.
+
+`npm run audit` is `npm audit --audit-level=high` with a reviewed allowlist, because npm has no way to waive a single advisory and an unfixable one in a build tool would otherwise mean a permanently red CI. A new advisory still fails; waiving one means adding an entry to `ALLOWLIST` in `scripts/audit.mjs` with a reason it cannot be fixed upstream and cannot reach the shipped extension. A waiver that no longer matches anything is reported so it gets removed.
 
 ## Build Pipeline (in order)
 

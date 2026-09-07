@@ -40,8 +40,10 @@ jobs:
         with:
           name: coverage
           path: coverage
+      # npm audit --audit-level=high, minus a reviewed allowlist for advisories
+      # that have no fixed release upstream. See scripts/audit.mjs.
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: npm run audit
 
   build-dev:
     needs: verify

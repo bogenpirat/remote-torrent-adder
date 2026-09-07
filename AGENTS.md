@@ -10,6 +10,7 @@ Full skill definitions and project context: [`.agents/README.md`](.agents/README
 npm run typecheck      # tsc --noEmit over src/, test/, scripts/, configs
 npm run lint           # eslint (npm run lint:fix to autofix)
 npm test               # vitest suite (npm run test:watch, npm run test:coverage)
+npm run audit          # npm audit --audit-level=high, minus a reviewed allowlist
 npm run build          # Chrome dev build → dist/chrome/
 npm run build:prod     # Chrome prod build → dist-prod/chrome/
 npm run build:firefox  # Firefox dev build → dist/firefox/
