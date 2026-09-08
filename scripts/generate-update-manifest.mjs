@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { GECKO_UNLISTED, REPO_SLUG } from './generate-manifest.mjs';
 
-export const UPDATE_MANIFEST_PATH = 'updates.json';
+const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+export const UPDATE_MANIFEST_PATH = path.join(rootDir, 'updates.json');
 
 /** @param {string} version */
 export function xpiAssetUrl(version) {

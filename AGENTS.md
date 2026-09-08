@@ -14,7 +14,7 @@ npm run audit          # npm audit --audit-level=high, minus a reviewed allowlis
 npm run build          # Chrome dev build → dist/chrome/
 npm run build:prod     # Chrome prod build → dist-prod/chrome/
 npm run build:firefox  # Firefox dev build → dist/firefox/
-npm run build:all      # all four bundles, verified once
+npm run build:all      # every bundle, incl. the self-hosted Firefox one, verified once
 npm run dev            # watch mode
 ```
 

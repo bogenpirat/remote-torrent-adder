@@ -48,16 +48,13 @@ export function buildManifest(base, browser, { unlisted = false } = {}) {
 }
 
 function main() {
-    const args = process.argv.slice(2);
-    const unlisted = args.includes('--unlisted');
-    const positional = args.filter(arg => !arg.startsWith('--'));
-    const browser = parseBrowser(positional[0]);
-    const outDir = positional[1] ?? distDirFor(browser, process.env.PROD === 'true');
+    const browser = parseBrowser(process.argv[2]);
+    const outDir = process.argv[3] ?? distDirFor(browser, process.env.PROD === 'true');
     const base = JSON.parse(readFileSync(SOURCE_MANIFEST, 'utf8'));
     mkdirSync(outDir, { recursive: true });
     writeFileSync(
         path.join(outDir, 'manifest.json'),
-        JSON.stringify(buildManifest(base, browser, { unlisted }), null, 4) + '\n'
+        JSON.stringify(buildManifest(base, browser), null, 4) + '\n'
     );
 }
 
