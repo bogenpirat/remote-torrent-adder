@@ -7,7 +7,7 @@
 **Send torrents and magnet links from your browser straight to your BitTorrent client — local or remote — with a single click.**
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/oabphaconndgibllomdcjbfdghcmenci?label=Chrome%20Web%20Store&color=blue)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
-[![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder%40bogenpirat?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/firefox/addon/remote-torrent-adder/)
+[![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder16?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
 [![Users](https://img.shields.io/chrome-web-store/users/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Rating](https://img.shields.io/chrome-web-store/rating/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Build](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml/badge.svg)](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml)
@@ -59,10 +59,13 @@ Missing your client? [Open an issue](https://github.com/bogenpirat/remote-torren
 
 1. **Chrome** — install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci).
 
-   **Firefox** — needs **Firefox 149 or newer**. Download the signed `.xpi` from the
-   [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest), then
-   install it from `about:addons` → the gear icon → **Install Add-on From File**. It updates
-   itself from this repository. You can also [build it from source](#-building-from-source).
+   **Firefox** — needs **Firefox 149 or newer**. Install from
+   [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/).
+
+   Prefer to stay off the store? Download the signed `.xpi` from the
+   [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest) and
+   install it from `about:addons` → the gear icon → **Install Add-on From File**; that build
+   updates itself from this repository. You can also [build it from source](#-building-from-source).
 2. Open the extension's **options** and add your server(s): client type, host, port, credentials
 3. Click a torrent link — done!
 
