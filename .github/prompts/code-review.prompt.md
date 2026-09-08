@@ -1,5 +1,5 @@
 ---
-description: Review code changes in Remote Torrent Adder with knowledge of Chrome MV3 constraints and project conventions
+description: Review code changes in Remote Torrent Adder with knowledge of its MV3 constraints, the Chrome/Firefox split, and project conventions
 ---
 
 Review the current changes (or ask me which file/branch/PR to review).

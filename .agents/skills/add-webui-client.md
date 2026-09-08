@@ -19,7 +19,7 @@ Before starting, collect from the user:
 
 ### Step 1: Create the client file
 
-Create `src/webuis/<clientname>-webui.ts` (lowercase, hyphenated).
+Create `src/webuis/<clientname>-webui.ts` — lowercase, with `-webui` as the suffix. Multi-word client names are run together rather than hyphenated (`qnapdownloadstation-webui.ts`, `synologydownloadstation-webui.ts`); only the `-webui` suffix takes a hyphen.
 
 ```typescript
 import { TorrentWebUI, type TorrentAddingResult } from '../models/webui';
@@ -58,6 +58,7 @@ Per-torrent value resolution (config value first, then the per-client default):
 - `this.getLabel(config)` → `string | null`
 - `this.getDirectory(config)` → `string | null`
 - `this.getAddPaused(config)` → `boolean | null`
+- `this.getClientSpecific(key, config)` → `boolean`, for options only this client understands. Declare them by overriding `get clientSpecificSettingDescriptors()`; the options page and the popup then render them with no further wiring. See Step 2b.
 
 Result construction:
 - `this.toFailureResult(error)` → `TorrentAddingResult`; maps `HttpError` to its status and body, anything else to code `0` and the error message. Use this in every `catch` rather than hand-building a failure object.
@@ -89,6 +90,7 @@ interface ConnectionTestResult {
 interface Torrent {
   data: Blob | string;  // Blob for .torrent uploads; magnet URI string when isMagnet
   name: string;
+  declaredName?: string;
   isMagnet: boolean;    // ALWAYS branch on this — do not parse the data field
   trackers?: string[];
   files?: string[];
@@ -132,6 +134,23 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
 ```
 
 Only touch `src/util/legacy-client-identifiers.ts` if you are *renaming* an existing client's slug — a new client has no legacy identifier to migrate.
+
+### Step 2b: Client-specific options (only if the client has any)
+
+If the client supports a flag no other client has — qBittorrent's "force start", ruTorrent's "don't add name path" — do **not** add a field to `WebUISettings`. Declare a descriptor on the class:
+
+```typescript
+const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
+    { key: "forceStart", label: "Force start", type: "boolean",
+      default: false, perTorrent: true, description: "…" },
+];
+
+override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
+    return CLIENT_SPECIFIC_SETTINGS;
+}
+```
+
+Read the value with `this.getClientSpecific("forceStart", config)`. The options page renders it automatically, and so does the popup when `perTorrent` is true. `key` is persisted, so treat it like the enum slug: stable forever. Full detail in [`add-setting.md`](add-setting.md).
 
 ### Step 3: Add tests
 
@@ -210,6 +229,6 @@ Adding a client touches several files and is usually worth a `.tmp/add-client-<c
 ## Notes
 
 - The CORS bypass (removing Origin, setting Referer) is applied automatically by `cors-tricks.ts` for each configured WebUI — you don't need to handle this in the client class.
-- If the client needs custom authentication persistence (e.g. session cookies), use `chrome.storage.session` keyed by WebUI ID.
-- `clientSpecificSettings: Record<string, any>` in `WebUISettings` is available for any extra configuration fields. Add UI for these in `src/options/pages/WebUIsPage.tsx` if needed.
+- If the client needs custom state persisted across service-worker restarts, use the IndexedDB helper in `src/util/idb.ts`, not `ext.storage.session` — the session area is size-capped, which is why `src/util/buffered-torrent.ts` avoids it. And never reach for the bare `chrome` namespace: everything goes through `ext` from `src/util/browser-api.ts`.
+- Extra per-client options go through the **descriptor** system, not a new `WebUISettings` field: declare a `ClientSpecificSettingDescriptor` on the class and read it with `this.getClientSpecific(key, config)`. The options page and (when `perTorrent` is true) the popup render it automatically — see `qbittorrent-webui.ts`, `rutorrent-webui.ts`, and `.agents/skills/add-setting.md`.
 - The supported-client list and count appear in `.agents/README.md`, the root `README.md`, `AGENTS.md`, and the row table in `.agents/skills/smoke-test-matrix.md`. Update all four, or they go stale.

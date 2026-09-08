@@ -22,8 +22,9 @@ If the tests pass but the real client rejects the request, the bug is a mismatch
 
 Ask the user for or check:
 - Error message from the notification (success: false, httpResponseCode, httpResponseBody)
-- Network tab in Chrome DevTools (inspect background service worker requests)
-- Chrome extension error console: `chrome://extensions/` → "Errors" button
+- **Which browser.** Ask, and ask whether the other one works — "fails on Firefox, fine on Chrome" is a real category now and points at a different set of causes (see step 2b) than a client-API bug
+- Chrome: `chrome://extensions/` → "Errors" button, and the "service worker" link for its DevTools + Network tab
+- Firefox: `about:debugging#/runtime/this-firefox` → **Inspect** on the add-on. The background is an *event page*, not a service worker, so there is no "service worker" link to click
 - The Options page "Test Connection" button — distinguishes "can't reach the host at all" from "reached it, auth failed"
 
 Common failure modes and their causes:
@@ -40,6 +41,18 @@ Common failure modes and their causes:
 
 `httpResponseCode: 0` means the failure was not an `HttpError` — the request never got a response (network failure, CORS block), and `httpResponseBody` holds the exception message.
 
+### 2b. Works on one browser, fails on the other
+
+Before digging into the client's API, rule out the port. In rough order of likelihood:
+
+- **A bare `chrome.*` call.** On Firefox the bare namespace is callback-only and returns `undefined`, so `.then()` on it throws — often surfacing as a generic failure far from the call site. `npm run lint` catches these (`no-restricted-syntax`), so run it first. Everything must go through `ext` from `src/util/browser-api.ts`.
+- **An unguarded Chrome-only API.** `ext.offscreen` and friends must sit behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`.
+- **A missing permission in the derived manifest.** `scripts/generate-manifest.mjs` builds the Firefox manifest and filters Chrome-only entries; check the generated `dist/firefox/manifest.json`, and run `npm run lint:firefox` (`web-ext lint`).
+- **Host access revoked.** Firefox lets the user turn off host permissions per add-on in `about:addons` → Permissions. The options page shows a "cannot access websites" banner when this happens; a user reporting "every client suddenly fails" on Firefox should check there first.
+- **Match patterns with a port.** Firefox rejects `http://127.0.0.1:1234/*` where Chrome tolerates it.
+
+`npm run test:e2e:firefox` exercises boot, link catching, the CORS session rules, the Origin strip, and an add round-trip against a stub client — if it passes but a real client still fails, the bug is in the client integration, not the port.
+
 ### 3. CORS issues
 
 The extension uses `declarativeNetRequest` to bypass CORS (removes Origin, sets Referer). If CORS is still failing:
@@ -47,13 +60,13 @@ The extension uses `declarativeNetRequest` to bypass CORS (removes Origin, sets 
 - Ensure the WebUI's base URL is correctly formed (check `createBaseUrl()` output — note it drops the port for 80/http and 443/https)
 - Some clients validate the Referer header value — the current code sets it to the base URL
 
-To debug: open Chrome DevTools on the service worker (`chrome://extensions/` → "service worker" link), then Network tab. Look for OPTIONS preflight requests (means CORS bypass isn't working).
+To debug: open DevTools on the background (Chrome: `chrome://extensions/` → "service worker"; Firefox: `about:debugging` → **Inspect**), then the Network tab. Look for OPTIONS preflight requests — they mean the CORS bypass isn't applying.
 
 ### 4. Authentication debugging
 
 Most clients use session-based auth that expires. Check:
 - Does the client class request a new session for each `sendTorrent()` call? (Correct pattern)
-- Is the client using cookies? Chrome extension fetch requests don't automatically share cookies with page — need `credentials: 'include'` and the session must be established in the same fetch context.
+- Is the client using cookies? For the clients that log in via a `Set-Cookie` session (qBittorrent, flood), the browser attaches the cookie to subsequent extension `fetch()` calls on its own, and no client in `src/webuis/` sets `credentials` explicitly. If a *new* client needs `credentials: 'include'`, treat that as a finding worth a comment — it is not the established pattern here.
 - Transmission requires `X-Transmission-Session-Id` header — it returns 409 on first request with the correct ID in the response header.
 
 ### 5. API format issues
@@ -107,6 +120,7 @@ Report the failure mode, root cause, and fix in the conversation. A debugging se
 - `test/webuis/<clientname>-webui.test.ts` — its tests
 - `src/models/webui.ts` — base class with `fetch()` wrapper, `HttpError`, and helpers
 - `src/util/cors-tricks.ts` — CORS bypass implementation
+- `src/util/browser-api.ts` / `src/util/platform.ts` — the `ext` shim and the build-time browser constant; first stop for a browser-specific failure
 - `src/util/authentication-listener.ts` — auth event handling
 - `src/util/download.ts` — torrent file fetching and parsing
 - `src/util/messaging.ts` — message flow between layers

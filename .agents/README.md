@@ -4,86 +4,37 @@ This folder is the central source of truth for AI-assisted development on this p
 
 ## Project at a Glance
 
-**Remote Torrent Adder** is a Chrome Manifest V3 browser extension. When a user clicks a `.torrent` or magnet link on any web page, the extension intercepts it, shows a popup for label/directory selection, then sends the torrent directly to a configured BitTorrent client WebUI — no local file download needed.
+**Remote Torrent Adder** is a Manifest V3 browser extension. One codebase builds for both Chrome and Firefox (149+). When a user clicks a `.torrent` or magnet link on any web page, the extension intercepts it, shows a popup for label/directory selection, then sends the torrent directly to a configured BitTorrent client WebUI — no local file download needed.
 
 Supported clients (13): ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementum, Transmission, Porla, Tixati, tTorrent, QNAP Download Station, Synology Download Station, rqbit.
 
 ## Architecture Summary
 
-| Layer | Files | Role |
-|---|---|---|
-| Service Worker | `src/service_worker.ts` | Background process: settings, auth, context menu, CORS rules |
-| Content Script | `src/content-script/rta.ts` | Detects torrent/magnet links, intercepts clicks |
-| Popup UI | `src/popup/` | React app for torrent preview + label/dir selection |
-| Options UI | `src/options/` | React app for all settings (clients, notifications, link catching) |
-| Client Impls | `src/webuis/<name>-webui.ts` | One class per BitTorrent client, extends `TorrentWebUI` |
-| Factory | `src/models/clients.ts` | `Client` enum + `ClientDisplayName` + `ClientClassByClient` + `WebUIFactory` |
-| Base Class | `src/models/webui.ts` | Abstract `TorrentWebUI` with `sendTorrent()` / `testConnection()` |
+The file-by-file map and the non-negotiable constraints live in the root [`AGENTS.md`](../AGENTS.md) — they are the always-on context every harness loads, so they are not repeated here. What follows is only what does not fit there.
 
-**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/<browser>/` (dev), `dist-prod/<browser>/` (prod), where `<browser>` is `chrome` or `firefox`. `scripts/build.mjs` drives the whole browser x prod x target matrix; `scripts/generate-manifest.mjs` derives the Firefox manifest from `src/manifest.json`.
+**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/<browser>/` (dev), `dist-prod/<browser>/` (prod), where `<browser>` is `chrome` or `firefox`. `scripts/build.mjs` drives the whole browser x prod x target matrix; `scripts/browsers.mjs` holds the target list and the Firefox exclusions; `scripts/generate-manifest.mjs` derives the Firefox manifest from `src/manifest.json`. Full detail in [`skills/build.md`](skills/build.md).
 
-## Key Conventions
-
-- TypeScript **strict mode on** (`strict`, plus `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitOverride`, `noFallthroughCasesInSwitch`), React 19, Tailwind CSS
-- `TorrentWebUI` subclasses named `<Name>WebUI` in `src/webuis/<name>-webui.ts`
-- Service worker is **stateless** (MV3) — all state goes to `chrome.storage.local`
-- Use `this.fetch()` (base class wrapper) for HTTP — it throws `HttpError` on non-OK responses
-- CORS bypass: `declarativeNetRequest` removes Origin header and sets Referer per-client
-- Use `??` not `||` for settings defaults — `false` and `0` are valid values
+**Conventions not covered by `AGENTS.md`**: React 19 and Tailwind CSS in both UIs; `TorrentWebUI` subclasses named `<Name>WebUI` in `src/webuis/<name>-webui.ts`; the CORS bypass works by having `declarativeNetRequest` remove the `Origin` header and set `Referer` per configured client.
 
 ## Testing
 
-There **is** an automated test suite: [vitest](https://vitest.dev) with jsdom, in `test/`, mirroring the `src/` layout. Every client in `src/webuis/` has a matching `test/webuis/<name>-webui.test.ts`.
+There **is** an automated test suite, and it has three layers:
 
-```bash
-npm test            # run the suite once
-npm run test:watch  # watch mode
-npm run test:coverage
-npm run typecheck   # tsc --noEmit over src/, test/, scripts/, configs
-npm run lint        # eslint
-```
+- **vitest + jsdom** in `test/`, mirroring the `src/` layout. Every client in `src/webuis/` has a matching `test/webuis/<name>-webui.test.ts`.
+- **Playwright** in `e2e/`, as two projects: `chrome` loads `dist/chrome/` as an unpacked extension, `firefox` (`e2e/firefox/**`) drives a real Firefox through geckodriver.
+- **A manual browser pass** for what neither runner can reach — real link interception, real client round-trips, desktop notifications, service-worker lifecycle.
 
-`npm run build` and `npm run build:prod` both run `typecheck && lint && test` first via `prebuild`, so a build can "fail" on a lint or test error. CI (`.github/workflows/build-extension.yml`) runs the same three plus `npm audit --audit-level=high` in a `verify` job that gates both build jobs.
+Commands are listed once, in [`skills/build.md`](skills/build.md). How to write and run the tests: [`skills/testing-guide.md`](skills/testing-guide.md); the manual matrix: [`skills/smoke-test-matrix.md`](skills/smoke-test-matrix.md).
 
-Automated tests cover logic and components. They cannot cover real link interception, real client round-trips, notifications, or service-worker lifecycle — see `skills/testing-guide.md` and `skills/smoke-test-matrix.md` for the manual pass that does.
+CI (`.github/workflows/build-extension.yml`) runs `typecheck`, `lint`, `test:coverage` and `npm run audit` in a `verify` job that gates both build jobs. The e2e suite runs in its own job, on `master` only, against the artifact `build-dev` produces.
 
 ## Intermediate Documentation (`/.tmp/`)
 
-Write findings, analysis, and summaries to `.tmp/<slug>-<date>.md` when the work justifies it. This folder is gitignored — it is a session-scoped scratchpad, not a permanent record.
+Write findings, analysis, and summaries to `.tmp/<task>-<YYYY-MM-DD>.md` when the work justifies it — e.g. `.tmp/debug-qbittorrent-2026-05-21.md`. The folder is gitignored: a session-scoped scratchpad, not a permanent record.
 
-### When to write a `.tmp/` file
+Write one when the change spans many files, when the output *is* a report (code review, security review, a debugging session with a non-obvious root cause), or when you are handing state to a later session. Skip it for small, mechanical, self-explanatory changes — a gitignored file nobody reads is pure overhead. When in doubt, put the summary in the conversation instead.
 
-Write one when:
-
-- The change spans many files, or the analysis took real effort to produce and would be expensive to redo.
-- The output *is* a report: code review, security review, or a debugging session with a non-obvious root cause.
-- You are handing state to a later session (a partial migration, a deferred follow-up list).
-
-Skip it for small, mechanical, self-explanatory changes — a gitignored file nobody reads is pure overhead. When in doubt, put the summary in the conversation instead.
-
-### Naming convention
-
-```
-.tmp/<task>-<YYYY-MM-DD>.md
-```
-
-Examples: `.tmp/strict-types-2026-05-20.md`, `.tmp/debug-qbittorrent-2026-05-21.md`, `.tmp/review-pr-42-2026-05-22.md`
-
-### File structure
-
-```markdown
-# <Task Title>
-**Date**: YYYY-MM-DD  **Branch**: <branch>
-
-## Summary
-One paragraph of what was done and the outcome.
-
-## Findings / Changes
-Detailed list — errors fixed, files touched, decisions made.
-
-## Deferred / Follow-up
-Anything intentionally left out and why.
-```
+Structure it as: a summary paragraph, the detailed findings or changes, then anything deliberately deferred.
 
 ## Available Skills
 
@@ -95,8 +46,8 @@ Anything intentionally left out and why.
 | `rta-code-review` | Review changes against this project's checklist | `.claude/skills/` | `.github/prompts/` |
 | `rta-security-review` | This extension's real attack surfaces | `.claude/skills/` | — |
 | `build` | Build the extension for dev or production | `.claude/skills/` | — |
-| `testing-guide` | Automated suite + manual Chrome verification | `.claude/skills/` | — |
-| `smoke-test-matrix` | Defined manual test matrix (rows A–G) | `.claude/skills/` | — |
+| `testing-guide` | vitest suite, Playwright e2e, and the manual pass | `.claude/skills/` | — |
+| `smoke-test-matrix` | Defined manual test matrix (rows A–H, H is Firefox) | `.claude/skills/` | — |
 
 An agent on a harness with no adapter needs none of the above: the routing table in the root `AGENTS.md` names the right file for each task in plain English.
 
@@ -122,38 +73,9 @@ AGENTS.md                        ← always-on context + task routing table.
 
 Adding support for another tool means adding one more adapter that points here. It does not mean copying any content.
 
-## Quick Reference: Common Tasks
-
-### Add a new torrent client
-1. Create `src/webuis/<name>-webui.ts` extending `TorrentWebUI`
-2. Add an entry to the `Client` enum in `src/models/clients.ts` — the value is a **stable lowercase slug** (`"rqbit"`), never a display string, because it is persisted in user settings
-3. Add matching entries to **both** `ClientDisplayName` and `ClientClassByClient` (both are `Record<Client, …>`, so a missing entry is a type error)
-4. Add `test/webuis/<name>-webui.test.ts`
-5. `npm run typecheck && npm test && npm run lint`
-
-Full guide: `skills/add-webui-client.md`.
-
-### Run a development build
-```
-npm run build        # one-shot dev build
-npm run dev          # watch mode (assets + worker + content script)
-```
-
-### Test in Chrome
-1. `npm run build`
-2. Open `chrome://extensions/`
-3. Enable Developer mode
-4. "Load unpacked" → select `dist/chrome/`
-
-For Firefox, `npm run dev:firefox` launches a scratch profile with the add-on
-installed, or load `dist/firefox/manifest.json` by hand from
-`about:debugging#/runtime/this-firefox`. Firefox 149+ is required: that is the
-first version where `action.openPopup()` works without a live user gesture.
-5. Reload the extension after changes
-
 ## Releasing
 
-Releasing is **fully automated and manually triggered** by `.github/workflows/release.yml`. Do not bump versions by hand and do not create tags or releases locally — `master` is ruleset-protected and the workflow owns the version, the tag, and the Chrome Web Store upload.
+Releasing is **fully automated and manually triggered** by `.github/workflows/release.yml`. Do not bump versions by hand and do not create tags or releases locally — `master` is ruleset-protected and the workflow owns the version, the tag, and both store uploads.
 
 To release:
 

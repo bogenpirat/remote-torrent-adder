@@ -1,6 +1,6 @@
 # Skill: Testing the Extension
 
-Testing happens at three levels: an automated vitest suite that covers logic and components, a Playwright suite that boots real headless Chrome with the extension loaded, and a manual Chrome pass that covers what neither runner can.
+Testing happens at three levels: an automated vitest suite that covers logic and components, a Playwright suite that boots real headless Chrome and real Firefox with the extension loaded, and a manual pass in both browsers that covers what neither runner can.
 
 ## Automated tests
 
@@ -20,11 +20,11 @@ Stack: vitest + jsdom, `@testing-library/react` for components, `fake-indexeddb`
 | Helper | Use for |
 |---|---|
 | `test/helpers/fetch-mock.ts` | Stubbing HTTP; asserting request URL, method, headers, and body |
-| `test/helpers/chrome-mock.ts` | The `chrome.*` extension APIs (storage, runtime, notifications, dNR) |
+| `test/helpers/chrome-mock.ts` | The extension APIs behind `ext` (storage, runtime, notifications, dNR). It stubs the global the shim resolves to, so tests exercise the same path production does |
 | `test/helpers/fixtures.ts` | Building `WebUISettings`, `RTASettings`, `Torrent` objects |
 | `test/helpers/assert.ts` | Shared assertions |
 
-A new required field on `WebUISettings` or `RTASettings` must be added to `fixtures.ts` or every consumer breaks.
+A new required field on `WebUISettings` or `RTASettings` must be added to `fixtures.ts` — and to `e2e/fixtures/settings.ts`, which seeds the same shape for the Playwright runs — or every consumer breaks.
 
 ### What to write a test for
 
@@ -44,7 +44,7 @@ npm run lint
 npm test
 ```
 
-`npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three plus `npm audit --audit-level=high` in a `verify` job gating both build jobs. `npm run test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
+`npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three (as `test:coverage`) plus `npm run audit` in a `verify` job gating both build jobs. `npm run test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
 
 ## End-to-end tests in headless browsers
 
@@ -117,9 +117,9 @@ Two things to know before adding a spec:
 - **Seeding races the boot.** On a fresh profile the worker writes its own defaults. `launch()` waits that out, so `seedSettings` is safe, but a seed followed immediately by a browser close can still be overtaken. Use `extension.restart()` (which closes and reopens the same profile) rather than `chrome.runtime.reload()` — a reloaded extension has no pending event, so Chrome leaves its worker dormant and the test hangs.
 - **Only errors fail.** The extension logs plenty at `debug`/`log` level, and a few warnings are normal (a cold worker, the service-worker download fallback). `console-collector.ts` fails on any `error`, any page exception, and any warning not on its allowlist. Adding to that allowlist needs a source reference; a spec that legitimately expects an error passes it to `unexpectedProblems([/pattern/])` instead.
 
-## Manual testing in Chrome
+## Manual testing in a real browser
 
-Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser.
+Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser. Chrome scenarios follow; the Firefox pass is section H of `smoke-test-matrix.md`, and `npm run dev:firefox` launches a scratch profile with the add-on loaded.
 
 For a structured pre-release or post-refactor pass, use `smoke-test-matrix.md`. The scenarios below are the quick version.
 
@@ -149,7 +149,7 @@ For a structured pre-release or post-refactor pass, use `smoke-test-matrix.md`. 
 3. Torrent should be added directly without opening popup
 
 #### Options page
-1. Right-click the extension icon → Options (clicking the icon opens the configured WebUI in a new tab, not the options page)
+1. Right-click the extension icon → Options. Left-clicking the icon does whatever `iconClickAction` is set to — opening the primary WebUI in a new tab (the default), showing the WebUI picker, or showing the page's links — never the options page
 2. Add a new WebUI configuration
 3. Click "Test Connection" to verify credentials — note that a client whose `isConnectionTestSupported` is false won't show the button, and the base implementation reports reachability only
 4. Configure auto-label rules and verify they apply
