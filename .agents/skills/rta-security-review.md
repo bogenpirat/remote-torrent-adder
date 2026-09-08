@@ -9,7 +9,7 @@ Several of these properties are already asserted by the test suite — `test/uti
 - **Content script** runs on `<all_urls>` (`src/content-script/rta.ts`, declared in `src/manifest.json`). Any compromise here runs on every site the user visits.
 - **Service worker** holds decrypted client credentials in memory while processing a request, has `<all_urls>` host permissions, and can issue arbitrary `fetch()` to user-configured hosts.
 - **`declarativeNetRequest`** rules strip `Origin` and set `Referer` per configured WebUI (`src/util/cors-tricks.ts`). Mis-scoped rules turn the extension into a CORS-bypass oracle for arbitrary sites.
-- **Stored credentials** (host/port/username/password per WebUI) live in `chrome.storage.local`.
+- **Stored credentials** (host/port/username/password per WebUI) live in `ext.storage.local` (`storage.local` on both browsers, reached through the `ext` shim).
 - **Torrent file parsing**: bencode is parsed from URLs the user clicks (`src/util/download.ts`, `src/util/parsers.ts`).
 - **Link-catching regexes** are user-editable (`linkCatchingRegexes`) and tested against URLs in the content script.
 
@@ -21,7 +21,7 @@ Several of these properties are already asserted by the test suite — `test/uti
 - [ ] Passwords never serialized into URL query strings (logged by routers/proxies). Look for template literals putting credentials into `createBaseUrl()`-derived URLs.
 - [ ] No password sent to anything except the configured WebUI host (no telemetry, no Sentry payloads, no error-reporting endpoints).
 - [ ] When `secure: false`, the user should be warned in the options UI that credentials transit in plaintext. If a new client class hard-codes HTTP, flag it.
-- [ ] `clientSpecificSettings: Record<string, any>` may contain secrets too — same rules apply.
+- [ ] `clientSpecificSettings: Record<string, unknown>` may contain secrets too — same rules apply, including anything added there via a `ClientSpecificSettingDescriptor`.
 
 ### Content script (`src/content-script/rta.ts`)
 
@@ -33,7 +33,7 @@ Several of these properties are already asserted by the test suite — `test/uti
 
 ### Service worker (`src/service_worker.ts`)
 
-- [ ] `chrome.runtime.onMessage` handlers validate `sender.id === chrome.runtime.id` (or rely on Chrome's same-extension guarantee documented), and don't process `onMessageExternal` without an explicit allowlist.
+- [ ] `ext.runtime.onMessage` handlers validate `sender.id === ext.runtime.id` (or rely on the browser's documented same-extension guarantee), and don't process `onMessageExternal` without an explicit allowlist.
 - [ ] No raw `fetch()` to URLs derived from page content without going through a configured WebUI's `createBaseUrl()`.
 - [ ] No module-level mutable state caching credentials between events (MV3 stateless rule — also a security property: a compromise in one event-handler frame doesn't leak into the next).
 - [ ] Error messages bubbled into notifications/UI do not include the full response body when it might contain session tokens or other secrets. (`TorrentAddingResult.httpResponseBody` is shown to the user — acceptable for HTTP error pages, but flag if it would include credentials echoed back.)
@@ -60,6 +60,7 @@ Several of these properties are already asserted by the test suite — `test/uti
 ### Manifest & permissions
 
 - [ ] No new `host_permissions` beyond `<all_urls>` unless justified (it's already maximally broad — adding more is impossible, but watch for `optional_host_permissions` requests).
+- [ ] A new permission is reflected correctly in **both** manifests. `scripts/generate-manifest.mjs` derives the Firefox one and filters Chrome-only entries — silently dropping a security-relevant permission there, or adding one to Firefox that was never reviewed for Chrome, is a finding.
 - [ ] No new permissions added without need. Each entry in `permissions:` is a Chrome Web Store review trigger.
 - [ ] CSP not weakened. MV3 default is strict; any `content_security_policy` override is a red flag.
 

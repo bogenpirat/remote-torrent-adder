@@ -1,8 +1,8 @@
 # Skill: Manual Smoke-Test Matrix
 
-This file is the **defined manual test pass** to run before a release, after touching a client class, or as a regression check after refactoring `TorrentWebUI`, `cors-tricks.ts`, `download.ts`, or messaging.
+This file is the **defined manual test pass** to run before a release, after touching a client class, or as a regression check after refactoring `TorrentWebUI`, `cors-tricks.ts`, `download.ts`, or messaging. Rows A–G are Chrome; **section H is the Firefox pass**, and has its own trigger list.
 
-It complements the automated suite rather than replacing it. `npm test` covers request construction, parsing, settings, and components; it cannot cover real link interception in a live page, a real round-trip to a running client, desktop notifications, or service-worker lifecycle. Those are what the rows below are for — so a change whose risk is purely in code should get a test, not a matrix run.
+It complements the automated suites rather than replacing them. `npm test` covers request construction, parsing, settings, and components; `npm run test:e2e` covers boot, link catching, the CORS rules and an add round-trip against stub clients, in both headless Chrome and real Firefox. What is left — a round-trip to a *real* client, desktop notifications actually appearing, permission prompts, service-worker lifecycle — is what the rows below are for. A change whose risk is purely in code should get a test, not a matrix run.
 
 Reviewers should ask "which rows did you run?" instead of "did you test it?".
 
@@ -18,7 +18,7 @@ Reviewers should ask "which rows did you run?" instead of "did you test it?".
 
 Run only the rows relevant to the change. After a release bump, run the full matrix for **every** configured client.
 
-### A. Link interception
+### A. Link interception & entry points
 
 | # | Scenario | Expected |
 |---|---|---|
@@ -27,6 +27,9 @@ Run only the rows relevant to the change. After a release bump, run the full mat
 | A3 | Right-click a torrent link → context menu → "Send to <client>" | Torrent added directly, no popup |
 | A4 | Click a `.torrent` link on a page where the URL matches the second default regex (`torrents.php?action=download`) | Popup opens |
 | A5 | Click a link the regex should NOT match (e.g. plain HTML link) | Default browser navigation, no popup |
+| A6 | `iconClickAction` = `openPrimaryWebUi` (default), click the toolbar icon | The first configured WebUI opens in a new tab |
+| A7 | `iconClickAction` = `showWebUiPicker`, click the toolbar icon | The picker lists every configured WebUI; choosing one opens it |
+| A8 | `iconClickAction` = `showPageLinks`, click the icon on a page with torrent links | The page's torrent links are listed and one can be added |
 
 ### B. Add flow per client
 
@@ -63,6 +66,8 @@ Tick the client off only if BOTH pass.
 | C2 | Override label and dir in the popup | Client receives the popup values, not the defaults |
 | C3 | Configure an auto-label-dir rule matching a tracker; add a matching torrent without overriding in popup | Auto rule applied |
 | C4 | Toggle `addPaused` per-torrent in popup (if `isAddPausedSupported`) | Torrent appears in the paused state |
+| C5 | A client with a client-specific descriptor (qBittorrent "Force start", ruTorrent "Don't add name path"): toggle it in Options, add a torrent | The client applies it; leaving it untouched applies the descriptor's `default` |
+| C6 | A descriptor with `perTorrent: true` (qBittorrent "Force start"): override it in the popup against the opposite Options value | The popup value wins, and does not persist back into Options |
 
 ### D. Failure modes (must produce a clear notification, not a silent fail)
 
@@ -99,6 +104,7 @@ Tick the client off only if BOTH pass.
 | G1 | Service-worker idles for >30s, then add a torrent | Worker wakes, add succeeds (catches stateful bugs) |
 | G2 | Open the popup, close it without acting, reopen on a different link | Second popup shows the new torrent, not stale state |
 | G3 | Build prod (`npm run build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
+| G4 | Build prod for Firefox (`npm run build:firefox:prod`), then `npm run lint:firefox` | `web-ext lint` is clean — AMO rejects the upload otherwise |
 
 ### H. Firefox
 
@@ -123,7 +129,7 @@ below are the ones it *cannot* reach.
 | H6 | Revoke host access in `about:addons` → Permissions, reopen the options page | The "cannot access websites" banner appears; **Grant access** restores it and the banner disappears |
 | H7 | Right-click a torrent link → context menu → "Send to <client>" | Torrent added directly, no popup |
 | H8 | A client behind HTTP Basic auth (ruTorrent, Tixati) | Stored credentials are supplied; no browser auth prompt appears |
-| H9 | Icon click with each `iconClickAction` setting | Same behaviour as Chrome |
+| H9 | Icon click with each `iconClickAction` setting | Same as rows A6–A8 on Chrome |
 | H10 | Options and popup side by side with Chrome | Identical layout, colours and fonts in both light and dark themes |
 
 ## What to record

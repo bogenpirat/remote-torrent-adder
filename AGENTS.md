@@ -52,7 +52,7 @@ For Firefox, `npm run dev:firefox` launches a scratch profile with `dist/firefox
 
 ## Releasing
 
-Do not bump versions or create tags locally. Releases run through the manually-triggered `.github/workflows/release.yml` (`gh workflow run Release -f version=X.Y.Z`), which owns the version bump, tag, GitHub Release, and Chrome Web Store upload. The CWS step publishes immediately, so a human triggers it. The addons.mozilla.org steps are written out but commented out until the AMO listing exists. Details in [`.agents/README.md`](.agents/README.md#releasing).
+Do not bump versions or create tags locally. Releases run through the manually-triggered `.github/workflows/release.yml` (`gh workflow run Release -f version=X.Y.Z`), which owns the version bump, tag, GitHub Release, Chrome Web Store upload, and addons.mozilla.org upload. Both store steps submit for review immediately, so a human triggers it. Details in [`.agents/README.md`](.agents/README.md#releasing).
 
 ## Task guides — read the matching file before you start
 

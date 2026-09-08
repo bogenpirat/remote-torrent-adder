@@ -5,6 +5,6 @@ description: Add a new configurable setting to Remote Torrent Adder, wired throu
 Add a new setting to this project. Before writing any code, ask me:
 
 1. What the setting does
-2. Whether it's global (affects all behaviour), per-client (configured per WebUI in Options), or per-torrent (user can also override it in the popup per-torrent)
+2. Whether it's global (affects all behaviour), specific to one client, structural per-client (applies to every WebUI), or per-torrent (user can also override it in the popup)
 
-The three scopes touch different files. Once I've answered, read [`.agents/skills/add-setting.md`](../../.agents/skills/add-setting.md) and follow the section for that scope.
+The scopes touch very different files — a client-specific boolean is one descriptor and no UI code at all, while a structural per-client field is hand-wired through Options. Once I've answered, read [`.agents/skills/add-setting.md`](../../.agents/skills/add-setting.md) and follow the section for that scope.

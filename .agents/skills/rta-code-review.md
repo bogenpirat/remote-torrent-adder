@@ -1,6 +1,6 @@
 # Skill: Remote Torrent Adder Code Review
 
-**Purpose**: Review code changes with deep knowledge of this project's architecture and Chrome MV3 constraints.
+**Purpose**: Review code changes with deep knowledge of this project's architecture, its MV3 constraints, and the Chrome/Firefox split.
 
 This is the project-specific counterpart to the generic `/code-review`. Use it when reviewing a PR, a diff, or a set of changed files in this repository; the two complement each other.
 
@@ -16,13 +16,24 @@ npm run lint
 
 ## Review Checklist
 
-### Chrome MV3 Constraints
+### Cross-browser (`ext`) — check this first
 
-- [ ] Service worker (`service_worker.ts`) must be **stateless** between events — no module-level mutable state that persists across invocations. Use `chrome.storage` for persistence.
-- [ ] No `setInterval` or `setTimeout` in the service worker (they're cleared when the worker goes idle). Use `chrome.alarms` if periodic tasks are needed.
-- [ ] `chrome.runtime.sendMessage` is used for content script ↔ service worker communication — not direct function calls.
+The same bundle ships to Chrome and Firefox, and this is the newest and most easily broken constraint in the repo.
+
+- [ ] **No bare `chrome.*` calls.** Everything goes through `ext` from `src/util/browser-api.ts`. On Firefox the bare `chrome` namespace is callback-only and returns `undefined`, so `.then()` on it throws. `no-restricted-syntax` in `eslint.config.js` enforces this — if a change disables or works around that rule, it is a BLOCKER. Type positions (`chrome.tabs.Tab`) are exempt and fine.
+- [ ] Chrome-only APIs (`ext.offscreen`, and anything else Firefox lacks) are behind `canUseOffscreen()` or `isFirefox()` from `src/util/platform.ts` — never called unguarded.
+- [ ] A permission only Chrome understands is filtered out of the derived Firefox manifest in `scripts/generate-manifest.mjs`, and `test/build/manifest.test.ts` still passes.
+- [ ] Firefox has no offscreen document — its background is an event page that plays sound in-process. A change to `play-sound.ts` or `notifications.ts` must work on both paths.
+- [ ] Firefox notifications are basic only (no buttons), and Firefox match patterns cannot carry a port. A change relying on either needs a Firefox check.
+- [ ] Anything touching `browser-api.ts`, `platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`, `authentication-listener.ts`, or `scripts/generate-manifest.mjs` should say which rows of `smoke-test-matrix.md` section H were run.
+
+### MV3 Constraints
+
+- [ ] Service worker (`service_worker.ts`) must be **stateless** between events — no module-level mutable state that persists across invocations. Persist to `ext.storage`; background code reloads settings per event via `new Settings().loadSettings()` rather than caching them.
+- [ ] No `setInterval` or `setTimeout` in the service worker (they're cleared when the worker goes idle). Use `ext.alarms` if periodic tasks are needed.
+- [ ] `ext.runtime.sendMessage` is used for content script ↔ service worker communication — not direct function calls.
 - [ ] `declarativeNetRequest` rule IDs must be unique integers — check `cors-tricks.ts` for the current ID allocation scheme before adding new rules.
-- [ ] Offscreen documents (notifications) have strict lifecycle — they must be created before use and destroyed when done.
+- [ ] Offscreen documents (notifications) have strict lifecycle — created before use, destroyed when done — and are Chrome-only, so the call site must be guarded by `canUseOffscreen()`.
 
 ### Client Implementation Review
 
@@ -45,15 +56,17 @@ For changes in `src/webuis/`:
 - [ ] New settings fields are covered in `test/util/settings-defaults.test.ts` and `test/util/settings.test.ts`
 - [ ] New UI has cases in `test/options/` or `test/popup/`
 - [ ] Tests use the helpers in `test/helpers/` (`fetch-mock`, `chrome-mock`, `fixtures`) instead of hand-rolled mocks
-- [ ] Behaviour that only a real browser can exercise (link interception, real client round-trip, notifications, worker lifecycle) is covered by the relevant rows of `smoke-test-matrix.md` instead — flag if neither applies
+- [ ] Behaviour a headless run can still reach (boot, link catching, the CORS rules, an add round-trip against a stub client) belongs in `e2e/` — and in `e2e/firefox/` too if it is cross-browser
+- [ ] Behaviour that genuinely needs hands on a browser (real client round-trip, desktop notifications, worker lifecycle, permission prompts) is covered by the relevant rows of `smoke-test-matrix.md` instead — flag if none of the three applies
 
 ### Settings & Storage
 
 - [ ] New per-client fields added to `WebUISettings` in `src/models/webui.ts`; new global fields to `RTASettings` in `src/models/settings.ts` with a default in `src/util/settings-defaults.ts`
 - [ ] Default values handled (new fields may be undefined in existing configs — use `??` not `||`, since `false` and `0` are valid values)
 - [ ] Adding a new optional field (`?:`) needs no migration. Renaming, removing, or changing the type of an existing field does — and the only migration path currently in the codebase is `src/util/legacy-client-identifiers.ts`, which handles client identifiers specifically. A different kind of schema change needs new migration code plus tests
-- [ ] New required fields on `WebUISettings` are added to `test/helpers/fixtures.ts`
-- [ ] `clientSpecificSettings` is used for per-client configuration (typed as `Record<string, any>`)
+- [ ] New required fields on `WebUISettings` are added to `test/helpers/fixtures.ts` **and** `e2e/fixtures/settings.ts`
+- [ ] A client-only boolean option is declared as a `ClientSpecificSettingDescriptor` on the client class and read with `this.getClientSpecific(key, config)` — **not** as a hand-wired new field on `WebUISettings` with its own control in `WebUIsPage.tsx`. `clientSpecificSettings` is typed `Record<string, unknown>`; reading it directly bypasses the config → stored → default fallback chain
+- [ ] A descriptor's `key` is stable and never changed once shipped — it is persisted in user settings, exactly like the `Client` enum slug
 
 ### React UI (Options / Popup)
 
@@ -72,8 +85,8 @@ For changes in `src/webuis/`:
 ### Build System
 
 - [ ] New source files in `src/webuis/` or `src/util/` don't need to be added to any build config — Vite resolves imports automatically
-- [ ] A new HTML page needs a new entry in the `targets` map in `vite.config.ts` and a matching `build:*` script in `package.json`, added to `build:targets`
-- [ ] Assets (images, static files) go in `src/` and are copied by the `copy-assets` script — check the extension glob in `package.json` covers any new file type
+- [ ] A new HTML page needs an entry in the `targets` map in `vite.config.ts` **and** its name in `ALL_TARGETS` in `scripts/browsers.mjs` (plus `targetsFor` if it is Chrome-only). No new npm script is needed — `scripts/build.mjs` picks it up
+- [ ] Static assets go in `src/assets/`, which `scripts/build.mjs` copies wholesale into the output directory
 
 ## Output
 
@@ -85,7 +98,7 @@ A review is one of the cases where a `.tmp/review-<pr-or-branch>-<YYYY-MM-DD>.md
 
 1. **Fetch without error handling**: raw `fetch()` calls that don't check `res.ok`
 2. **Hardcoded ports or paths**: should use `createBaseUrl()` + user settings
-3. **Direct storage access**: prefer `src/util/settings.ts` helpers over raw `chrome.storage` calls
+3. **Direct storage access**: prefer `src/util/settings.ts` helpers over raw `ext.storage` calls — and a bare `chrome.storage` call is a lint failure, not a style preference
 4. **Missing null checks**: settings fields can be null/undefined — `label`, `dir`, `relativePath`
 5. **FormData content-type**: manually setting multipart content-type breaks the boundary parameter
 6. **Partial client registration**: a client added to the enum but missing from `ClientDisplayName` or `ClientClassByClient` — `test/models/clients.test.ts` catches this, so a failure there usually means exactly this
