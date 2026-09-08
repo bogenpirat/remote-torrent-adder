@@ -163,12 +163,13 @@ jobs:
           generate_release_notes: true
           body_path: release-body.md
           fail_on_unmatched_files: false
+          preserve_order: true
           files: |
-            remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
             remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
-            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-dev.zip
-            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-prod.zip
             remote-torrent-adder-${{ steps.ver.outputs.version }}.xpi
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-prod.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-dev.zip
 
       - name: Upload to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v6.0.0
