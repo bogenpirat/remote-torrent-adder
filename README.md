@@ -7,7 +7,7 @@
 **Send torrents and magnet links from your browser straight to your BitTorrent client — local or remote — with a single click.**
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/oabphaconndgibllomdcjbfdghcmenci?label=Chrome%20Web%20Store&color=blue)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
-[![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder16?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
+[![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder%40bogenpirat?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
 [![Users](https://img.shields.io/chrome-web-store/users/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Rating](https://img.shields.io/chrome-web-store/rating/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Build](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml/badge.svg)](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml)
