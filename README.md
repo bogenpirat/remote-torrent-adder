@@ -7,6 +7,7 @@
 **Send torrents and magnet links from your browser straight to your BitTorrent client — local or remote — with a single click.**
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/oabphaconndgibllomdcjbfdghcmenci?label=Chrome%20Web%20Store&color=blue)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
+[![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder%40bogenpirat?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/firefox/addon/remote-torrent-adder/)
 [![Users](https://img.shields.io/chrome-web-store/users/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Rating](https://img.shields.io/chrome-web-store/rating/oabphaconndgibllomdcjbfdghcmenci)](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci)
 [![Build](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml/badge.svg)](https://github.com/bogenpirat/remote-torrent-adder/actions/workflows/build-extension.yml)
@@ -56,9 +57,12 @@ Missing your client? [Open an issue](https://github.com/bogenpirat/remote-torren
 
 ## 🚀 Installation
 
-1. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci).
-   Firefox support is built from the same codebase and needs **Firefox 149 or newer**;
-   it is not on addons.mozilla.org yet, so for now [build it from source](#-building-from-source).
+1. **Chrome** — install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/oabphaconndgibllomdcjbfdghcmenci).
+
+   **Firefox** — needs **Firefox 149 or newer**. Download the signed `.xpi` from the
+   [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest), then
+   install it from `about:addons` → the gear icon → **Install Add-on From File**. It updates
+   itself from this repository. You can also [build it from source](#-building-from-source).
 2. Open the extension's **options** and add your server(s): client type, host, port, credentials
 3. Click a torrent link — done!
 
@@ -77,7 +81,7 @@ npm install
 npm run build            # development build  → dist/chrome/
 npm run build:prod       # production build   → dist-prod/chrome/
 npm run build:firefox    # Firefox dev build   → dist/firefox/
-npm run build:all        # all four bundles
+npm run build:all        # every bundle, incl. the self-hosted Firefox one
 ```
 
 Tests run automatically before every build; you can also run them directly:
@@ -102,7 +106,8 @@ scratch Firefox profile with the add-on already installed, or load it by hand:
 
 A temporary add-on is gone on restart. Release Firefox refuses to install an
 unsigned `.xpi` permanently, so a persistent local install needs Firefox
-Developer Edition or Nightly with `xpinstall.signatures.required` set to `false`.
+Developer Edition or Nightly with `xpinstall.signatures.required` set to `false` —
+or the signed `.xpi` from the [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest).
 
 For iterating on the extension, `npm run dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
 
@@ -113,7 +118,7 @@ For iterating on the extension, `npm run dev` builds once and then rebuilds on e
 - **Vite** for all five bundles — the popup, options and notifications pages, plus the service worker and content script as standalone IIFE files
 - **One codebase, two browsers** — `scripts/generate-manifest.mjs` derives the Firefox manifest from the Chrome one, and a build-time constant folds away the branches that do not apply
 - **Vitest** for the unit suite, **Playwright** for Chrome end-to-end tests and **geckodriver** for the Firefox ones
-- Version-driven release pipeline that auto-deploys to the Chrome Web Store
+- Version-driven release pipeline that auto-deploys to the Chrome Web Store and addons.mozilla.org, and attaches a signed `.xpi` to every GitHub release
 
 ## 🤝 Contributing
 
