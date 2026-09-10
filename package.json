@@ -81,7 +81,7 @@
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.67.0",
         "vite": "^8.2.1",
-        "vitest": "^4.1.9",
+        "vitest": "^4.1.11",
         "web-ext": "^10.6.0"
     },
     "dependencies": {
