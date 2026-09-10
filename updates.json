@@ -1,7 +1,12 @@
 {
     "addons": {
         "remote-torrent-adder-selfhosted@bogenpirat": {
-            "updates": []
+            "updates": [
+                {
+                    "version": "2.3.1",
+                    "update_link": "https://github.com/bogenpirat/remote-torrent-adder/releases/download/v2.3.1/remote-torrent-adder-2.3.1.xpi"
+                }
+            ]
         }
     }
 }
