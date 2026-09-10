@@ -9,3 +9,5 @@ test-results/
 **/*.local.json
 .tmp/
 .idea
+web-ext-artifacts*/
+*.xpi

@@ -62,6 +62,10 @@ jobs:
         run: npm run build:firefox:run
       - name: Lint the Firefox bundle
         run: npm run lint:firefox
+      - name: Build the self-hosted Firefox extension
+        run: npm run build:firefox:prod:run && npm run build:firefox:unlisted:run
+      - name: Lint the self-hosted Firefox bundle
+        run: npm run lint:firefox:unlisted
       - name: Upload Chrome build artifacts
         uses: actions/upload-artifact@v7
         with:

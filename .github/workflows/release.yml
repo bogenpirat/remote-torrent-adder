@@ -4,10 +4,14 @@ name: Release
 #
 # Trigger from the Actions tab (or: gh workflow run Release -f version=2.0.6),
 # supplying the version. The workflow bumps the version in source, builds the
-# Chrome and Firefox bundles in both dev and prod flavours, then commits + tags
-# THAT commit so the tag always lands on the commit carrying the version.
-# Finally it publishes a GitHub Release with all four bundles attached and
-# uploads the Chrome prod bundle to the Chrome Web Store.
+# Chrome and Firefox bundles in both dev and prod flavours, and gets the
+# self-hosted Firefox bundle signed by AMO's unlisted channel, which returns an
+# installable .xpi in about a minute. That signing is best effort: if it fails
+# the release still ships, just without the .xpi. It then commits + tags THAT
+# commit so the tag always lands on the commit carrying the version, publishes a
+# GitHub Release with the four bundles plus the .xpi attached, uploads the
+# Chrome prod bundle to the Chrome Web Store and submits the Firefox bundle to
+# AMO's listed channel.
 #
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
@@ -89,6 +93,41 @@ jobs:
       - name: Lint the Firefox bundle
         run: npm run lint:firefox
 
+      - name: Lint the self-hosted Firefox bundle
+        run: npm run lint:firefox:unlisted
+
+      - name: Sign the unlisted Firefox bundle
+        id: sign_unlisted
+        continue-on-error: true
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          npx web-ext sign --source-dir dist-prod/firefox-unlisted --channel unlisted --approval-timeout 600000 --artifacts-dir web-ext-artifacts-unlisted
+          XPI="$(find web-ext-artifacts-unlisted -maxdepth 1 -name '*.xpi' -print -quit)"
+          [ -n "$XPI" ] || { echo 'web-ext produced no .xpi' >&2; exit 1; }
+          mv "$XPI" "remote-torrent-adder-$VERSION.xpi"
+
+      - name: Report the signing outcome
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          SIGNED: ${{ steps.sign_unlisted.outcome }}
+        run: |
+          if [ "$SIGNED" = 'success' ]; then
+            echo "Signed remote-torrent-adder-$VERSION.xpi will be attached to the release." >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo '### Firefox'
+              echo
+              echo "Download **remote-torrent-adder-$VERSION.xpi** below, then install it"
+              echo 'from about:addons -> the gear icon -> **Install Add-on From File**.'
+              echo 'It updates itself from this repository.'
+            } > release-body.md
+          else
+            echo 'Unlisted signing failed - this release ships without a .xpi.' >> "$GITHUB_STEP_SUMMARY"
+            echo > release-body.md
+          fi
+
       - name: Zip bundles
         run: |
           V="${{ steps.ver.outputs.version }}"
@@ -107,17 +146,46 @@ jobs:
           git push origin HEAD:master
           git push origin "${{ steps.ver.outputs.tag }}"
 
+      - name: Package source for AMO review
+        run: >
+          git -c core.autocrlf=false archive --format=zip
+          -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
+          body_path: release-body.md
+          fail_on_unmatched_files: false
+          preserve_order: true
           files: |
-            remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
             remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
-            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-dev.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}.xpi
             remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-prod.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-dev.zip
+            remote-torrent-adder-${{ steps.ver.outputs.version }}-firefox-dev.zip
+
+      - name: Verify the signed xpi reached the release
+        if: steps.sign_unlisted.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          XPI: remote-torrent-adder-${{ steps.ver.outputs.version }}.xpi
+        run: |
+          if ! gh release view "$TAG" --json assets -q '.assets[].name' | grep -qx "$XPI"; then
+            echo "$XPI is missing from release $TAG - not advertising it to self-hosted installs." >&2
+            exit 1
+          fi
+
+      - name: Publish the self-hosted update manifest
+        if: steps.sign_unlisted.outcome == 'success'
+        run: |
+          node scripts/generate-update-manifest.mjs "${{ steps.ver.outputs.version }}"
+          git add updates.json
+          git commit -m "chore: point self-hosted updates at ${{ steps.ver.outputs.tag }} [skip ci]"
+          git push origin HEAD:master
 
       - name: Upload to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v6.0.0
@@ -132,11 +200,6 @@ jobs:
           #   publish: false -> upload only; the new version sits as a draft and
           #                     you click "Publish" in the dashboard.
           publish: true
-
-      - name: Package source for AMO review
-        run: >
-          git -c core.autocrlf=false archive --format=zip
-          -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
 
       - name: Upload to addons.mozilla.org
         env:

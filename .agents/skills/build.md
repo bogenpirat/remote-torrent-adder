@@ -8,7 +8,7 @@
 | `npm run build:prod` | `dist-prod/chrome/` | Chrome production build, minified |
 | `npm run build:firefox` | `dist/firefox/` | Firefox development build |
 | `npm run build:firefox:prod` | `dist-prod/firefox/` | Firefox production build |
-| `npm run build:all` | all four | Every bundle, with the gate run once |
+| `npm run build:all` | all five | Every bundle incl. `dist-prod/firefox-unlisted/`, with the gate run once |
 | `npm run dev` | `dist/chrome/` | Watch mode for development |
 | `npm run dev:firefox` | `dist/firefox/` | Build, then launch Firefox with the add-on loaded |
 | `npm run lint:firefox` | — | `web-ext lint` — AMO's own linter, over `dist/firefox/` |
