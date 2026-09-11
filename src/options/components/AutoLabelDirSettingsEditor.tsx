@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
 import AutoLabelDirTester from "./AutoLabelDirTester";
+import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 
 interface AutoLabelDirSettingsEditorProps {
@@ -88,11 +89,10 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
   const handleLabelChange = (idx: number, label: string | null) => updateAt(idx, { label });
   const handleDirChange = (idx: number, dir: string | null) => updateAt(idx, { dir });
   return (
-    <div style={{ marginBottom: 20, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 10, padding: 16, background: "var(--rta-surface-alt, #f7faf7)" }}>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 600, fontSize: 16, marginRight: 12 }}>Auto Label/Dir Settings</span>
-        <button onClick={handleAdd} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 16px", fontWeight: 500, cursor: "pointer" }}>Add Rule</button>
-      </div>
+    <SettingsGroup
+      title="Auto Label/Dir Settings"
+      actions={<button onClick={handleAdd} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 16px", fontWeight: 500, cursor: "pointer" }}>Add Rule</button>}
+    >
       {value.length === 0 && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>No rules defined yet.</div>}
       {value.map((setting, idx) => (
         <div key={idx} style={{ marginBottom: 18, padding: 12, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 8, background: "var(--rta-surface, #fff)", position: "relative" }}>
@@ -158,7 +158,7 @@ function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, label
           showDir={showDir}
         />
       )}
-    </div>
+    </SettingsGroup>
   );
 }
 
