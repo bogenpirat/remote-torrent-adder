@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SettingsProvider } from "../../../src/options/SettingsContext";
 import WebUIsPage from "../../../src/options/pages/WebUIsPage";
@@ -145,5 +145,27 @@ describe("WebUIsPage", () => {
         expect(screen.queryByText("No rules defined yet.")).not.toBeInTheDocument();
         expect(screen.getByText("Torrent name:")).toBeInTheDocument();
         expect(screen.getByText("2160p")).toBeInTheDocument();
+    });
+
+    it("groups the connection settings and toggles under General", async () => {
+        respondWithWebUIs([makeWebUISettings({ id: "a", name: "Alpha" })]);
+        renderPage();
+
+        const general = await screen.findByRole("region", { name: "General" });
+        expect(within(general).getByLabelText("Port")).toBeInTheDocument();
+        expect(within(general).getByRole("button", { name: "Test connection" })).toBeInTheDocument();
+        expect(within(general).getByText("Add torrents paused")).toBeInTheDocument();
+        expect(within(general).getByText("Show per-torrent config selector")).toBeInTheDocument();
+    });
+
+    it("groups the default label and directory with their per-torrent choices", async () => {
+        respondWithWebUIs([makeWebUISettings({ id: "a", name: "Alpha" })]);
+        renderPage();
+
+        const labelsAndDirs = await screen.findByRole("region", { name: "Labels & Directories" });
+        expect(within(labelsAndDirs).getByText("Default Label")).toBeInTheDocument();
+        expect(within(labelsAndDirs).getByText("Labels for per-torrent selection")).toBeInTheDocument();
+        expect(within(labelsAndDirs).getByText("Default Directory")).toBeInTheDocument();
+        expect(within(labelsAndDirs).getByText("Directories for per-torrent selection")).toBeInTheDocument();
     });
 });

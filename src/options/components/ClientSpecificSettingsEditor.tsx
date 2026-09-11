@@ -1,5 +1,6 @@
 import React from "react";
 import { type ClientSpecificSettingDescriptor } from "../../models/webui";
+import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
 
 interface ClientSpecificSettingsEditorProps {
@@ -9,8 +10,7 @@ interface ClientSpecificSettingsEditorProps {
 }
 
 const ClientSpecificSettingsEditor: React.FC<ClientSpecificSettingsEditorProps> = ({ descriptors, value, onChange }) => (
-  <div style={{ marginBottom: 20, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 10, padding: 16, background: "var(--rta-surface-alt, #f7faf7)" }}>
-    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>Client-specific settings</div>
+  <SettingsGroup title="Client-specific settings">
     {descriptors.map(descriptor => (
       <div key={descriptor.key} style={{ marginBottom: 12 }}>
         <span style={{ display: "inline-flex" }} title={descriptor.description}>
@@ -22,7 +22,7 @@ const ClientSpecificSettingsEditor: React.FC<ClientSpecificSettingsEditorProps> 
         </span>
       </div>
     ))}
-  </div>
+  </SettingsGroup>
 );
 
 export default ClientSpecificSettingsEditor;

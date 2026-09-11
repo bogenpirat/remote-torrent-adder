@@ -5,6 +5,7 @@ import ChipList from "../components/ChipList";
 import AutoLabelDirSettingsEditor from "../components/AutoLabelDirSettingsEditor";
 import ClientSpecificSettingsEditor from "../components/ClientSpecificSettingsEditor";
 import Select from "../components/Select";
+import SettingsGroup from "../components/SettingsGroup";
 import { Client, ClientClassByClient, ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
 import { TestConnectionMessage, type ITestConnectionMessage } from "../../models/messages";
@@ -243,6 +244,9 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
   const [confirmRemove, setConfirmRemove] = useState(false);
   const clientChosen = isClientSelected(webui.client);
   const webUiInstance = clientChosen ? WebUIFactory.createWebUI(webui) : null;
+  const labelDirGroupTitle = webUiInstance?.isLabelSupported && webUiInstance?.isDirSupported
+    ? "Labels & Directories"
+    : webUiInstance?.isLabelSupported ? "Labels" : "Directories";
 
   // A result only describes the endpoint + credentials it was produced for, so
   // it is stored together with a signature of those fields. Anything that would
@@ -344,89 +348,95 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
         </div>
       ) : (
         <>
-          {/* Host + Port + Secure + Relative Path */}
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap" }}>
-            <div>
-              <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Host</label>
-              <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
+          <SettingsGroup title="General">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Host + Port + Secure + Relative Path */}
+              <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div>
+                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Host</label>
+                  <input type="text" value={webui.host} onChange={e => onChange({ ...webui, host: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
+                </div>
+                <div>
+                  <label htmlFor="rta-webui-port" style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Port</label>
+                  <input
+                    id="rta-webui-port"
+                    type="number"
+                    inputMode="numeric"
+                    min={MIN_PORT}
+                    max={MAX_PORT}
+                    placeholder={webui.secure ? "443" : "80"}
+                    value={webui.port ?? ""}
+                    onChange={e => onChange({ ...webui, port: parsePortInput(e.target.value) })}
+                    style={{ ...fieldInputStyle, minWidth: 80 }}
+                  />
+                </div>
+                <Toggle checked={webui.secure} onChange={v => onChange({ ...webui, secure: v })} label="Secure (HTTPS)" />
+                <div>
+                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Relative Path</label>
+                  <input type="text" value={webui.relativePath || ""} onChange={e => onChange({ ...webui, relativePath: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
+                </div>
+              </div>
+              <div style={{ color: "var(--rta-text-muted, #888)" }}>Base URL for API calls: {webUiInstance?.createBaseUrl()}</div>
+              {/* Username + Password */}
+              <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div>
+                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Username</label>
+                  <input type="text" value={webui.username} onChange={e => onChange({ ...webui, username: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
+                </div>
+                <div>
+                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Password</label>
+                  <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
+                </div>
+              </div>
+              {/* Test connection */}
+              {webUiInstance?.isConnectionTestSupported && (
+                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                  <button
+                    onClick={handleTest}
+                    disabled={testing}
+                    style={{
+                      background: "var(--rta-info, #4682B4)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 16px",
+                      fontWeight: 700,
+                      cursor: testing ? "default" : "pointer",
+                      opacity: testing ? 0.7 : 1,
+                      transition: "all 0.15s",
+                    }}
+                  >{testing ? "Testing…" : "Test connection"}</button>
+                  {testResult && (() => {
+                    const color = !testResult.reachable
+                      ? "var(--rta-danger, #B22222)"
+                      : testResult.authenticated === false
+                        ? "var(--rta-warning, #B8860B)"
+                        : "var(--rta-success, #228B22)";
+                    const icon = !testResult.reachable ? "❌" : testResult.authenticated === false ? "⚠" : "✅";
+                    return (
+                      <span style={{ color, fontWeight: 600, fontSize: 14 }}>
+                        {icon} {testResult.message}
+                      </span>
+                    );
+                  })()}
+                </div>
+              )}
+              {/* Only show these fields if supported by the WebUI instance */}
+              {(webUiInstance?.isAddPausedSupported || webUiInstance?.isLabelDirChooserSupported) && (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
+                  {webUiInstance?.isAddPausedSupported && (
+                    <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
+                  )}
+                  {webUiInstance?.isLabelDirChooserSupported && (
+                    <>
+                      <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
+                      <Toggle checked={webui.useAlternativeLabelDirChooser ?? false} onChange={v => onChange({ ...webui, useAlternativeLabelDirChooser: v })} label="Use alternative container (window instead of popup)" />
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-            <div>
-              <label htmlFor="rta-webui-port" style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Port</label>
-              <input
-                id="rta-webui-port"
-                type="number"
-                inputMode="numeric"
-                min={MIN_PORT}
-                max={MAX_PORT}
-                placeholder={webui.secure ? "443" : "80"}
-                value={webui.port ?? ""}
-                onChange={e => onChange({ ...webui, port: parsePortInput(e.target.value) })}
-                style={{ ...fieldInputStyle, minWidth: 80 }}
-              />
-            </div>
-            <Toggle checked={webui.secure} onChange={v => onChange({ ...webui, secure: v })} label="Secure (HTTPS)" />
-            <div>
-              <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Relative Path</label>
-              <input type="text" value={webui.relativePath || ""} onChange={e => onChange({ ...webui, relativePath: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
-            </div>
-          </div>
-          <div style={{ marginBottom: 20, color: "var(--rta-text-muted, #888)" }}>Base URL for API calls: {webUiInstance?.createBaseUrl()}</div>
-          {/* Username + Password */}
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap" }}>
-            <div>
-              <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Username</label>
-              <input type="text" value={webui.username} onChange={e => onChange({ ...webui, username: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
-            </div>
-            <div>
-              <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Password</label>
-              <input type="password" value={webui.password} onChange={e => onChange({ ...webui, password: e.target.value })} style={{ ...fieldInputStyle, minWidth: 120 }} />
-            </div>
-          </div>
-          {/* Test connection */}
-          {webUiInstance?.isConnectionTestSupported && (
-            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20, flexWrap: "wrap" }}>
-              <button
-                onClick={handleTest}
-                disabled={testing}
-                style={{
-                  background: "var(--rta-info, #4682B4)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "6px 16px",
-                  fontWeight: 700,
-                  cursor: testing ? "default" : "pointer",
-                  opacity: testing ? 0.7 : 1,
-                  transition: "all 0.15s",
-                }}
-              >{testing ? "Testing…" : "Test connection"}</button>
-              {testResult && (() => {
-                const color = !testResult.reachable
-                  ? "var(--rta-danger, #B22222)"
-                  : testResult.authenticated === false
-                    ? "var(--rta-warning, #B8860B)"
-                    : "var(--rta-success, #228B22)";
-                const icon = !testResult.reachable ? "❌" : testResult.authenticated === false ? "⚠" : "✅";
-                return (
-                  <span style={{ color, fontWeight: 600, fontSize: 14 }}>
-                    {icon} {testResult.message}
-                  </span>
-                );
-              })()}
-            </div>
-          )}
-          {/* Only show these fields if supported by the WebUI instance */}
-          {webUiInstance?.isAddPausedSupported && (
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20 }}>
-              <Toggle checked={webui.addPaused} onChange={v => onChange({ ...webui, addPaused: v })} label="Add torrents paused" />
-            </div>
-          )}
-          {webUiInstance?.isLabelDirChooserSupported && (
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap" }}>
-              <Toggle checked={webui.showPerTorrentConfigSelector} onChange={v => onChange({ ...webui, showPerTorrentConfigSelector: v })} label="Show per-torrent config selector" />
-              <Toggle checked={webui.useAlternativeLabelDirChooser ?? false} onChange={v => onChange({ ...webui, useAlternativeLabelDirChooser: v })} label="Use alternative container (window instead of popup)" />
-            </div>
-          )}
+          </SettingsGroup>
           {webUiInstance && webUiInstance.clientSpecificSettingDescriptors.length > 0 && (
             <ClientSpecificSettingsEditor
               descriptors={webUiInstance.clientSpecificSettingDescriptors}
@@ -434,35 +444,41 @@ function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUID
               onChange={clientSpecificSettings => onChange({ ...webui, clientSpecificSettings })}
             />
           )}
-          {webUiInstance?.isLabelSupported && (
-            <>
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Label</label>
-                <input
-                  type="text"
-                  value={webui.defaultLabel ?? ""}
-                  onChange={e => onChange({ ...webui, defaultLabel: e.target.value })}
-                  style={{ ...fieldInputStyle, minWidth: 180 }}
-                  placeholder="Default label"
-                />
+          {(webUiInstance?.isLabelSupported || webUiInstance?.isDirSupported) && (
+            <SettingsGroup title={labelDirGroupTitle}>
+              <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
+                {webUiInstance?.isLabelSupported && (
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Label</label>
+                      <input
+                        type="text"
+                        value={webui.defaultLabel ?? ""}
+                        onChange={e => onChange({ ...webui, defaultLabel: e.target.value })}
+                        style={{ ...fieldInputStyle, minWidth: 180 }}
+                        placeholder="Default label"
+                      />
+                    </div>
+                    <ChipList label="Labels for per-torrent selection" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
+                  </div>
+                )}
+                {webUiInstance?.isDirSupported && (
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Directory</label>
+                      <input
+                        type="text"
+                        value={webui.defaultDir ?? ""}
+                        onChange={e => onChange({ ...webui, defaultDir: e.target.value })}
+                        style={{ ...fieldInputStyle, minWidth: 180 }}
+                        placeholder="Default directory"
+                      />
+                    </div>
+                    <ChipList label="Directories for per-torrent selection" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
+                  </div>
+                )}
               </div>
-              <ChipList label="Labels for per-torrent selection" values={webui.labels} onChange={labels => onChange({ ...webui, labels })} placeholder="Add label" />
-            </>
-          )}
-          {webUiInstance?.isDirSupported && (
-            <>
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Default Directory</label>
-                <input
-                  type="text"
-                  value={webui.defaultDir ?? ""}
-                  onChange={e => onChange({ ...webui, defaultDir: e.target.value })}
-                  style={{ ...fieldInputStyle, minWidth: 180 }}
-                  placeholder="Default directory"
-                />
-              </div>
-              <ChipList label="Directories for per-torrent selection" values={webui.dirs} onChange={dirs => onChange({ ...webui, dirs })} placeholder="Add directory" />
-            </>
+            </SettingsGroup>
           )}
           {webUiInstance?.isLabelDirChooserSupported && (
             <AutoLabelDirSettingsEditor
