@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import { type AddressInfo } from "node:net";
 
+const TLS_HANDSHAKE_RECORD = 0x16;
+
 export interface RecordedRequest {
     method: string;
     path: string;
@@ -18,6 +20,7 @@ export interface FakeQBittorrentOptions {
 
 export class FakeQBittorrent {
     readonly requests: RecordedRequest[] = [];
+    tlsHandshakes = 0;
     private server!: Server;
     private options: Required<FakeQBittorrentOptions>;
     port = 0;
@@ -38,6 +41,13 @@ export class FakeQBittorrent {
                     "Access-Control-Allow-Origin": "*",
                 });
                 res.end(body);
+            });
+        });
+        this.server.on("connection", socket => {
+            socket.once("data", chunk => {
+                if (chunk[0] === TLS_HANDSHAKE_RECORD) {
+                    this.tlsHandshakes++;
+                }
             });
         });
         await new Promise<void>(resolve => this.server.listen(0, "127.0.0.1", resolve));
