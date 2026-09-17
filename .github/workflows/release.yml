@@ -116,16 +116,8 @@ jobs:
         run: |
           if [ "$SIGNED" = 'success' ]; then
             echo "Signed remote-torrent-adder-$VERSION.xpi will be attached to the release." >> "$GITHUB_STEP_SUMMARY"
-            {
-              echo '### Firefox'
-              echo
-              echo "Download **remote-torrent-adder-$VERSION.xpi** below, then install it"
-              echo 'from about:addons -> the gear icon -> **Install Add-on From File**.'
-              echo 'It updates itself from this repository.'
-            } > release-body.md
           else
             echo 'Unlisted signing failed - this release ships without a .xpi.' >> "$GITHUB_STEP_SUMMARY"
-            echo > release-body.md
           fi
 
       - name: Zip bundles
@@ -157,7 +149,6 @@ jobs:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
-          body_path: release-body.md
           fail_on_unmatched_files: false
           preserve_order: true
           files: |
