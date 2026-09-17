@@ -36,6 +36,8 @@ export function buildManifest(base, browser, { unlisted = false } = {}) {
     manifest.background = { scripts: [base.background.service_worker] };
     manifest.permissions = base.permissions.filter(permission => !CHROME_ONLY_PERMISSIONS.has(permission));
 
+    manifest.content_security_policy = { extension_pages: "script-src 'self'" };
+
     delete manifest.options_page;
     manifest.options_ui = { page: base.options_page, open_in_tab: true };
 

@@ -11,6 +11,8 @@ import { SETTINGS_KEY } from "../../src/util/settings";
 
 const HEADLESS = process.env.RTA_FIREFOX_HEADED !== "1";
 
+export const NON_LOOPBACK_HOST = "rta-client.test";
+
 export class FirefoxExtensionHarness {
     driver!: firefox.Driver;
     uuid!: string;
@@ -28,6 +30,7 @@ export class FirefoxExtensionHarness {
             options.addArguments("--headless");
         }
         options.setPreference("xpinstall.signatures.required", false);
+        options.setPreference("network.dns.localDomains", NON_LOOPBACK_HOST);
 
         this.driver = (await new Builder()
             .forBrowser("firefox")

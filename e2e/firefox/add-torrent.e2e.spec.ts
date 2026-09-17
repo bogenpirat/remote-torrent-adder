@@ -1,4 +1,4 @@
-import { test, expect, type FirefoxExtensionHarness } from "../fixtures/firefox-extension";
+import { test, expect, NON_LOOPBACK_HOST, type FirefoxExtensionHarness } from "../fixtures/firefox-extension";
 import { FakeQBittorrent, type FakeQBittorrentOptions } from "../fixtures/fake-qbittorrent";
 import { makeSettings, makeWebUISettings } from "../fixtures/settings";
 import { StaticSite } from "../fixtures/static-site";
@@ -24,13 +24,18 @@ test.afterEach(async () => {
     }
 });
 
-async function configure(extension: FirefoxExtensionHarness, port: number, name = "Fake qBittorrent"): Promise<void> {
+async function configure(
+    extension: FirefoxExtensionHarness,
+    port: number,
+    name = "Fake qBittorrent",
+    host = "127.0.0.1",
+): Promise<void> {
     await extension.seedSettings(
         makeSettings([
             makeWebUISettings({
                 id: "webui-1",
                 name,
-                host: "127.0.0.1",
+                host,
                 port,
                 username: "user",
                 password: "pass",
@@ -62,6 +67,23 @@ test.describe("adding a torrent end to end on firefox", () => {
         expect(add.method).toBe("POST");
         expect(Object.keys(add.files)).toContain("torrents");
         expect(add.files.torrents!.size).toBeGreaterThan(0);
+    });
+
+    test("reaches a plain-http client on a non-loopback host without upgrading to https", async ({ extension }) => {
+        await startServers();
+        await configure(extension, client.port, "Remote qBittorrent", NON_LOOPBACK_HOST);
+
+        await clickCaughtLink(extension);
+
+        await expect
+            .poll(() => client.tlsHandshakes > 0 || client.pathsHit().includes("/api/v2/torrents/add"), {
+                timeout: 30_000,
+            })
+            .toBe(true);
+
+        expect(client.tlsHandshakes, "the client request was upgraded to https").toBe(0);
+        expect(client.pathsHit()).toContain("/api/v2/torrents/add");
+        expect(client.requests[0]!.headers.host).toBe(`${NON_LOOPBACK_HOST}:${client.port}`);
     });
 
     test("strips the moz-extension Origin header from client requests", async ({ extension }) => {

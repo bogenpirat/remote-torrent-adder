@@ -33,6 +33,11 @@ describe("generated manifests", () => {
         expect(firefox.options_page).toBeUndefined();
     });
 
+    it("drops Firefox's default upgrade-insecure-requests so plain-http clients stay reachable", () => {
+        expect(firefox.content_security_policy).toEqual({ extension_pages: "script-src 'self'" });
+        expect(chrome.content_security_policy).toBeUndefined();
+    });
+
     it("declares the AMO identity on Firefox only", () => {
         expect(firefox.browser_specific_settings.gecko.id).toBe(GECKO.id);
         expect(firefox.browser_specific_settings.gecko.strict_min_version).toBe("149.0");
