@@ -90,6 +90,11 @@ path = "src/popup/components/ui/toggle.tsx"
 reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument."
 
 [[waivers]]
+rule = "F3"
+path = "src/options/components/Toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument."
+
+[[waivers]]
 rule = "G5"
 path = "src/webuis/*-webui.ts"
 reason = "Sibling TorrentWebUI subclasses share their import block and the signatures of the members they override; only that boilerplate repeats."

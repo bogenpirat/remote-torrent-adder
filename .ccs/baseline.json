@@ -191,26 +191,6 @@
     "count": 8,
     "measure": 1
   },
-  "FM2|src/options/components/ChipList.tsx|": {
-    "count": 4,
-    "measure": 1
-  },
-  "FM2|src/options/components/Select.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/options/components/SettingsGroup.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/options/pages/AboutPage.tsx|": {
-    "count": 6,
-    "measure": 1
-  },
-  "FM2|src/options/pages/IconClickPage.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
   "FM2|src/options/pages/LinkCatchingPage.tsx|": {
     "count": 5,
     "measure": 1
@@ -255,10 +235,6 @@
     "count": 1,
     "measure": 29
   },
-  "FN1|src/options/OptionsPage.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 31
-  },
   "FN1|src/options/components/AutoLabelDirSettingsEditor.tsx|(anonymous)": {
     "count": 1,
     "measure": 51
@@ -278,30 +254,6 @@
   "FN1|src/options/components/AutoLabelDirTester.tsx|verdict": {
     "count": 1,
     "measure": 24
-  },
-  "FN1|src/options/components/ChipList.tsx|ChipList": {
-    "count": 1,
-    "measure": 24
-  },
-  "FN1|src/options/components/HostPermissionNotice.tsx|HostPermissionNotice": {
-    "count": 1,
-    "measure": 23
-  },
-  "FN1|src/options/components/RadioCard.tsx|RadioCard": {
-    "count": 1,
-    "measure": 37
-  },
-  "FN1|src/options/components/Toggle.tsx|Toggle": {
-    "count": 1,
-    "measure": 33
-  },
-  "FN1|src/options/pages/AboutPage.tsx|AboutPage": {
-    "count": 1,
-    "measure": 22
-  },
-  "FN1|src/options/pages/ImportExportPage.tsx|ImportExportPage": {
-    "count": 1,
-    "measure": 37
   },
   "FN1|src/options/pages/LinkCatchingPage.tsx|(anonymous)": {
     "count": 1,
@@ -516,7 +468,7 @@
     "measure": 1
   },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 7,
+    "count": 14,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|": {
@@ -556,10 +508,6 @@
     "measure": 1
   },
   "N5|e2e/fixtures/extension.ts|evaluate:fn": {
-    "count": 1,
-    "measure": 1
-  },
-  "N5|src/options/SettingsContext.tsx|updateSetting:K": {
     "count": 1,
     "measure": 1
   },

@@ -8,7 +8,7 @@ import { requestSerializedSettings } from "../util/request-settings";
 interface SettingsContextType {
   settings: RTASettings | null;
   setSettings: (settings: RTASettings) => void;
-  updateSetting: <K extends keyof RTASettings>(key: K, value: RTASettings[K]) => void;
+  updateSetting: <Key extends keyof RTASettings>(key: Key, value: RTASettings[Key]) => void;
   loading: boolean;
 }
 
@@ -38,7 +38,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     sendMessageAndForget({ action: SaveSettingsMessage.action, settings: serializeSettings(newSettings) });
   };
 
-  const updateSetting = <K extends keyof RTASettings>(key: K, value: RTASettings[K]) => {
+  const updateSetting = <Key extends keyof RTASettings>(key: Key, value: RTASettings[Key]) => {
     if (!settings) return;
     const updated = { ...settings, [key]: value };
     saveSettings(updated);

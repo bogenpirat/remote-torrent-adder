@@ -37,7 +37,8 @@ const OPTIONS: { value: IconClickAction; label: string; description: string; dis
   {
     value: "showPageLinks",
     label: "Show links found on this page",
-    description: "Clicking the icon shows a popup listing torrent/magnet links detected on the current page. Clicking one adds it, just like clicking it on the page.",
+    description: "Clicking the icon shows a popup listing torrent/magnet links detected on the current page. "
+      + "Clicking one adds it, just like clicking it on the page.",
   },
 ];
 

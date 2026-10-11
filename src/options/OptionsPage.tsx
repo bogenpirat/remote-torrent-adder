@@ -23,7 +23,51 @@ const TABS: Tab[] = [
   { id: "about", title: "About", Content: AboutPage },
 ];
 
-export default function OptionsPage() {
+interface TabButtonProps {
+  tab: Tab;
+  selected: boolean;
+  buttonRef: (element: HTMLButtonElement | null) => void;
+  onSelect: () => void;
+  onKeyDown: (event: React.KeyboardEvent) => void;
+}
+
+function TabButton({ tab, selected, buttonRef, onSelect, onKeyDown }: TabButtonProps) {
+  return (
+    <button
+      ref={buttonRef}
+      className="rta-tab"
+      role="tab"
+      id={`rta-tab-${tab.id}`}
+      type="button"
+      aria-selected={selected}
+      aria-controls={`rta-tabpanel-${tab.id}`}
+      tabIndex={selected ? 0 : -1}
+      onClick={onSelect}
+      onKeyDown={onKeyDown}
+    >
+      {tab.title}
+    </button>
+  );
+}
+
+interface TabNavigation {
+  activeTab: number;
+  setActiveTab: (index: number) => void;
+  tabRefs: React.RefObject<Array<HTMLButtonElement | null>>;
+  handleKeyDown: (event: React.KeyboardEvent, index: number) => void;
+}
+
+function targetTabIndex(key: string, index: number): number | undefined {
+  const moves: Record<string, number> = {
+    ArrowLeft: index - 1,
+    ArrowRight: index + 1,
+    Home: 0,
+    End: TABS.length - 1,
+  };
+  return moves[key];
+}
+
+function useTabNavigation(): TabNavigation {
   const [activeTab, setActiveTab] = useState(0);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -36,13 +80,7 @@ export default function OptionsPage() {
   // Arrow keys move between tabs, per the WAI-ARIA tabs pattern. Only the
   // active tab is in the tab order, so Tab jumps straight to the panel.
   const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
-    const moves: Record<string, number> = {
-      ArrowLeft: index - 1,
-      ArrowRight: index + 1,
-      Home: 0,
-      End: TABS.length - 1,
-    };
-    const target = moves[event.key];
+    const target = targetTabIndex(event.key, index);
     if (target === undefined) {
       return;
     }
@@ -50,7 +88,46 @@ export default function OptionsPage() {
     focusTab(target);
   };
 
-  const active = TABS[activeTab] ?? TABS[0]!;
+  return { activeTab, setActiveTab, tabRefs, handleKeyDown };
+}
+
+function TabList({ navigation }: { navigation: TabNavigation }) {
+  const { activeTab, setActiveTab, tabRefs, handleKeyDown } = navigation;
+  return (
+    <div className="rta-tablist" role="tablist" aria-label="Options sections">
+      {TABS.map((tab, index) => (
+        <TabButton
+          key={tab.id}
+          tab={tab}
+          selected={activeTab === index}
+          buttonRef={element => {
+            tabRefs.current[index] = element;
+          }}
+          onSelect={() => setActiveTab(index)}
+          onKeyDown={event => handleKeyDown(event, index)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TabPanel({ tab }: { tab: Tab }) {
+  return (
+    <div
+      className="rta-tabpanel"
+      role="tabpanel"
+      id={`rta-tabpanel-${tab.id}`}
+      aria-labelledby={`rta-tab-${tab.id}`}
+      tabIndex={0}
+    >
+      <tab.Content />
+    </div>
+  );
+}
+
+export default function OptionsPage() {
+  const navigation = useTabNavigation();
+  const active = TABS[navigation.activeTab] ?? TABS[0]!;
 
   return (
     <SettingsProvider>
@@ -61,37 +138,9 @@ export default function OptionsPage() {
 
         <HostPermissionNotice />
 
-        <div className="rta-tablist" role="tablist" aria-label="Options sections">
-          {TABS.map((tab, index) => (
-            <button
-              key={tab.id}
-              ref={element => {
-                tabRefs.current[index] = element;
-              }}
-              className="rta-tab"
-              role="tab"
-              id={`rta-tab-${tab.id}`}
-              type="button"
-              aria-selected={activeTab === index}
-              aria-controls={`rta-tabpanel-${tab.id}`}
-              tabIndex={activeTab === index ? 0 : -1}
-              onClick={() => setActiveTab(index)}
-              onKeyDown={event => handleKeyDown(event, index)}
-            >
-              {tab.title}
-            </button>
-          ))}
-        </div>
+        <TabList navigation={navigation} />
 
-        <div
-          className="rta-tabpanel"
-          role="tabpanel"
-          id={`rta-tabpanel-${active.id}`}
-          aria-labelledby={`rta-tab-${active.id}`}
-          tabIndex={0}
-        >
-          <active.Content />
-        </div>
+        <TabPanel tab={active} />
       </div>
     </SettingsProvider>
   );

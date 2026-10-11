@@ -3,7 +3,7 @@ import { ext } from "../../util/browser-api";
 
 const ALL_URLS = { origins: ["<all_urls>"] };
 
-export default function HostPermissionNotice() {
+function useHostPermission(): [boolean, () => void] {
   const [granted, setGranted] = useState(true);
 
   const check = useCallback(() => {
@@ -23,6 +23,15 @@ export default function HostPermissionNotice() {
     };
   }, [check]);
 
+  const request = () => {
+    void ext.permissions.request(ALL_URLS).then(setGranted);
+  };
+  return [granted, request];
+}
+
+export default function HostPermissionNotice() {
+  const [granted, requestAccess] = useHostPermission();
+
   if (granted) {
     return null;
   }
@@ -33,13 +42,7 @@ export default function HostPermissionNotice() {
         Remote Torrent Adder cannot access websites, so torrent links will not be caught and your
         clients cannot be reached.
       </span>
-      <button
-        type="button"
-        className="rta-notice__action"
-        onClick={() => {
-          void ext.permissions.request(ALL_URLS).then(setGranted);
-        }}
-      >
+      <button type="button" className="rta-notice__action" onClick={requestAccess}>
         Grant access
       </button>
     </div>
