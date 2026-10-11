@@ -192,7 +192,7 @@
     "measure": 1
   },
   "FM2|src/options/pages/LinkCatchingPage.tsx|": {
-    "count": 5,
+    "count": 1,
     "measure": 1
   },
   "FM2|src/options/pages/WebUIsPage.tsx|": {
@@ -254,14 +254,6 @@
   "FN1|src/options/components/AutoLabelDirTester.tsx|verdict": {
     "count": 1,
     "measure": 24
-  },
-  "FN1|src/options/pages/LinkCatchingPage.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 46
-  },
-  "FN1|src/options/pages/LinkCatchingPage.tsx|LinkCatchingPage": {
-    "count": 1,
-    "measure": 76
   },
   "FN1|src/options/pages/NotificationsPage.tsx|NotificationsPage": {
     "count": 1,
@@ -435,6 +427,10 @@
     "count": 2,
     "measure": 1
   },
+  "G5|test/webuis/porla-webui.test.ts|build": {
+    "count": 1,
+    "measure": 1
+  },
   "G5|test/webuis/qbittorrent-webui.test.ts|": {
     "count": 1,
     "measure": 1
@@ -449,6 +445,10 @@
   },
   "G5|test/webuis/rqbit-webui.test.ts|": {
     "count": 2,
+    "measure": 1
+  },
+  "G5|test/webuis/rqbit-webui.test.ts|build": {
+    "count": 1,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|": {
@@ -508,10 +508,6 @@
     "measure": 1
   },
   "N5|e2e/fixtures/extension.ts|evaluate:fn": {
-    "count": 1,
-    "measure": 1
-  },
-  "N5|src/options/pages/LinkCatchingPage.tsx|stringToRegex:s": {
     "count": 1,
     "measure": 1
   },
