@@ -4,7 +4,8 @@ import { parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
 import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
 import WebUIConnectionTest from "./WebUIConnectionTest";
-import { FIELD_LABEL_STYLE, MUTED, TextField, fieldInputStyle, type WebUISectionProps } from "./webui-fields";
+import { FIELD_INPUT_STYLE, FIELD_LABEL_STYLE, TextField, type WebUISectionProps } from "./webui-fields";
+import { MUTED } from "../theme";
 
 interface PatchableProps {
   webui: WebUISettings;
@@ -28,7 +29,7 @@ function PortField({ webui, onPatch }: PatchableProps) {
         placeholder={webui.secure ? "443" : "80"}
         value={webui.port ?? ""}
         onChange={e => onPatch({ port: parsePortInput(e.target.value) })}
-        style={{ ...fieldInputStyle, minWidth: 80 }}
+        style={{ ...FIELD_INPUT_STYLE, minWidth: 80 }}
       />
     </div>
   );

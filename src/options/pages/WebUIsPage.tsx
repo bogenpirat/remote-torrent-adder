@@ -3,8 +3,8 @@ import { useSettings } from "../SettingsContext";
 import WebUIDetail from "../components/WebUIDetail";
 import WebUIList from "../components/WebUIList";
 import { createWebUIEditing, getDefaultWebUISettings, type WebUIEditing } from "../components/webui-editing";
-import { MUTED } from "../components/webui-fields";
 import type { WebUISettings } from "../../models/webui";
+import { MUTED } from "../theme";
 
 interface WebUIsEditorProps {
   webuis: WebUISettings[];

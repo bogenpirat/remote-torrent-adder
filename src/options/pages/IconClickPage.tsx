@@ -2,24 +2,25 @@ import { type CSSProperties, type JSX } from "react";
 import { useSettings } from "../SettingsContext";
 import RadioCard from "../components/RadioCard";
 import { type IconClickAction } from "../../models/settings";
+import { GREEN_DARK, BORDER } from "../theme";
 
-const sectionStyle: CSSProperties = {
+const SECTION_STYLE: CSSProperties = {
   display: "inline-flex",
   flexDirection: "column",
   gap: 10,
   background: "var(--rta-surface-alt, #f7faf7)",
-  border: "1px solid var(--rta-border, #b7c9a7)",
+  border: `1px solid ${BORDER}`,
   borderRadius: 12,
   padding: 18,
 };
 
-const sectionTitleStyle: CSSProperties = {
+const SECTION_TITLE_STYLE: CSSProperties = {
   margin: "0 0 4px 0",
   fontSize: 13,
   fontWeight: 700,
   letterSpacing: 0.6,
   textTransform: "uppercase",
-  color: "var(--rta-green-dark, #4e6a57)",
+  color: GREEN_DARK,
 };
 
 const OPTIONS: { value: IconClickAction; label: string; description: string; disabledNote?: string }[] = [
@@ -53,8 +54,8 @@ export default function IconClickPage(): JSX.Element {
   return (
     <div>
       <p style={{ marginBottom: 16 }}>Choose what happens when you click the extension&apos;s icon in the toolbar.</p>
-      <section style={sectionStyle}>
-        <h3 style={sectionTitleStyle}>Icon Click Behavior</h3>
+      <section style={SECTION_STYLE}>
+        <h3 style={SECTION_TITLE_STYLE}>Icon Click Behavior</h3>
         {OPTIONS.map(option => {
           const disabled = option.value === "showWebUiPicker" && !multipleWebUisConfigured;
           return (

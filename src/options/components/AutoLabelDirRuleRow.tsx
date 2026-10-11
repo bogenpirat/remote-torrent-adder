@@ -2,8 +2,8 @@ import React from "react";
 import type { AutoLabelDirSetting } from "../../models/webui";
 import { type AutoLabelDirCriterionEvaluation, type AutoLabelDirRuleEvaluation } from "../../util/auto-label-dir-matcher";
 import { fieldLabel } from "./auto-label-dir-fields";
-import { BORDER, DANGER, SUCCESS, monospace } from "./auto-label-dir-tester-styles";
-import { MUTED } from "./webui-fields";
+import { MONOSPACE_STYLE } from "./auto-label-dir-tester-styles";
+import { MUTED, BORDER, SURFACE, SUCCESS, DANGER } from "../theme";
 
 interface RuleRowProps {
   rule: AutoLabelDirRuleEvaluation;
@@ -27,7 +27,7 @@ const RULE_ROW_STYLE: React.CSSProperties = {
   padding: "8px 10px",
   marginTop: 8,
   borderRadius: 8,
-  background: "var(--rta-surface, #fff)",
+  background: SURFACE,
 };
 
 function CriterionVerdict({ evaluation }: { evaluation: AutoLabelDirCriterionEvaluation }) {
@@ -48,7 +48,7 @@ function CriterionRow({ evaluation }: { evaluation: AutoLabelDirCriterionEvaluat
   return (
     <div style={CRITERION_ROW_STYLE}>
       <span style={{ color: MUTED, minWidth: 96 }}>{fieldLabel(criterion.field)}</span>
-      <span style={monospace}>{criterion.value || "(empty)"}</span>
+      <span style={MONOSPACE_STYLE}>{criterion.value || "(empty)"}</span>
       <CriterionVerdict evaluation={evaluation} />
     </div>
   );

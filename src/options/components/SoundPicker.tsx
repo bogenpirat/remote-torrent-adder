@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { deleteCustomSound, getCustomSound, saveCustomSound, type SoundKind } from "../../util/sound-storage";
-import { buttonStyle, rowStyle } from "./notification-styles";
+import { BUTTON_STYLE, ROW_STYLE } from "./notification-styles";
+import { TEXT, MUTED, DANGER } from "../theme";
 
 interface CustomSound {
   fileName: string | null;
@@ -20,7 +21,7 @@ interface SoundActionsProps {
 // into memory to play, so cap the size to keep things snappy.
 const MAX_SOUND_BYTES = 1024 * 1024; // 1 MB
 
-const soundNameStyle: CSSProperties = {
+const SOUND_NAME_STYLE: CSSProperties = {
   flex: 1,
   minWidth: 0,
   overflow: "hidden",
@@ -93,7 +94,7 @@ export default function SoundPicker({ kind, label }: { kind: SoundKind; label: s
   };
 
   return (
-    <div style={{ ...rowStyle, marginBottom: 12 }}>
+    <div style={{ ...ROW_STYLE, marginBottom: 12 }}>
       <span style={{ width: 110, fontWeight: 500 }}>{label}</span>
 
       <SoundName sound={sound} />
@@ -116,8 +117,8 @@ function SoundName({ sound }: { sound: CustomSound }) {
   return (
     <span
       style={{
-        ...soundNameStyle,
-        color: fileName ? "var(--rta-text, #1b241d)" : "var(--rta-text-muted, #888)",
+        ...SOUND_NAME_STYLE,
+        color: fileName ? TEXT : MUTED,
         fontStyle: fileName ? "normal" : "italic",
       }}
       title={fileName ?? "Default sound"}
@@ -131,18 +132,18 @@ function SoundActions({ sound, onPreview, onChoose, onReset }: SoundActionsProps
   const { fileName, busy } = sound;
   return (
     <>
-      <button type="button" style={buttonStyle} onClick={onPreview} disabled={busy} title="Preview">
+      <button type="button" style={BUTTON_STYLE} onClick={onPreview} disabled={busy} title="Preview">
         ▶
       </button>
 
-      <button type="button" style={buttonStyle} onClick={onChoose} disabled={busy}>
+      <button type="button" style={BUTTON_STYLE} onClick={onChoose} disabled={busy}>
         Choose…
       </button>
 
       {fileName && (
         <button
           type="button"
-          style={{ ...buttonStyle, color: "var(--rta-danger, #B22222)" }}
+          style={{ ...BUTTON_STYLE, color: DANGER }}
           onClick={onReset}
           disabled={busy}
           title="Reset to default"

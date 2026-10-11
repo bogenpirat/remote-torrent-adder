@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type JSX } from "react";
 import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
+import { TEXT, GREEN_DARK, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
 interface RegexListProps {
   regexes: RegExp[];
@@ -42,8 +43,8 @@ const CHIP_EDITOR_STYLE: CSSProperties = {
   fontSize: 15,
   border: "none",
   outline: "none",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  background: INPUT_BG,
+  color: TEXT,
   borderRadius: 8,
   padding: "2px 8px",
   marginRight: 4
@@ -52,16 +53,16 @@ const CHIP_EDITOR_STYLE: CSSProperties = {
 const NEW_REGEX_INPUT_STYLE: CSSProperties = {
   fontFamily: "monospace",
   fontSize: 15,
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
   borderRadius: 8,
   padding: "4px 10px"
 };
 
 const ADD_BUTTON_STYLE: CSSProperties = {
   background: "var(--rta-accent, #b7c9a7)",
-  color: "var(--rta-green-dark, #4e6a57)",
+  color: GREEN_DARK,
   border: "none",
   borderRadius: 8,
   padding: "4px 12px",
@@ -72,7 +73,7 @@ const ADD_BUTTON_STYLE: CSSProperties = {
 const SEPARATOR_STYLE: CSSProperties = {
   margin: "32px 0 24px 0",
   border: "none",
-  borderTop: "1px solid var(--rta-border, #b7c9a7)",
+  borderTop: `1px solid ${BORDER}`,
 };
 
 const TESTER_INPUT_STYLE: CSSProperties = {
@@ -81,9 +82,9 @@ const TESTER_INPUT_STYLE: CSSProperties = {
   fontSize: 15,
   padding: "6px 12px",
   borderRadius: 8,
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
   marginBottom: 12,
 };
 
@@ -253,7 +254,7 @@ function MatchResults({ regexes, link }: { regexes: RegExp[]; link: string }): J
 }
 
 function MatchResult({ pattern, matched }: { pattern: string; matched: boolean }): JSX.Element {
-  const color = matched ? "var(--rta-success, #228B22)" : "var(--rta-danger, #B22222)";
+  const color = matched ? SUCCESS : DANGER;
   return (
     <li style={{ ...MATCH_RESULT_STYLE, color }}>
       <span style={{ fontFamily: "monospace" }}>{pattern}</span>

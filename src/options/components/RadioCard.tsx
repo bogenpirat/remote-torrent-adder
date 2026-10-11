@@ -1,4 +1,5 @@
 import React from "react";
+import { TEXT, GREEN_DARK, SURFACE } from "../theme";
 
 interface RadioCardProps {
   name: string;
@@ -11,9 +12,9 @@ interface RadioCardProps {
   onChange: (value: string) => void;
 }
 
-const RADIO_STYLE: React.CSSProperties = { marginTop: 3, accentColor: "var(--rta-green-dark, #4e6a57)" };
+const RADIO_STYLE: React.CSSProperties = { marginTop: 3, accentColor: GREEN_DARK };
 
-const LABEL_STYLE: React.CSSProperties = { fontWeight: 600, display: "block", color: "var(--rta-text, #1b241d)" };
+const LABEL_STYLE: React.CSSProperties = { fontWeight: 600, display: "block", color: TEXT };
 
 const DESCRIPTION_STYLE: React.CSSProperties = {
   color: "var(--rta-text-muted, #6b7a70)",
@@ -39,7 +40,7 @@ function cardStyle({ checked, disabled }: Pick<RadioCardProps, "checked" | "disa
     padding: "12px 16px",
     borderRadius: 10,
     border: `1px solid ${checked ? "var(--rta-accent, #8fae7c)" : "var(--rta-border, #d8e2d3)"}`,
-    background: checked ? "var(--rta-chip-bg, #eaf5ea)" : "var(--rta-surface, #fff)",
+    background: checked ? "var(--rta-chip-bg, #eaf5ea)" : SURFACE,
     boxShadow: checked ? "0 1px 4px rgba(110,139,116,0.15)" : "none",
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? "not-allowed" : "pointer",

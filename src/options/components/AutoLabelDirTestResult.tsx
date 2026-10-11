@@ -4,8 +4,8 @@ import type { Torrent } from "../../models/torrent";
 import { type AutoLabelDirExplanation } from "../../util/auto-label-dir-matcher";
 import RuleRow from "./AutoLabelDirRuleRow";
 import { type CriterionField } from "./auto-label-dir-fields";
-import { BORDER, monospace } from "./auto-label-dir-tester-styles";
-import { MUTED } from "./webui-fields";
+import { MONOSPACE_STYLE } from "./auto-label-dir-tester-styles";
+import { MUTED, BORDER, SURFACE } from "../theme";
 
 export interface TestedRules {
   settings: AutoLabelDirSetting[];
@@ -58,7 +58,7 @@ const CONTENTS_STYLE: React.CSSProperties = {
   border: `1px solid ${BORDER}`,
   borderRadius: 8,
   padding: 10,
-  background: "var(--rta-surface, #fff)",
+  background: SURFACE,
 };
 
 const RESULT_PANEL_STYLE: React.CSSProperties = {
@@ -77,7 +77,7 @@ function Outcome({ caption, value, source }: OutcomeProps) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
       <span style={{ fontWeight: 500, minWidth: 74 }}>{caption}</span>
-      <span style={value ? { ...monospace, fontSize: 15 } : { color: MUTED }}>
+      <span style={value ? { ...MONOSPACE_STYLE, fontSize: 15 } : { color: MUTED }}>
         {value || "(none)"}
       </span>
       {source && <span style={{ color: MUTED, fontSize: 13 }}>{source}</span>}

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { TEXT, GREEN_DARK, BORDER, INPUT_BG } from "../theme";
 
 interface ChipListProps {
   label: string;
@@ -23,8 +24,8 @@ const CHIP_INPUT_STYLE: React.CSSProperties = {
   fontSize: 15,
   border: "none",
   outline: "none",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  background: INPUT_BG,
+  color: TEXT,
   borderRadius: 8,
   padding: "2px 8px",
   marginRight: 4,
@@ -33,16 +34,16 @@ const CHIP_INPUT_STYLE: React.CSSProperties = {
 const NEW_ENTRY_INPUT_STYLE: React.CSSProperties = {
   fontFamily: "monospace",
   fontSize: 15,
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
   borderRadius: 8,
   padding: "4px 10px",
 };
 
 const ADD_BUTTON_STYLE: React.CSSProperties = {
   background: "var(--rta-accent, #b7c9a7)",
-  color: "var(--rta-green-dark, #4e6a57)",
+  color: GREEN_DARK,
   border: "none",
   borderRadius: 8,
   padding: "4px 12px",

@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+import { BORDER } from "../theme";
 
 interface SettingsGroupProps {
   title: string;
@@ -8,7 +9,7 @@ interface SettingsGroupProps {
 
 const GROUP_STYLE: React.CSSProperties = {
   marginBottom: 20,
-  border: "1px solid var(--rta-border, #b7c9a7)",
+  border: `1px solid ${BORDER}`,
   borderRadius: 10,
   padding: 16,
   background: "var(--rta-surface-alt, #f7faf7)",

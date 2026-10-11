@@ -6,7 +6,8 @@ import ClientSpecificSettingsEditor from "./ClientSpecificSettingsEditor";
 import Select from "./Select";
 import WebUIGeneralSettings from "./WebUIGeneralSettings";
 import WebUILabelDirSettings from "./WebUILabelDirSettings";
-import { MUTED, isClientSelected, type WebUISectionProps } from "./webui-fields";
+import { isClientSelected, type WebUISectionProps } from "./webui-fields";
+import { MUTED, DANGER } from "../theme";
 
 interface WebUIDetailProps {
   webui: WebUISettings;
@@ -31,7 +32,7 @@ const HEADER_BUTTON_STYLE: CSSProperties = {
 
 const CANCEL_BUTTON_STYLE: CSSProperties = {
   background: "var(--rta-neutral, #eee)",
-  color: "var(--rta-danger, #B22222)",
+  color: DANGER,
   border: "none",
   borderRadius: 8,
   padding: "6px 12px",
@@ -50,7 +51,7 @@ function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
       <button
         onClick={handleRemove}
         style={{
-          background: confirmRemove ? "var(--rta-danger-dark, #8B0000)" : "var(--rta-danger, #B22222)",
+          background: confirmRemove ? "var(--rta-danger-dark, #8B0000)" : DANGER,
           ...HEADER_BUTTON_STYLE,
           boxShadow: confirmRemove ? "0 0 8px 2px var(--rta-danger-dark, #8B0000)" : undefined,
           transition: "all 0.15s",

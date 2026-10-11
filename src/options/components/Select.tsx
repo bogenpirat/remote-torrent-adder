@@ -1,4 +1,5 @@
 import React from "react";
+import { TEXT, BORDER, INPUT_BG } from "../theme";
 
 interface SelectProps {
   label: string;
@@ -12,9 +13,9 @@ const SELECT_STYLE: React.CSSProperties = {
   fontSize: 15,
   borderRadius: 8,
   padding: "6px 12px",
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
   minWidth: 180,
 };
 

@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from "react";
 import type { WebUISettings } from "../../models/webui";
 import WebUIListItem, { type DropIndicator } from "./WebUIListItem";
 import { type WebUIEditing } from "./webui-editing";
-import { MUTED } from "./webui-fields";
+import { MUTED, BORDER, SUCCESS } from "../theme";
 
 interface WebUIListProps {
   webuis: WebUISettings[];
@@ -24,14 +24,14 @@ interface DragReorder {
 const PANEL_STYLE: CSSProperties = {
   width: 260,
   flexShrink: 0,
-  borderRight: "1px solid var(--rta-border, #b7c9a7)",
+  borderRight: `1px solid ${BORDER}`,
   paddingRight: 16,
   display: "flex",
   flexDirection: "column",
 };
 
 const ADD_BUTTON_STYLE: CSSProperties = {
-  background: "var(--rta-success, #228B22)",
+  background: SUCCESS,
   color: "#fff",
   border: "none",
   borderRadius: 8,

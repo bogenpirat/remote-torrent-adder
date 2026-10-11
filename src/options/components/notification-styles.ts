@@ -1,18 +1,19 @@
 import { type CSSProperties } from "react";
+import { TEXT, BORDER, SURFACE } from "../theme";
 
-export const rowStyle: CSSProperties = {
+export const ROW_STYLE: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 12,
   marginBottom: 14,
 };
 
-export const buttonStyle: CSSProperties = {
-  border: "1px solid var(--rta-border, #b7c9a7)",
+export const BUTTON_STYLE: CSSProperties = {
+  border: `1px solid ${BORDER}`,
   borderRadius: 8,
   padding: "6px 14px",
-  background: "var(--rta-surface, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  background: SURFACE,
+  color: TEXT,
   fontWeight: 500,
   cursor: "pointer",
 };

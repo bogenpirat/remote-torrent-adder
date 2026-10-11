@@ -3,6 +3,7 @@ import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/we
 import AutoLabelDirTester from "./AutoLabelDirTester";
 import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
+import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
 interface AutoLabelDirSettingsEditorProps {
   value: AutoLabelDirSetting[];
@@ -60,9 +61,9 @@ const SELECT_STYLE: CSSProperties = {
   fontSize: 15,
   borderRadius: 8,
   padding: "4px 10px",
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
 };
 
 const PATTERN_INPUT_STYLE: CSSProperties = {
@@ -70,16 +71,16 @@ const PATTERN_INPUT_STYLE: CSSProperties = {
   minWidth: 0,
   fontFamily: "monospace",
   fontSize: 15,
-  border: "1px solid var(--rta-border, #b7c9a7)",
-  background: "var(--rta-input-bg, #fff)",
-  color: "var(--rta-text, #1b241d)",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
   borderRadius: 8,
   padding: "4px 10px",
 };
 
 const ADD_CRITERION_BUTTON_STYLE: CSSProperties = {
   background: "var(--rta-accent, #b7c9a7)",
-  color: "var(--rta-green-dark, #4e6a57)",
+  color: GREEN_DARK,
   border: "none",
   borderRadius: 8,
   padding: "4px 12px",
@@ -88,7 +89,7 @@ const ADD_CRITERION_BUTTON_STYLE: CSSProperties = {
 };
 
 const ADD_RULE_BUTTON_STYLE: CSSProperties = {
-  background: "var(--rta-success, #228B22)",
+  background: SUCCESS,
   color: "#fff",
   border: "none",
   borderRadius: 8,
@@ -100,9 +101,9 @@ const ADD_RULE_BUTTON_STYLE: CSSProperties = {
 const RULE_CARD_STYLE: CSSProperties = {
   marginBottom: 18,
   padding: 12,
-  border: "1px solid var(--rta-border, #b7c9a7)",
+  border: `1px solid ${BORDER}`,
   borderRadius: 8,
-  background: "var(--rta-surface, #fff)",
+  background: SURFACE,
   position: "relative",
 };
 
@@ -110,7 +111,7 @@ const REMOVE_RULE_BUTTON_STYLE: CSSProperties = {
   position: "absolute",
   top: 8,
   right: 8,
-  background: "var(--rta-danger, #B22222)",
+  background: DANGER,
   color: "#fff",
   border: "none",
   borderRadius: 8,
@@ -123,7 +124,7 @@ function CriteriaEditor({ criteria, onChange }: CriteriaEditorProps) {
   return (
     <div style={{ marginBottom: 12 }}>
       <label style={FIELD_TITLE_STYLE}>Criteria</label>
-      <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginBottom: 6 }}>
+      <div style={{ color: MUTED, fontSize: 13, marginBottom: 6 }}>
         All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
       </div>
       {criteria.length > 0 && <CriterionChips criteria={criteria} onChange={onChange} />}
@@ -227,7 +228,7 @@ function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
   };
   return (
     <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
-      {value.length === 0 && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>No rules defined yet.</div>}
+      {value.length === 0 && <div style={{ color: MUTED, marginBottom: 8 }}>No rules defined yet.</div>}
       {value.map((setting, idx) => (
         <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
       ))}

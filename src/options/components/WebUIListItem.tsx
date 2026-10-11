@@ -1,7 +1,8 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { ClientDisplayName } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
-import { GREEN_DARK, MUTED, fieldInputStyle, isClientSelected } from "./webui-fields";
+import { FIELD_INPUT_STYLE, isClientSelected } from "./webui-fields";
+import { TEXT, MUTED, GREEN_DARK } from "../theme";
 
 export type DropIndicator = "above" | "below" | null;
 
@@ -149,7 +150,7 @@ function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleP
 function ItemName({ webui, selected, onNameChange }: ItemNameProps) {
   if (!selected) {
     return (
-      <span style={{ ...NAME_STYLE, color: webui.name ? "var(--rta-text, #1b241d)" : MUTED }}>
+      <span style={{ ...NAME_STYLE, color: webui.name ? TEXT : MUTED }}>
         {webui.name || "Unnamed WebUI"}
       </span>
     );
@@ -162,7 +163,7 @@ function ItemName({ webui, selected, onNameChange }: ItemNameProps) {
       onClick={e => e.stopPropagation()}
       onChange={e => onNameChange(e.target.value)}
       placeholder="Unnamed WebUI"
-      style={{ ...fieldInputStyle, flex: 1, minWidth: 0, padding: "4px 8px", fontWeight: 600 }}
+      style={{ ...FIELD_INPUT_STYLE, flex: 1, minWidth: 0, padding: "4px 8px", fontWeight: 600 }}
     />
   );
 }

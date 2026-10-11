@@ -1,6 +1,6 @@
 import ChipList from "./ChipList";
 import SettingsGroup from "./SettingsGroup";
-import { FIELD_LABEL_STYLE, fieldInputStyle, type WebUISectionProps } from "./webui-fields";
+import { FIELD_INPUT_STYLE, FIELD_LABEL_STYLE, type WebUISectionProps } from "./webui-fields";
 
 interface ChoiceNoun {
   title: string;
@@ -30,7 +30,7 @@ function ChoiceColumn({ noun, defaultChoice, choices, onDefaultChange, onChoices
           type="text"
           value={defaultChoice ?? ""}
           onChange={e => onDefaultChange(e.target.value)}
-          style={{ ...fieldInputStyle, minWidth: 180 }}
+          style={{ ...FIELD_INPUT_STYLE, minWidth: 180 }}
           placeholder={`Default ${noun.lower}`}
         />
       </div>

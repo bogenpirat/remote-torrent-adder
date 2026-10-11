@@ -1,4 +1,5 @@
 import React from "react";
+import { SURFACE, SUCCESS } from "../theme";
 
 interface ToggleProps {
   checked: boolean;
@@ -28,7 +29,7 @@ const THUMB_SHAPE_STYLE: React.CSSProperties = {
   width: 20,
   height: 20,
   borderRadius: "50%",
-  background: "var(--rta-surface, #fff)",
+  background: SURFACE,
   boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
   transition: "left 0.2s",
 };
@@ -41,7 +42,7 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
   <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
     <span style={{ position: "relative", width: 44, height: 24, display: "inline-block" }}>
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={CHECKBOX_STYLE} />
-      <Track background={checked ? "var(--rta-success, #228B22)" : "var(--rta-neutral, #ccc)"} />
+      <Track background={checked ? SUCCESS : "var(--rta-neutral, #ccc)"} />
       <span style={{ position: "absolute", top: 2, left: checked ? 20 : 4, ...THUMB_SHAPE_STYLE }}></span>
     </span>
     <span style={{ fontWeight: 500 }}>{label}</span>
