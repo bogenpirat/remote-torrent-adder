@@ -33,13 +33,24 @@ describe("WebUIFactory.createWebUI", () => {
 
     it("exposes the provided settings on the constructed instance", () => {
         const settings = makeWebUISettings({ client: Client.DelugeWebUI, name: "Home Deluge" });
-        const webUi = WebUIFactory.createWebUI(settings)!;
+        const webUi = WebUIFactory.createWebUI(settings);
         expect(webUi.name).toBe("Home Deluge");
         expect(webUi.client).toBe(Client.DelugeWebUI);
     });
 
-    it("returns null for an unknown client identifier", () => {
+    it("refuses an unknown client identifier", () => {
         const settings = makeWebUISettings({ client: "nonexistent" as Client });
-        expect(WebUIFactory.createWebUI(settings)).toBeNull();
+        expect(() => WebUIFactory.createWebUI(settings)).toThrow("Unknown client: nonexistent");
+    });
+});
+
+describe("WebUIFactory.supports", () => {
+    it("knows every client of the registry", () => {
+        expect(Object.values(Client).every(client => WebUIFactory.supports(client))).toBe(true);
+    });
+
+    it("does not know an identifier outside the registry", () => {
+        expect(WebUIFactory.supports("nonexistent")).toBe(false);
+        expect(WebUIFactory.supports("")).toBe(false);
     });
 });

@@ -58,7 +58,7 @@ function useDragReorder(onMove: WebUIEditing["move"]): DragReorder {
     end();
   };
   const indicatorFor = (idx: number): DropIndicator => {
-    if (dragIndex === null || overIndex !== idx || dragIndex === idx) return null;
+    if (dragIndex === null || overIndex !== idx || dragIndex === idx) return "none";
     return dragIndex > idx ? "above" : "below";
   };
   return { dragIndex, start: setDragIndex, over: setOverIndex, end, drop, indicatorFor };

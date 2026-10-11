@@ -75,11 +75,14 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
 };
 
 export class WebUIFactory {
-    static createWebUI(settings: WebUISettings): TorrentWebUI | null {
-        const ClientClass = ClientClassByClient[settings.client];
-        if (ClientClass === undefined) {
-            return null;
+    static supports(client: string): client is Client {
+        return ClientClassByClient[client as Client] !== undefined;
+    }
+
+    static createWebUI(settings: WebUISettings): TorrentWebUI {
+        if (!WebUIFactory.supports(settings.client)) {
+            throw new Error(`Unknown client: ${settings.client}`);
         }
-        return new ClientClass(settings);
+        return new ClientClassByClient[settings.client](settings);
     }
 }

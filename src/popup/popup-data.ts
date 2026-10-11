@@ -51,7 +51,7 @@ export async function loadPopupData(): Promise<PopupData | null> {
 }
 
 function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData {
-    const webUi = WebUIFactory.createWebUI(webUiSettings);
+    const webUis = WebUIFactory.supports(webUiSettings.client) ? [WebUIFactory.createWebUI(webUiSettings)] : [];
     // The matcher is pure, so the popup resolves this itself rather than having
     // the service worker compute it and ship the result across a message.
     const autoLabel = getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings);
@@ -60,7 +60,7 @@ function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData
     return {
         torrent,
         webUiSettings,
-        supports: describeSupport(webUi),
+        supports: describeSupport(webUis),
         initial: {
             label: resolveInitialChoice(autoLabel, webUiSettings.defaultLabel, webUiSettings.labels),
             directory: resolveInitialChoice(autoDir, webUiSettings.defaultDir, webUiSettings.dirs),
@@ -69,7 +69,7 @@ function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData
         auto: { label: !!autoLabel, directory: !!autoDir },
         labelOptions: webUiSettings.labels,
         directoryOptions: webUiSettings.dirs,
-        clientSpecific: describeClientSpecific(webUi, webUiSettings),
+        clientSpecific: describeClientSpecific(webUis, webUiSettings),
     };
 }
 
@@ -77,16 +77,16 @@ function resolveInitialChoice(autoResult: string | null, defaultChoice: string |
     return autoResult || defaultChoice || firstEntry(options) || "";
 }
 
-function describeSupport(webUi: TorrentWebUI | null): PopupData["supports"] {
+function describeSupport(webUis: TorrentWebUI[]): PopupData["supports"] {
     return {
-        label: webUi?.isLabelSupported ?? false,
-        directory: webUi?.isDirSupported ?? false,
-        paused: webUi?.isAddPausedSupported ?? false,
+        label: webUis.some(webUi => webUi.isLabelSupported),
+        directory: webUis.some(webUi => webUi.isDirSupported),
+        paused: webUis.some(webUi => webUi.isAddPausedSupported),
     };
 }
 
-function describeClientSpecific(webUi: TorrentWebUI | null, webUiSettings: WebUISettings): PopupData["clientSpecific"] {
-    const descriptors = (webUi?.clientSpecificSettingDescriptors ?? []).filter(descriptor => descriptor.perTorrent);
+function describeClientSpecific(webUis: TorrentWebUI[], webUiSettings: WebUISettings): PopupData["clientSpecific"] {
+    const descriptors = webUis.flatMap(webUi => webUi.clientSpecificSettingDescriptors).filter(descriptor => descriptor.perTorrent);
     return {
         descriptors,
         initial: Object.fromEntries(descriptors.map(descriptor => [

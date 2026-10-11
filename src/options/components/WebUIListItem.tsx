@@ -6,7 +6,8 @@ import { TEXT, MUTED, GREEN_DARK } from "../theme";
 
 const REORDER_STEP_BY_KEY = new Map([["ArrowUp", -1], ["ArrowDown", 1]]);
 
-const DROP_SHADOW_BY_INDICATOR = {
+const DROP_SHADOW_BY_INDICATOR: Record<DropIndicator, string | undefined> = {
+  none: undefined,
   above: `inset 0 3px 0 0 ${GREEN_DARK}`,
   below: `inset 0 -3px 0 0 ${GREEN_DARK}`,
 };
@@ -41,7 +42,7 @@ const PRIMARY_BADGE_STYLE: CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-export type DropIndicator = "above" | "below" | null;
+export type DropIndicator = "above" | "below" | "none";
 
 interface WebUIListItemProps {
   webui: WebUISettings;
@@ -138,7 +139,7 @@ function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps):
     opacity: isDragging ? 0.4 : 1,
     background: selected ? "var(--rta-accent, #b7c9a7)" : "transparent",
     border: selected ? `1px solid ${GREEN_DARK}` : "1px solid transparent",
-    boxShadow: dropIndicator ? DROP_SHADOW_BY_INDICATOR[dropIndicator] : undefined,
+    boxShadow: DROP_SHADOW_BY_INDICATOR[dropIndicator],
     transition: "background 0.15s",
   };
 }

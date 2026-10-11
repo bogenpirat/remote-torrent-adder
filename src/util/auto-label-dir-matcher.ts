@@ -54,11 +54,10 @@ function evaluateSetting(setting: AutoLabelDirSetting, index: number, torrent: T
 }
 
 function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): AutoLabelDirCriterionEvaluation {
-    const candidates = candidatesForField(criterion.field, torrent);
-
-    if (candidates === null) {
+    if (!Object.hasOwn(CANDIDATE_READERS, criterion.field)) {
         return { criterion, matched: false, matchedCandidates: [], invalidPattern: false };
     }
+    const candidates = CANDIDATE_READERS[criterion.field](torrent);
 
     if (!criterion.value) {
         return { criterion, matched: true, matchedCandidates: [], invalidPattern: false };
@@ -72,14 +71,11 @@ interface FieldCandidates {
     flags: string;
 }
 
-function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): FieldCandidates | null {
-    switch (field) {
-        case "trackerUrl": return { values: torrent.trackers, flags: "" };
-        case "filePath": return { values: torrent.files, flags: "i" };
-        case "torrentName": return { values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" };
-        default: return null;
-    }
-}
+const CANDIDATE_READERS: Record<AutoLabelDirCriterion["field"], (torrent: Torrent) => FieldCandidates> = {
+    trackerUrl: torrent => ({ values: torrent.trackers, flags: "" }),
+    filePath: torrent => ({ values: torrent.files, flags: "i" }),
+    torrentName: torrent => ({ values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" }),
+};
 
 function matchCandidates(
     criterion: AutoLabelDirCriterion,

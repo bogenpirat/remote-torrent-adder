@@ -10,16 +10,16 @@ import {
 const FALLBACK_TORRENT_NAME = "file.torrent";
 const FALLBACK_MAGNET_NAME = "Some magnet link you clicked there, buddy.";
 
-export function getDeclaredTorrentNameFromMagnetLink(magnetLink: string): string | null {
+export function getDeclaredTorrentNameFromMagnetLink(magnetLink: string): string {
     try {
-        return new URL(magnetLink).searchParams.get("dn") || null;
+        return new URL(magnetLink).searchParams.get("dn") ?? "";
     } catch {
-        return null;
+        return "";
     }
 }
 
 export function getTorrentNameFromMagnetLink(magnetLink: string): string {
-    return getDeclaredTorrentNameFromMagnetLink(magnetLink) ?? FALLBACK_MAGNET_NAME;
+    return getDeclaredTorrentNameFromMagnetLink(magnetLink) || FALLBACK_MAGNET_NAME;
 }
 
 export function getTorrentNameFromLink(url: string): string {

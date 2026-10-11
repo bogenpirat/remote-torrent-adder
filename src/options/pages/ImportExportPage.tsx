@@ -4,6 +4,8 @@ import { type RTASettings } from "../../models/settings";
 import { serializeSettings, deserializeSettings } from "../../util/serializer";
 import { migrateSettingsClientIdentifiers } from "../../util/legacy-client-identifiers";
 
+const NOT_AN_EXPORT_MESSAGE = "That JSON is not a Remote Torrent Adder settings export.";
+
 const COPIED_NOTICE_DURATION_MS = 1500;
 
 export default function ImportExportPage(): JSX.Element {
@@ -79,14 +81,17 @@ function ImportCard({ onImport }: { onImport: (settings: RTASettings) => void })
 }
 
 function parseSettingsExport(text: string): RTASettings {
-  let imported;
+  if (!text) {
+    throw new Error(NOT_AN_EXPORT_MESSAGE);
+  }
+  let imported: RTASettings;
   try {
     imported = deserializeSettings(text);
   } catch {
     throw new Error("That is not valid JSON.");
   }
-  if (!imported || !Array.isArray(imported.webuiSettings)) {
-    throw new Error("That JSON is not a Remote Torrent Adder settings export.");
+  if (!Array.isArray(imported?.webuiSettings)) {
+    throw new Error(NOT_AN_EXPORT_MESSAGE);
   }
   return imported;
 }

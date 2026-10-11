@@ -63,7 +63,7 @@ describe("Settings.serialize / deserialize", () => {
         value.notificationsDurationMs = 1234;
         settings.rtaSettings = value;
 
-        const restored = settings.deserialize(settings.serialize())!;
+        const restored = settings.deserialize(settings.serialize());
         expect(restored.notificationsDurationMs).toBe(1234);
     });
 });

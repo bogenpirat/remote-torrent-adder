@@ -1,6 +1,6 @@
 import { type CSSProperties } from "react";
 import type { WebUISettings } from "../../models/webui";
-import { parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
+import { extractPortDigits, toPort, MAX_PORT, MIN_PORT } from "../../util/utils";
 import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
 import WebUIConnectionTest from "./WebUIConnectionTest";
@@ -46,6 +46,10 @@ function EndpointFields({ webui, onPatch }: PatchableProps) {
 }
 
 function PortField({ webui, onPatch }: PatchableProps) {
+  const patchPort = (raw: string): void => {
+    const digits = extractPortDigits(raw);
+    onPatch({ port: digits === "" ? null : toPort(digits) });
+  };
   return (
     <div>
       <label htmlFor="rta-webui-port" style={FIELD_LABEL_STYLE}>Port</label>
@@ -57,7 +61,7 @@ function PortField({ webui, onPatch }: PatchableProps) {
         max={MAX_PORT}
         placeholder={webui.secure ? "443" : "80"}
         value={webui.port ?? ""}
-        onChange={e => onPatch({ port: parsePortInput(e.target.value) })}
+        onChange={e => patchPort(e.target.value)}
         style={{ ...FIELD_INPUT_STYLE, minWidth: 80 }}
       />
     </div>

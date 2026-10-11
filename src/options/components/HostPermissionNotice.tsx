@@ -7,7 +7,7 @@ export default function HostPermissionNotice() {
   const [granted, requestAccess] = useHostPermission();
 
   if (granted) {
-    return null;
+    return <></>;
   }
 
   return (

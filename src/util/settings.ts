@@ -41,7 +41,7 @@ export class Settings {
     }
 
     private async deserializeAndMigrate(serialized: string): Promise<RTASettings> {
-        const loaded = deserializeSettings(serialized) ?? getDefaultSettings();
+        const loaded = deserializeSettings(serialized);
         const migrated = migrateSettingsClientIdentifiers(loaded);
         if (migrated !== loaded) {
             await this.saveSettings(migrated);
@@ -58,8 +58,7 @@ export class Settings {
         return serializeSettings(this._rtaSettings);
     }
 
-    public deserialize(serialized: string): RTASettings | null {
+    public deserialize(serialized: string): RTASettings {
         return deserializeSettings(serialized);
     }
-
 }

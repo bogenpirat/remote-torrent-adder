@@ -39,16 +39,14 @@ interface WebUIDetailProps {
 }
 
 export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
-  const webUiInstance = isClientSelected(webui.client) ? WebUIFactory.createWebUI(webui) : null;
-
   return (
     <div>
       <DetailHeader webui={webui} isPrimary={isPrimary} onPromote={onPromote} onRemove={onRemove} />
 
       <ClientSelect webui={webui} onChange={onChange} />
 
-      {webUiInstance
-        ? <ConfiguredClient webui={webui} webUiInstance={webUiInstance} onChange={onChange} />
+      {isClientSelected(webui.client)
+        ? <ConfiguredClient webui={webui} webUiInstance={WebUIFactory.createWebUI(webui)} onChange={onChange} />
         : <div style={{ color: MUTED, fontSize: 15 }}>Select a client type above to configure this WebUI.</div>}
     </div>
   );

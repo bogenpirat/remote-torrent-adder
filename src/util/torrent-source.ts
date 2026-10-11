@@ -15,7 +15,7 @@ export function buildTorrentFromMagnetLink(magnetLink: string): Torrent {
     return {
         data: magnetLink,
         name: getTorrentNameFromMagnetLink(magnetLink),
-        declaredName: getDeclaredTorrentNameFromMagnetLink(magnetLink) ?? undefined,
+        declaredName: getDeclaredTorrentNameFromMagnetLink(magnetLink) || undefined,
         isMagnet: true,
         trackers: parseTrackersFromMagnetLink(magnetLink)
     };

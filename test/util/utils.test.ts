@@ -6,7 +6,8 @@ import {
     getBaseUrl,
     addTrailingSlash,
     clearDynamicRules,
-    parsePortInput,
+    extractPortDigits,
+    toPort,
 } from "../../src/util/utils";
 
 describe("generateId", () => {
@@ -104,32 +105,34 @@ describe("clearDynamicRules", () => {
     });
 });
 
-describe("parsePortInput", () => {
-    it("returns null for an empty field", () => {
-        expect(parsePortInput("")).toBeNull();
-    });
-
-    it("parses a plain port number", () => {
-        expect(parsePortInput("8080")).toBe(8080);
+describe("extractPortDigits", () => {
+    it("finds no digits in an empty field", () => {
+        expect(extractPortDigits("")).toBe("");
     });
 
     it("drops a leading minus so negative ports cannot be entered", () => {
-        expect(parsePortInput("-8080")).toBe(8080);
-        expect(parsePortInput("-")).toBeNull();
+        expect(extractPortDigits("-8080")).toBe("8080");
+        expect(extractPortDigits("-")).toBe("");
     });
 
-    it("clamps anything above the maximum port", () => {
-        expect(parsePortInput("65536")).toBe(65535);
-        expect(parsePortInput("999999")).toBe(65535);
-    });
-
-    it("treats zero and leading zeroes as no port", () => {
-        expect(parsePortInput("0")).toBeNull();
-        expect(parsePortInput("00080")).toBe(80);
+    it("treats zero and leading zeroes as no digits", () => {
+        expect(extractPortDigits("0")).toBe("");
+        expect(extractPortDigits("00080")).toBe("80");
     });
 
     it("ignores non-digit characters", () => {
-        expect(parsePortInput("8e4")).toBe(84);
-        expect(parsePortInput("abc")).toBeNull();
+        expect(extractPortDigits("8e4")).toBe("84");
+        expect(extractPortDigits("abc")).toBe("");
+    });
+});
+
+describe("toPort", () => {
+    it("reads a plain port number", () => {
+        expect(toPort("8080")).toBe(8080);
+    });
+
+    it("clamps anything above the maximum port", () => {
+        expect(toPort("65536")).toBe(65535);
+        expect(toPort("999999")).toBe(65535);
     });
 });

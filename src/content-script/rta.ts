@@ -48,7 +48,7 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
     foundLinks = [];
     seenLinkUrls = new Set<string>();
     sendMessageAndForget({ action: UpdateActionBadgeText.action, text: '' } as IUpdateActionBadgeTextMessage);
-    void trySendMessage<string>(GetLinkCatchingConfig).then(serializedConfig => {
+    void trySendMessage(GetLinkCatchingConfig).then(serializedConfig => {
         if (!serializedConfig) {
             if (attemptNumber < 3) {
                 console.warn("Service worker might've been asleep. Retrying to load config...");

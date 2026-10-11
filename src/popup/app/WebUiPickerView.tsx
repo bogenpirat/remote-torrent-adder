@@ -47,16 +47,16 @@ export default function WebUiPickerView() {
   return <WebUiOptionList options={state.options} onOpen={openWebUi} />;
 }
 
-function toWebUiOptions(serialized: string | null): WebUiOption[] {
+function toWebUiOptions(serialized: string): WebUiOption[] {
   const settings = serialized ? deserializeSettings(serialized) : null;
   return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
 }
 
 function toWebUiOption(webUiSettings: WebUISettings): WebUiOption[] {
-  const webUi = WebUIFactory.createWebUI(webUiSettings);
-  if (!webUi) {
+  if (!WebUIFactory.supports(webUiSettings.client)) {
     return [];
   }
+  const webUi = WebUIFactory.createWebUI(webUiSettings);
   return [{
     id: webUiSettings.id,
     name: webUiSettings.name || webUi.name,

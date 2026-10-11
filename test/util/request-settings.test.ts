@@ -49,13 +49,13 @@ describe("requestSerializedSettings", () => {
         expect(attempts).toBe(3);
     });
 
-    it("gives up after three attempts and resolves null", async () => {
+    it("gives up after three attempts and resolves with nothing", async () => {
         (chrome.runtime.sendMessage as any).mockResolvedValue(undefined);
 
         const pending = requestSerializedSettings();
         await vi.runAllTimersAsync();
 
-        await expect(pending).resolves.toBeNull();
+        await expect(pending).resolves.toBe("");
         expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(3);
     });
 });

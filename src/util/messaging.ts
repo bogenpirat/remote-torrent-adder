@@ -122,7 +122,7 @@ async function loadSerializedLinkCatchingConfig({ settingsProvider }: MessageReq
 
 async function saveSettings({ message, settingsProvider }: MessageRequest): Promise<object> {
     const saveSettingsMessage = message as ISaveSettingsMessage & { settings: string };
-    await settingsProvider.saveSettings(deserializeSettings(saveSettingsMessage.settings)!);
+    await settingsProvider.saveSettings(deserializeSettings(saveSettingsMessage.settings));
     return {};
 }
 
@@ -189,9 +189,9 @@ function contextCarriedByMessage(message: IPreAddTorrentMessage): TorrentDownloa
 }
 
 async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
-    const webUi = WebUIFactory.createWebUI(webUiSettings);
-    if (!webUi) {
+    if (!WebUIFactory.supports(webUiSettings.client)) {
         return { reachable: false, authenticated: null, httpResponseCode: 0, message: "No client selected for this WebUI." };
     }
+    const webUi = WebUIFactory.createWebUI(webUiSettings);
     return executeMethodWrappedWithOriginStripped(() => webUi.testConnection(), webUi.createBaseUrl());
 }
