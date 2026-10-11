@@ -31,10 +31,6 @@
     "count": 1,
     "measure": 23
   },
-  "CM1|src/util/converter.ts|": {
-    "count": 1,
-    "measure": 1
-  },
   "ER2|e2e/fixtures/firefox-extension.ts|readUuidFromPrefs": {
     "count": 2,
     "measure": 1
@@ -63,23 +59,11 @@
     "count": 1,
     "measure": 1
   },
-  "ER2|src/util/auto-label-dir-matcher.ts|candidatesForField": {
-    "count": 1,
-    "measure": 1
-  },
   "ER2|src/util/browser-api.ts|": {
     "count": 1,
     "measure": 1
   },
   "ER2|src/util/buffered-torrent.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/download.ts|fetchTorrentFileFromPage": {
-    "count": 3,
-    "measure": 1
-  },
-  "ER2|src/util/messaging.ts|getWebUiById": {
     "count": 1,
     "measure": 1
   },
@@ -167,22 +151,6 @@
     "count": 1,
     "measure": 6
   },
-  "F1|src/util/messaging.ts|addTorrentToWebUiById": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/util/messaging.ts|downloadAndAddTorrentToWebUi": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/util/messaging.ts|updateWebUiSettingsForWebUi": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/util/notifications.ts|showNotification": {
-    "count": 1,
-    "measure": 6
-  },
   "F1|src/webuis/synologydownloadstation-webui.ts|createTaskWithLegacyApi": {
     "count": 1,
     "measure": 4
@@ -211,14 +179,6 @@
     "count": 1,
     "measure": 1
   },
-  "F3|src/util/notifications.ts|showNotification": {
-    "count": 1,
-    "measure": 1
-  },
-  "F3|src/util/play-sound.ts|playNotificationSound": {
-    "count": 1,
-    "measure": 1
-  },
   "F3|test/helpers/chrome-mock.ts|": {
     "count": 1,
     "measure": 1
@@ -227,17 +187,9 @@
     "count": 1,
     "measure": 640
   },
-  "FM1|src/util/messaging.ts|": {
-    "count": 1,
-    "measure": 339
-  },
   "FM1|test/util/auto-label-dir-matcher.test.ts|": {
     "count": 1,
     "measure": 340
-  },
-  "FM1|test/util/messaging.test.ts|": {
-    "count": 1,
-    "measure": 400
   },
   "FM2|e2e/firefox/add-torrent.e2e.spec.ts|": {
     "count": 1,
@@ -295,22 +247,6 @@
     "count": 1,
     "measure": 1
   },
-  "FM2|src/util/auto-label-dir-matcher.ts|": {
-    "count": 2,
-    "measure": 1
-  },
-  "FM2|src/util/download.ts|": {
-    "count": 2,
-    "measure": 1
-  },
-  "FM2|src/util/messaging.ts|": {
-    "count": 4,
-    "measure": 1
-  },
-  "FM2|src/util/notifications.ts|": {
-    "count": 1,
-    "measure": 1
-  },
   "FM2|src/webuis/biglybt-webui.ts|": {
     "count": 1,
     "measure": 1
@@ -358,10 +294,6 @@
   "FN1|e2e/service-worker.smoke.spec.ts|(anonymous)": {
     "count": 1,
     "measure": 29
-  },
-  "FN1|src/content-script/link-labels.ts|deriveLinkLabel": {
-    "count": 1,
-    "measure": 32
   },
   "FN1|src/options/OptionsPage.tsx|(anonymous)": {
     "count": 1,
@@ -467,34 +399,6 @@
     "count": 1,
     "measure": 37
   },
-  "FN1|src/util/context-menu.ts|handleContextMenuClick": {
-    "count": 1,
-    "measure": 24
-  },
-  "FN1|src/util/cors-tricks.ts|(anonymous)": {
-    "count": 1,
-    "measure": 23
-  },
-  "FN1|src/util/download.ts|fetchTorrentFileFromPage": {
-    "count": 1,
-    "measure": 26
-  },
-  "FN1|src/util/download.ts|fetchTorrentFileFromWorker": {
-    "count": 1,
-    "measure": 22
-  },
-  "FN1|src/util/messaging.ts|(anonymous)": {
-    "count": 1,
-    "measure": 99
-  },
-  "FN1|src/util/messaging.ts|dispatchPreAddTorrent": {
-    "count": 1,
-    "measure": 30
-  },
-  "FN1|src/util/settings.ts|loadSettings": {
-    "count": 1,
-    "measure": 23
-  },
   "FN1|src/webuis/deluge-webui.ts|setLabelForUploadedTorrent": {
     "count": 1,
     "measure": 22
@@ -543,19 +447,11 @@
     "count": 1,
     "measure": 22
   },
-  "FN1|test/util/messaging.test.ts|(anonymous)": {
-    "count": 2,
-    "measure": 22
-  },
   "FN1|vite.config.ts|pageTarget": {
     "count": 1,
     "measure": 21
   },
   "FN2|e2e/fixtures/firefox-extension.ts|openExtensionTab": {
-    "count": 1,
-    "measure": 3
-  },
-  "FN2|src/content-script/link-labels.ts|deriveLinkLabel": {
     "count": 1,
     "measure": 3
   },
@@ -567,25 +463,9 @@
     "count": 1,
     "measure": 3
   },
-  "FN2|src/util/action.ts|handleActionClick": {
-    "count": 1,
-    "measure": 3
-  },
-  "FN2|src/util/messaging.ts|(anonymous)": {
-    "count": 1,
-    "measure": 3
-  },
-  "FN2|src/util/messaging.ts|registerMessageListener": {
-    "count": 1,
-    "measure": 3
-  },
   "FN3|e2e/fixtures/fake-qbittorrent.ts|handle": {
     "count": 1,
     "measure": 17
-  },
-  "FN3|src/content-script/link-labels.ts|deriveLinkLabel": {
-    "count": 1,
-    "measure": 11
   },
   "FN3|src/options/components/AutoLabelDirSettingsEditor.tsx|(anonymous)": {
     "count": 1,
@@ -618,22 +498,6 @@
   "FN3|src/popup/popup-data.ts|loadPopupData": {
     "count": 1,
     "measure": 16
-  },
-  "FN3|src/util/context-menu.ts|resolveDownloadContext": {
-    "count": 1,
-    "measure": 11
-  },
-  "FN3|src/util/messaging.ts|(anonymous)": {
-    "count": 2,
-    "measure": 25
-  },
-  "FN3|src/util/messaging.ts|dispatchPreAddTorrent": {
-    "count": 1,
-    "measure": 12
-  },
-  "FN3|src/util/messaging.ts|resolveDownloadContext": {
-    "count": 1,
-    "measure": 15
   },
   "FN3|test/helpers/fetch-mock.ts|mockResponse": {
     "count": 1,
@@ -697,10 +561,6 @@
   },
   "G5|test/util/cors-tricks.test.ts|(anonymous)": {
     "count": 5,
-    "measure": 1
-  },
-  "G5|test/util/messaging.test.ts|(anonymous)": {
-    "count": 65,
     "measure": 1
   },
   "G5|test/webuis/biglybt-webui.test.ts|": {

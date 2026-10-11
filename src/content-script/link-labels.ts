@@ -3,6 +3,10 @@ export function isMagnetLink(url: string): boolean {
 }
 
 export function deriveLinkLabel(element: Element, url: string): string {
+    return labelFromElement(element) || labelFromMagnetName(url) || labelFromLastUrlSegment(url);
+}
+
+function labelFromElement(element: Element): string {
     const text = element.textContent?.trim();
     if (text) {
         return text;
@@ -10,32 +14,33 @@ export function deriveLinkLabel(element: Element, url: string): string {
     if (element instanceof HTMLInputElement && element.value.trim()) {
         return element.value.trim();
     }
-    const attributeLabel = element.getAttribute('aria-label') || element.getAttribute('title');
-    if (attributeLabel) {
-        return attributeLabel;
+    return element.getAttribute('aria-label') || element.getAttribute('title') || '';
+}
+
+function labelFromMagnetName(url: string): string {
+    const dnValue = isMagnetLink(url) ? /[?&]dn=([^&]+)/.exec(url)?.[1] : undefined;
+    if (!dnValue) {
+        return '';
     }
-    if (isMagnetLink(url)) {
-        const match = /[?&]dn=([^&]+)/.exec(url);
-        const dnValue = match?.[1];
-        if (dnValue) {
-            try {
-                return decodeURIComponent(dnValue.replace(/\+/g, ' '));
-            } catch {
-                // fall through to the last-resort segment below
-            }
-        }
+    try {
+        return decodeURIComponent(dnValue.replace(/\+/g, ' '));
+    } catch {
+        return '';
     }
-    // Last resort: the full url is displayed right below the label anyway, so
-    // the segment after the final '/' (usually a filename) is more useful than
-    // repeating it wholesale. Falls back to the raw url when that segment is
-    // empty, e.g. a url ending in '/'.
+}
+
+// Last resort: the full url is displayed right below the label anyway, so
+// the segment after the final '/' (usually a filename) is more useful than
+// repeating it wholesale. Falls back to the raw url when that segment is
+// empty, e.g. a url ending in '/'.
+function labelFromLastUrlSegment(url: string): string {
     const lastSegment = url.split('/').pop();
-    if (lastSegment) {
-        try {
-            return decodeURIComponent(lastSegment);
-        } catch {
-            return lastSegment;
-        }
+    if (!lastSegment) {
+        return url;
     }
-    return url;
+    try {
+        return decodeURIComponent(lastSegment);
+    } catch {
+        return lastSegment;
+    }
 }

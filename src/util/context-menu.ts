@@ -4,7 +4,7 @@ import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
 import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { type TorrentDownloadContext } from "./download";
-import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./messaging";
+import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { loadWebUis } from "./webuis";
 
 const PARENT_MENU_ID = "server-main";
@@ -76,6 +76,10 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
         return;
     }
 
+    await addLinkToWebUis(targetWebUis, onClickData, tab);
+}
+
+async function addLinkToWebUis(targetWebUis: TorrentWebUI[], onClickData: OnClickData, tab?: Tab): Promise<void> {
     const url = onClickData.linkUrl ?? "";
     const context = resolveDownloadContext(onClickData, tab);
 
@@ -90,7 +94,7 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
         return;
     }
 
-    targetWebUis.forEach(webUi => addTorrentToWebUiById(webUi.settings.id, url, null, context));
+    targetWebUis.forEach(webUi => addTorrentToWebUiById({ webUiId: webUi.settings.id, url, config: null }, context));
 }
 
 function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): TorrentWebUI[] {
@@ -109,8 +113,12 @@ function resolveDownloadContext(onClickData: OnClickData, tab?: Tab): TorrentDow
     return {
         tabId: tab?.id ?? null,
         frameId: onClickData.frameId ?? 0,
-        pageUrl: onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url ?? null
+        pageUrl: resolvePageUrl(onClickData, tab)
     };
+}
+
+function resolvePageUrl(onClickData: OnClickData, tab?: Tab): string | null {
+    return onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url ?? null;
 }
 
 async function resolveWindowId(tab?: Tab): Promise<number> {

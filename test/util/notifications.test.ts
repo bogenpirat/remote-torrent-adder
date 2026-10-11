@@ -4,7 +4,7 @@ import { BROWSER } from "../../src/util/platform";
 
 describe("showNotification", () => {
     it("creates a basic notification with the success icon by default", () => {
-        showNotification("Title", "Body", false);
+        showNotification({ title: "Title", message: "Body", isFailed: false });
         expect(chrome.notifications.create).toHaveBeenCalledTimes(1);
         const [, options] = (chrome.notifications.create as any).mock.calls[0];
         expect(options).toMatchObject({
@@ -16,7 +16,7 @@ describe("showNotification", () => {
     });
 
     it("uses the red icon when the notification represents a failure", () => {
-        showNotification("Title", "Body", true);
+        showNotification({ title: "Title", message: "Body", isFailed: true });
         const [, options] = (chrome.notifications.create as any).mock.calls[0];
         expect(options.iconUrl).toBe("assets/icons/BitTorrent128-red.png");
     });
@@ -24,7 +24,7 @@ describe("showNotification", () => {
     it("clears the notification after the configured duration", async () => {
         vi.useFakeTimers();
         try {
-            showNotification("T", "B", false, 1500);
+            showNotification({ title: "T", message: "B", isFailed: false, popupDurationMs: 1500 });
             await vi.advanceTimersByTimeAsync(0);
             expect(chrome.notifications.clear).not.toHaveBeenCalled();
             await vi.advanceTimersByTimeAsync(1500);
@@ -36,7 +36,7 @@ describe("showNotification", () => {
 
     it("opens the webui when its notification is clicked", async () => {
         registerNotificationClickListener();
-        showNotification("T", "B", false, 2000, false, "http://h/");
+        showNotification({ title: "T", message: "B", isFailed: false, webUiUrl: "http://h/" });
         await Promise.resolve();
         const onClicked = (chrome.notifications.onClicked.addListener as any).mock.calls[0][0];
 
@@ -46,7 +46,7 @@ describe("showNotification", () => {
 
     it("ignores clicks on notifications without a stored url", async () => {
         registerNotificationClickListener();
-        showNotification("T", "B", false); // no webui url
+        showNotification({ title: "T", message: "B", isFailed: false });
         await Promise.resolve();
         const onClicked = (chrome.notifications.onClicked.addListener as any).mock.calls[0][0];
 
@@ -55,7 +55,7 @@ describe("showNotification", () => {
     });
 
     it.skipIf(BROWSER !== "chrome")("creates an offscreen document to play sound when requested", async () => {
-        showNotification("T", "B", false, 2000, true);
+        showNotification({ title: "T", message: "B", isFailed: false, playSound: true });
         await Promise.resolve();
         await Promise.resolve();
         expect(chrome.offscreen.hasDocument).toHaveBeenCalled();

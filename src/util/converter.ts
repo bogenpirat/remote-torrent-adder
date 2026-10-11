@@ -1,5 +1,5 @@
 export function convertToBinary(payload: string): Uint8Array {
-	// TODO: note to self: to use this with a fetch() call, set Content-Type to application/octet-stream
+	// To use this with a fetch() call, set Content-Type to application/octet-stream
 	const ordinals = Array.prototype.map.call(payload, byteValue) as number[];
 	return new Uint8Array(ordinals);
 }

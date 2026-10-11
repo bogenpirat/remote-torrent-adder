@@ -1,9 +1,7 @@
 import { ext } from "./browser-api";
 import { getCustomSound, type SoundKind } from "./sound-storage";
 
-export async function playNotificationSound(isFailed: boolean): Promise<void> {
-    const kind: SoundKind = isFailed ? "failure" : "success";
-
+export async function playNotificationSound(kind: SoundKind): Promise<void> {
     let source = ext.runtime.getURL(`assets/sounds/${kind}.ogg`);
     let objectUrl: string | undefined;
     try {

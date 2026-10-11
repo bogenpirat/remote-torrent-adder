@@ -7,7 +7,7 @@ const { dispatchPreAddTorrent, addTorrentToWebUiById } = vi.hoisted(() => ({
     dispatchPreAddTorrent: vi.fn(),
     addTorrentToWebUiById: vi.fn(),
 }));
-vi.mock("../../src/util/messaging", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
+vi.mock("../../src/util/add-torrent", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
 
 import { refreshContextMenu, registerContextMenuClickListener } from "../../src/util/context-menu";
 import { PreAddTorrentMessage } from "../../src/models/messages";
@@ -169,7 +169,7 @@ describe("registerContextMenuClickListener", () => {
     it("adds the torrent directly to every webui on send-all, bypassing the selector", async () => {
         await click("server-all", [settingsFor("a", "A"), settingsFor("b", "B")]);
         expect(addTorrentToWebUiById).toHaveBeenCalledTimes(2);
-        expect(addTorrentToWebUiById.mock.calls.map((c: any[]) => c[0])).toEqual(["a", "b"]);
+        expect(addTorrentToWebUiById.mock.calls.map((call: any[]) => call[0].webUiId)).toEqual(["a", "b"]);
         expect(dispatchPreAddTorrent).not.toHaveBeenCalled();
     });
 

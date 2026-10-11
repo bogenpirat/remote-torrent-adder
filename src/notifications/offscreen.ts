@@ -4,6 +4,6 @@ import { playNotificationSound } from "../util/play-sound";
 
 ext.runtime.onMessage.addListener(message => {
     if (message.action === PlaySoundMessage.action) {
-        void playNotificationSound((message as IPlaySoundMessage).isFailed);
+        void playNotificationSound((message as IPlaySoundMessage).isFailed ? "failure" : "success");
     }
 });

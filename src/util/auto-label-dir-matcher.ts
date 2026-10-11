@@ -56,7 +56,7 @@ function evaluateSetting(setting: AutoLabelDirSetting, index: number, torrent: T
 function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): AutoLabelDirCriterionEvaluation {
     const candidates = candidatesForField(criterion.field, torrent);
 
-    if (candidates === null) {
+    if (candidates === undefined) {
         return { criterion, matched: false, matchedCandidates: [], invalidPattern: false };
     }
 
@@ -67,16 +67,25 @@ function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): 
     return matchCandidates(criterion, candidates.values, candidates.flags);
 }
 
-function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): { values: string[] | undefined; flags: string } | null {
+interface FieldCandidates {
+    values: string[] | undefined;
+    flags: string;
+}
+
+function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): FieldCandidates | undefined {
     switch (field) {
         case "trackerUrl": return { values: torrent.trackers, flags: "" };
         case "filePath": return { values: torrent.files, flags: "i" };
         case "torrentName": return { values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" };
-        default: return null;
+        default: return undefined;
     }
 }
 
-function matchCandidates(criterion: AutoLabelDirCriterion, candidates: string[] | undefined, flags: string): AutoLabelDirCriterionEvaluation {
+function matchCandidates(
+    criterion: AutoLabelDirCriterion,
+    candidates: string[] | undefined,
+    flags: string,
+): AutoLabelDirCriterionEvaluation {
     let regex: RegExp;
     try {
         regex = new RegExp(criterion.value, flags);

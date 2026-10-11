@@ -12,34 +12,30 @@ function hasUsableHost(baseUrl: string): boolean {
     }
 }
 
+type HeaderModification = chrome.declarativeNetRequest.ModifyHeaderInfo;
+
+function createHeaderRule(id: number, urlPrefix: string, requestHeaders: HeaderModification[]): chrome.declarativeNetRequest.Rule {
+    return {
+        id,
+        priority: 100,
+        action: {
+            type: "modifyHeaders",
+            requestHeaders
+        },
+        condition: {
+            urlFilter: `|${urlPrefix}*`,
+            resourceTypes: ["xmlhttprequest"]
+        }
+    };
+}
+
 export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI[]): Promise<void> {
     const oldRuleIds = (await ext.declarativeNetRequest.getSessionRules())
         .map(rule => rule.id);
-    const newRules: chrome.declarativeNetRequest.Rule[] = [];
-
-    allWebUis.forEach((webUi, index) => {
-        const webUiBaseUrl = webUi.createBaseUrl();
-        if (hasUsableHost(webUiBaseUrl)) {
-            const rule: chrome.declarativeNetRequest.Rule = {
-                id: index + 1,
-                priority: 100,
-                action: {
-                    type: "modifyHeaders",
-                    requestHeaders: [
-                        {
-                            header: "origin",
-                            operation: "remove"
-                        }
-                    ]
-                },
-                condition: {
-                    urlFilter: `|${webUiBaseUrl}*`,
-                    resourceTypes: ["xmlhttprequest"]
-                }
-            };
-            newRules.push(rule);
-        }
-    });
+    const newRules = allWebUis
+        .map((webUi, index) => ({ id: index + 1, baseUrl: webUi.createBaseUrl() }))
+        .filter(target => hasUsableHost(target.baseUrl))
+        .map(target => createHeaderRule(target.id, target.baseUrl, [{ header: "origin", operation: "remove" }]));
 
     await ext.declarativeNetRequest.updateSessionRules({
         removeRuleIds: oldRuleIds,
@@ -58,25 +54,7 @@ export async function executeMethodWrappedWithOriginStripped<T>(method: () => Pr
     const originStripperRuleId = allocateDynamicRuleId();
     await ext.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [originStripperRuleId],
-        addRules: [
-            {
-                id: originStripperRuleId,
-                priority: 100,
-                action: {
-                    type: "modifyHeaders",
-                    requestHeaders: [
-                        {
-                            header: "origin",
-                            operation: "remove"
-                        }
-                    ]
-                },
-                condition: {
-                    urlFilter: `|${baseUrl}*`,
-                    resourceTypes: ["xmlhttprequest"]
-                }
-            }
-        ]
+        addRules: [createHeaderRule(originStripperRuleId, baseUrl, [{ header: "origin", operation: "remove" }])]
     });
     try {
         return await method();
@@ -91,30 +69,10 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
     const refererSetterRuleId = allocateDynamicRuleId();
     await ext.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [refererSetterRuleId],
-        addRules: [
-            {
-                id: refererSetterRuleId,
-                priority: 100,
-                action: {
-                    type: "modifyHeaders",
-                    requestHeaders: [
-                        {
-                            header: "Referer",
-                            operation: "set",
-                            value: referer
-                        },
-                        {
-                            header: "Origin",
-                            operation: "remove"
-                        }
-                    ]
-                },
-                condition: {
-                    urlFilter: `|${url}*`,
-                    resourceTypes: ["xmlhttprequest"]
-                }
-            }
-        ]
+        addRules: [createHeaderRule(refererSetterRuleId, url, [
+            { header: "Referer", operation: "set", value: referer },
+            { header: "Origin", operation: "remove" }
+        ])]
     });
     try {
         return await method();

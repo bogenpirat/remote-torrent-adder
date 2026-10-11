@@ -18,16 +18,16 @@ describe("showNotification without an offscreen API", () => {
     beforeEach(() => playNotificationSound.mockClear());
 
     it("plays the sound in-process instead of spawning an offscreen document", async () => {
-        showNotification("T", "B", false, 2000, true);
+        showNotification({ title: "T", message: "B", isFailed: false, playSound: true });
         await Promise.resolve();
 
-        expect(playNotificationSound).toHaveBeenCalledWith(false);
+        expect(playNotificationSound).toHaveBeenCalledWith("success");
         expect(chrome.offscreen.hasDocument).not.toHaveBeenCalled();
         expect(chrome.offscreen.createDocument).not.toHaveBeenCalled();
     });
 
     it("still shows the notification itself", async () => {
-        showNotification("T", "B", true, 2000, false);
+        showNotification({ title: "T", message: "B", isFailed: true, playSound: false });
         await Promise.resolve();
 
         expect(chrome.notifications.create).toHaveBeenCalled();

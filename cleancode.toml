@@ -71,6 +71,22 @@ may_use = ["models", "registry", "util", "webuis"]
 # allowed = ["src/adapters/**"]
 
 # Exceptions. Each one needs a reason and is visible in review.
+[[waivers]]
+rule = "ER2"
+path = "src/**"
+reason = "TypeScript strict null checks make `T | null` a compiler-checked option type, and returning null is how a React component renders nothing."
+
+[[waivers]]
+rule = "CL2"
+path = "src/models/webui.ts"
+reason = "TorrentWebUI is the template base class the 13 clients extend; its members are the documented extension API and mostly one-line accessors."
+
+[[waivers]]
+rule = "F3"
+path = "src/models/webui.ts"
+scope = "toReachableResult"
+reason = "`authenticated` is a result value computed by the caller and stored in the returned object, not a switch between two behaviours."
+
 # [[waivers]]
 # rule = "F1"
 # path = "src/legacy/report.py"

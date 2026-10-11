@@ -2,6 +2,23 @@ import { ext, sendMessageAndForget } from "./browser-api";
 import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
 import { canUseOffscreen } from "./platform";
 import { playNotificationSound } from "./play-sound";
+import { type SoundKind } from "./sound-storage";
+
+export interface NotificationRequest {
+    title: string;
+    message: string;
+    isFailed?: boolean;
+    popupDurationMs?: number;
+    playSound?: boolean;
+    webUiUrl?: string;
+}
+
+const DEFAULT_POPUP_DURATION_MS = 2000;
+
+const ICON_URL_BY_KIND: Record<SoundKind, string> = {
+    success: "assets/icons/BitTorrent128.png",
+    failure: "assets/icons/BitTorrent128-red.png",
+};
 
 const notificationUrls = new Map<string, string>();
 
@@ -15,37 +32,49 @@ export function registerNotificationClickListener(): void {
     });
 }
 
-export function showNotification(title: string, message: string, isFailed: boolean = true, popupDurationMs: number = 2000, playSound: boolean = false, webUiUrl?: string): void {
-    const notificationCreateOptions: chrome.notifications.NotificationCreateOptions = {
-        type: "basic",
-        iconUrl: isFailed ? "assets/icons/BitTorrent128-red.png" : "assets/icons/BitTorrent128.png",
-        title: title,
-        message: message
-    };
+export function showNotification(notification: NotificationRequest): void {
+    const { isFailed = true, popupDurationMs = DEFAULT_POPUP_DURATION_MS, playSound = false } = notification;
+    const kind: SoundKind = isFailed ? "failure" : "success";
 
-    void ext.notifications.create("", notificationCreateOptions).then(myId => {
-        if (webUiUrl) {
-            notificationUrls.set(myId, webUiUrl);
-        } else {
-            notificationUrls.delete(myId);
-        }
-
-        setTimeout(() => forgetNotification(myId), popupDurationMs);
+    void ext.notifications.create("", createOptions(notification, kind)).then(notificationId => {
+        rememberWebUiUrl(notificationId, notification.webUiUrl);
+        setTimeout(() => forgetNotification(notificationId), popupDurationMs);
     });
 
     if (playSound) {
-        if (canUseOffscreen()) {
-            void ensureOffscreenDocument().then(() => {
-                const playSoundMessage = {
-                    action: PlaySoundMessage.action,
-                    isFailed
-                } as IPlaySoundMessage;
-                sendMessageAndForget(playSoundMessage);
-            });
-        } else {
-            void playNotificationSound(isFailed);
-        }
+        playSoundOfKind(kind);
     }
+}
+
+function createOptions(notification: NotificationRequest, kind: SoundKind): chrome.notifications.NotificationCreateOptions {
+    return {
+        type: "basic",
+        iconUrl: ICON_URL_BY_KIND[kind],
+        title: notification.title,
+        message: notification.message
+    };
+}
+
+function rememberWebUiUrl(notificationId: string, webUiUrl?: string): void {
+    if (webUiUrl) {
+        notificationUrls.set(notificationId, webUiUrl);
+    } else {
+        notificationUrls.delete(notificationId);
+    }
+}
+
+function playSoundOfKind(kind: SoundKind): void {
+    if (!canUseOffscreen()) {
+        void playNotificationSound(kind);
+        return;
+    }
+    void ensureOffscreenDocument().then(() => {
+        const playSoundMessage = {
+            action: PlaySoundMessage.action,
+            isFailed: kind === "failure"
+        } as IPlaySoundMessage;
+        sendMessageAndForget(playSoundMessage);
+    });
 }
 
 function forgetNotification(notificationId: string): void {

@@ -24,23 +24,29 @@ export class Settings {
         console.debug("Loaded serialized RTAv2 settings:", response);
         if (!response[SETTINGS_KEY]) {
             console.log("Initializing with default settings.");
-            const defaults = getDefaultSettings();
-            await this.saveSettings(defaults);
-            return defaults;
+            return this.resetToDefaults();
         }
         try {
-            const loaded = deserializeSettings(response[SETTINGS_KEY]) ?? getDefaultSettings();
-            const migrated = migrateSettingsClientIdentifiers(loaded);
-            if (migrated !== loaded) {
-                await this.saveSettings(migrated);
-            }
-            return migrated;
+            return await this.deserializeAndMigrate(response[SETTINGS_KEY]);
         } catch (e) {
             console.error("Failed to deserialize settings, resetting to defaults", e);
-            const defaults = getDefaultSettings();
-            await this.saveSettings(defaults);
-            return defaults;
+            return this.resetToDefaults();
         }
+    }
+
+    private async resetToDefaults(): Promise<RTASettings> {
+        const defaults = getDefaultSettings();
+        await this.saveSettings(defaults);
+        return defaults;
+    }
+
+    private async deserializeAndMigrate(serialized: string): Promise<RTASettings> {
+        const loaded = deserializeSettings(serialized) ?? getDefaultSettings();
+        const migrated = migrateSettingsClientIdentifiers(loaded);
+        if (migrated !== loaded) {
+            await this.saveSettings(migrated);
+        }
+        return migrated;
     }
 
     public async saveSettings(settings: RTASettings): Promise<void> {

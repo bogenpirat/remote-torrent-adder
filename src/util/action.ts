@@ -2,6 +2,7 @@ import { ext } from "./browser-api";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis, loadWebUis } from "./webuis";
 import { Settings } from "./settings";
+import { type RTASettings } from "../models/settings";
 
 
 export const POPUP_PAGE = "popup/popup.html";
@@ -16,24 +17,27 @@ export function registerActionClickListener(): void {
 
 async function handleActionClick(tab: chrome.tabs.Tab): Promise<void> {
     const settings = await new Settings().loadSettings();
-    const iconClickAction = settings.iconClickAction ?? "openPrimaryWebUi";
 
     if (tab.windowId !== undefined) {
-        if (iconClickAction === "showPageLinks") {
-            await openActionPopup(tab.windowId, "links");
+        const popupMode = await resolvePopupMode(settings);
+        if (popupMode) {
+            await openActionPopup(tab.windowId, popupMode);
             return;
-        }
-
-        if (iconClickAction === "showWebUiPicker") {
-            const allWebUis = await initiateWebUis(settings);
-            if (allWebUis.length > 1) {
-                await openActionPopup(tab.windowId, "picker");
-                return;
-            }
         }
     }
 
     await openPrimaryWebUi();
+}
+
+async function resolvePopupMode(settings: RTASettings): Promise<PopupMode | undefined> {
+    const iconClickAction = settings.iconClickAction ?? "openPrimaryWebUi";
+    if (iconClickAction === "showPageLinks") {
+        return "links";
+    }
+    if (iconClickAction === "showWebUiPicker" && (await initiateWebUis(settings)).length > 1) {
+        return "picker";
+    }
+    return undefined;
 }
 
 export async function openPrimaryWebUi(): Promise<void> {
