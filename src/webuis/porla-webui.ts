@@ -2,6 +2,7 @@ import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
 
 export class PorlaWebUI extends JsonLoginWebUI {
     protected get loginUrl(): string {
@@ -20,7 +21,7 @@ export class PorlaWebUI extends JsonLoginWebUI {
         try {
             const jsonRpcToken = await this.authenticateForToken();
             const fetchOpts = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
-            const response = await this.fetch(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts);
 
             const responseText = await response.text();
             const responseJson = JSON.parse(responseText);
@@ -30,7 +31,7 @@ export class PorlaWebUI extends JsonLoginWebUI {
                 httpResponseBody: responseText,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

@@ -1,5 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -14,7 +15,7 @@ const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> =
 
 export class RuTorrentWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/");
+        return probeWithBasicAuth(this.createBaseUrl() + "/", this.settings);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -30,12 +31,12 @@ export class RuTorrentWebUI extends TorrentWebUI {
                 payload = this.createPayloadForTorrent(torrent, config);
             }
 
-            const response = await this.fetch(url, { method: 'POST', headers, body: payload });
+            const response = await fetchOrThrow(url, { method: 'POST', headers, body: payload });
             const responseBody = await response.text();
             const success = /result\[\]=Success/.test(response.url) || /addTorrentSuccess/.test(responseBody);
             return { success, httpResponseCode: response.status, httpResponseBody: responseBody };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

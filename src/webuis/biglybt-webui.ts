@@ -1,9 +1,10 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
 
 export class BiglyBTWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
+        return probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc", this.settings);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -16,7 +17,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
                 ? this.createPayloadForMagnet(torrent.data as string, config)
                 : this.createPayloadForTorrent(torrent);
 
-            const response = await this.fetch(url, { method: 'POST', body: payload });
+            const response = await fetchOrThrow(url, { method: 'POST', body: payload });
             const responseBody = await response.text();
             return {
                 success: this.isSuccessResponse(responseBody),
@@ -24,7 +25,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
                 httpResponseBody: responseBody,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

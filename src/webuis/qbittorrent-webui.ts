@@ -1,5 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -23,9 +24,9 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
                 body
             });
-            return this.toReachableResult(response.ok, response.status);
+            return toReachableResult(response.ok, response.status);
         } catch (error) {
-            return this.toUnreachableResult(error);
+            return toUnreachableResult(error);
         }
     }
 
@@ -33,7 +34,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
         try {
             await this.authenticate();
             const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
-            const response = await this.fetch(this.createBaseUrl() + "/api/v2/torrents/add", fetchOpts);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v2/torrents/add", fetchOpts);
 
             const responseBody = await response.text();
             return {
@@ -42,7 +43,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 httpResponseBody: responseBody,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
@@ -50,7 +51,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
         const authenticationBody = new URLSearchParams();
         authenticationBody.append("username", this._settings.username);
         authenticationBody.append("password", this._settings.password);
-        await this.fetch(this.createBaseUrl() + "/api/v2/auth/login", {
+        await fetchOrThrow(this.createBaseUrl() + "/api/v2/auth/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"

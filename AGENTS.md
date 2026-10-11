@@ -43,7 +43,7 @@ For Firefox, `npm run dev:firefox` launches a scratch profile with `dist/firefox
 - **Never call `chrome.*` directly.** Use `ext` from `src/util/browser-api.ts`; on Firefox the bare `chrome` namespace is callback-only and returns `undefined`, so `.then()` on it throws. An eslint rule enforces this. Type positions (`chrome.tabs.Tab`) are fine.
 - Anything Chrome-only (`ext.offscreen`, …) must be behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`, and a permission only Chrome understands must be filtered out in `scripts/generate-manifest.mjs`.
 - Service worker **must be stateless** — no module-level mutable state. Persist to `ext.storage`.
-- Use `this.fetch()` (not raw `fetch()`) — it throws `HttpError` on non-OK responses. Return `this.toFailureResult(error)` from the `catch`.
+- Use `fetchOrThrow()` from `src/models/webui-http.ts` (not raw `fetch()`) — it throws `HttpError` on non-OK responses. Return `toFailureResult(error)` from the `catch`.
 - **Never** set `Content-Type: multipart/form-data` manually with FormData — browser sets it with boundary.
 - `Torrent.data` is `Blob | string` — Blob for `.torrent` uploads, magnet URI string when `torrent.isMagnet === true`. Always branch on `torrent.isMagnet`. (There is no `torrent.url` or `torrent.blob`.)
 - Use `??` not `||` for settings defaults — `false` and `0` are valid values.

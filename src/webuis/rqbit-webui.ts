@@ -1,18 +1,19 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
 
 export class RqbitWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/torrents");
+        return probeWithBasicAuth(this.createBaseUrl() + "/torrents", this.settings);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const url = this.createBaseUrl() + "/torrents" + this.createQueryString(config);
-            const response = await this.fetch(url, this.createTorrentFetchOptions(torrent));
+            const response = await fetchOrThrow(url, this.createTorrentFetchOptions(torrent));
             return {success: true, httpResponseCode: response.status, httpResponseBody: await response.text()};
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

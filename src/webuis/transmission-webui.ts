@@ -1,17 +1,18 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
 
 export class TransmissionWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
+        return probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc", this.settings);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const sessionId = await this.fetchTransmissionSessionId();
             const fetchOpts = await this.createTorrentFetchOptions(torrent, config, sessionId);
-            const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
 
             const responseText = await response.text();
             const responseData = JSON.parse(responseText);
@@ -21,7 +22,7 @@ export class TransmissionWebUI extends TorrentWebUI {
                 httpResponseBody: responseText,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

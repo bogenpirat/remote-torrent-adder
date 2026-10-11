@@ -1,9 +1,10 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
 
 export class TixatiWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/home");
+        return probeWithBasicAuth(this.createBaseUrl() + "/home", this.settings);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -13,10 +14,10 @@ export class TixatiWebUI extends TorrentWebUI {
                 : await this.createPayloadForTorrent(torrent);
             payload.append("noautostart", this.getAddPaused(config) === true ? "1" : "0");
 
-            const response = await this.fetch(this.createTixatiBaseUrl(), { method: 'POST', body: payload });
+            const response = await fetchOrThrow(this.createTixatiBaseUrl(), { method: 'POST', body: payload });
             return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 

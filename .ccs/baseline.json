@@ -73,7 +73,7 @@
   },
   "FN1|e2e/fixtures/settings.ts|makeWebUISettings": {
     "count": 1,
-    "measure": 23
+    "measure": 22
   },
   "FN1|e2e/service-worker.smoke.spec.ts|(anonymous)": {
     "count": 1,
@@ -81,7 +81,7 @@
   },
   "FN1|test/helpers/chrome-mock.ts|createChromeMock": {
     "count": 1,
-    "measure": 54
+    "measure": 53
   },
   "FN1|test/helpers/fetch-mock.ts|mockResponse": {
     "count": 1,
@@ -89,7 +89,7 @@
   },
   "FN1|test/helpers/fixtures.ts|makeWebUISettings": {
     "count": 1,
-    "measure": 23
+    "measure": 22
   },
   "FN1|test/service-worker.test.ts|(anonymous)": {
     "count": 1,
@@ -98,10 +98,6 @@
   "FN1|test/util/context-menu.test.ts|(anonymous)": {
     "count": 1,
     "measure": 22
-  },
-  "FN1|vite.config.ts|pageTarget": {
-    "count": 1,
-    "measure": 21
   },
   "FN2|e2e/fixtures/firefox-extension.ts|openExtensionTab": {
     "count": 1,
@@ -148,7 +144,7 @@
     "measure": 1
   },
   "G5|test/webuis/biglybt-webui.test.ts|": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/biglybt-webui.test.ts|(anonymous)": {
@@ -160,11 +156,11 @@
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|": {
-    "count": 4,
+    "count": 8,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|(anonymous)": {
-    "count": 11,
+    "count": 8,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|build": {
@@ -180,7 +176,7 @@
     "measure": 1
   },
   "G5|test/webuis/qbittorrent-webui.test.ts|": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/qbittorrent-webui.test.ts|(anonymous)": {
@@ -196,11 +192,11 @@
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|": {
-    "count": 2,
+    "count": 4,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|(anonymous)": {
-    "count": 5,
+    "count": 4,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|build": {
@@ -212,15 +208,15 @@
     "measure": 1
   },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 14,
+    "count": 12,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|": {
-    "count": 4,
+    "count": 8,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
-    "count": 9,
+    "count": 6,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|build": {
@@ -228,7 +224,7 @@
     "measure": 1
   },
   "G5|test/webuis/transmission-webui.test.ts|": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/transmission-webui.test.ts|(anonymous)": {
@@ -240,11 +236,11 @@
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|": {
-    "count": 3,
+    "count": 6,
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
-    "count": 9,
+    "count": 7,
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|build": {

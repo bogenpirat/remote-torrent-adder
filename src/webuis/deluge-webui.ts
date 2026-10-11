@@ -1,5 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
 
 
 export class DelugeWebUI extends TorrentWebUI {
@@ -11,12 +12,12 @@ export class DelugeWebUI extends TorrentWebUI {
                 body: JSON.stringify({ method: "auth.login", params: [this._settings.password], id: this.randomId() })
             });
             if (!response.ok) {
-                return this.toReachableResult(false, response.status);
+                return toReachableResult(false, response.status);
             }
             const json = await response.json();
-            return this.toReachableResult(json["result"] === true, response.status);
+            return toReachableResult(json["result"] === true, response.status);
         } catch (error) {
-            return this.toUnreachableResult(error);
+            return toUnreachableResult(error);
         }
     }
 
@@ -37,7 +38,7 @@ export class DelugeWebUI extends TorrentWebUI {
 
             return result;
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
@@ -51,7 +52,7 @@ export class DelugeWebUI extends TorrentWebUI {
     private async uploadTorrentFile(torrent: Torrent): Promise<string> {
         const payload = new FormData();
         payload.append("file", new Blob([torrent.data], { type: "application/x-bittorrent" }), torrent.name);
-        const response = await this.fetch(this.createBaseUrl() + "/upload", { method: "POST", body: payload });
+        const response = await fetchOrThrow(this.createBaseUrl() + "/upload", { method: "POST", body: payload });
         const responseJson = await response.json();
         if (!(responseJson["success"] === true && responseJson["files"].length > 0)) {
             throw new Error("File upload failed");
@@ -88,7 +89,7 @@ export class DelugeWebUI extends TorrentWebUI {
     }
 
     private postJsonRpc(method: string, params: unknown[]): Promise<Response> {
-        return this.fetch(this.createBaseUrl() + "/json", {
+        return fetchOrThrow(this.createBaseUrl() + "/json", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ method, params, id: this.randomId() })

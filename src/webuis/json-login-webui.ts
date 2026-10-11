@@ -1,4 +1,5 @@
 import { type ConnectionTestResult, TorrentWebUI } from "../models/webui";
+import { fetchOrThrow, toReachableResult, toUnreachableResult } from "../models/webui-http";
 
 export type LoginAnswer = Record<string, unknown>;
 
@@ -13,16 +14,16 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
         try {
             const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
             if (!response.ok) {
-                return this.toReachableResult(false, response.status);
+                return toReachableResult(false, response.status);
             }
-            return this.toReachableResult(this.isLoginAccepted(await response.json()), response.status);
+            return toReachableResult(this.isLoginAccepted(await response.json()), response.status);
         } catch (error) {
-            return this.toUnreachableResult(error);
+            return toUnreachableResult(error);
         }
     }
 
     protected async authenticate(): Promise<LoginAnswer> {
-        const response = await this.fetch(this.loginUrl, this.createLoginFetchOptions());
+        const response = await fetchOrThrow(this.loginUrl, this.createLoginFetchOptions());
         const answer: LoginAnswer = await response.json();
         if (!this.isLoginAccepted(answer)) {
             throw new Error(this.describeRejectedLogin(answer));

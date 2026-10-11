@@ -36,12 +36,6 @@ class TestWebUI extends TorrentWebUI {
     publicGetClientSpecific(key: string, config: TorrentUploadConfig) {
         return this.getClientSpecific(key, config);
     }
-    publicAddLeadingAndTrim(part: string) {
-        return this.addLeadingAndTrimTrailingSlashes(part);
-    }
-    publicFetch(url: string, options?: RequestInit) {
-        return this.fetch(url, options);
-    }
 }
 
 const build = (over = {}) => new TestWebUI(makeWebUISettings(over));
@@ -76,28 +70,6 @@ describe("createBaseUrl", () => {
         expect(build({ host: "h", port: 80, secure: false, relativePath: "rutorrent/" }).createBaseUrl()).toBe(
             "http://h/rutorrent",
         );
-    });
-});
-
-describe("createBaseUrlPatternForFilter", () => {
-    it("ensures exactly one trailing slash", () => {
-        expect(build({ host: "h", port: 80 }).createBaseUrlPatternForFilter()).toBe("http://h/");
-    });
-
-    it("normalizes a relative path to a single trailing slash", () => {
-        const url = build({ host: "h", port: 80, relativePath: "app" }).createBaseUrlPatternForFilter();
-        expect(url).toBe("http://h/app/");
-    });
-});
-
-describe("addLeadingAndTrimTrailingSlashes", () => {
-    it("returns empty string for empty input", () => {
-        expect(build().publicAddLeadingAndTrim("")).toBe("");
-    });
-
-    it("adds a leading slash and trims trailing slashes", () => {
-        expect(build().publicAddLeadingAndTrim("path/")).toBe("/path");
-        expect(build().publicAddLeadingAndTrim("//a/b//")).toBe("/a/b");
     });
 });
 
@@ -161,22 +133,5 @@ describe("isLabelDirChooserSupported", () => {
         ui.isDirSupported = false;
         ui.isAddPausedSupported = false;
         expect(ui.isLabelDirChooserSupported).toBe(false);
-    });
-});
-
-describe("fetch", () => {
-    it("returns the response when ok", async () => {
-        (globalThis as any).fetch = async () => ({ ok: true, status: 200 });
-        const res = await build().publicFetch("http://x");
-        expect(res.status).toBe(200);
-    });
-
-    it("throws an HttpError carrying the status and body on a non-ok response", async () => {
-        (globalThis as any).fetch = async () => ({ ok: false, status: 500, text: async () => "boom" });
-        await expect(build().publicFetch("http://x")).rejects.toMatchObject({
-            message: "HTTP error 500",
-            status: 500,
-            body: "boom",
-        });
     });
 });

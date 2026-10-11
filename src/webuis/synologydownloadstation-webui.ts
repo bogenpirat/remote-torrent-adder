@@ -16,6 +16,7 @@ import {
     type SynologyRequest,
     type SynologyTask,
 } from "./synology-api";
+import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
 
 export class SynologyDownloadStationWebUI extends TorrentWebUI {
     private apiInfo: SynologyApiInfoMap | null = null;
@@ -26,17 +27,17 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             const apis = await this.discoverApis();
             const response = await fetch(this.createLoginUrl(apis), this.createLoginFetchOptions(apis));
             if (!response.ok) {
-                return this.toReachableResult(false, response.status);
+                return toReachableResult(false, response.status);
             }
 
             const json = await response.json();
             if (json?.success === true && json?.data?.sid) {
-                return this.toReachableResult(true, response.status);
+                return toReachableResult(true, response.status);
             }
 
             return this.toLoginRejectedResult(json?.error?.code, response.status);
         } catch (error) {
-            return this.toUnreachableResult(error);
+            return toUnreachableResult(error);
         }
     }
 
@@ -55,9 +56,9 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             const sessionId = await this.login(apis);
 
             const request = this.createTaskRequest(apis, { sessionId, torrent, destination: this.resolveDestination(config) });
-            return await this.toTorrentAddingResult(await this.fetch(request.url, request.options), TASK_ERRORS);
+            return await this.toTorrentAddingResult(await fetchOrThrow(request.url, request.options), TASK_ERRORS);
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
@@ -72,7 +73,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             method: "query",
             query: [AUTH_API, TASK_API, TASK2_API].join(","),
         });
-        const response = await this.fetch(`${this.createBaseUrl()}/webapi/query.cgi?${params.toString()}`);
+        const response = await fetchOrThrow(`${this.createBaseUrl()}/webapi/query.cgi?${params.toString()}`);
         const json = await response.json();
 
         if (json?.success !== true || !json?.data) {
@@ -88,7 +89,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             return this.sessionId;
         }
 
-        const response = await this.fetch(this.createLoginUrl(apis), this.createLoginFetchOptions(apis));
+        const response = await fetchOrThrow(this.createLoginUrl(apis), this.createLoginFetchOptions(apis));
         const json = await response.json();
 
         if (json?.success !== true || !json?.data?.sid) {

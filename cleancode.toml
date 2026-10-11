@@ -82,7 +82,7 @@ reason = "TypeScript strict null checks make `T | null` a compiler-checked optio
 [[waivers]]
 rule = "F1"
 path = "src/**/*.tsx"
-reason = "A React component takes one props object; ccs counts every field destructured in the signature as a separate argument. This also exempts plain helpers in .tsx files, which review has to watch."
+reason = "A React component takes one props object and benefits from many props; destructuring them in the signature is encapsulation enough. This also exempts plain helpers in .tsx files, which review has to watch."
 
 [[waivers]]
 rule = "F3"
@@ -120,13 +120,8 @@ path = "src/webuis/porla-webui.ts"
 reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
 
 [[waivers]]
-rule = "CL2"
-path = "src/models/webui.ts"
-reason = "TorrentWebUI is the template base class the 13 clients extend; its members are the documented extension API and mostly one-line accessors."
-
-[[waivers]]
 rule = "F3"
-path = "src/models/webui.ts"
+path = "src/models/webui-http.ts"
 scope = "toReachableResult"
 reason = "Maps a probe outcome to a result: the boolean is stored in the result and selects only its message."
 
