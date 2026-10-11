@@ -2,6 +2,7 @@ import { ext } from '../../util/browser-api';
 import { useEffect, useState } from 'react';
 import Notice from './Notice';
 import { WebUIFactory } from '../../models/clients';
+import { type WebUISettings } from '../../models/webui';
 import { deserializeSettings } from '../../util/serializer';
 import { requestSerializedSettings } from '../../util/request-settings';
 import { addTrailingSlash } from '../../util/utils';
@@ -17,6 +18,23 @@ type LoadState =
   | { status: 'empty' }
   | { status: 'ready'; options: WebUiOption[] };
 
+function toWebUiOptions(serialized: string | null): WebUiOption[] {
+  const settings = serialized ? deserializeSettings(serialized) : null;
+  return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
+}
+
+function toWebUiOption(webUiSettings: WebUISettings): WebUiOption[] {
+  const webUi = WebUIFactory.createWebUI(webUiSettings);
+  if (!webUi) {
+    return [];
+  }
+  return [{
+    id: webUiSettings.id,
+    name: webUiSettings.name || webUi.name,
+    url: addTrailingSlash(webUi.createBaseUrl()),
+  }];
+}
+
 export default function WebUiPickerView() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
@@ -24,18 +42,7 @@ export default function WebUiPickerView() {
     let cancelled = false;
     void requestSerializedSettings().then((serialized) => {
       if (cancelled) return;
-      const settings = serialized ? deserializeSettings(serialized) : null;
-      const options: WebUiOption[] = (settings?.webuiSettings ?? [])
-        .map(webUiSettings => {
-          const webUi = WebUIFactory.createWebUI(webUiSettings);
-          if (!webUi) return null;
-          return {
-            id: webUiSettings.id,
-            name: webUiSettings.name || webUi.name,
-            url: addTrailingSlash(webUi.createBaseUrl()),
-          };
-        })
-        .filter((option): option is WebUiOption => option !== null);
+      const options = toWebUiOptions(serialized);
       setState(options.length ? { status: 'ready', options } : { status: 'empty' });
     });
     return () => {
@@ -54,7 +61,10 @@ export default function WebUiPickerView() {
   if (state.status === 'empty') {
     return <Notice title="No WebUIs configured">Add a WebUI in the extension&apos;s options first.</Notice>;
   }
+  return <WebUiOptionList options={state.options} onOpen={openWebUi} />;
+}
 
+function WebUiOptionList({ options, onOpen }: { options: WebUiOption[]; onOpen: (url: string) => void }) {
   return (
     <div className="h-full bg-background p-6">
       <div className="max-w-sm mx-auto space-y-4">
@@ -62,10 +72,10 @@ export default function WebUiPickerView() {
           <h1 className="text-xl font-bold text-foreground">Choose a WebUI</h1>
         </div>
         <div className="space-y-2">
-          {state.options.map(option => (
+          {options.map(option => (
             <button
               key={option.id}
-              onClick={() => openWebUi(option.url)}
+              onClick={() => onOpen(option.url)}
               className="w-full text-left bg-card p-3 rounded-lg border border-border shadow-sm hover:bg-accent transition-colors"
             >
               <span className="block font-medium text-foreground">{option.name}</span>

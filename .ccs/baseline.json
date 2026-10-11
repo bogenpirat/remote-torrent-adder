@@ -1,8 +1,4 @@
 {
-  "C5|src/popup/components/ui/combobox.tsx|": {
-    "count": 4,
-    "measure": 1
-  },
   "CL1|e2e/fixtures/firefox-extension.ts|class FirefoxExtensionHarness {": {
     "count": 1,
     "measure": 245
@@ -44,10 +40,6 @@
     "measure": 1
   },
   "ER2|src/options/pages/WebUIsPage.tsx|WebUIsPage": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/popup/app/WebUiPickerView.tsx|(anonymous)": {
     "count": 1,
     "measure": 1
   },
@@ -123,13 +115,21 @@
     "count": 1,
     "measure": 14
   },
+  "F1|src/popup/app/page.tsx|ChoiceField": {
+    "count": 1,
+    "measure": 4
+  },
   "F1|src/popup/components/ui/button.tsx|Button": {
     "count": 1,
     "measure": 6
   },
   "F1|src/popup/components/ui/combobox.tsx|ComboBox": {
     "count": 1,
-    "measure": 9
+    "measure": 10
+  },
+  "F1|src/popup/components/ui/combobox.tsx|ComboInput": {
+    "count": 1,
+    "measure": 5
   },
   "F1|src/popup/components/ui/select.tsx|SelectContent": {
     "count": 1,
@@ -217,22 +217,6 @@
   },
   "FM2|src/options/pages/WebUIsPage.tsx|": {
     "count": 8,
-    "measure": 1
-  },
-  "FM2|src/popup/components/ui/button.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/popup/components/ui/combobox.tsx|": {
-    "count": 4,
-    "measure": 1
-  },
-  "FM2|src/popup/components/ui/select.tsx|": {
-    "count": 4,
-    "measure": 1
-  },
-  "FM2|src/popup/components/ui/toggle.tsx|": {
-    "count": 1,
     "measure": 1
   },
   "FM2|test/util/parsers.test.ts|": {
@@ -355,26 +339,6 @@
     "count": 1,
     "measure": 39
   },
-  "FN1|src/popup/app/WebUiPickerView.tsx|WebUiPickerView": {
-    "count": 1,
-    "measure": 22
-  },
-  "FN1|src/popup/app/page.tsx|AddTorrentForm": {
-    "count": 1,
-    "measure": 64
-  },
-  "FN1|src/popup/components/ui/combobox.tsx|ComboBox": {
-    "count": 1,
-    "measure": 46
-  },
-  "FN1|src/popup/components/ui/toggle.tsx|Toggle": {
-    "count": 1,
-    "measure": 31
-  },
-  "FN1|src/popup/popup-data.ts|loadPopupData": {
-    "count": 1,
-    "measure": 37
-  },
   "FN1|test/helpers/chrome-mock.ts|createChromeMock": {
     "count": 1,
     "measure": 54
@@ -400,14 +364,6 @@
     "measure": 21
   },
   "FN2|e2e/fixtures/firefox-extension.ts|openExtensionTab": {
-    "count": 1,
-    "measure": 3
-  },
-  "FN2|src/popup/app/PageLinksView.tsx|(anonymous)": {
-    "count": 2,
-    "measure": 3
-  },
-  "FN2|src/popup/app/PageLinksView.tsx|PageLinksView": {
     "count": 1,
     "measure": 3
   },
@@ -438,14 +394,6 @@
   "FN3|src/options/pages/WebUIsPage.tsx|WebUIsPage": {
     "count": 1,
     "measure": 15
-  },
-  "FN3|src/popup/app/PageLinksView.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 12
-  },
-  "FN3|src/popup/popup-data.ts|loadPopupData": {
-    "count": 1,
-    "measure": 16
   },
   "FN3|test/helpers/fetch-mock.ts|mockResponse": {
     "count": 1,
@@ -616,10 +564,6 @@
     "measure": 1
   },
   "N5|src/options/pages/LinkCatchingPage.tsx|stringToRegex:s": {
-    "count": 1,
-    "measure": 1
-  },
-  "N5|src/popup/lib/utils.ts|cn:cn": {
     "count": 1,
     "measure": 1
   },

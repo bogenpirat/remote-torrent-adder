@@ -13,6 +13,9 @@ class_methods = 15
 name_length = 3
 duplicate_tokens = 70
 
+[names]
+allowed_short = ["id", "x", "y", "z", "_", "ok", "db", "io", "to", "at", "by", "of", "on", "cn"]
+
 [files]
 exclude = ["dist-prod/", "coverage/", ".tmp/", "playwright-report/", "test-results/", "web-ext-artifacts*/"]
 
@@ -75,6 +78,16 @@ may_use = ["models", "registry", "util", "webuis"]
 rule = "ER2"
 path = "src/**"
 reason = "TypeScript strict null checks make `T | null` a compiler-checked option type, and returning null is how a React component renders nothing."
+
+[[waivers]]
+rule = "F1"
+path = "src/**/*.tsx"
+reason = "A React component takes one props object; ccs counts every field destructured in the signature as a separate argument."
+
+[[waivers]]
+rule = "F3"
+path = "src/popup/components/ui/toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument."
 
 [[waivers]]
 rule = "G5"
