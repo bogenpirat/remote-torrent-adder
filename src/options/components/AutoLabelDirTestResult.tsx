@@ -4,9 +4,10 @@ import type { Torrent } from "../../models/torrent";
 import { type AutoLabelDirExplanation } from "../../util/auto-label-dir-matcher";
 import RuleRow from "./AutoLabelDirRuleRow";
 import { type CriterionField } from "./auto-label-dir-fields";
-import { BORDER, MUTED, monospace } from "./auto-label-dir-tester-styles";
+import { BORDER, monospace } from "./auto-label-dir-tester-styles";
+import { MUTED } from "./webui-fields";
 
-export interface AutoLabelDirTesterProps {
+export interface TestedRules {
   settings: AutoLabelDirSetting[];
   defaultLabel: string | null;
   defaultDir: string | null;
@@ -37,7 +38,7 @@ interface EntryListProps {
 interface ResultPanelProps {
   torrent: Torrent;
   explanation: AutoLabelDirExplanation;
-  tester: AutoLabelDirTesterProps;
+  rules: TestedRules;
   onClear: () => void;
 }
 
@@ -124,16 +125,16 @@ function TorrentContents({ torrent }: { torrent: Torrent }) {
   );
 }
 
-function Outcomes({ explanation, tester }: Pick<ResultPanelProps, "explanation" | "tester">) {
+function Outcomes({ explanation, rules }: Pick<ResultPanelProps, "explanation" | "rules">) {
   const winningRule = explanation.winningRuleIndex != null ? explanation.winningRuleIndex + 1 : null;
   const { label, dir } = explanation;
   return (
     <div style={{ marginTop: 8, marginBottom: 4 }}>
-      {tester.showLabel && (
-        <SourcedOutcome caption="Label" noun="label" ruleValue={label} defaultValue={tester.defaultLabel} winningRule={winningRule} />
+      {rules.showLabel && (
+        <SourcedOutcome caption="Label" noun="label" ruleValue={label} defaultValue={rules.defaultLabel} winningRule={winningRule} />
       )}
-      {tester.showDir && (
-        <SourcedOutcome caption="Directory" noun="directory" ruleValue={dir} defaultValue={tester.defaultDir} winningRule={winningRule} />
+      {rules.showDir && (
+        <SourcedOutcome caption="Directory" noun="directory" ruleValue={dir} defaultValue={rules.defaultDir} winningRule={winningRule} />
       )}
     </div>
   );
@@ -160,8 +161,8 @@ function Warnings({ torrent, settings }: { torrent: Torrent; settings: AutoLabel
   );
 }
 
-export default function AutoLabelDirTestResult({ torrent, explanation, tester, onClear }: ResultPanelProps) {
-  const { showLabel, showDir } = tester;
+export default function AutoLabelDirTestResult({ torrent, explanation, rules, onClear }: ResultPanelProps) {
+  const { showLabel, showDir } = rules;
   return (
     <div style={RESULT_PANEL_STYLE}>
       <div style={{ display: "flex", gap: 12, alignItems: "baseline", justifyContent: "space-between" }}>
@@ -171,9 +172,9 @@ export default function AutoLabelDirTestResult({ torrent, explanation, tester, o
         </button>
       </div>
 
-      <Outcomes explanation={explanation} tester={tester} />
+      <Outcomes explanation={explanation} rules={rules} />
 
-      <Warnings torrent={torrent} settings={tester.settings} />
+      <Warnings torrent={torrent} settings={rules.settings} />
 
       {explanation.rules.map(rule => (
         <RuleRow key={rule.index} rule={rule} winningRuleIndex={explanation.winningRuleIndex} showLabel={showLabel} showDir={showDir} />

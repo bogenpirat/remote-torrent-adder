@@ -48,12 +48,10 @@ describe("AutoLabelDirRuleRow", () => {
         expect(renderRow(ruleEvaluation([emptyPattern]))).toHaveTextContent("Tracker URL(empty)✅ empty pattern, always matches");
     });
 
-    it("highlights only the winning rule", () => {
-        const winner = renderRow(ruleEvaluation([criterionEvaluation()])).firstElementChild as HTMLElement;
-        const shadowed = renderRow(ruleEvaluation([criterionEvaluation()]), 0).firstElementChild as HTMLElement;
+    it("says which rule wins instead when it matches but is not the winner", () => {
+        const shadowed = renderRow(ruleEvaluation([criterionEvaluation()]), 0);
 
-        expect(winner.style.border).toContain("--rta-success");
-        expect(shadowed.style.border).toContain("--rta-border");
-        expect(shadowed).toHaveTextContent("✅ matches, but rule 1 wins");
+        expect(shadowed).toHaveTextContent("Rule 2✅ matches, but rule 1 wins");
+        expect(shadowed).not.toHaveTextContent("applied");
     });
 });

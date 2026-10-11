@@ -119,7 +119,6 @@ function ComboBox({
 }: ComboBoxProps) {
     const disclosure = useDisclosure()
 
-    // Check if current value is a new option (not in the options list)
     const isNewValue = value.trim() !== "" && !options.includes(value.trim())
 
     const selectOption = (option: string) => {

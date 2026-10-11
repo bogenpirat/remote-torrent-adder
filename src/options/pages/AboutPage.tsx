@@ -7,6 +7,8 @@ export default function AboutPage() {
       <Support />
 
       <SettingsHelp />
+      <AutoLabelDirHelp />
+      <RuleTesterHelp />
     </div>
   );
 }
@@ -53,7 +55,6 @@ function SettingsHelp() {
       <h2>Relative Path</h2>
       <p>Should be optional for some clients, but is available for all of them in case you use a reverse proxy.</p>
       <h2>Auto Label/Dir Settings</h2>
-      <AutoLabelDirHelp />
     </>
   );
 }
@@ -72,7 +73,6 @@ function AutoLabelDirHelp() {
         case-insensitively. Magnet links announce their trackers, so tracker criteria apply to them as well; they carry
         no file list until the torrent is fetched by the client, so file criteria never match a magnet link.
       </p>
-      <RuleTesterHelp />
     </>
   );
 }

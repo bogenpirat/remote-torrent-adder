@@ -1,6 +1,5 @@
 import { type CSSProperties } from "react";
 
-export const MUTED = "var(--rta-text-muted, #888)";
 export const DANGER = "var(--rta-danger, #B22222)";
 export const SUCCESS = "var(--rta-success, #228B22)";
 export const BORDER = "var(--rta-border, #b7c9a7)";

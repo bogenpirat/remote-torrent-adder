@@ -25,7 +25,6 @@ function addRegex(newRegexInput: HTMLElement, source: string): void {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 }
 
-/** Opens the chip's editor, types the replacement and reports what the editor showed first. */
 function editRegex(source: string, replacement: string): string {
     const chip = chipFor(source);
     fireEvent.click(within(chip).getByRole("button", { name: "✎" }));

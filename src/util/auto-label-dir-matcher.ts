@@ -56,7 +56,7 @@ function evaluateSetting(setting: AutoLabelDirSetting, index: number, torrent: T
 function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): AutoLabelDirCriterionEvaluation {
     const candidates = candidatesForField(criterion.field, torrent);
 
-    if (candidates === undefined) {
+    if (candidates === null) {
         return { criterion, matched: false, matchedCandidates: [], invalidPattern: false };
     }
 
@@ -72,12 +72,12 @@ interface FieldCandidates {
     flags: string;
 }
 
-function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): FieldCandidates | undefined {
+function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): FieldCandidates | null {
     switch (field) {
         case "trackerUrl": return { values: torrent.trackers, flags: "" };
         case "filePath": return { values: torrent.files, flags: "i" };
         case "torrentName": return { values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" };
-        default: return undefined;
+        default: return null;
     }
 }
 

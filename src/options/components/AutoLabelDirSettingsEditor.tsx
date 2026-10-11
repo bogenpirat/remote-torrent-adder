@@ -32,9 +32,13 @@ interface ChoiceSelectProps {
   onChange: (choice: string | null) => void;
 }
 
+type RuleChoices = Pick<AutoLabelDirSettingsEditorProps, "showLabel" | "showDir" | "labels" | "dirs">;
+
+type TestedRules = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
+
 interface RuleCardProps {
   setting: AutoLabelDirSetting;
-  editor: AutoLabelDirSettingsEditorProps;
+  choices: RuleChoices;
   onPatch: (patch: Partial<AutoLabelDirSetting>) => void;
   onRemove: () => void;
 }
@@ -185,7 +189,7 @@ function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectPro
   );
 }
 
-function RuleCard({ setting, editor, onPatch, onRemove }: RuleCardProps) {
+function RuleCard({ setting, choices, onPatch, onRemove }: RuleCardProps) {
   return (
     <div style={RULE_CARD_STYLE}>
       <button onClick={onRemove} style={REMOVE_RULE_BUTTON_STYLE} title="Remove rule">🗑</button>
@@ -194,11 +198,11 @@ function RuleCard({ setting, editor, onPatch, onRemove }: RuleCardProps) {
           <CriteriaEditor criteria={setting.criteria} onChange={criteria => onPatch({ criteria })} />
         </div>
         <div style={{ flex: 1 }}>
-          {editor.showLabel && (
-            <ChoiceSelect title="Label" choice={setting.label} knownChoices={editor.labels} onChange={label => onPatch({ label })} />
+          {choices.showLabel && (
+            <ChoiceSelect title="Label" choice={setting.label} knownChoices={choices.labels} onChange={label => onPatch({ label })} />
           )}
-          {editor.showDir && (
-            <ChoiceSelect title="Directory" choice={setting.dir} knownChoices={editor.dirs} onChange={dir => onPatch({ dir })} />
+          {choices.showDir && (
+            <ChoiceSelect title="Directory" choice={setting.dir} knownChoices={choices.dirs} onChange={dir => onPatch({ dir })} />
           )}
         </div>
       </div>
@@ -206,15 +210,9 @@ function RuleCard({ setting, editor, onPatch, onRemove }: RuleCardProps) {
   );
 }
 
-function RuleTester({ editor }: { editor: AutoLabelDirSettingsEditorProps }) {
+function RuleTester({ value, defaultLabel, defaultDir, showLabel, showDir }: TestedRules) {
   return (
-    <AutoLabelDirTester
-      settings={editor.value}
-      defaultLabel={editor.defaultLabel}
-      defaultDir={editor.defaultDir}
-      showLabel={editor.showLabel}
-      showDir={editor.showDir}
-    />
+    <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
   );
 }
 
@@ -231,9 +229,9 @@ function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
     <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
       {value.length === 0 && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>No rules defined yet.</div>}
       {value.map((setting, idx) => (
-        <RuleCard key={idx} setting={setting} editor={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
+        <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
       ))}
-      {value.length > 0 && <RuleTester editor={props} />}
+      {value.length > 0 && <RuleTester {...props} />}
     </SettingsGroup>
   );
 }

@@ -29,7 +29,6 @@ function optionTexts(select: HTMLSelectElement): string[] {
     return Array.from(select.options).map(option => option.textContent ?? "");
 }
 
-/** The pattern field of the criteria editor; the rule tester below it has a text field of its own. */
 function patternInput(): HTMLElement {
     return screen.getAllByRole("textbox")[0]!;
 }

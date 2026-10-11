@@ -39,18 +39,11 @@ export class PorlaWebUI extends JsonLoginWebUI {
     }
 
     private async createTorrentFetchOptions(jsonRpcToken: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        const body = torrent.isMagnet
-            ? JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config))
-            : JSON.stringify(await this.createPayloadForTorrent(torrent, config));
+        const payload = torrent.isMagnet
+            ? this.createPayloadForMagnet(torrent.data as string, config)
+            : await this.createPayloadForTorrent(torrent, config);
 
-        return {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8",
-                "Authorization": "Bearer " + jsonRpcToken
-            },
-            body
-        };
+        return this.createJsonPostOptions(payload, { "Authorization": "Bearer " + jsonRpcToken });
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {

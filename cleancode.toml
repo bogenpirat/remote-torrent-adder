@@ -82,7 +82,7 @@ reason = "TypeScript strict null checks make `T | null` a compiler-checked optio
 [[waivers]]
 rule = "F1"
 path = "src/**/*.tsx"
-reason = "A React component takes one props object; ccs counts every field destructured in the signature as a separate argument."
+reason = "A React component takes one props object; ccs counts every field destructured in the signature as a separate argument. This also exempts plain helpers in .tsx files, which review has to watch."
 
 [[waivers]]
 rule = "F3"
@@ -96,8 +96,28 @@ reason = "The boolean is the value a toggle reports through its onChange callbac
 
 [[waivers]]
 rule = "G5"
-path = "src/webuis/*-webui.ts"
-reason = "Sibling TorrentWebUI subclasses share their import block and the signatures of the members they override; only that boilerplate repeats."
+path = "src/webuis/biglybt-webui.ts"
+reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+
+[[waivers]]
+rule = "G5"
+path = "src/webuis/rqbit-webui.ts"
+reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+
+[[waivers]]
+rule = "G5"
+path = "src/webuis/tixati-webui.ts"
+reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+
+[[waivers]]
+rule = "G5"
+path = "src/webuis/flood-webui.ts"
+reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+
+[[waivers]]
+rule = "G5"
+path = "src/webuis/porla-webui.ts"
+reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
 
 [[waivers]]
 rule = "CL2"
@@ -108,7 +128,7 @@ reason = "TorrentWebUI is the template base class the 13 clients extend; its mem
 rule = "F3"
 path = "src/models/webui.ts"
 scope = "toReachableResult"
-reason = "`authenticated` is a result value computed by the caller and stored in the returned object, not a switch between two behaviours."
+reason = "Maps a probe outcome to a result: the boolean is stored in the result and selects only its message."
 
 # [[waivers]]
 # rule = "F1"

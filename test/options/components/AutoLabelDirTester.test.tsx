@@ -163,8 +163,8 @@ describe("AutoLabelDirTester with a torrent file", () => {
 
         chooseFile(container, new File(["not bencoded"], "notes.txt"));
 
-        await waitFor(() => expect(container).not.toHaveTextContent("Rule 1"));
-        expect(container.querySelector('div[style*="color"]:last-child')).not.toBeNull();
+        await waitFor(() => expect(container).toHaveTextContent('"notes.txt" doesn\'t look like a .torrent file.'));
+        expect(container).not.toHaveTextContent("Rule 1");
     });
 
     it("refuses a file above the size limit", () => {

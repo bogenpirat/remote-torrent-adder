@@ -12,7 +12,9 @@ class FakeAudio {
     constructor(source: string) {
         playedSources.push(source);
     }
-    addEventListener(): void { /* the test never ends playback */ }
+    addEventListener(): void {
+        return undefined;
+    }
     play(): Promise<void> {
         return Promise.resolve();
     }
@@ -28,7 +30,6 @@ async function renderPage(overrides: Partial<RTASettings> = {}) {
     await screen.findByRole("checkbox", { name: "Show notifications" });
 }
 
-/** The row of one sound picker, once it has finished looking up the stored sound. */
 async function soundRow(label: string): Promise<HTMLElement> {
     const row = (await screen.findByText(label)).parentElement!;
     await waitFor(() => expect(row.querySelector("button")).toBeEnabled());

@@ -45,9 +45,6 @@ function ExportCard({ settings }: { settings: RTASettings }): JSX.Element {
   );
 }
 
-// Pasted text is arbitrary: both a parse failure and a parse that yields
-// something which is not a settings export have to be reported, rather
-// than thrown out of the click handler.
 function parseSettingsExport(text: string): RTASettings {
   let imported;
   try {
@@ -67,6 +64,9 @@ function ImportCard({ onImport }: { onImport: (settings: RTASettings) => void })
 
   const handleImport = (): void => {
     setImportError("");
+    // Pasted text is arbitrary: both a parse failure and a parse that yields
+    // something which is not a settings export have to be reported, rather
+    // than thrown out of the click handler.
     let imported: RTASettings;
     try {
       imported = parseSettingsExport(importValue);

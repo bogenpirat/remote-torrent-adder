@@ -56,10 +56,8 @@ function WebUIsEditor({ webuis, onSave }: WebUIsEditorProps) {
 
   return (
     <div style={{ display: "flex", gap: 20, alignItems: "stretch", minHeight: 360 }}>
-      {/* Left panel: list of configured WebUIs */}
       <WebUIList webuis={webuis} selectedId={selectedId} editing={editing} onSelect={setRequestedId} onAdd={handleAdd} />
 
-      {/* Right panel: configuration for the selected WebUI */}
       <DetailPanel webuis={webuis} selected={selected} editing={editing} />
     </div>
   );

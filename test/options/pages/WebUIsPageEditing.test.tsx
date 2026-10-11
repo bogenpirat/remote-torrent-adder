@@ -2,10 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import WebUIsPage from "../../../src/options/pages/WebUIsPage";
 import { Client } from "../../../src/models/clients";
-import { GetSettingsMessage, TestConnectionMessage } from "../../../src/models/messages";
+import { TestConnectionMessage } from "../../../src/models/messages";
 import { type ConnectionTestResult, type WebUISettings } from "../../../src/models/webui";
-import { serializeSettings } from "../../../src/util/serializer";
-import { getDefaultSettings } from "../../../src/util/settings-defaults";
 import { makeWebUISettings } from "../../helpers/fixtures";
 import { lastSavedSettings, renderWithSettings, respondWithSettings, sentMessages } from "../../helpers/options";
 
@@ -19,17 +17,10 @@ async function renderPage(webuiSettings: WebUISettings[] = [ALPHA, BETA]): Promi
     await screen.findByRole("button", { name: "Add new WebUI" });
 }
 
-/** Answers the settings request as usual and a connection test with the given outcome. */
-function respondToConnectionTest(outcome: () => Promise<ConnectionTestResult>, webuiSettings: WebUISettings[] = [ALPHA]): void {
-    const settings = { ...getDefaultSettings(), webuiSettings };
-    (chrome.runtime.sendMessage as any).mockImplementation((message: any) => {
-        if (message.action === GetSettingsMessage.action) return Promise.resolve(serializeSettings(settings));
-        return message.action === TestConnectionMessage.action ? outcome() : Promise.resolve();
-    });
-}
-
 async function testConnection(outcome: () => Promise<ConnectionTestResult>): Promise<HTMLElement> {
-    respondToConnectionTest(outcome);
+    respondWithSettings({ webuiSettings: [ALPHA] }, message => {
+        return message.action === TestConnectionMessage.action ? outcome() : Promise.resolve(undefined);
+    });
     renderWithSettings(<WebUIsPage />);
     const general = await screen.findByRole("region", { name: "General" });
     fireEvent.click(within(general).getByRole("button", { name: "Test connection" }));

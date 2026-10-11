@@ -99,7 +99,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
         });
     });
 
-    it("buffers the torrent and opens the action popup", async () => {
+    it("focuses the window and opens the action popup", async () => {
         await preAdd();
 
         expect(downloadTorrent).toHaveBeenCalled();

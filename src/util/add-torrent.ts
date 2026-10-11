@@ -29,7 +29,6 @@ interface Delivery {
     webUi: TorrentWebUI;
     torrent: Torrent;
     settings: RTASettings;
-    webUiUrl: string;
 }
 
 interface SendTorrentError {
@@ -45,7 +44,7 @@ export async function dispatchPreAddTorrent(
     const settingsProvider = new Settings();
     const allWebUis = await getAllWebUis(settingsProvider);
     const webUiById = await getWebUiById(message.webUiId ?? "", settingsProvider);
-    const webUi = webUiById ?? allWebUis[0];
+    const webUi = webUiById ?? allWebUis[0] ?? null;
     if (webUi?.settings.showPerTorrentConfigSelector) {
         await addTorrentViaChooser({ webUi, url: message.url, windowId, context });
     } else {
@@ -89,13 +88,13 @@ async function addTorrentViaChooser(chooser: ChooserRequest): Promise<void> {
     await openChooser(chooser.webUi, chooser.windowId);
 }
 
-async function downloadTorrentOrNotify(chooser: ChooserRequest): Promise<Torrent | undefined> {
+async function downloadTorrentOrNotify(chooser: ChooserRequest): Promise<Torrent | null> {
     try {
         return await downloadTorrent(chooser.url, chooser.context);
     } catch (error) {
         console.error("Error downloading torrent:", error);
         notifyDownloadFailure(error, await new Settings().loadSettings(), addTrailingSlash(chooser.webUi.createBaseUrl()));
-        return undefined;
+        return null;
     }
 }
 
@@ -121,17 +120,17 @@ async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]>
     });
 }
 
-async function getWebUiById(webUiId: string, settingsProvider: Settings): Promise<TorrentWebUI | undefined> {
+async function getWebUiById(webUiId: string, settingsProvider: Settings): Promise<TorrentWebUI | null> {
     if (!webUiId) {
-        return undefined;
+        return null;
     }
 
     const allWebUis = await getAllWebUis(settingsProvider);
-    return allWebUis.find(webUi => webUi.settings.id === webUiId);
+    return allWebUis.find(webUi => webUi.settings.id === webUiId) ?? null;
 }
 
 function downloadAndAddTorrentToWebUi(
-    webUi: TorrentWebUI | undefined,
+    webUi: TorrentWebUI | null,
     request: AddTorrentRequest,
     context: TorrentDownloadContext = {},
 ): void {
@@ -161,7 +160,7 @@ function createFallbackUploadConfig(webUi: TorrentWebUI, torrent: Torrent): Torr
 
 function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null): void {
     new Settings().loadSettings().then(settings => {
-        const delivery: Delivery = { webUi, torrent, settings, webUiUrl: addTrailingSlash(webUi.createBaseUrl()) };
+        const delivery: Delivery = { webUi, torrent, settings };
         webUi.sendTorrent(torrent, config ?? {})
             .then(torrentAddingResult => notifyAddingResult(delivery, torrentAddingResult))
             .catch(error => notifyAddingError(delivery, error));
@@ -169,7 +168,7 @@ function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: Torre
 }
 
 function notifyAddingResult(delivery: Delivery, torrentAddingResult: TorrentAddingResult): void {
-    const { webUi, torrent, settings, webUiUrl } = delivery;
+    const { webUi, torrent, settings } = delivery;
     console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
     if (!settings.notificationsEnabled) {
         return;
@@ -179,7 +178,7 @@ function notifyAddingResult(delivery: Delivery, torrentAddingResult: TorrentAddi
             title: "Torrent added successfully",
             message: `${torrent.name} successfully added to ${webUi.name}`,
             isFailed: false,
-            webUiUrl,
+            webUiUrl: webUiUrlOf(webUi),
         });
         return;
     }
@@ -197,8 +196,12 @@ function notifyAddingFailure(delivery: Delivery, message: string): void {
         title: "Torrent adding failed",
         message,
         isFailed: true,
-        webUiUrl: delivery.webUiUrl,
+        webUiUrl: webUiUrlOf(delivery.webUi),
     });
+}
+
+function webUiUrlOf(webUi: TorrentWebUI): string {
+    return addTrailingSlash(webUi.createBaseUrl());
 }
 
 function notifyNoWebUiConfigured(request: AddTorrentRequest, settings: RTASettings): void {

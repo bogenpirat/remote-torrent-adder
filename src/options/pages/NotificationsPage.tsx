@@ -3,12 +3,12 @@ import { type CSSProperties } from "react";
 import { useSettings } from "../SettingsContext";
 import { type ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
 import { type RTASettings } from "../../models/settings";
-import { type SoundKind } from "../../util/sound-storage";
+import { type NotificationKind } from "../../util/notifications";
 import { buttonStyle, rowStyle } from "../components/notification-styles";
 import SoundPicker from "../components/SoundPicker";
 import Toggle from "../components/Toggle";
 
-const TEST_MESSAGE_BY_KIND: Record<SoundKind, string> = {
+const TEST_MESSAGE_BY_KIND: Record<NotificationKind, string> = {
   success: "This is a successful notification.",
   failure: "This is a failed notification.",
 };
@@ -114,7 +114,7 @@ function CustomSoundsSection() {
   );
 }
 
-function sendTestNotification(kind: SoundKind, settings: RTASettings): void {
+function sendTestNotification(kind: NotificationKind, settings: RTASettings): void {
   sendMessageAndForget({
     action: TestNotificationMessage.action,
     title: "Test Notification",

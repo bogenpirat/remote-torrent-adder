@@ -2,7 +2,8 @@ import React from "react";
 import type { AutoLabelDirSetting } from "../../models/webui";
 import { type AutoLabelDirCriterionEvaluation, type AutoLabelDirRuleEvaluation } from "../../util/auto-label-dir-matcher";
 import { fieldLabel } from "./auto-label-dir-fields";
-import { BORDER, DANGER, MUTED, SUCCESS, monospace } from "./auto-label-dir-tester-styles";
+import { BORDER, DANGER, SUCCESS, monospace } from "./auto-label-dir-tester-styles";
+import { MUTED } from "./webui-fields";
 
 interface RuleRowProps {
   rule: AutoLabelDirRuleEvaluation;

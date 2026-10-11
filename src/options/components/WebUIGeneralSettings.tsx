@@ -78,17 +78,13 @@ export default function WebUIGeneralSettings({ webui, webUiInstance, onChange }:
   return (
     <SettingsGroup title="General">
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Host + Port + Secure + Relative Path */}
         <EndpointFields webui={webui} onPatch={patch} />
         <div style={{ color: MUTED }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
-        {/* Username + Password */}
         <div style={FIELD_ROW_STYLE}>
           <TextField label="Username" value={webui.username} onChange={username => patch({ username })} />
           <TextField label="Password" value={webui.password} onChange={password => patch({ password })} type="password" />
         </div>
-        {/* Test connection */}
         {webUiInstance.isConnectionTestSupported && <WebUIConnectionTest webui={webui} />}
-        {/* Only show these fields if supported by the WebUI instance */}
         {(webUiInstance.isAddPausedSupported || webUiInstance.isLabelDirChooserSupported) && (
           <BehaviourToggles webui={webui} webUiInstance={webUiInstance} onPatch={patch} />
         )}

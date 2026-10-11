@@ -21,10 +21,15 @@ interface WebUIListItemProps {
   onDrop: () => void;
 }
 
-interface ReorderHandleProps {
-  item: WebUIListItemProps;
-  onArm: () => void;
+interface DragArming {
+  dragArmed: boolean;
+  arm: () => void;
+  disarm: () => void;
 }
+
+type ReorderHandleProps = Pick<WebUIListItemProps, "webui" | "index" | "selected" | "onMove"> & { onArm: () => void };
+
+type DraggedItem = Pick<WebUIListItemProps, "webui" | "onDragStart" | "onDragOver" | "onDragEnd" | "onDrop">;
 
 type ItemNameProps = Pick<WebUIListItemProps, "webui" | "selected" | "onNameChange">;
 
@@ -65,7 +70,7 @@ const PRIMARY_BADGE_STYLE: CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-function useDragArming(isDragging: WebUIListItemProps["isDragging"]): [boolean, (armed: WebUIListItemProps["isDragging"]) => void] {
+function useDragArming({ isDragging }: Pick<WebUIListItemProps, "isDragging">): DragArming {
   const [dragArmed, setDragArmed] = useState(false);
 
   useEffect(() => {
@@ -79,7 +84,7 @@ function useDragArming(isDragging: WebUIListItemProps["isDragging"]): [boolean, 
     };
   }, [dragArmed, isDragging]);
 
-  return [dragArmed, setDragArmed];
+  return { dragArmed, arm: () => setDragArmed(true), disarm: () => setDragArmed(false) };
 }
 
 function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps): CSSProperties {
@@ -98,7 +103,7 @@ function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps):
   };
 }
 
-function dragHandlers(item: WebUIListItemProps, disarm: () => void) {
+function dragHandlers(item: DraggedItem, disarm: () => void) {
   return {
     onDragStart: (e: React.DragEvent) => {
       e.dataTransfer.effectAllowed = "move";
@@ -121,8 +126,7 @@ function dragHandlers(item: WebUIListItemProps, disarm: () => void) {
   };
 }
 
-function ReorderHandle({ item, onArm }: ReorderHandleProps) {
-  const { webui, index, selected, onMove } = item;
+function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const step = REORDER_STEP_BY_KEY.get(e.key);
     if (step === undefined) return;
@@ -167,12 +171,12 @@ export default function WebUIListItem(props: WebUIListItemProps) {
   const { webui, selected } = props;
   const subtitle = isClientSelected(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
   // Only the handle arms dragging, so the inline name input stays selectable.
-  const [dragArmed, setDragArmed] = useDragArming(props.isDragging);
+  const arming = useDragArming(props);
 
   return (
-    <div onClick={props.onSelect} draggable={dragArmed} {...dragHandlers(props, () => setDragArmed(false))} style={itemStyle(props)}>
+    <div onClick={props.onSelect} draggable={arming.dragArmed} {...dragHandlers(props, arming.disarm)} style={itemStyle(props)}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <ReorderHandle item={props} onArm={() => setDragArmed(true)} />
+        <ReorderHandle webui={webui} index={props.index} selected={selected} onMove={props.onMove} onArm={arming.arm} />
         <ItemName webui={webui} selected={selected} onNameChange={props.onNameChange} />
         {props.isPrimary && <span style={PRIMARY_BADGE_STYLE}>Primary</span>}
       </div>

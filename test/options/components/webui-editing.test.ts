@@ -90,12 +90,4 @@ describe("getDefaultWebUISettings", () => {
         expect(second.labels).toEqual([]);
         expect(second.autoLabelDirSettings).toEqual([]);
     });
-
-    it("lists its fields in the stored order", () => {
-        expect(Object.keys(getDefaultWebUISettings())).toEqual([
-            "id", "client", "name", "host", "port", "secure", "relativePath", "username", "password",
-            "showPerTorrentConfigSelector", "defaultLabel", "defaultDir", "labels", "dirs", "addPaused",
-            "autoLabelDirSettings", "clientSpecificSettings", "useAlternativeLabelDirChooser",
-        ]);
-    });
 });

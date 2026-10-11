@@ -19,169 +19,17 @@
     "count": 1,
     "measure": 24
   },
-  "CL2|src/models/webui.ts|abstract class TorrentWebUI {": {
-    "count": 1,
-    "measure": 23
-  },
   "ER2|e2e/fixtures/firefox-extension.ts|readUuidFromPrefs": {
     "count": 2,
-    "measure": 1
-  },
-  "ER2|src/models/clients.ts|createWebUI": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/options/components/HostPermissionNotice.tsx|HostPermissionNotice": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/options/components/WebUIList.tsx|indicatorFor": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/options/pages/LinkCatchingPage.tsx|stringToRegex": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/popup/popup-data.ts|loadPopupData": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/browser-api.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/buffered-torrent.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/parsers.ts|getDeclaredTorrentNameFromMagnetLink": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/request-settings.ts|requestSerializedSettings": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/serializer.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/util/utils.ts|parsePortInput": {
-    "count": 1,
-    "measure": 1
-  },
-  "ER2|src/webuis/synologydownloadstation-webui.ts|resolveDestination": {
-    "count": 1,
     "measure": 1
   },
   "F1|e2e/firefox/add-torrent.e2e.spec.ts|configure": {
     "count": 1,
     "measure": 4
   },
-  "F1|src/options/components/AutoLabelDirRuleRow.tsx|RuleVerdict": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/AutoLabelDirSettingsEditor.tsx|ChoiceSelect": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/AutoLabelDirSettingsEditor.tsx|RuleCard": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/AutoLabelDirTestResult.tsx|AutoLabelDirTestResult": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/AutoLabelDirTestResult.tsx|SourcedOutcome": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/options/components/ChipList.tsx|ChipList": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/RadioCard.tsx|RadioCard": {
-    "count": 1,
-    "measure": 8
-  },
-  "F1|src/options/components/Select.tsx|Select": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/options/components/SoundPicker.tsx|SoundActions": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/WebUIDetail.tsx|DetailHeader": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/WebUIDetail.tsx|WebUIDetail": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/options/components/WebUILabelDirSettings.tsx|ChoiceColumn": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/options/components/WebUIList.tsx|WebUIListItems": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/options/components/webui-fields.tsx|TextField": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/popup/app/page.tsx|ChoiceField": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/popup/components/ui/button.tsx|Button": {
-    "count": 1,
-    "measure": 6
-  },
-  "F1|src/popup/components/ui/combobox.tsx|ComboBox": {
-    "count": 1,
-    "measure": 10
-  },
-  "F1|src/popup/components/ui/combobox.tsx|ComboInput": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/popup/components/ui/select.tsx|SelectContent": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/popup/components/ui/select.tsx|SelectItem": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/popup/components/ui/select.tsx|SelectTrigger": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/popup/components/ui/toggle.tsx|Toggle": {
-    "count": 1,
-    "measure": 6
-  },
   "F1|vite.config.ts|scriptTarget": {
     "count": 1,
     "measure": 4
-  },
-  "F3|src/models/webui.ts|toReachableResult": {
-    "count": 1,
-    "measure": 1
-  },
-  "F3|src/options/components/Toggle.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "F3|src/popup/components/ui/toggle.tsx|": {
-    "count": 1,
-    "measure": 1
   },
   "F3|test/helpers/chrome-mock.ts|": {
     "count": 1,
@@ -271,26 +119,6 @@
     "count": 3,
     "measure": 1
   },
-  "G5|src/webuis/biglybt-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|src/webuis/flood-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|src/webuis/porla-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|src/webuis/rqbit-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|src/webuis/tixati-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
   "G5|test/models/webui.test.ts|(anonymous)": {
     "count": 5,
     "measure": 1
@@ -336,7 +164,7 @@
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|(anonymous)": {
-    "count": 10,
+    "count": 11,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|build": {
@@ -348,11 +176,7 @@
     "measure": 1
   },
   "G5|test/webuis/porla-webui.test.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/porla-webui.test.ts|build": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/qbittorrent-webui.test.ts|": {
@@ -368,11 +192,7 @@
     "measure": 1
   },
   "G5|test/webuis/rqbit-webui.test.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/rqbit-webui.test.ts|build": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|": {
@@ -380,7 +200,7 @@
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|(anonymous)": {
-    "count": 4,
+    "count": 5,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|build": {
@@ -400,7 +220,7 @@
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
-    "count": 8,
+    "count": 9,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|build": {
@@ -424,7 +244,7 @@
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
-    "count": 8,
+    "count": 9,
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|build": {

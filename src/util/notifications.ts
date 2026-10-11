@@ -4,6 +4,8 @@ import { canUseOffscreen } from "./platform";
 import { playNotificationSound } from "./play-sound";
 import { type SoundKind } from "./sound-storage";
 
+export type NotificationKind = SoundKind;
+
 export interface NotificationRequest {
     title: string;
     message: string;
@@ -15,7 +17,7 @@ export interface NotificationRequest {
 
 const DEFAULT_POPUP_DURATION_MS = 2000;
 
-const ICON_URL_BY_KIND: Record<SoundKind, string> = {
+const ICON_URL_BY_KIND: Record<NotificationKind, string> = {
     success: "assets/icons/BitTorrent128.png",
     failure: "assets/icons/BitTorrent128-red.png",
 };
@@ -34,9 +36,9 @@ export function registerNotificationClickListener(): void {
 
 export function showNotification(notification: NotificationRequest): void {
     const { isFailed = true, popupDurationMs = DEFAULT_POPUP_DURATION_MS, playSound = false } = notification;
-    const kind: SoundKind = isFailed ? "failure" : "success";
+    const kind: NotificationKind = isFailed ? "failure" : "success";
 
-    void ext.notifications.create("", createOptions(notification, kind)).then(notificationId => {
+    void ext.notifications.create("", createNotificationOptions(notification, kind)).then(notificationId => {
         rememberWebUiUrl(notificationId, notification.webUiUrl);
         setTimeout(() => forgetNotification(notificationId), popupDurationMs);
     });
@@ -46,7 +48,9 @@ export function showNotification(notification: NotificationRequest): void {
     }
 }
 
-function createOptions(notification: NotificationRequest, kind: SoundKind): chrome.notifications.NotificationCreateOptions {
+type NotificationCreateOptions = chrome.notifications.NotificationCreateOptions;
+
+function createNotificationOptions(notification: NotificationRequest, kind: NotificationKind): NotificationCreateOptions {
     return {
         type: "basic",
         iconUrl: ICON_URL_BY_KIND[kind],

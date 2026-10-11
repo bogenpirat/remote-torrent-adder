@@ -24,11 +24,15 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
         return response.json();
     }
 
-    private createLoginFetchOptions(): RequestInit {
+    protected createJsonPostOptions(payload: unknown, extraHeaders: Record<string, string> = {}): RequestInit {
         return {
             method: "POST",
-            headers: { "Content-Type": "application/json; charset=UTF-8" },
-            body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
+            headers: { "Content-Type": "application/json; charset=UTF-8", ...extraHeaders },
+            body: JSON.stringify(payload)
         };
+    }
+
+    private createLoginFetchOptions(): RequestInit {
+        return this.createJsonPostOptions({ username: this._settings.username, password: this._settings.password });
     }
 }
