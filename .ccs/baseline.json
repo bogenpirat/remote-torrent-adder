@@ -107,6 +107,10 @@
     "count": 1,
     "measure": 5
   },
+  "F1|src/options/components/SoundPicker.tsx|SoundActions": {
+    "count": 1,
+    "measure": 4
+  },
   "F1|src/options/pages/WebUIsPage.tsx|WebUIDetail": {
     "count": 1,
     "measure": 5
@@ -156,10 +160,6 @@
     "measure": 1
   },
   "F3|src/options/components/Toggle.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "F3|src/options/pages/NotificationsPage.tsx|sendTest": {
     "count": 1,
     "measure": 1
   },
@@ -250,14 +250,6 @@
   "FN1|src/options/components/AutoLabelDirTester.tsx|verdict": {
     "count": 1,
     "measure": 24
-  },
-  "FN1|src/options/pages/NotificationsPage.tsx|NotificationsPage": {
-    "count": 1,
-    "measure": 53
-  },
-  "FN1|src/options/pages/NotificationsPage.tsx|SoundPicker": {
-    "count": 1,
-    "measure": 49
   },
   "FN1|src/options/pages/WebUIsPage.tsx|(anonymous)": {
     "count": 1,
@@ -423,10 +415,6 @@
     "count": 2,
     "measure": 1
   },
-  "G5|test/webuis/porla-webui.test.ts|build": {
-    "count": 1,
-    "measure": 1
-  },
   "G5|test/webuis/qbittorrent-webui.test.ts|": {
     "count": 1,
     "measure": 1
@@ -441,10 +429,6 @@
   },
   "G5|test/webuis/rqbit-webui.test.ts|": {
     "count": 2,
-    "measure": 1
-  },
-  "G5|test/webuis/rqbit-webui.test.ts|build": {
-    "count": 1,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|": {
