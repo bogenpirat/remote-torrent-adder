@@ -53,7 +53,10 @@ export class BiglyBTWebUI extends TorrentWebUI {
     }
 
     createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
-        return JSON.stringify({ "method": "torrent-add", "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri } });
+        return JSON.stringify({
+            "method": "torrent-add",
+            "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri }
+        });
     }
 
     createPayloadForTorrent(torrent: Torrent): FormData {

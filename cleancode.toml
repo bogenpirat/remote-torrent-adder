@@ -77,6 +77,11 @@ path = "src/**"
 reason = "TypeScript strict null checks make `T | null` a compiler-checked option type, and returning null is how a React component renders nothing."
 
 [[waivers]]
+rule = "G5"
+path = "src/webuis/*-webui.ts"
+reason = "Sibling TorrentWebUI subclasses share their import block and the signatures of the members they override; only that boilerplate repeats."
+
+[[waivers]]
 rule = "CL2"
 path = "src/models/webui.ts"
 reason = "TorrentWebUI is the template base class the 13 clients extend; its members are the documented extension API and mostly one-line accessors."

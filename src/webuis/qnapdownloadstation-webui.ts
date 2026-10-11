@@ -73,7 +73,8 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         if (torrent.isMagnet) {
             payload.append("url", torrent.data as string);
         } else {
-            payload.append("file", new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" }), torrent.name);
+            const fileContents = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
+            payload.append("file", fileContents, torrent.name);
         }
 
         return {

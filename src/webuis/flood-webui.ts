@@ -1,23 +1,15 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
-export class FloodWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.createBaseUrl() + "/api/auth/authenticate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json; charset=UTF-8" },
-                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
-            });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(json.success === true, response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+export class FloodWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createBaseUrl() + "/api/auth/authenticate";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return answer["success"] === true;
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -39,30 +31,11 @@ export class FloodWebUI extends TorrentWebUI {
         }
     }
 
-    private authenticate(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const authenticationUrl = this.createBaseUrl() + "/api/auth/authenticate";
-            this.fetch(authenticationUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                },
-                body: JSON.stringify({
-                    username: this._settings.username,
-                    password: this._settings.password
-                })
-            }).then(response =>
-                response.json()
-            ).then((json) => {
-                if (json.success) {
-                    resolve();
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
+    private async authenticate(): Promise<void> {
+        const answer = await this.login();
+        if (!answer["success"]) {
+            throw new Error("Authentication failed");
+        }
     }
 
     private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {

@@ -7,10 +7,6 @@
     "count": 1,
     "measure": 245
   },
-  "CL1|src/webuis/synologydownloadstation-webui.ts|class SynologyDownloadStationWebUI extends TorrentWebUI {": {
-    "count": 1,
-    "measure": 241
-  },
   "CL2|e2e/fixtures/console-collector.ts|class ConsoleCollector {": {
     "count": 1,
     "measure": 28
@@ -151,14 +147,6 @@
     "count": 1,
     "measure": 6
   },
-  "F1|src/webuis/synologydownloadstation-webui.ts|createTaskWithLegacyApi": {
-    "count": 1,
-    "measure": 4
-  },
-  "F1|src/webuis/synologydownloadstation-webui.ts|createTaskWithModernApi": {
-    "count": 1,
-    "measure": 4
-  },
   "F1|vite.config.ts|scriptTarget": {
     "count": 1,
     "measure": 4
@@ -244,18 +232,6 @@
     "measure": 1
   },
   "FM2|src/popup/components/ui/toggle.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/webuis/biglybt-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/webuis/qnapdownloadstation-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "FM2|src/webuis/transmission-webui.ts|": {
     "count": 1,
     "measure": 1
   },
@@ -399,34 +375,6 @@
     "count": 1,
     "measure": 37
   },
-  "FN1|src/webuis/deluge-webui.ts|setLabelForUploadedTorrent": {
-    "count": 1,
-    "measure": 22
-  },
-  "FN1|src/webuis/deluge-webui.ts|startUploadedTorrent": {
-    "count": 1,
-    "measure": 32
-  },
-  "FN1|src/webuis/qbittorrent-webui.ts|createTorrentFetchOptions": {
-    "count": 1,
-    "measure": 24
-  },
-  "FN1|src/webuis/synologydownloadstation-webui.ts|createTaskWithLegacyApi": {
-    "count": 1,
-    "measure": 37
-  },
-  "FN1|src/webuis/synologydownloadstation-webui.ts|createTaskWithModernApi": {
-    "count": 1,
-    "measure": 38
-  },
-  "FN1|src/webuis/synologydownloadstation-webui.ts|testConnection": {
-    "count": 1,
-    "measure": 21
-  },
-  "FN1|src/webuis/transmission-webui.ts|createTorrentFetchOptions": {
-    "count": 1,
-    "measure": 31
-  },
   "FN1|test/helpers/chrome-mock.ts|createChromeMock": {
     "count": 1,
     "measure": 54
@@ -515,15 +463,7 @@
     "count": 1,
     "measure": 1
   },
-  "G5|src/webuis/flood-webui.ts|sendTorrent": {
-    "count": 1,
-    "measure": 1
-  },
   "G5|src/webuis/porla-webui.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|src/webuis/porla-webui.ts|sendTorrent": {
     "count": 1,
     "measure": 1
   },
@@ -628,7 +568,7 @@
     "measure": 1
   },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 14,
+    "count": 7,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|": {

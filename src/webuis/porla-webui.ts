@@ -1,23 +1,15 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
-export class PorlaWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.createBaseUrl() + "/api/v1/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json; charset=UTF-8" },
-                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
-            });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(!json.error && !!json.token, response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+export class PorlaWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createBaseUrl() + "/api/v1/auth/login";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return !answer["error"] && !!answer["token"];
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -38,30 +30,12 @@ export class PorlaWebUI extends TorrentWebUI {
         }
     }
 
-    private authenticateForToken(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const authenticationUrl = this.createBaseUrl() + "/api/v1/auth/login";
-            this.fetch(authenticationUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                },
-                body: JSON.stringify({
-                    username: this._settings.username,
-                    password: this._settings.password
-                })
-            }).then(response =>
-                response.json()
-            ).then(json => {
-                if (json.error) {
-                    reject(new Error(json.error));
-                } else {
-                    resolve(json.token);
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
+    private async authenticateForToken(): Promise<string> {
+        const answer = await this.login();
+        if (answer["error"]) {
+            throw new Error(answer["error"] as string);
+        }
+        return answer["token"] as string;
     }
 
     private async createTorrentFetchOptions(jsonRpcToken: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {

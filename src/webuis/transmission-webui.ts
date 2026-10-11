@@ -44,30 +44,15 @@ export class TransmissionWebUI extends TorrentWebUI {
         });
     }
 
-    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
-        const payload: Record<string, string | Record<string, string | boolean>> = {
+    private async createTorrentFetchOptions(
+        torrent: Torrent,
+        config: TorrentUploadConfig,
+        transmissionSessionId: string,
+    ): Promise<RequestInit> {
+        const payload = {
             method: "torrent-add",
-            arguments: {}
+            arguments: await this.createAddArguments(torrent, config)
         };
-        if (torrent.isMagnet) {
-            payload["arguments"] = {
-                filename: torrent.data as string
-            };
-        } else {
-            payload["arguments"] = {
-                metainfo: await blobToBase64(torrent.data as Blob)
-            };
-        }
-
-        const dir = this.getDirectory(config);
-        if (dir) {
-            payload["arguments"]["download-dir"] = dir;
-        }
-
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            payload["arguments"]["paused"] = addPaused;
-        }
 
         return {
             method: "POST",
@@ -77,6 +62,23 @@ export class TransmissionWebUI extends TorrentWebUI {
             },
             body: JSON.stringify(payload)
         };
+    }
+
+    private async createAddArguments(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, string | boolean>> {
+        const addArguments: Record<string, string | boolean> = torrent.isMagnet
+            ? { filename: torrent.data as string }
+            : { metainfo: await blobToBase64(torrent.data as Blob) };
+
+        const dir = this.getDirectory(config);
+        if (dir) {
+            addArguments["download-dir"] = dir;
+        }
+
+        const addPaused = this.getAddPaused(config);
+        if (addPaused !== null) {
+            addArguments["paused"] = addPaused;
+        }
+        return addArguments;
     }
 
     get isLabelSupported(): boolean {

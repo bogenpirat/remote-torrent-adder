@@ -66,27 +66,22 @@ export class QBittorrentWebUI extends TorrentWebUI {
         } else {
             body.append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
         }
-
-        const dir = this.getDirectory(config);
-        if (dir) {
-            body.append("savepath", dir);
-        }
-
-        const label = this.getLabel(config);
-        if (label) {
-            body.append("category", label);
-        }
-
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            body.append("stopped", addPaused.toString());
-        }
-
-        if (this.getClientSpecific("forceStart", config)) {
-            body.append("forced", "true");
+        for (const [name, value] of this.createUploadConfigFields(config)) {
+            body.append(name, value);
         }
 
         return { method: "POST", body };
+    }
+
+    private createUploadConfigFields(config: TorrentUploadConfig): Array<[string, string]> {
+        const addPaused = this.getAddPaused(config);
+        const candidates: Array<[string, string | null]> = [
+            ["savepath", this.getDirectory(config)],
+            ["category", this.getLabel(config)],
+            ["stopped", addPaused === null ? null : addPaused.toString()],
+            ["forced", this.getClientSpecific("forceStart", config) ? "true" : null],
+        ];
+        return candidates.filter((field): field is [string, string] => !!field[1]);
     }
 
     override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {
