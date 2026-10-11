@@ -1,11 +1,10 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { BasicAuthWebUI } from "./basic-auth-webui";
 
-export class BiglyBTWebUI extends TorrentWebUI {
-    public override testConnection(): Promise<ConnectionTestResult> {
-        return probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc", this.settings);
-    }
+export class BiglyBTWebUI extends BasicAuthWebUI {
+    protected readonly connectionProbePath = "/transmission/rpc";
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {

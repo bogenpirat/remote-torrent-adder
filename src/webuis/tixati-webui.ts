@@ -1,11 +1,10 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, probeWithBasicAuth, toFailureResult } from "../models/webui-http";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { BasicAuthWebUI } from "./basic-auth-webui";
 
-export class TixatiWebUI extends TorrentWebUI {
-    public override testConnection(): Promise<ConnectionTestResult> {
-        return probeWithBasicAuth(this.createBaseUrl() + "/home", this.settings);
-    }
+export class TixatiWebUI extends BasicAuthWebUI {
+    protected readonly connectionProbePath = "/home";
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
