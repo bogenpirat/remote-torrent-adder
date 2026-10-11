@@ -43,7 +43,7 @@
         "dev:popup": "cross-env RTA_TARGET=popup vite",
         "dev:options": "cross-env RTA_TARGET=options vite",
         "dev:firefox": "npm run build:firefox:run && web-ext run --source-dir dist/firefox",
-        "watch:assets": "chokidar \"src/assets/**\" src/manifest.json -c \"node scripts/build.mjs --only=assets\"",
+        "watch:assets": "node scripts/build.mjs --only=assets --watch",
         "watch:worker": "node scripts/build.mjs --only=worker --watch",
         "watch:content-script": "node scripts/build.mjs --only=content-script --watch"
     },
@@ -64,7 +64,6 @@
         "@vitejs/plugin-react": "^6.1.1",
         "@vitest/coverage-v8": "^4.1.10",
         "buffer": "^6.0.3",
-        "chokidar-cli": "^3.0.0",
         "concurrently": "^10.0.5",
         "cross-env": "^10.1.0",
         "eslint": "^10.10.0",
@@ -94,5 +93,10 @@
         "react": "^19.3.0",
         "react-dom": "^19.3.0",
         "tailwind-merge": "^3.7.0"
+    },
+    "overrides": {
+        "fx-runner": {
+            "shell-quote": "1.12.0"
+        }
     }
 }

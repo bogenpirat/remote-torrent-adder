@@ -6,21 +6,16 @@ import { spawnSync } from "node:child_process";
  */
 const ALLOWLIST = [
     {
-        package: "image-size",
-        ghsa: "GHSA-w3rx-r6r6-pgpr",
+        package: "node-forge",
+        ghsa: "GHSA-86w9-cpqp-85rv",
         reason:
-            "Denial of service in the ICNS parser, reached through addons-linter <- web-ext. " +
-            "image-size 2.0.2 is the newest release and is still vulnerable, so there is nothing " +
-            "to upgrade to; npm's suggested fix downgrades web-ext to 5.5.0, which reintroduces " +
-            "eight other advisories. web-ext is a devDependency that never ships, and the only " +
-            "images it parses are this repository's own icons under src/assets/icons.",
-        reviewed: "2026-09-07",
-    },
-    {
-        package: "image-size",
-        ghsa: "GHSA-5p2g-fcmc-qvqq",
-        reason: "Same package, same path, same reasoning as GHSA-w3rx-r6r6-pgpr (JXL/HEIF parsers).",
-        reviewed: "2026-09-07",
+            "RSA PKCS#1 v1.5 signature verification flaw, reached through @devicefarmer/adbkit <- web-ext. " +
+            "node-forge 1.4.0 is the newest release and is still vulnerable, so there is nothing " +
+            "to upgrade to; npm's suggested fix downgrades web-ext to 10.3.0. adbkit only verifies " +
+            "signatures in its TCP-USB bridge server (adb/tcpusb/socket.js), which web-ext never " +
+            "starts; this project uses web-ext for lint, sign and desktop run only. " +
+            "web-ext is a devDependency that never ships.",
+        reviewed: "2026-10-12",
     },
 ];
 
@@ -33,7 +28,10 @@ if (!result.stdout) {
     process.exit(1);
 }
 
-/** @type {{ vulnerabilities: Record<string, { via: (string | { url: string, severity: string, title: string })[] }> }} */
+/**
+ * @typedef {{ url: string, severity: string, title: string }} Advisory
+ * @type {{ vulnerabilities: Record<string, { via: (string | Advisory)[] }> }}
+ */
 const report = JSON.parse(result.stdout);
 
 const found = new Map();

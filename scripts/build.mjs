@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { watch as fsWatch } from 'node:fs';
 import { cp, rm } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -15,14 +16,20 @@ const browser = parseBrowser(flag('browser') ?? process.env.RTA_BROWSER);
 const isProd = argv.includes('--prod') || process.env.PROD === 'true';
 const watch = argv.includes('--watch');
 const only = flag('only');
+const watchAssets = watch && only === 'assets';
 const distDir = path.join(rootDir, distDirFor(browser, isProd));
 const env = { ...process.env, RTA_BROWSER: browser, PROD: String(isProd) };
 
 function run(args, extraEnv) {
     const result = spawnSync(process.execPath, args, { stdio: 'inherit', cwd: rootDir, env: { ...env, ...extraEnv } });
-    if (result.status !== 0) {
+    if (result.status !== 0 && !watchAssets) {
         process.exit(result.status ?? 1);
     }
+}
+
+async function buildAssets() {
+    await cp(path.join(rootDir, 'src', 'assets'), path.join(distDir, 'assets'), { recursive: true });
+    run([path.join(rootDir, 'scripts', 'generate-manifest.mjs'), browser, distDir]);
 }
 
 if (!only) {
@@ -30,8 +37,21 @@ if (!only) {
 }
 
 if (!only || only === 'assets') {
-    await cp(path.join(rootDir, 'src', 'assets'), path.join(distDir, 'assets'), { recursive: true });
-    run([path.join(rootDir, 'scripts', 'generate-manifest.mjs'), browser, distDir]);
+    await buildAssets();
+}
+
+if (watchAssets) {
+    let timer;
+    const rebuild = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => buildAssets().catch(error => console.error(error)), 100);
+    };
+    fsWatch(path.join(rootDir, 'src', 'assets'), { recursive: true }, rebuild);
+    fsWatch(path.join(rootDir, 'src'), (_event, filename) => {
+        if (filename === 'manifest.json') {
+            rebuild();
+        }
+    });
 }
 
 for (const target of targetsFor(browser)) {
