@@ -116,7 +116,11 @@ export default function LinkCatchingPage(): JSX.Element {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Toggle checked={settings.linkCatchingEnabled} onChange={v => updateSetting("linkCatchingEnabled", v)} label="Enable link catching" />
+        <Toggle
+          checked={settings.linkCatchingEnabled}
+          onChange={v => updateSetting("linkCatchingEnabled", v)}
+          label="Enable link catching"
+        />
       </div>
       <RegexList regexes={settings.linkCatchingRegexes} onChange={saveRegexes} />
       <hr style={SEPARATOR_STYLE} />
