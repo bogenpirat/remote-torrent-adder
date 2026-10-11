@@ -112,15 +112,27 @@
     "measure": 18
   },
   "G5|e2e/popup.smoke.spec.ts|(anonymous)": {
-    "count": 3,
+    "count": 5,
     "measure": 1
   },
   "G5|test/models/webui.test.ts|(anonymous)": {
     "count": 5,
     "measure": 1
   },
+  "G5|test/options/SettingsContext.test.tsx|": {
+    "count": 1,
+    "measure": 1
+  },
+  "G5|test/options/pages/IconClickPage.test.tsx|": {
+    "count": 1,
+    "measure": 1
+  },
   "G5|test/options/pages/WebUIsPage.test.tsx|(anonymous)": {
     "count": 4,
+    "measure": 1
+  },
+  "G5|test/popup/WebUiPickerView.test.tsx|": {
+    "count": 1,
     "measure": 1
   },
   "G5|test/popup/page.test.tsx|(anonymous)": {
@@ -135,6 +147,10 @@
     "count": 2,
     "measure": 1
   },
+  "G5|test/util/add-torrent.test.ts|(anonymous)": {
+    "count": 2,
+    "measure": 1
+  },
   "G5|test/util/auto-label-dir-matcher.test.ts|(anonymous)": {
     "count": 8,
     "measure": 1
@@ -143,7 +159,7 @@
     "count": 5,
     "measure": 1
   },
-  "G5|test/webuis/biglybt-webui.test.ts|": {
+  "G5|test/util/messaging.test.ts|(anonymous)": {
     "count": 2,
     "measure": 1
   },
@@ -151,80 +167,44 @@
     "count": 2,
     "measure": 1
   },
-  "G5|test/webuis/deluge-webui.test.ts|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/elementum-webui.test.ts|": {
-    "count": 8,
-    "measure": 1
-  },
   "G5|test/webuis/elementum-webui.test.ts|(anonymous)": {
-    "count": 8,
+    "count": 7,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|build": {
     "count": 4,
     "measure": 1
   },
-  "G5|test/webuis/flood-webui.test.ts|": {
+  "G5|test/webuis/porla-webui.test.ts|build": {
     "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/porla-webui.test.ts|": {
-    "count": 2,
-    "measure": 1
-  },
-  "G5|test/webuis/qbittorrent-webui.test.ts|": {
-    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/qbittorrent-webui.test.ts|(anonymous)": {
-    "count": 27,
+    "count": 26,
     "measure": 1
   },
-  "G5|test/webuis/qnapdownloadstation-webui.test.ts|": {
+  "G5|test/webuis/rqbit-webui.test.ts|build": {
     "count": 1,
     "measure": 1
   },
-  "G5|test/webuis/rqbit-webui.test.ts|": {
-    "count": 2,
-    "measure": 1
-  },
-  "G5|test/webuis/rutorrent-webui.test.ts|": {
-    "count": 4,
-    "measure": 1
-  },
   "G5|test/webuis/rutorrent-webui.test.ts|(anonymous)": {
-    "count": 4,
+    "count": 3,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|build": {
     "count": 2,
     "measure": 1
   },
-  "G5|test/webuis/synologydownloadstation-webui.test.ts|": {
-    "count": 1,
-    "measure": 1
-  },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 12,
-    "measure": 1
-  },
-  "G5|test/webuis/tixati-webui.test.ts|": {
-    "count": 8,
+    "count": 14,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
-    "count": 6,
+    "count": 5,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|build": {
     "count": 4,
-    "measure": 1
-  },
-  "G5|test/webuis/transmission-webui.test.ts|": {
-    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/transmission-webui.test.ts|(anonymous)": {
@@ -235,12 +215,8 @@
     "count": 1,
     "measure": 1
   },
-  "G5|test/webuis/ttorrent-webui.test.ts|": {
-    "count": 6,
-    "measure": 1
-  },
   "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
-    "count": 7,
+    "count": 6,
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|build": {

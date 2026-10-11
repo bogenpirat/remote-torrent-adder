@@ -1,6 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
+import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 
 export class DelugeWebUI extends TorrentWebUI {
@@ -11,11 +11,8 @@ export class DelugeWebUI extends TorrentWebUI {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ method: "auth.login", params: [this._settings.password], id: this.randomId() })
             });
-            if (!response.ok) {
-                return toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return toReachableResult(json["result"] === true, response.status);
+            const isAccepted = response.ok && (await response.json())["result"] === true;
+            return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
             return toUnreachableResult(error);
         }

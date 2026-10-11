@@ -31,15 +31,12 @@ export function toFailureResult(error: unknown): TorrentAddingResult {
     return { success: false, httpResponseCode: 0, httpResponseBody: (error as Error)?.message ?? null };
 }
 
-export function toReachableResult(authenticated: boolean, httpResponseCode: number): ConnectionTestResult {
-    return {
-        reachable: true,
-        authenticated,
-        httpResponseCode,
-        message: authenticated
-            ? "Reachable & authenticated"
-            : "Reachable, but authentication failed",
-    };
+export function toAuthenticatedResult(httpResponseCode: number): ConnectionTestResult {
+    return { reachable: true, authenticated: true, httpResponseCode, message: "Reachable & authenticated" };
+}
+
+export function toRejectedResult(httpResponseCode: number): ConnectionTestResult {
+    return { reachable: true, authenticated: false, httpResponseCode, message: "Reachable, but authentication failed" };
 }
 
 export function toUnreachableResult(error: unknown): ConnectionTestResult {
@@ -54,8 +51,8 @@ export function toUnreachableResult(error: unknown): ConnectionTestResult {
 export async function probeWithBasicAuth(url: string, credentials: Credentials): Promise<ConnectionTestResult> {
     try {
         const response = await fetch(url, { method: "GET", headers: createBasicAuthHeaders(credentials) });
-        const authenticated = response.status !== 401 && response.status !== 403;
-        return toReachableResult(authenticated, response.status);
+        const isRejected = response.status === 401 || response.status === 403;
+        return isRejected ? toRejectedResult(response.status) : toAuthenticatedResult(response.status);
     } catch (error) {
         return toUnreachableResult(error);
     }

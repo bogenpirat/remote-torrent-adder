@@ -5,7 +5,8 @@ import {
     fetchOrThrow,
     probeWithBasicAuth,
     toFailureResult,
-    toReachableResult,
+    toAuthenticatedResult,
+    toRejectedResult,
     toUnreachableResult,
 } from "../../src/models/webui-http";
 import { callArgs } from "../helpers/assert";
@@ -58,10 +59,25 @@ describe("toFailureResult", () => {
     });
 });
 
-describe("toReachableResult", () => {
-    it("says whether the credentials were accepted", () => {
-        expect(toReachableResult(true, 200).message).toBe("Reachable & authenticated");
-        expect(toReachableResult(false, 200).message).toBe("Reachable, but authentication failed");
+describe("toAuthenticatedResult", () => {
+    it("reports the client as reachable with accepted credentials", () => {
+        expect(toAuthenticatedResult(200)).toEqual({
+            reachable: true,
+            authenticated: true,
+            httpResponseCode: 200,
+            message: "Reachable & authenticated",
+        });
+    });
+});
+
+describe("toRejectedResult", () => {
+    it("reports the client as reachable with rejected credentials", () => {
+        expect(toRejectedResult(401)).toEqual({
+            reachable: true,
+            authenticated: false,
+            httpResponseCode: 401,
+            message: "Reachable, but authentication failed",
+        });
     });
 });
 

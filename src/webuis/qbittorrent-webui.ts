@@ -1,6 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
+import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -24,7 +24,7 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
                 body
             });
-            return toReachableResult(response.ok, response.status);
+            return response.ok ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
             return toUnreachableResult(error);
         }

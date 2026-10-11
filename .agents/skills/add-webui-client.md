@@ -70,7 +70,7 @@ Connection testing:
 - `get isConnectionTestSupported(): boolean` — defaults to `true`. Override to `false` if the client has no probe-able endpoint; the Options page hides the Test Connection button when it is false.
 - `testConnection(): Promise<ConnectionTestResult>` — the default implementation only GETs the base URL and reports reachability *without* checking credentials. Nearly every existing client overrides it; do the same whenever the client can actually validate credentials.
 - `probeWithBasicAuth(url, this.settings)` → ready-made `testConnection()` body for basic-auth clients; treats 401/403 as "reachable, not authenticated".
-- `toReachableResult(authenticated, code)` / `toUnreachableResult(error)` → build a `ConnectionTestResult` in a custom `testConnection()`.
+- `toAuthenticatedResult(code)` / `toRejectedResult(code)` / `toUnreachableResult(error)` → build a `ConnectionTestResult` in a custom `testConnection()`.
 
 ```typescript
 interface TorrentAddingResult {

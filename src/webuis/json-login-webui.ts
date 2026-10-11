@@ -1,5 +1,5 @@
 import { type ConnectionTestResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toReachableResult, toUnreachableResult } from "../models/webui-http";
+import { fetchOrThrow, toAuthenticatedResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 export type LoginAnswer = Record<string, unknown>;
 
@@ -13,10 +13,8 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
             const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
-            if (!response.ok) {
-                return toReachableResult(false, response.status);
-            }
-            return toReachableResult(this.isLoginAccepted(await response.json()), response.status);
+            const isAccepted = response.ok && this.isLoginAccepted(await response.json());
+            return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
             return toUnreachableResult(error);
         }

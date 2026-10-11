@@ -97,36 +97,19 @@ reason = "The boolean is the value a toggle reports through its onChange callbac
 [[waivers]]
 rule = "G5"
 path = "src/webuis/biglybt-webui.ts"
-reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
 
 [[waivers]]
 rule = "G5"
 path = "src/webuis/rqbit-webui.ts"
-reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
 
 [[waivers]]
 rule = "G5"
 path = "src/webuis/tixati-webui.ts"
-reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
+reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
 
 [[waivers]]
 rule = "G5"
-path = "src/webuis/flood-webui.ts"
-reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
-
-[[waivers]]
-rule = "G5"
-path = "src/webuis/porla-webui.ts"
-reason = "Opens with the same imports and overridden member signatures as its sibling TorrentWebUI subclasses; the bodies differ."
-
-[[waivers]]
-rule = "F3"
-path = "src/models/webui-http.ts"
-scope = "toReachableResult"
-reason = "Maps a probe outcome to a result: the boolean is stored in the result and selects only its message."
-
-# [[waivers]]
-# rule = "F1"
-# path = "src/legacy/report.py"
-# scope = "build_report"
-# reason = "Signature fixed by the plugin API we implement."
+path = "src/webuis/transmission-webui.ts"
+reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."

@@ -16,7 +16,7 @@ import {
     type SynologyRequest,
     type SynologyTask,
 } from "./synology-api";
-import { fetchOrThrow, toFailureResult, toReachableResult, toUnreachableResult } from "../models/webui-http";
+import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 export class SynologyDownloadStationWebUI extends TorrentWebUI {
     private apiInfo: SynologyApiInfoMap | null = null;
@@ -27,12 +27,12 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             const apis = await this.discoverApis();
             const response = await fetch(this.createLoginUrl(apis), this.createLoginFetchOptions(apis));
             if (!response.ok) {
-                return toReachableResult(false, response.status);
+                return toRejectedResult(response.status);
             }
 
             const json = await response.json();
             if (json?.success === true && json?.data?.sid) {
-                return toReachableResult(true, response.status);
+                return toAuthenticatedResult(response.status);
             }
 
             return this.toLoginRejectedResult(json?.error?.code, response.status);
