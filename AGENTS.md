@@ -72,3 +72,68 @@ This project keeps a detailed guide per task in `.agents/skills/`. They are plai
 Project background and the release process: [`.agents/README.md`](.agents/README.md).
 
 Some harnesses can load these automatically and don't need the table — Claude Code has stubs in `.claude/skills/`, GitHub Copilot has prompt files in `.github/prompts/`. Those are thin pointers to the files above, which stay the single place to edit.
+
+<!-- ccs:begin (managed by `ccs init`; edit canon, not this block) -->
+# Clean Code rules for this project
+
+These rules are enforced. `ccs check` blocks on the ones marked gate; a reviewer checks the rest.
+Thresholds live in `cleancode.toml`. Full rules with examples: `ccs canon <topic>`.
+
+## Workflow
+
+1. New project: write the glossary and layer map in `cleancode.toml` before any code.
+2. Write a failing test for the next behaviour, then the minimum code to pass it.
+3. Run `ccs check --changed`. Fix every finding; do not silence one by reshuffling code.
+4. Request a judged review of the diff. Fix findings or record a waiver with a reason.
+5. Build in vertical slices. Never generate a whole project in one pass.
+6. In existing code, leave every function you touch no worse than you found it.
+
+## Names
+
+- Names reveal intent; a name that needs a comment is the wrong name. (N1)
+- One word per concept, taken from the project glossary. (N3, G11)
+- No type or scope encodings: no `strName`, `m_count`, `bIsReady`. (N6, gate)
+- No one or two letter names outside a short loop. (N5, gate)
+- A name states side effects: `createOrReturnSession`, not `getSession`. (N7)
+
+## Functions
+
+- Small: at most 20 lines, nesting depth 2, complexity 10. (FN1, FN2, FN3, gate)
+- At most 3 arguments; group related ones into an object. (F1, gate)
+- No boolean flag arguments; split into two functions. (F3, gate)
+- Do one thing, at one level of abstraction. (G30, G34)
+- Either change state or answer a question, never both. No hidden side effects.
+- No output arguments. (F2)
+
+## Comments
+
+- Explain why, never what. Rewrite the code before explaining it. (C3)
+- No commented-out code. (C5, gate) No TODO without a ticket or link. (CM1, gate)
+
+## Structure
+
+- Files at most 300 lines, lines at most 120 columns. (FM1, FM2, gate)
+- Callers above callees; related code close together. (G10)
+- Classes are small with one reason to change. (CL1, CL2, gate; SRP judged)
+- No train wrecks: talk to collaborators, not to their internals. (G36, gate)
+- No duplication. (G5, gate)
+- Replace magic numbers with named constants. (G25)
+
+## Errors
+
+- Never swallow an exception. (ER1, gate)
+- Do not return or pass null; use an empty value, an option type or an exception. (ER2, gate)
+- Exceptions carry context. No error codes.
+
+## Architecture
+
+- Dependencies point inward along the declared layers. (A1, gate)
+- Third-party packages appear only in their declared boundary directories. (A2, gate)
+- Construct objects in one place (the composition root); pass dependencies in.
+
+## Tests
+
+- New source files arrive with a test change. (T1, gate) The test command passes. (TS1, gate)
+- Tests are fast, independent, repeatable, self-validating and written first.
+- One concept per test; test code is held to the same standard as production code.
+<!-- ccs:end -->
