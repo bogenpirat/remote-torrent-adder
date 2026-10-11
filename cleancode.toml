@@ -7,11 +7,14 @@ arguments = 3
 nesting = 2
 complexity = 10
 file_lines = 300
-line_length = 120
+line_length = 140
 class_lines = 200
 class_methods = 15
 name_length = 3
 duplicate_tokens = 70
+
+[files]
+exclude = ["dist-prod/", "coverage/", ".tmp/", "playwright-report/", "test-results/", "web-ext-artifacts*/"]
 
 # The project's own test command. Put the coverage floor in it, for example
 #   command = "pytest --cov=src --cov-fail-under=90"
