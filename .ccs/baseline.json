@@ -155,6 +155,10 @@
     "count": 8,
     "measure": 1
   },
+  "G5|test/util/context-menu.test.ts|(anonymous)": {
+    "count": 1,
+    "measure": 1
+  },
   "G5|test/util/cors-tricks.test.ts|(anonymous)": {
     "count": 5,
     "measure": 1
@@ -196,7 +200,7 @@
     "measure": 1
   },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 14,
+    "count": 7,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {

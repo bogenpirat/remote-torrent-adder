@@ -29,7 +29,7 @@ import { serializeSettings, deserializeSettings, deserializeObject } from "../..
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
-import { readBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
+import { hasBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError } from "../../src/util/download";
 
 const MAGNET_URL = "magnet:?x";
@@ -249,7 +249,7 @@ describe("AddTorrentMessageWithLabelAndDir flow", () => {
         await addBufferedTorrent();
         await settle();
 
-        expect(await readBufferedTorrent()).toBeNull();
+        expect(await hasBufferedTorrent()).toBe(false);
     });
 
     it("reports an error when the popup adds with nothing buffered", async () => {

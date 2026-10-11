@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const { loadPopupData, submitTorrent } = vi.hoisted(() => ({
+const { hasPendingTorrent, loadPopupData, submitTorrent } = vi.hoisted(() => ({
+    hasPendingTorrent: vi.fn(),
     loadPopupData: vi.fn(),
     submitTorrent: vi.fn(),
 }));
-vi.mock("../../src/popup/popup-data", () => ({ loadPopupData, submitTorrent }));
+vi.mock("../../src/popup/popup-data", () => ({ hasPendingTorrent, loadPopupData, submitTorrent }));
 vi.mock("../../src/popup/app/WebUiPickerView", () => ({ default: () => <div>WebUI picker view</div> }));
 vi.mock("../../src/popup/app/PageLinksView", () => ({ default: () => <div>Page links view</div> }));
 
@@ -31,6 +32,8 @@ function popupData(overrides: Partial<PopupData> = {}): PopupData {
 
 beforeEach(() => {
     loadPopupData.mockReset();
+    hasPendingTorrent.mockReset();
+    hasPendingTorrent.mockResolvedValue(true);
     submitTorrent.mockReset();
     submitTorrent.mockResolvedValue(undefined);
     vi.spyOn(window, "close").mockImplementation(() => undefined);
@@ -39,7 +42,7 @@ beforeEach(() => {
 
 describe("mode routing", () => {
     it("renders the buffered-torrent form when no mode is given", async () => {
-        loadPopupData.mockResolvedValue(null);
+        hasPendingTorrent.mockResolvedValue(false);
         render(<Home />);
 
         expect(await screen.findByText("Nothing to add")).toBeInTheDocument();
@@ -75,7 +78,7 @@ describe("popup states", () => {
     });
 
     it("says so when nothing is waiting to be added", async () => {
-        loadPopupData.mockResolvedValue(null);
+        hasPendingTorrent.mockResolvedValue(false);
 
         render(<Home />);
 

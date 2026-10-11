@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { loadPopupData, submitTorrent } from "../../src/popup/popup-data";
+import { hasPendingTorrent, loadPopupData, submitTorrent } from "../../src/popup/popup-data";
 import { saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { AddTorrentMessageWithLabelAndDir } from "../../src/models/messages";
 import { Client } from "../../src/models/clients";
@@ -13,14 +13,15 @@ const park = (webUiOverrides = {}, torrentOverrides = {}) =>
     });
 
 describe("loadPopupData", () => {
-    it("returns null when nothing is waiting to be added", async () => {
-        expect(await loadPopupData()).toBeNull();
+    it("has no pending torrent and rejects when nothing is waiting to be added", async () => {
+        expect(await hasPendingTorrent()).toBe(false);
+        await expect(loadPopupData()).rejects.toThrow("No buffered torrent to add");
     });
 
     it("exposes the parked torrent and its webui", async () => {
         await park();
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.torrent.name).toBe("Cool Torrent");
         expect(data.webUiSettings.id).toBe("w1");
     });
@@ -28,7 +29,7 @@ describe("loadPopupData", () => {
     it("reports which controls the client supports", async () => {
         await park();
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         // qBittorrent supports all three
         expect(data.supports).toEqual({ label: true, directory: true, paused: true });
     });
@@ -36,7 +37,7 @@ describe("loadPopupData", () => {
     it("hides controls the client does not support", async () => {
         await park({ client: Client.TTorrentWebUI });
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.supports.label).toBe(false);
         expect(data.supports.directory).toBe(false);
     });
@@ -44,7 +45,7 @@ describe("loadPopupData", () => {
     it("prefers the configured defaults over the first stored option", async () => {
         await park({ defaultLabel: "tv", defaultDir: "/media", labels: ["movies"], dirs: ["/other"] });
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.initial.label).toBe("tv");
         expect(data.initial.directory).toBe("/media");
     });
@@ -52,7 +53,7 @@ describe("loadPopupData", () => {
     it("falls back to the first stored option when there is no default", async () => {
         await park({ defaultLabel: null, defaultDir: null, labels: ["movies", "tv"], dirs: ["/data"] });
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.initial.label).toBe("movies");
         expect(data.initial.directory).toBe("/data");
     });
@@ -60,7 +61,7 @@ describe("loadPopupData", () => {
     it("leaves the fields empty when nothing is configured, rather than inventing options", async () => {
         await park({ defaultLabel: null, defaultDir: null, labels: [], dirs: [] });
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.initial.label).toBe("");
         expect(data.initial.directory).toBe("");
         expect(data.labelOptions).toEqual([]);
@@ -77,7 +78,7 @@ describe("loadPopupData", () => {
             { trackers: ["http://tracker.example/announce"] },
         );
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.initial.label).toBe("auto-tv");
         expect(data.initial.directory).toBe("/auto");
         expect(data.auto).toEqual({ label: true, directory: true });
@@ -90,7 +91,7 @@ describe("loadPopupData", () => {
             ],
         });
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         // the parked magnet's name is "Cool Torrent"; the match is case-insensitive
         expect(data.initial.label).toBe("auto-name");
         expect(data.initial.directory).toBe("/by-name");
@@ -108,20 +109,20 @@ describe("loadPopupData", () => {
             { trackers: ["http://tracker.example/announce"] },
         );
 
-        const data = (await loadPopupData())!;
+        const data = (await loadPopupData());
         expect(data.initial.label).toBe("manual");
         expect(data.auto.label).toBe(false);
     });
 
     it("carries the paused default through", async () => {
         await park({ addPaused: true });
-        expect((await loadPopupData())!.initial.paused).toBe(true);
+        expect((await loadPopupData()).initial.paused).toBe(true);
     });
 
     it("offers the client's per-torrent client-specific settings", async () => {
         await park();
 
-        const { descriptors, initial } = (await loadPopupData())!.clientSpecific;
+        const { descriptors, initial } = (await loadPopupData()).clientSpecific;
         expect(descriptors.map(descriptor => descriptor.key)).toEqual(["forceStart"]);
         expect(initial).toEqual({ forceStart: false });
     });
@@ -129,19 +130,19 @@ describe("loadPopupData", () => {
     it("seeds a client-specific setting from the stored per-client value", async () => {
         await park({ clientSpecificSettings: { forceStart: true } });
 
-        expect((await loadPopupData())!.clientSpecific.initial).toEqual({ forceStart: true });
+        expect((await loadPopupData()).clientSpecific.initial).toEqual({ forceStart: true });
     });
 
     it("omits client-specific settings the client does not offer per torrent", async () => {
         await park({ client: Client.RuTorrentWebUI });
 
-        expect((await loadPopupData())!.clientSpecific.descriptors).toEqual([]);
+        expect((await loadPopupData()).clientSpecific.descriptors).toEqual([]);
     });
 
     it("offers nothing for a client that declares no client-specific settings", async () => {
         await park({ client: Client.TransmissionWebUI });
 
-        const { descriptors, initial } = (await loadPopupData())!.clientSpecific;
+        const { descriptors, initial } = (await loadPopupData()).clientSpecific;
         expect(descriptors).toEqual([]);
         expect(initial).toEqual({});
     });

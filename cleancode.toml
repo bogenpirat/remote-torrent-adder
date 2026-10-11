@@ -75,11 +75,6 @@ may_use = ["models", "registry", "util", "webuis"]
 
 # Exceptions. Each one needs a reason and is visible in review.
 [[waivers]]
-rule = "ER2"
-path = "src/**"
-reason = "TypeScript strict null checks make `T | null` a compiler-checked option type, and returning null is how a React component renders nothing."
-
-[[waivers]]
 rule = "F1"
 path = "src/**/*.tsx"
 reason = "A React component takes one props object and benefits from many props; destructuring them in the signature is encapsulation enough. This also exempts plain helpers in .tsx files, which review has to watch."

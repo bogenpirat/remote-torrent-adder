@@ -4,7 +4,7 @@ import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDi
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
-import { type BufferedTorrent, readBufferedTorrent } from "../util/buffered-torrent";
+import { type BufferedTorrent, hasBufferedTorrent, readBufferedTorrent } from "../util/buffered-torrent";
 
 /**
  * Everything the popup needs, resolved once before the form is rendered, so the
@@ -40,14 +40,13 @@ export interface PopupData {
     };
 }
 
-/** Resolves the pending torrent, or null when there is nothing waiting to be added. */
-export async function loadPopupData(): Promise<PopupData | null> {
-    const buffered = await readBufferedTorrent();
-    if (!buffered) {
-        return null;
-    }
+export function hasPendingTorrent(): Promise<boolean> {
+    return hasBufferedTorrent();
+}
 
-    return createPopupData(buffered);
+/** Resolves the pending torrent; ask hasPendingTorrent first, as this rejects when nothing is waiting. */
+export async function loadPopupData(): Promise<PopupData> {
+    return createPopupData(await readBufferedTorrent());
 }
 
 function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData {

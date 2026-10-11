@@ -39,9 +39,9 @@ describe("readBufferedTorrent detaching the payload", () => {
         expect(buffered!.torrent.data).toBe(torrent.data);
     });
 
-    it("still returns null when nothing is buffered", async () => {
+    it("still rejects when nothing is buffered", async () => {
         withStore.mockResolvedValue(undefined);
 
-        expect(await readBufferedTorrent()).toBeNull();
+        await expect(readBufferedTorrent()).rejects.toThrow("No buffered torrent to add");
     });
 });

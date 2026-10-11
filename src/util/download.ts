@@ -70,27 +70,29 @@ export async function downloadTorrent(url: string, context: TorrentDownloadConte
 }
 
 async function fetchTorrentFile(url: string, context: TorrentDownloadContext): Promise<FetchedTorrentFile> {
-    return await fetchTorrentFileFromPage(url, context) ?? await fetchTorrentFileFromWorker(url, context);
-}
-
-async function fetchTorrentFileFromPage(url: string, context: TorrentDownloadContext): Promise<FetchedTorrentFile | null> {
     const tabId = context.tabId ?? -1;
     if (tabId < 0) {
-        return null;
+        return fetchTorrentFileFromWorker(url, context);
     }
+    try {
+        return await fetchTorrentFileFromPage(url, tabId, context.frameId ?? 0);
+    } catch (error) {
+        console.warn((error as Error).message + "; downloading from the service worker instead.", (error as Error).cause);
+        return fetchTorrentFileFromWorker(url, context);
+    }
+}
 
+async function fetchTorrentFileFromPage(url: string, tabId: number, frameId: number): Promise<FetchedTorrentFile> {
     const message: IFetchTorrentInPageMessage = { action: FetchTorrentInPageMessage.action, url };
     let response: IFetchTorrentInPageResponse | undefined;
     try {
-        response = await ext.tabs.sendMessage(tabId, message, { frameId: context.frameId ?? 0 }) as typeof response;
-    } catch (error) {
-        console.warn("No content script answered in tab " + tabId + "; downloading from the service worker instead.", error);
-        return null;
+        response = await ext.tabs.sendMessage(tabId, message, { frameId }) as typeof response;
+    } catch (cause) {
+        throw new Error("No content script answered in tab " + tabId, { cause });
     }
 
     if (!response?.fetched) {
-        console.warn("The page could not download the torrent; downloading from the service worker instead.", response?.error);
-        return null;
+        throw new Error("The page could not download the torrent", { cause: response?.error });
     }
     return toFetchedTorrentFile(response.fetched);
 }

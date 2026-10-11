@@ -5,7 +5,7 @@ import { Toggle } from '../components/ui/toggle';
 import Notice from './Notice';
 import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
-import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
+import { hasPendingTorrent, loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 import { type ClientSpecificSettingDescriptor } from '../../models/webui';
 
 export default function Home() {
@@ -31,10 +31,10 @@ function BufferedTorrentForm() {
 
   useEffect(() => {
     let cancelled = false;
-    loadPopupData()
-      .then(data => {
+    loadState()
+      .then(loaded => {
         if (cancelled) return;
-        setState(data ? { status: 'ready', data } : { status: 'empty' });
+        setState(loaded);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -56,6 +56,13 @@ function BufferedTorrentForm() {
     return <Notice title="Could not load the torrent" tone="error">{state.message}</Notice>;
   }
   return <AddTorrentForm data={state.data} />;
+}
+
+async function loadState(): Promise<LoadState> {
+  if (!(await hasPendingTorrent())) {
+    return { status: 'empty' };
+  }
+  return { status: 'ready', data: await loadPopupData() };
 }
 
 // The form only mounts once the data exists, so every field can be initialised

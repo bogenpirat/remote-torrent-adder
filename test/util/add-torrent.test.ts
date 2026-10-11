@@ -14,7 +14,7 @@ vi.mock("../../src/util/download", async (importOriginal) => ({
 import { dispatchPreAddTorrent } from "../../src/util/add-torrent";
 import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
-import { readBufferedTorrent } from "../../src/util/buffered-torrent";
+import { hasBufferedTorrent, readBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
 import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -83,7 +83,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
 
         expect(shownNotification()).toMatchObject({ title: "Cloudflare is blocking this download", webUiUrl: TRACKER_URL });
         expect(chrome.action.openPopup).not.toHaveBeenCalled();
-        expect(await readBufferedTorrent()).toBeNull();
+        expect(await hasBufferedTorrent()).toBe(false);
     });
 
     it("points a plain download failure at the WebUI", async () => {
