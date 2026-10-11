@@ -18,23 +18,6 @@ type LoadState =
   | { status: 'empty' }
   | { status: 'ready'; options: WebUiOption[] };
 
-function toWebUiOptions(serialized: string | null): WebUiOption[] {
-  const settings = serialized ? deserializeSettings(serialized) : null;
-  return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
-}
-
-function toWebUiOption(webUiSettings: WebUISettings): WebUiOption[] {
-  const webUi = WebUIFactory.createWebUI(webUiSettings);
-  if (!webUi) {
-    return [];
-  }
-  return [{
-    id: webUiSettings.id,
-    name: webUiSettings.name || webUi.name,
-    url: addTrailingSlash(webUi.createBaseUrl()),
-  }];
-}
-
 export default function WebUiPickerView() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
@@ -62,6 +45,23 @@ export default function WebUiPickerView() {
     return <Notice title="No WebUIs configured">Add a WebUI in the extension&apos;s options first.</Notice>;
   }
   return <WebUiOptionList options={state.options} onOpen={openWebUi} />;
+}
+
+function toWebUiOptions(serialized: string | null): WebUiOption[] {
+  const settings = serialized ? deserializeSettings(serialized) : null;
+  return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
+}
+
+function toWebUiOption(webUiSettings: WebUISettings): WebUiOption[] {
+  const webUi = WebUIFactory.createWebUI(webUiSettings);
+  if (!webUi) {
+    return [];
+  }
+  return [{
+    id: webUiSettings.id,
+    name: webUiSettings.name || webUi.name,
+    url: addTrailingSlash(webUi.createBaseUrl()),
+  }];
 }
 
 function WebUiOptionList({ options, onOpen }: { options: WebUiOption[]; onOpen: (url: string) => void }) {

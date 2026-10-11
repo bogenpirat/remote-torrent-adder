@@ -8,39 +8,17 @@ interface ChoiceNoun {
   plural: string;
 }
 
-interface ChoiceColumnProps {
-  noun: ChoiceNoun;
-  defaultChoice: string | null;
-  choices: string[];
-  onDefaultChange: (defaultChoice: string) => void;
-  onChoicesChange: (choices: string[]) => void;
-}
-
-type EditableWebUIProps = Pick<WebUISectionProps, "webui" | "onChange">;
-
 const LABEL_NOUN: ChoiceNoun = { title: "Label", lower: "label", plural: "Labels" };
 const DIRECTORY_NOUN: ChoiceNoun = { title: "Directory", lower: "directory", plural: "Directories" };
 
-function ChoiceColumn({ noun, defaultChoice, choices, onDefaultChange, onChoicesChange }: ChoiceColumnProps) {
+export default function WebUILabelDirSettings({ webui, webUiInstance, onChange }: WebUISectionProps) {
   return (
-    <div style={{ flex: 1, minWidth: 240 }}>
-      <div style={{ marginBottom: 8 }}>
-        <label style={FIELD_LABEL_STYLE}>Default {noun.title}</label>
-        <input
-          type="text"
-          value={defaultChoice ?? ""}
-          onChange={e => onDefaultChange(e.target.value)}
-          style={{ ...FIELD_INPUT_STYLE, minWidth: 180 }}
-          placeholder={`Default ${noun.lower}`}
-        />
+    <SettingsGroup title={groupTitle({ webUiInstance })}>
+      <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
+        {webUiInstance.isLabelSupported && <LabelColumn webui={webui} onChange={onChange} />}
+        {webUiInstance.isDirSupported && <DirectoryColumn webui={webui} onChange={onChange} />}
       </div>
-      <ChipList
-        label={`${noun.plural} for per-torrent selection`}
-        values={choices}
-        onChange={onChoicesChange}
-        placeholder={`Add ${noun.lower}`}
-      />
-    </div>
+    </SettingsGroup>
   );
 }
 
@@ -50,6 +28,8 @@ function groupTitle({ webUiInstance }: Pick<WebUISectionProps, "webUiInstance">)
   }
   return webUiInstance.isLabelSupported ? "Labels" : "Directories";
 }
+
+type EditableWebUIProps = Pick<WebUISectionProps, "webui" | "onChange">;
 
 function LabelColumn({ webui, onChange }: EditableWebUIProps) {
   return (
@@ -75,13 +55,33 @@ function DirectoryColumn({ webui, onChange }: EditableWebUIProps) {
   );
 }
 
-export default function WebUILabelDirSettings({ webui, webUiInstance, onChange }: WebUISectionProps) {
+interface ChoiceColumnProps {
+  noun: ChoiceNoun;
+  defaultChoice: string | null;
+  choices: string[];
+  onDefaultChange: (defaultChoice: string) => void;
+  onChoicesChange: (choices: string[]) => void;
+}
+
+function ChoiceColumn({ noun, defaultChoice, choices, onDefaultChange, onChoicesChange }: ChoiceColumnProps) {
   return (
-    <SettingsGroup title={groupTitle({ webUiInstance })}>
-      <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
-        {webUiInstance.isLabelSupported && <LabelColumn webui={webui} onChange={onChange} />}
-        {webUiInstance.isDirSupported && <DirectoryColumn webui={webui} onChange={onChange} />}
+    <div style={{ flex: 1, minWidth: 240 }}>
+      <div style={{ marginBottom: 8 }}>
+        <label style={FIELD_LABEL_STYLE}>Default {noun.title}</label>
+        <input
+          type="text"
+          value={defaultChoice ?? ""}
+          onChange={e => onDefaultChange(e.target.value)}
+          style={{ ...FIELD_INPUT_STYLE, minWidth: 180 }}
+          placeholder={`Default ${noun.lower}`}
+        />
       </div>
-    </SettingsGroup>
+      <ChipList
+        label={`${noun.plural} for per-torrent selection`}
+        values={choices}
+        onChange={onChoicesChange}
+        placeholder={`Add ${noun.lower}`}
+      />
+    </div>
   );
 }

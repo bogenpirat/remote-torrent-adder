@@ -3,20 +3,6 @@ import { deleteCustomSound, getCustomSound, saveCustomSound, type SoundKind } fr
 import { BUTTON_STYLE, ROW_STYLE } from "./notification-styles";
 import { TEXT, MUTED, DANGER } from "../theme";
 
-interface CustomSound {
-  fileName: string | null;
-  busy: boolean;
-  store: (file: File) => Promise<void>;
-  reset: () => Promise<void>;
-}
-
-interface SoundActionsProps {
-  sound: CustomSound;
-  onPreview: () => void;
-  onChoose: () => void;
-  onReset: () => void;
-}
-
 // Custom sounds are kept small; they live in IndexedDB but are still loaded
 // into memory to play, so cap the size to keep things snappy.
 const MAX_SOUND_BYTES = 1024 * 1024; // 1 MB
@@ -28,53 +14,6 @@ const SOUND_NAME_STYLE: CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 };
-
-function reportSaveFailure(error: unknown): void {
-  console.error(error);
-  alert("Could not save that sound file.");
-}
-
-function useCustomSound(kind: SoundKind): CustomSound {
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [busy, setBusy] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    getCustomSound(kind)
-      .then(stored => { if (active) setFileName(stored?.name ?? null); })
-      .catch(() => { if (active) setFileName(null); })
-      .finally(() => { if (active) setBusy(false); });
-    return () => { active = false; };
-  }, [kind]);
-
-  const whileBusy = async (work: () => Promise<void>) => {
-    setBusy(true);
-    try { await work(); } finally { setBusy(false); }
-  };
-  const store = (file: File) => whileBusy(() => {
-    return saveCustomSound(kind, file, file.name).then(() => setFileName(file.name), reportSaveFailure);
-  });
-  const reset = () => whileBusy(() => deleteCustomSound(kind).then(() => setFileName(null)));
-  return { fileName, busy, store, reset };
-}
-
-async function previewSound(kind: SoundKind): Promise<void> {
-  let src = `../assets/sounds/${kind}.ogg`;
-  let objectUrl: string | undefined;
-  try {
-    const stored = await getCustomSound(kind);
-    if (stored) {
-      objectUrl = URL.createObjectURL(stored.blob);
-      src = objectUrl;
-    }
-    const audio = new Audio(src);
-    if (objectUrl) audio.addEventListener("ended", () => URL.revokeObjectURL(objectUrl!));
-    await audio.play();
-  } catch (e) {
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    console.error(e);
-  }
-}
 
 export default function SoundPicker({ kind, label }: { kind: SoundKind; label: string }) {
   const sound = useCustomSound(kind);
@@ -112,6 +51,42 @@ export default function SoundPicker({ kind, label }: { kind: SoundKind; label: s
   );
 }
 
+interface CustomSound {
+  fileName: string | null;
+  busy: boolean;
+  store: (file: File) => Promise<void>;
+  reset: () => Promise<void>;
+}
+
+function useCustomSound(kind: SoundKind): CustomSound {
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [busy, setBusy] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    getCustomSound(kind)
+      .then(stored => { if (active) setFileName(stored?.name ?? null); })
+      .catch(() => { if (active) setFileName(null); })
+      .finally(() => { if (active) setBusy(false); });
+    return () => { active = false; };
+  }, [kind]);
+
+  const whileBusy = async (work: () => Promise<void>) => {
+    setBusy(true);
+    try { await work(); } finally { setBusy(false); }
+  };
+  const store = (file: File) => whileBusy(() => {
+    return saveCustomSound(kind, file, file.name).then(() => setFileName(file.name), reportSaveFailure);
+  });
+  const reset = () => whileBusy(() => deleteCustomSound(kind).then(() => setFileName(null)));
+  return { fileName, busy, store, reset };
+}
+
+function reportSaveFailure(error: unknown): void {
+  console.error(error);
+  alert("Could not save that sound file.");
+}
+
 function SoundName({ sound }: { sound: CustomSound }) {
   const { fileName, busy } = sound;
   return (
@@ -126,6 +101,13 @@ function SoundName({ sound }: { sound: CustomSound }) {
       {busy ? "…" : fileName ?? "Default sound"}
     </span>
   );
+}
+
+interface SoundActionsProps {
+  sound: CustomSound;
+  onPreview: () => void;
+  onChoose: () => void;
+  onReset: () => void;
 }
 
 function SoundActions({ sound, onPreview, onChoose, onReset }: SoundActionsProps) {
@@ -153,4 +135,22 @@ function SoundActions({ sound, onPreview, onChoose, onReset }: SoundActionsProps
       )}
     </>
   );
+}
+
+async function previewSound(kind: SoundKind): Promise<void> {
+  let src = `../assets/sounds/${kind}.ogg`;
+  let objectUrl: string | undefined;
+  try {
+    const stored = await getCustomSound(kind);
+    if (stored) {
+      objectUrl = URL.createObjectURL(stored.blob);
+      src = objectUrl;
+    }
+    const audio = new Audio(src);
+    if (objectUrl) audio.addEventListener("ended", () => URL.revokeObjectURL(objectUrl!));
+    await audio.play();
+  } catch (e) {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    console.error(e);
+  }
 }

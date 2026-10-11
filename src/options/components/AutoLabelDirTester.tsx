@@ -5,24 +5,6 @@ import { buildTorrentFromMagnetLink, parseTorrentFile } from "../../util/torrent
 import AutoLabelDirTestResult, { type TestedRules } from "./AutoLabelDirTestResult";
 import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
-type AutoLabelDirTesterProps = TestedRules;
-
-interface RuleTrial {
-  torrent: Torrent | null;
-  error: string | null;
-  magnetLink: string;
-  setMagnetLink: (magnetLink: string) => void;
-  showParsedFile: (torrent: Torrent) => void;
-  showMagnetTorrent: (torrent: Torrent) => void;
-  fail: (message: string) => void;
-  reset: () => void;
-}
-
-interface DropZoneProps {
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onFile: (file: File | undefined) => void;
-}
-
 const MAX_TORRENT_BYTES = 10 * 1024 * 1024;
 
 const DROP_ZONE_SHAPE_STYLE: React.CSSProperties = { borderRadius: 10, padding: "16px 12px", textAlign: "center" };
@@ -49,6 +31,48 @@ const MAGNET_INPUT_STYLE: React.CSSProperties = {
   padding: "4px 10px",
 };
 
+type AutoLabelDirTesterProps = TestedRules;
+
+function AutoLabelDirTester(props: AutoLabelDirTesterProps) {
+  const trial = useRuleTrial();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { torrent } = trial;
+  const explanation = useMemo(() => (torrent ? explainAutoLabelDir(torrent, props.settings) : null), [torrent, props.settings]);
+
+  const clear = () => {
+    trial.reset();
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  return (
+    <div style={{ marginTop: 16, borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>Test these rules</div>
+      <div style={{ color: MUTED, fontSize: 13, marginBottom: 10 }}>
+        Drop a .torrent file or paste a magnet link to see which rules would match it. Nothing is uploaded or added to your client.
+      </div>
+
+      <DropZone fileInputRef={fileInputRef} onFile={file => tryTorrentFile(file, trial)} />
+
+      <MagnetForm trial={trial} />
+
+      {trial.error && <div style={{ color: DANGER, marginTop: 10 }}>{trial.error}</div>}
+
+      {torrent && explanation && <AutoLabelDirTestResult torrent={torrent} explanation={explanation} rules={props} onClear={clear} />}
+    </div>
+  );
+}
+
+interface RuleTrial {
+  torrent: Torrent | null;
+  error: string | null;
+  magnetLink: string;
+  setMagnetLink: (magnetLink: string) => void;
+  showParsedFile: (torrent: Torrent) => void;
+  showMagnetTorrent: (torrent: Torrent) => void;
+  fail: (message: string) => void;
+  reset: () => void;
+}
+
 function useRuleTrial(): RuleTrial {
   const [torrent, setTorrent] = useState<Torrent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,26 +93,9 @@ function useRuleTrial(): RuleTrial {
   };
 }
 
-async function tryTorrentFile(file: File | undefined, trial: RuleTrial): Promise<void> {
-  if (!file) return;
-  if (file.size > MAX_TORRENT_BYTES) {
-    trial.fail(`That file is too large (max ${Math.round(MAX_TORRENT_BYTES / 1024 / 1024)} MB).`);
-    return;
-  }
-  try {
-    trial.showParsedFile(await parseTorrentFile(file));
-  } catch (e) {
-    trial.fail((e as Error).message);
-  }
-}
-
-function tryMagnetLink(trial: RuleTrial): void {
-  const trimmed = trial.magnetLink.trim();
-  if (!trimmed.startsWith("magnet:")) {
-    trial.fail("That doesn't look like a magnet link.");
-    return;
-  }
-  trial.showMagnetTorrent(buildTorrentFromMagnetLink(trimmed));
+interface DropZoneProps {
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onFile: (file: File | undefined) => void;
 }
 
 function DropZone({ fileInputRef, onFile }: DropZoneProps) {
@@ -124,6 +131,19 @@ function TorrentFileInput({ fileInputRef, onFile }: DropZoneProps) {
   );
 }
 
+async function tryTorrentFile(file: File | undefined, trial: RuleTrial): Promise<void> {
+  if (!file) return;
+  if (file.size > MAX_TORRENT_BYTES) {
+    trial.fail(`That file is too large (max ${Math.round(MAX_TORRENT_BYTES / 1024 / 1024)} MB).`);
+    return;
+  }
+  try {
+    trial.showParsedFile(await parseTorrentFile(file));
+  } catch (e) {
+    trial.fail((e as Error).message);
+  }
+}
+
 function MagnetForm({ trial }: { trial: RuleTrial }) {
   return (
     <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
@@ -142,33 +162,13 @@ function MagnetForm({ trial }: { trial: RuleTrial }) {
   );
 }
 
-function AutoLabelDirTester(props: AutoLabelDirTesterProps) {
-  const trial = useRuleTrial();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { torrent } = trial;
-  const explanation = useMemo(() => (torrent ? explainAutoLabelDir(torrent, props.settings) : null), [torrent, props.settings]);
-
-  const clear = () => {
-    trial.reset();
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  return (
-    <div style={{ marginTop: 16, borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>Test these rules</div>
-      <div style={{ color: MUTED, fontSize: 13, marginBottom: 10 }}>
-        Drop a .torrent file or paste a magnet link to see which rules would match it. Nothing is uploaded or added to your client.
-      </div>
-
-      <DropZone fileInputRef={fileInputRef} onFile={file => tryTorrentFile(file, trial)} />
-
-      <MagnetForm trial={trial} />
-
-      {trial.error && <div style={{ color: DANGER, marginTop: 10 }}>{trial.error}</div>}
-
-      {torrent && explanation && <AutoLabelDirTestResult torrent={torrent} explanation={explanation} rules={props} onClear={clear} />}
-    </div>
-  );
+function tryMagnetLink(trial: RuleTrial): void {
+  const trimmed = trial.magnetLink.trim();
+  if (!trimmed.startsWith("magnet:")) {
+    trial.fail("That doesn't look like a magnet link.");
+    return;
+  }
+  trial.showMagnetTorrent(buildTorrentFromMagnetLink(trimmed));
 }
 
 export default AutoLabelDirTester;

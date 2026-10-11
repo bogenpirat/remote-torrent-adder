@@ -8,12 +8,6 @@ import PageLinksView from './PageLinksView';
 import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 import { type ClientSpecificSettingDescriptor } from '../../models/webui';
 
-type LoadState =
-  | { status: 'loading' }
-  | { status: 'empty' }
-  | { status: 'failed'; message: string }
-  | { status: 'ready'; data: PopupData };
-
 export default function Home() {
   const mode = new URLSearchParams(window.location.search).get('mode');
   if (mode === 'picker') {
@@ -25,6 +19,12 @@ export default function Home() {
 
   return <BufferedTorrentForm />;
 }
+
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'empty' }
+  | { status: 'failed'; message: string }
+  | { status: 'ready'; data: PopupData };
 
 function BufferedTorrentForm() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -56,6 +56,41 @@ function BufferedTorrentForm() {
     return <Notice title="Could not load the torrent" tone="error">{state.message}</Notice>;
   }
   return <AddTorrentForm data={state.data} />;
+}
+
+// The form only mounts once the data exists, so every field can be initialised
+// straight from it and no value is ever asserted non-null.
+function AddTorrentForm({ data }: { data: PopupData }) {
+  const label = useRemovableChoice(data.initial.label, data.labelOptions);
+  const directory = useRemovableChoice(data.initial.directory, data.directoryOptions);
+  const [paused, setPaused] = useState(data.initial.paused);
+  const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
+  const submission = useSubmission(() => submitTorrent({
+    webUiId: data.webUiSettings.id,
+    label: label.value,
+    directory: directory.value,
+    paused,
+    clientSpecific,
+    // Whatever was just used moves to the front, so it is offered first next time.
+    labelOptions: moveToFront(label.value, label.options),
+    directoryOptions: moveToFront(directory.value, directory.options),
+  }));
+
+  return (
+    <FormFrame torrentName={data.torrent.name}>
+      {data.supports.label && (
+        <ChoiceField label="Label" choice={label} highlighted={data.auto.label} placeholder="Select or type label..." />
+      )}
+      {data.supports.directory && (
+        <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
+      )}
+      {data.supports.paused && (
+        <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
+      )}
+      <ClientSpecificToggles descriptors={data.clientSpecific.descriptors} values={clientSpecific} onChange={setClientSpecific} />
+      <SubmitControls submission={submission} />
+    </FormFrame>
+  );
 }
 
 interface RemovableChoice {
@@ -103,39 +138,12 @@ function useSubmission(send: () => Promise<void>): Submission {
   return { submitting, error, submit };
 }
 
-// The form only mounts once the data exists, so every field can be initialised
-// straight from it and no value is ever asserted non-null.
-function AddTorrentForm({ data }: { data: PopupData }) {
-  const label = useRemovableChoice(data.initial.label, data.labelOptions);
-  const directory = useRemovableChoice(data.initial.directory, data.directoryOptions);
-  const [paused, setPaused] = useState(data.initial.paused);
-  const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
-  const submission = useSubmission(() => submitTorrent({
-    webUiId: data.webUiSettings.id,
-    label: label.value,
-    directory: directory.value,
-    paused,
-    clientSpecific,
-    // Whatever was just used moves to the front, so it is offered first next time.
-    labelOptions: moveToFront(label.value, label.options),
-    directoryOptions: moveToFront(directory.value, directory.options),
-  }));
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
-  return (
-    <FormFrame torrentName={data.torrent.name}>
-      {data.supports.label && (
-        <ChoiceField label="Label" choice={label} highlighted={data.auto.label} placeholder="Select or type label..." />
-      )}
-      {data.supports.directory && (
-        <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
-      )}
-      {data.supports.paused && (
-        <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
-      )}
-      <ClientSpecificToggles descriptors={data.clientSpecific.descriptors} values={clientSpecific} onChange={setClientSpecific} />
-      <SubmitControls submission={submission} />
-    </FormFrame>
-  );
+function moveToFront(value: string, options: string[]): string[] {
+  return value ? [value, ...options.filter(option => option !== value)] : options;
 }
 
 function FormFrame({ torrentName, children }: { torrentName: string; children: React.ReactNode }) {
@@ -215,12 +223,4 @@ function SubmitControls({ submission }: { submission: Submission }) {
       </Button>
     </>
   );
-}
-
-function moveToFront(value: string, options: string[]): string[] {
-  return value ? [value, ...options.filter(option => option !== value)] : options;
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

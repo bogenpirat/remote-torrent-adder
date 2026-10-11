@@ -3,6 +3,26 @@ import { ext } from "../../util/browser-api";
 
 const ALL_URLS = { origins: ["<all_urls>"] };
 
+export default function HostPermissionNotice() {
+  const [granted, requestAccess] = useHostPermission();
+
+  if (granted) {
+    return null;
+  }
+
+  return (
+    <div className="rta-notice rta-notice--warning" role="alert">
+      <span>
+        Remote Torrent Adder cannot access websites, so torrent links will not be caught and your
+        clients cannot be reached.
+      </span>
+      <button type="button" className="rta-notice__action" onClick={requestAccess}>
+        Grant access
+      </button>
+    </div>
+  );
+}
+
 function useHostPermission(): [boolean, () => void] {
   const [granted, setGranted] = useState(true);
 
@@ -27,24 +47,4 @@ function useHostPermission(): [boolean, () => void] {
     void ext.permissions.request(ALL_URLS).then(setGranted);
   };
   return [granted, request];
-}
-
-export default function HostPermissionNotice() {
-  const [granted, requestAccess] = useHostPermission();
-
-  if (granted) {
-    return null;
-  }
-
-  return (
-    <div className="rta-notice rta-notice--warning" role="alert">
-      <span>
-        Remote Torrent Adder cannot access websites, so torrent links will not be caught and your
-        clients cannot be reached.
-      </span>
-      <button type="button" className="rta-notice__action" onClick={requestAccess}>
-        Grant access
-      </button>
-    </div>
-  );
 }

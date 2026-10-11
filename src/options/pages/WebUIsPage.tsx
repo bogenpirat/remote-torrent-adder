@@ -6,36 +6,17 @@ import { createWebUIEditing, getDefaultWebUISettings, type WebUIEditing } from "
 import type { WebUISettings } from "../../models/webui";
 import { MUTED } from "../theme";
 
+export default function WebUIsPage() {
+  const { settings, updateSetting, loading } = useSettings();
+
+  if (loading || !settings) return <div>Loading...</div>;
+
+  return <WebUIsEditor webuis={settings.webuiSettings ?? []} onSave={webuis => updateSetting("webuiSettings", webuis)} />;
+}
+
 interface WebUIsEditorProps {
   webuis: WebUISettings[];
   onSave: (webuis: WebUISettings[]) => void;
-}
-
-interface DetailPanelProps {
-  webuis: WebUISettings[];
-  selected: WebUISettings | null;
-  editing: WebUIEditing;
-}
-
-function DetailPanel({ webuis, selected, editing }: DetailPanelProps) {
-  return (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      {selected ? (
-        <WebUIDetail
-          key={selected.id}
-          webui={selected}
-          onChange={updated => editing.change(selected.id, updated)}
-          onRemove={() => editing.remove(selected.id)}
-          onPromote={() => editing.promote(selected.id)}
-          isPrimary={webuis[0]?.id === selected.id}
-        />
-      ) : (
-        <div style={{ color: MUTED, fontSize: 15, paddingTop: 8 }}>
-          Select a WebUI on the left, or click + to add a new one.
-        </div>
-      )}
-    </div>
-  );
 }
 
 function WebUIsEditor({ webuis, onSave }: WebUIsEditorProps) {
@@ -63,10 +44,29 @@ function WebUIsEditor({ webuis, onSave }: WebUIsEditorProps) {
   );
 }
 
-export default function WebUIsPage() {
-  const { settings, updateSetting, loading } = useSettings();
+interface DetailPanelProps {
+  webuis: WebUISettings[];
+  selected: WebUISettings | null;
+  editing: WebUIEditing;
+}
 
-  if (loading || !settings) return <div>Loading...</div>;
-
-  return <WebUIsEditor webuis={settings.webuiSettings ?? []} onSave={webuis => updateSetting("webuiSettings", webuis)} />;
+function DetailPanel({ webuis, selected, editing }: DetailPanelProps) {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      {selected ? (
+        <WebUIDetail
+          key={selected.id}
+          webui={selected}
+          onChange={updated => editing.change(selected.id, updated)}
+          onRemove={() => editing.remove(selected.id)}
+          onPromote={() => editing.promote(selected.id)}
+          isPrimary={webuis[0]?.id === selected.id}
+        />
+      ) : (
+        <div style={{ color: MUTED, fontSize: 15, paddingTop: 8 }}>
+          Select a WebUI on the left, or click + to add a new one.
+        </div>
+      )}
+    </div>
+  );
 }

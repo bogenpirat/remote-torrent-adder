@@ -30,19 +30,24 @@ const FAILED_SCAN: PageScan = {
   sourceTab: null,
 };
 
-async function scanActiveTab(): Promise<PageScan> {
-  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) {
-    return { state: { status: 'empty' }, sourceTab: null };
-  }
-  const response = (await ext.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
-    | IPageLinksResponse
-    | undefined;
-  const links = response?.links ?? [];
-  return {
-    state: links.length ? { status: 'ready', links } : { status: 'empty' },
-    sourceTab: { tabId: tab.id, pageUrl: tab.url ?? null },
+export default function PageLinksView() {
+  const { state, sourceTab } = usePageScan();
+
+  const addLink = (url: string) => {
+    sendMessageAndForget({
+      action: PreAddTorrentMessage.action,
+      url,
+      tabId: sourceTab?.tabId ?? null,
+      frameId: 0,
+      pageUrl: sourceTab?.pageUrl ?? null,
+    } as IPreAddTorrentMessage);
+    window.close();
   };
+
+  if (state.status !== 'ready') {
+    return <ScanNotice state={state} />;
+  }
+  return <LinkList links={state.links} onAdd={addLink} />;
 }
 
 function usePageScan(): PageScan {
@@ -67,24 +72,19 @@ function usePageScan(): PageScan {
   return scan;
 }
 
-export default function PageLinksView() {
-  const { state, sourceTab } = usePageScan();
-
-  const addLink = (url: string) => {
-    sendMessageAndForget({
-      action: PreAddTorrentMessage.action,
-      url,
-      tabId: sourceTab?.tabId ?? null,
-      frameId: 0,
-      pageUrl: sourceTab?.pageUrl ?? null,
-    } as IPreAddTorrentMessage);
-    window.close();
-  };
-
-  if (state.status !== 'ready') {
-    return <ScanNotice state={state} />;
+async function scanActiveTab(): Promise<PageScan> {
+  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) {
+    return { state: { status: 'empty' }, sourceTab: null };
   }
-  return <LinkList links={state.links} onAdd={addLink} />;
+  const response = (await ext.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
+    | IPageLinksResponse
+    | undefined;
+  const links = response?.links ?? [];
+  return {
+    state: links.length ? { status: 'ready', links } : { status: 'empty' },
+    sourceTab: { tabId: tab.id, pageUrl: tab.url ?? null },
+  };
 }
 
 function ScanNotice({ state }: { state: Exclude<LoadState, { status: 'ready' }> }) {

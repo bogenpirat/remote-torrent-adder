@@ -3,26 +3,6 @@ import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
 import { TEXT, GREEN_DARK, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
-interface RegexListProps {
-  regexes: RegExp[];
-  onChange: (regexes: RegExp[]) => void;
-}
-
-interface RegexEditing {
-  editIdx: number | null;
-  editValue: string;
-  setEditValue: (value: string) => void;
-  start: (idx: number) => void;
-  save: (idx: number) => void;
-  cancel: () => void;
-}
-
-interface ChipViewProps {
-  source: string;
-  onEdit: () => void;
-  onRemove: () => void;
-}
-
 const HEADING_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 8, display: "block" };
 
 const CHIP_STYLE: CSSProperties = {
@@ -90,23 +70,6 @@ const TESTER_INPUT_STYLE: CSSProperties = {
 
 const MATCH_RESULT_STYLE: CSSProperties = { display: "flex", alignItems: "center", gap: 8, fontWeight: 600 };
 
-function stringToRegex(source: string): RegExp | null {
-  try {
-    return new RegExp(source);
-  } catch {
-    return null;
-  }
-}
-
-/** A stored pattern can be anything the user pasted, so a throw means "no match". */
-function testRegexSafely(regex: RegExp, value: string): boolean {
-  try {
-    return regex.test(value);
-  } catch {
-    return false;
-  }
-}
-
 export default function LinkCatchingPage(): JSX.Element {
   const { settings, updateSetting, loading } = useSettings();
 
@@ -130,25 +93,9 @@ export default function LinkCatchingPage(): JSX.Element {
   );
 }
 
-function useRegexEditing({ regexes, onChange }: RegexListProps): RegexEditing {
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
-
-  const start = (idx: number): void => {
-    setEditIdx(idx);
-    setEditValue(regexes[idx]?.source ?? "");
-  };
-
-  const save = (idx: number): void => {
-    const reg = stringToRegex(editValue);
-    if (reg) {
-      onChange(regexes.map((existing, position) => (position === idx ? reg : existing)));
-      setEditIdx(null);
-      setEditValue("");
-    }
-  };
-
-  return { editIdx, editValue, setEditValue, start, save, cancel: () => setEditIdx(null) };
+interface RegexListProps {
+  regexes: RegExp[];
+  onChange: (regexes: RegExp[]) => void;
 }
 
 function RegexList({ regexes, onChange }: RegexListProps): JSX.Element {
@@ -172,6 +119,36 @@ function RegexList({ regexes, onChange }: RegexListProps): JSX.Element {
   );
 }
 
+interface RegexEditing {
+  editIdx: number | null;
+  editValue: string;
+  setEditValue: (value: string) => void;
+  start: (idx: number) => void;
+  save: (idx: number) => void;
+  cancel: () => void;
+}
+
+function useRegexEditing({ regexes, onChange }: RegexListProps): RegexEditing {
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+
+  const start = (idx: number): void => {
+    setEditIdx(idx);
+    setEditValue(regexes[idx]?.source ?? "");
+  };
+
+  const save = (idx: number): void => {
+    const reg = stringToRegex(editValue);
+    if (reg) {
+      onChange(regexes.map((existing, position) => (position === idx ? reg : existing)));
+      setEditIdx(null);
+      setEditValue("");
+    }
+  };
+
+  return { editIdx, editValue, setEditValue, start, save, cancel: () => setEditIdx(null) };
+}
+
 function ChipEditor({ idx, editing }: { idx: number; editing: RegexEditing }): JSX.Element {
   return (
     <>
@@ -185,6 +162,12 @@ function ChipEditor({ idx, editing }: { idx: number; editing: RegexEditing }): J
       <button onClick={editing.cancel} style={{ fontSize: 13 }}>✖</button>
     </>
   );
+}
+
+interface ChipViewProps {
+  source: string;
+  onEdit: () => void;
+  onRemove: () => void;
 }
 
 function ChipView({ source, onEdit, onRemove }: ChipViewProps): JSX.Element {
@@ -220,6 +203,14 @@ function NewRegexForm({ onAdd }: { onAdd: (regex: RegExp) => void }): JSX.Elemen
       <button onClick={handleAdd} style={ADD_BUTTON_STYLE}>Add</button>
     </div>
   );
+}
+
+function stringToRegex(source: string): RegExp | null {
+  try {
+    return new RegExp(source);
+  } catch {
+    return null;
+  }
 }
 
 function RegexTester({ regexes }: { regexes: RegExp[] }): JSX.Element {
@@ -261,4 +252,13 @@ function MatchResult({ pattern, matched }: { pattern: string; matched: boolean }
       <span style={{ color }}>{matched ? "✔" : "✖"}</span>
     </li>
   );
+}
+
+/** A stored pattern can be anything the user pasted, so a throw means "no match". */
+function testRegexSafely(regex: RegExp, value: string): boolean {
+  try {
+    return regex.test(value);
+  } catch {
+    return false;
+  }
 }

@@ -7,14 +7,43 @@ import WebUIConnectionTest from "./WebUIConnectionTest";
 import { FIELD_INPUT_STYLE, FIELD_LABEL_STYLE, TextField, type WebUISectionProps } from "./webui-fields";
 import { MUTED } from "../theme";
 
+const FIELD_ROW_STYLE: CSSProperties = { display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" };
+
+export default function WebUIGeneralSettings({ webui, webUiInstance, onChange }: WebUISectionProps) {
+  const patch = (changes: Partial<WebUISettings>) => onChange({ ...webui, ...changes });
+  return (
+    <SettingsGroup title="General">
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <EndpointFields webui={webui} onPatch={patch} />
+        <div style={{ color: MUTED }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
+        <div style={FIELD_ROW_STYLE}>
+          <TextField label="Username" value={webui.username} onChange={username => patch({ username })} />
+          <TextField label="Password" value={webui.password} onChange={password => patch({ password })} type="password" />
+        </div>
+        {webUiInstance.isConnectionTestSupported && <WebUIConnectionTest webui={webui} />}
+        {(webUiInstance.isAddPausedSupported || webUiInstance.isLabelDirChooserSupported) && (
+          <BehaviourToggles webui={webui} webUiInstance={webUiInstance} onPatch={patch} />
+        )}
+      </div>
+    </SettingsGroup>
+  );
+}
+
 interface PatchableProps {
   webui: WebUISettings;
   onPatch: (changes: Partial<WebUISettings>) => void;
 }
 
-type BehaviourTogglesProps = PatchableProps & Pick<WebUISectionProps, "webUiInstance">;
-
-const FIELD_ROW_STYLE: CSSProperties = { display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" };
+function EndpointFields({ webui, onPatch }: PatchableProps) {
+  return (
+    <div style={FIELD_ROW_STYLE}>
+      <TextField label="Host" value={webui.host} onChange={host => onPatch({ host })} />
+      <PortField webui={webui} onPatch={onPatch} />
+      <Toggle checked={webui.secure} onChange={v => onPatch({ secure: v })} label="Secure (HTTPS)" />
+      <TextField label="Relative Path" value={webui.relativePath || ""} onChange={relativePath => onPatch({ relativePath })} />
+    </div>
+  );
+}
 
 function PortField({ webui, onPatch }: PatchableProps) {
   return (
@@ -35,13 +64,15 @@ function PortField({ webui, onPatch }: PatchableProps) {
   );
 }
 
-function EndpointFields({ webui, onPatch }: PatchableProps) {
+type BehaviourTogglesProps = PatchableProps & Pick<WebUISectionProps, "webUiInstance">;
+
+function BehaviourToggles({ webui, webUiInstance, onPatch }: BehaviourTogglesProps) {
   return (
-    <div style={FIELD_ROW_STYLE}>
-      <TextField label="Host" value={webui.host} onChange={host => onPatch({ host })} />
-      <PortField webui={webui} onPatch={onPatch} />
-      <Toggle checked={webui.secure} onChange={v => onPatch({ secure: v })} label="Secure (HTTPS)" />
-      <TextField label="Relative Path" value={webui.relativePath || ""} onChange={relativePath => onPatch({ relativePath })} />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
+      {webUiInstance.isAddPausedSupported && (
+        <Toggle checked={webui.addPaused} onChange={v => onPatch({ addPaused: v })} label="Add torrents paused" />
+      )}
+      {webUiInstance.isLabelDirChooserSupported && <ChooserToggles webui={webui} onPatch={onPatch} />}
     </div>
   );
 }
@@ -60,36 +91,5 @@ function ChooserToggles({ webui, onPatch }: PatchableProps) {
         label="Use alternative container (window instead of popup)"
       />
     </>
-  );
-}
-
-function BehaviourToggles({ webui, webUiInstance, onPatch }: BehaviourTogglesProps) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
-      {webUiInstance.isAddPausedSupported && (
-        <Toggle checked={webui.addPaused} onChange={v => onPatch({ addPaused: v })} label="Add torrents paused" />
-      )}
-      {webUiInstance.isLabelDirChooserSupported && <ChooserToggles webui={webui} onPatch={onPatch} />}
-    </div>
-  );
-}
-
-export default function WebUIGeneralSettings({ webui, webUiInstance, onChange }: WebUISectionProps) {
-  const patch = (changes: Partial<WebUISettings>) => onChange({ ...webui, ...changes });
-  return (
-    <SettingsGroup title="General">
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <EndpointFields webui={webui} onPatch={patch} />
-        <div style={{ color: MUTED }}>Base URL for API calls: {webUiInstance.createBaseUrl()}</div>
-        <div style={FIELD_ROW_STYLE}>
-          <TextField label="Username" value={webui.username} onChange={username => patch({ username })} />
-          <TextField label="Password" value={webui.password} onChange={password => patch({ password })} type="password" />
-        </div>
-        {webUiInstance.isConnectionTestSupported && <WebUIConnectionTest webui={webui} />}
-        {(webUiInstance.isAddPausedSupported || webUiInstance.isLabelDirChooserSupported) && (
-          <BehaviourToggles webui={webui} webUiInstance={webUiInstance} onPatch={patch} />
-        )}
-      </div>
-    </SettingsGroup>
   );
 }

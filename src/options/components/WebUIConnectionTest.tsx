@@ -4,18 +4,6 @@ import { TestConnectionMessage, type ITestConnectionMessage } from "../../models
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
 import { SUCCESS, DANGER } from "../theme";
 
-interface TestConnectionState {
-  signature: string;
-  testing: boolean;
-  result: ConnectionTestResult | null;
-}
-
-interface ConnectionTest {
-  testing: boolean;
-  result: ConnectionTestResult | null;
-  run: () => Promise<void>;
-}
-
 const UNREACHABLE = { color: DANGER, icon: "❌" };
 const CREDENTIALS_REFUSED = { color: "var(--rta-warning, #B8860B)", icon: "⚠" };
 const REACHABLE = { color: SUCCESS, icon: "✅" };
@@ -29,16 +17,30 @@ const TEST_BUTTON_STYLE: CSSProperties = {
   fontWeight: 700,
 };
 
-async function requestConnectionTest(webui: WebUISettings): Promise<ConnectionTestResult> {
-  try {
-    const result = await ext.runtime.sendMessage({
-      action: TestConnectionMessage.action,
-      webUiSettings: webui,
-    } as ITestConnectionMessage);
-    return result as ConnectionTestResult;
-  } catch (error) {
-    return { reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) };
-  }
+export default function WebUIConnectionTest({ webui }: { webui: WebUISettings }) {
+  const { testing, result, run } = useConnectionTest(webui);
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <button
+        onClick={run}
+        disabled={testing}
+        style={{ ...TEST_BUTTON_STYLE, cursor: testing ? "default" : "pointer", opacity: testing ? 0.7 : 1, transition: "all 0.15s" }}
+      >{testing ? "Testing…" : "Test connection"}</button>
+      {result && <TestOutcome result={result} />}
+    </div>
+  );
+}
+
+interface TestConnectionState {
+  signature: string;
+  testing: boolean;
+  result: ConnectionTestResult | null;
+}
+
+interface ConnectionTest {
+  testing: boolean;
+  result: ConnectionTestResult | null;
+  run: () => Promise<void>;
 }
 
 function useConnectionTest(webui: WebUISettings): ConnectionTest {
@@ -60,25 +62,23 @@ function useConnectionTest(webui: WebUISettings): ConnectionTest {
   return { testing: isCurrent && testState.testing, result: isCurrent ? testState.result : null, run };
 }
 
+async function requestConnectionTest(webui: WebUISettings): Promise<ConnectionTestResult> {
+  try {
+    const result = await ext.runtime.sendMessage({
+      action: TestConnectionMessage.action,
+      webUiSettings: webui,
+    } as ITestConnectionMessage);
+    return result as ConnectionTestResult;
+  } catch (error) {
+    return { reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) };
+  }
+}
+
 function TestOutcome({ result }: { result: ConnectionTestResult }) {
   const outcome = result.reachable ? (result.authenticated === false ? CREDENTIALS_REFUSED : REACHABLE) : UNREACHABLE;
   return (
     <span style={{ color: outcome.color, fontWeight: 600, fontSize: 14 }}>
       {outcome.icon} {result.message}
     </span>
-  );
-}
-
-export default function WebUIConnectionTest({ webui }: { webui: WebUISettings }) {
-  const { testing, result, run } = useConnectionTest(webui);
-  return (
-    <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-      <button
-        onClick={run}
-        disabled={testing}
-        style={{ ...TEST_BUTTON_STYLE, cursor: testing ? "default" : "pointer", opacity: testing ? 0.7 : 1, transition: "all 0.15s" }}
-      >{testing ? "Testing…" : "Test connection"}</button>
-      {result && <TestOutcome result={result} />}
-    </div>
   );
 }

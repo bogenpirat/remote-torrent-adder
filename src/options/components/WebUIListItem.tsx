@@ -4,36 +4,6 @@ import type { WebUISettings } from "../../models/webui";
 import { FIELD_INPUT_STYLE, isClientSelected } from "./webui-fields";
 import { TEXT, MUTED, GREEN_DARK } from "../theme";
 
-export type DropIndicator = "above" | "below" | null;
-
-interface WebUIListItemProps {
-  webui: WebUISettings;
-  index: number;
-  selected: boolean;
-  isPrimary: boolean;
-  isDragging: boolean;
-  dropIndicator: DropIndicator;
-  onSelect: () => void;
-  onNameChange: (name: string) => void;
-  onMove: (from: number, to: number) => void;
-  onDragStart: () => void;
-  onDragOver: () => void;
-  onDragEnd: () => void;
-  onDrop: () => void;
-}
-
-interface DragArming {
-  dragArmed: boolean;
-  arm: () => void;
-  disarm: () => void;
-}
-
-type ReorderHandleProps = Pick<WebUIListItemProps, "webui" | "index" | "selected" | "onMove"> & { onArm: () => void };
-
-type DraggedItem = Pick<WebUIListItemProps, "webui" | "onDragStart" | "onDragOver" | "onDragEnd" | "onDrop">;
-
-type ItemNameProps = Pick<WebUIListItemProps, "webui" | "selected" | "onNameChange">;
-
 const REORDER_STEP_BY_KEY = new Map([["ArrowUp", -1], ["ArrowDown", 1]]);
 
 const DROP_SHADOW_BY_INDICATOR = {
@@ -71,6 +41,50 @@ const PRIMARY_BADGE_STYLE: CSSProperties = {
   whiteSpace: "nowrap",
 };
 
+export type DropIndicator = "above" | "below" | null;
+
+interface WebUIListItemProps {
+  webui: WebUISettings;
+  index: number;
+  selected: boolean;
+  isPrimary: boolean;
+  isDragging: boolean;
+  dropIndicator: DropIndicator;
+  onSelect: () => void;
+  onNameChange: (name: string) => void;
+  onMove: (from: number, to: number) => void;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDragEnd: () => void;
+  onDrop: () => void;
+}
+
+export default function WebUIListItem(props: WebUIListItemProps) {
+  const { webui, selected } = props;
+  const subtitle = isClientSelected(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
+  // Only the handle arms dragging, so the inline name input stays selectable.
+  const arming = useDragArming(props);
+
+  return (
+    <div onClick={props.onSelect} draggable={arming.dragArmed} {...dragHandlers(props, arming.disarm)} style={itemStyle(props)}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <ReorderHandle webui={webui} index={props.index} selected={selected} onMove={props.onMove} onArm={arming.arm} />
+        <ItemName webui={webui} selected={selected} onNameChange={props.onNameChange} />
+        {props.isPrimary && <span style={PRIMARY_BADGE_STYLE}>Primary</span>}
+      </div>
+      <span style={{ fontSize: 12, color: selected ? GREEN_DARK : MUTED }}>
+        {subtitle}
+      </span>
+    </div>
+  );
+}
+
+interface DragArming {
+  dragArmed: boolean;
+  arm: () => void;
+  disarm: () => void;
+}
+
 function useDragArming({ isDragging }: Pick<WebUIListItemProps, "isDragging">): DragArming {
   const [dragArmed, setDragArmed] = useState(false);
 
@@ -88,21 +102,7 @@ function useDragArming({ isDragging }: Pick<WebUIListItemProps, "isDragging">): 
   return { dragArmed, arm: () => setDragArmed(true), disarm: () => setDragArmed(false) };
 }
 
-function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps): CSSProperties {
-  return {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    padding: "10px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-    opacity: isDragging ? 0.4 : 1,
-    background: selected ? "var(--rta-accent, #b7c9a7)" : "transparent",
-    border: selected ? `1px solid ${GREEN_DARK}` : "1px solid transparent",
-    boxShadow: dropIndicator ? DROP_SHADOW_BY_INDICATOR[dropIndicator] : undefined,
-    transition: "background 0.15s",
-  };
-}
+type DraggedItem = Pick<WebUIListItemProps, "webui" | "onDragStart" | "onDragOver" | "onDragEnd" | "onDrop">;
 
 function dragHandlers(item: DraggedItem, disarm: () => void) {
   return {
@@ -127,6 +127,24 @@ function dragHandlers(item: DraggedItem, disarm: () => void) {
   };
 }
 
+function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps): CSSProperties {
+  return {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    padding: "10px 12px",
+    borderRadius: 10,
+    cursor: "pointer",
+    opacity: isDragging ? 0.4 : 1,
+    background: selected ? "var(--rta-accent, #b7c9a7)" : "transparent",
+    border: selected ? `1px solid ${GREEN_DARK}` : "1px solid transparent",
+    boxShadow: dropIndicator ? DROP_SHADOW_BY_INDICATOR[dropIndicator] : undefined,
+    transition: "background 0.15s",
+  };
+}
+
+type ReorderHandleProps = Pick<WebUIListItemProps, "webui" | "index" | "selected" | "onMove"> & { onArm: () => void };
+
 function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const step = REORDER_STEP_BY_KEY.get(e.key);
@@ -147,6 +165,8 @@ function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleP
   );
 }
 
+type ItemNameProps = Pick<WebUIListItemProps, "webui" | "selected" | "onNameChange">;
+
 function ItemName({ webui, selected, onNameChange }: ItemNameProps) {
   if (!selected) {
     return (
@@ -165,25 +185,5 @@ function ItemName({ webui, selected, onNameChange }: ItemNameProps) {
       placeholder="Unnamed WebUI"
       style={{ ...FIELD_INPUT_STYLE, flex: 1, minWidth: 0, padding: "4px 8px", fontWeight: 600 }}
     />
-  );
-}
-
-export default function WebUIListItem(props: WebUIListItemProps) {
-  const { webui, selected } = props;
-  const subtitle = isClientSelected(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
-  // Only the handle arms dragging, so the inline name input stays selectable.
-  const arming = useDragArming(props);
-
-  return (
-    <div onClick={props.onSelect} draggable={arming.dragArmed} {...dragHandlers(props, arming.disarm)} style={itemStyle(props)}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <ReorderHandle webui={webui} index={props.index} selected={selected} onMove={props.onMove} onArm={arming.arm} />
-        <ItemName webui={webui} selected={selected} onNameChange={props.onNameChange} />
-        {props.isPrimary && <span style={PRIMARY_BADGE_STYLE}>Primary</span>}
-      </div>
-      <span style={{ fontSize: 12, color: selected ? GREEN_DARK : MUTED }}>
-        {subtitle}
-      </span>
-    </div>
   );
 }

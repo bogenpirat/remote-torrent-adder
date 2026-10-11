@@ -45,19 +45,6 @@ function ExportCard({ settings }: { settings: RTASettings }): JSX.Element {
   );
 }
 
-function parseSettingsExport(text: string): RTASettings {
-  let imported;
-  try {
-    imported = deserializeSettings(text);
-  } catch {
-    throw new Error("That is not valid JSON.");
-  }
-  if (!imported || !Array.isArray(imported.webuiSettings)) {
-    throw new Error("That JSON is not a Remote Torrent Adder settings export.");
-  }
-  return imported;
-}
-
 function ImportCard({ onImport }: { onImport: (settings: RTASettings) => void }): JSX.Element {
   const [importValue, setImportValue] = useState<string>("");
   const [importError, setImportError] = useState<string>("");
@@ -89,6 +76,19 @@ function ImportCard({ onImport }: { onImport: (settings: RTASettings) => void })
       {importError && <div id="rta-import-error" role="alert" className="rta-error">{importError}</div>}
     </section>
   );
+}
+
+function parseSettingsExport(text: string): RTASettings {
+  let imported;
+  try {
+    imported = deserializeSettings(text);
+  } catch {
+    throw new Error("That is not valid JSON.");
+  }
+  if (!imported || !Array.isArray(imported.webuiSettings)) {
+    throw new Error("That JSON is not a Remote Torrent Adder settings export.");
+  }
+  return imported;
 }
 
 interface ImportTextareaProps {

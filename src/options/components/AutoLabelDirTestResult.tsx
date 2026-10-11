@@ -7,41 +7,6 @@ import { type CriterionField } from "./auto-label-dir-fields";
 import { MONOSPACE_STYLE } from "./auto-label-dir-tester-styles";
 import { MUTED, BORDER, SURFACE } from "../theme";
 
-export interface TestedRules {
-  settings: AutoLabelDirSetting[];
-  defaultLabel: string | null;
-  defaultDir: string | null;
-  showLabel: boolean;
-  showDir: boolean;
-}
-
-interface OutcomeProps {
-  caption: string;
-  value: string | null;
-  source: string | null;
-}
-
-interface SourcedOutcomeProps {
-  caption: string;
-  noun: string;
-  ruleValue: string | null;
-  defaultValue: string | null;
-  winningRule: number | null;
-}
-
-interface EntryListProps {
-  title: string;
-  titleStyle: React.CSSProperties;
-  entries: string[];
-}
-
-interface ResultPanelProps {
-  torrent: Torrent;
-  explanation: AutoLabelDirExplanation;
-  rules: TestedRules;
-  onClear: () => void;
-}
-
 const CONTENTS_TOGGLE_STYLE: React.CSSProperties = {
   background: "none",
   border: "none",
@@ -73,54 +38,41 @@ const CLEAR_BUTTON_STYLE: React.CSSProperties = { background: "none", border: "n
 
 const WARNING_STYLE: React.CSSProperties = { color: MUTED, fontSize: 13, marginTop: 8 };
 
-function Outcome({ caption, value, source }: OutcomeProps) {
+export interface TestedRules {
+  settings: AutoLabelDirSetting[];
+  defaultLabel: string | null;
+  defaultDir: string | null;
+  showLabel: boolean;
+  showDir: boolean;
+}
+
+interface ResultPanelProps {
+  torrent: Torrent;
+  explanation: AutoLabelDirExplanation;
+  rules: TestedRules;
+  onClear: () => void;
+}
+
+export default function AutoLabelDirTestResult({ torrent, explanation, rules, onClear }: ResultPanelProps) {
+  const { settings, showLabel, showDir } = rules;
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-      <span style={{ fontWeight: 500, minWidth: 74 }}>{caption}</span>
-      <span style={value ? { ...MONOSPACE_STYLE, fontSize: 15 } : { color: MUTED }}>
-        {value || "(none)"}
-      </span>
-      {source && <span style={{ color: MUTED, fontSize: 13 }}>{source}</span>}
-    </div>
-  );
-}
+    <div style={RESULT_PANEL_STYLE}>
+      <div style={{ display: "flex", gap: 12, alignItems: "baseline", justifyContent: "space-between" }}>
+        <span style={{ fontWeight: 600, wordBreak: "break-all" }}>{torrent.name}</span>
+        <button onClick={onClear} style={CLEAR_BUTTON_STYLE}>
+          Clear
+        </button>
+      </div>
 
-function SourcedOutcome({ caption, noun, ruleValue, defaultValue, winningRule }: SourcedOutcomeProps) {
-  const source = ruleValue != null ? `from rule ${winningRule}` : (defaultValue ? `from the default ${noun}` : null);
-  return <Outcome caption={caption} value={ruleValue ?? defaultValue ?? null} source={source} />;
-}
+      <Outcomes explanation={explanation} rules={rules} />
 
-function EntryList({ title, titleStyle, entries }: EntryListProps) {
-  return (
-    <>
-      <div style={titleStyle}>{title}</div>
-      {entries.length === 0
-        ? <div style={{ color: MUTED, fontSize: 14 }}>None.</div>
-        : entries.map((entry, idx) => <div key={idx} style={{ fontFamily: "monospace", fontSize: 13 }}>{entry}</div>)}
-    </>
-  );
-}
+      <Warnings torrent={torrent} settings={settings} />
 
-function countOf(count: number, noun: string): string {
-  return `${count} ${count === 1 ? noun : `${noun}s`}`;
-}
+      {explanation.rules.map(rule => (
+        <RuleRow key={rule.index} rule={rule} winningRuleIndex={explanation.winningRuleIndex} showLabel={showLabel} showDir={showDir} />
+      ))}
 
-function TorrentContents({ torrent }: { torrent: Torrent }) {
-  const [open, setOpen] = useState(false);
-  const trackers = torrent.trackers ?? [];
-  const files = torrent.files ?? [];
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      <button onClick={() => setOpen(!open)} style={CONTENTS_TOGGLE_STYLE}>
-        {open ? "▾" : "▸"} Torrent contents ({countOf(trackers.length, "tracker")}, {countOf(files.length, "file")})
-      </button>
-      {open && (
-        <div style={CONTENTS_STYLE}>
-          <EntryList title="Trackers" titleStyle={{ fontWeight: 500, marginBottom: 4 }} entries={trackers} />
-          <EntryList title="Files" titleStyle={{ fontWeight: 500, margin: "10px 0 4px" }} entries={files} />
-        </div>
-      )}
+      <TorrentContents torrent={torrent} />
     </div>
   );
 }
@@ -136,6 +88,37 @@ function Outcomes({ explanation, rules }: Pick<ResultPanelProps, "explanation" |
       {rules.showDir && (
         <SourcedOutcome caption="Directory" noun="directory" ruleValue={dir} defaultValue={rules.defaultDir} winningRule={winningRule} />
       )}
+    </div>
+  );
+}
+
+interface SourcedOutcomeProps {
+  caption: string;
+  noun: string;
+  ruleValue: string | null;
+  defaultValue: string | null;
+  winningRule: number | null;
+}
+
+function SourcedOutcome({ caption, noun, ruleValue, defaultValue, winningRule }: SourcedOutcomeProps) {
+  const source = ruleValue != null ? `from rule ${winningRule}` : (defaultValue ? `from the default ${noun}` : null);
+  return <Outcome caption={caption} value={ruleValue ?? defaultValue ?? null} source={source} />;
+}
+
+interface OutcomeProps {
+  caption: string;
+  value: string | null;
+  source: string | null;
+}
+
+function Outcome({ caption, value, source }: OutcomeProps) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+      <span style={{ fontWeight: 500, minWidth: 74 }}>{caption}</span>
+      <span style={value ? { ...MONOSPACE_STYLE, fontSize: 15 } : { color: MUTED }}>
+        {value || "(none)"}
+      </span>
+      {source && <span style={{ color: MUTED, fontSize: 13 }}>{source}</span>}
     </div>
   );
 }
@@ -161,26 +144,43 @@ function Warnings({ torrent, settings }: { torrent: Torrent; settings: AutoLabel
   );
 }
 
-export default function AutoLabelDirTestResult({ torrent, explanation, rules, onClear }: ResultPanelProps) {
-  const { settings, showLabel, showDir } = rules;
+function TorrentContents({ torrent }: { torrent: Torrent }) {
+  const [open, setOpen] = useState(false);
+  const trackers = torrent.trackers ?? [];
+  const files = torrent.files ?? [];
+
   return (
-    <div style={RESULT_PANEL_STYLE}>
-      <div style={{ display: "flex", gap: 12, alignItems: "baseline", justifyContent: "space-between" }}>
-        <span style={{ fontWeight: 600, wordBreak: "break-all" }}>{torrent.name}</span>
-        <button onClick={onClear} style={CLEAR_BUTTON_STYLE}>
-          Clear
-        </button>
-      </div>
-
-      <Outcomes explanation={explanation} rules={rules} />
-
-      <Warnings torrent={torrent} settings={settings} />
-
-      {explanation.rules.map(rule => (
-        <RuleRow key={rule.index} rule={rule} winningRuleIndex={explanation.winningRuleIndex} showLabel={showLabel} showDir={showDir} />
-      ))}
-
-      <TorrentContents torrent={torrent} />
+    <div style={{ marginTop: 12 }}>
+      <button onClick={() => setOpen(!open)} style={CONTENTS_TOGGLE_STYLE}>
+        {open ? "▾" : "▸"} Torrent contents ({countOf(trackers.length, "tracker")}, {countOf(files.length, "file")})
+      </button>
+      {open && (
+        <div style={CONTENTS_STYLE}>
+          <EntryList title="Trackers" titleStyle={{ fontWeight: 500, marginBottom: 4 }} entries={trackers} />
+          <EntryList title="Files" titleStyle={{ fontWeight: 500, margin: "10px 0 4px" }} entries={files} />
+        </div>
+      )}
     </div>
+  );
+}
+
+function countOf(count: number, noun: string): string {
+  return `${count} ${count === 1 ? noun : `${noun}s`}`;
+}
+
+interface EntryListProps {
+  title: string;
+  titleStyle: React.CSSProperties;
+  entries: string[];
+}
+
+function EntryList({ title, titleStyle, entries }: EntryListProps) {
+  return (
+    <>
+      <div style={titleStyle}>{title}</div>
+      {entries.length === 0
+        ? <div style={{ color: MUTED, fontSize: 14 }}>None.</div>
+        : entries.map((entry, idx) => <div key={idx} style={{ fontFamily: "monospace", fontSize: 13 }}>{entry}</div>)}
+    </>
   );
 }

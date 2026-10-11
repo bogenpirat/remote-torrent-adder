@@ -115,17 +115,6 @@ function CustomSoundsSection() {
   );
 }
 
-function sendTestNotification(kind: NotificationKind, settings: RTASettings): void {
-  sendMessageAndForget({
-    action: TestNotificationMessage.action,
-    title: "Test Notification",
-    message: TEST_MESSAGE_BY_KIND[kind],
-    isFailed: kind === "failure",
-    popupDurationMs: settings.notificationsDurationMs,
-    playSound: settings.notificationsSoundEnabled,
-  } as ITestNotificationMessage);
-}
-
 function TestButtons({ settings }: { settings: RTASettings }) {
   return (
     <div style={{ display: "flex", gap: 12 }}>
@@ -143,4 +132,15 @@ function TestButtons({ settings }: { settings: RTASettings }) {
       </button>
     </div>
   );
+}
+
+function sendTestNotification(kind: NotificationKind, settings: RTASettings): void {
+  sendMessageAndForget({
+    action: TestNotificationMessage.action,
+    title: "Test Notification",
+    message: TEST_MESSAGE_BY_KIND[kind],
+    isFailed: kind === "failure",
+    popupDurationMs: settings.notificationsDurationMs,
+    playSound: settings.notificationsSoundEnabled,
+  } as ITestNotificationMessage);
 }

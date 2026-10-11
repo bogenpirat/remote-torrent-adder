@@ -9,16 +9,6 @@ import WebUILabelDirSettings from "./WebUILabelDirSettings";
 import { isClientSelected, type WebUISectionProps } from "./webui-fields";
 import { MUTED, DANGER } from "../theme";
 
-interface WebUIDetailProps {
-  webui: WebUISettings;
-  onChange: (w: WebUISettings) => void;
-  onRemove: () => void;
-  onPromote: () => void;
-  isPrimary: boolean;
-}
-
-type DetailHeaderProps = Omit<WebUIDetailProps, "onChange">;
-
 const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
 const HEADER_BUTTON_STYLE: CSSProperties = {
@@ -39,6 +29,47 @@ const CANCEL_BUTTON_STYLE: CSSProperties = {
   fontWeight: 500,
   cursor: "pointer",
 };
+
+interface WebUIDetailProps {
+  webui: WebUISettings;
+  onChange: (w: WebUISettings) => void;
+  onRemove: () => void;
+  onPromote: () => void;
+  isPrimary: boolean;
+}
+
+export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
+  const webUiInstance = isClientSelected(webui.client) ? WebUIFactory.createWebUI(webui) : null;
+
+  return (
+    <div>
+      <DetailHeader webui={webui} isPrimary={isPrimary} onPromote={onPromote} onRemove={onRemove} />
+
+      <ClientSelect webui={webui} onChange={onChange} />
+
+      {webUiInstance
+        ? <ConfiguredClient webui={webui} webUiInstance={webUiInstance} onChange={onChange} />
+        : <div style={{ color: MUTED, fontSize: 15 }}>Select a client type above to configure this WebUI.</div>}
+    </div>
+  );
+}
+
+type DetailHeaderProps = Omit<WebUIDetailProps, "onChange">;
+
+function DetailHeader({ webui, isPrimary, onPromote, onRemove }: DetailHeaderProps) {
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
+      <span style={{ fontWeight: 700, fontSize: 22, flex: 1 }}>{webui.name || "Unnamed WebUI"}</span>
+      {!isPrimary && (
+        <button
+          onClick={onPromote}
+          style={{ background: "var(--rta-info, #4682B4)", ...HEADER_BUTTON_STYLE, transition: "all 0.15s" }}
+        >Promote to Primary</button>
+      )}
+      <RemoveControls onRemove={onRemove} />
+    </div>
+  );
+}
 
 function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -64,33 +95,20 @@ function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
   );
 }
 
-function DetailHeader({ webui, isPrimary, onPromote, onRemove }: DetailHeaderProps) {
+function ClientSelect({ webui, onChange }: Pick<WebUIDetailProps, "webui" | "onChange">) {
+  const clientChosen = isClientSelected(webui.client);
+  const chooseClient = (value: string) => onChange({ ...webui, client: value as Client });
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
-      <span style={{ fontWeight: 700, fontSize: 22, flex: 1 }}>{webui.name || "Unnamed WebUI"}</span>
-      {!isPrimary && (
-        <button
-          onClick={onPromote}
-          style={{ background: "var(--rta-info, #4682B4)", ...HEADER_BUTTON_STYLE, transition: "all 0.15s" }}
-        >Promote to Primary</button>
-      )}
-      <RemoveControls onRemove={onRemove} />
+    <div style={{ marginBottom: 20 }}>
+      {/* Client type: choosable while still a draft, locked once chosen. */}
+      <Select
+        label="Client"
+        value={webui.client}
+        changeable={!clientChosen}
+        options={clientOptions}
+        onChange={clientChosen ? undefined : chooseClient}
+      />
     </div>
-  );
-}
-
-function AutoLabelDirRules({ webui, webUiInstance, onChange }: WebUISectionProps) {
-  return (
-    <AutoLabelDirSettingsEditor
-      value={webui.autoLabelDirSettings ?? []}
-      onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
-      showLabel={!!webUiInstance.isLabelSupported}
-      showDir={!!webUiInstance.isDirSupported}
-      labels={webui.labels}
-      dirs={webui.dirs}
-      defaultLabel={webui.defaultLabel}
-      defaultDir={webui.defaultDir}
-    />
   );
 }
 
@@ -113,35 +131,17 @@ function ConfiguredClient(props: WebUISectionProps) {
   );
 }
 
-function ClientSelect({ webui, onChange }: Pick<WebUIDetailProps, "webui" | "onChange">) {
-  const clientChosen = isClientSelected(webui.client);
-  const chooseClient = (value: string) => onChange({ ...webui, client: value as Client });
+function AutoLabelDirRules({ webui, webUiInstance, onChange }: WebUISectionProps) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      {/* Client type: choosable while still a draft, locked once chosen. */}
-      <Select
-        label="Client"
-        value={webui.client}
-        changeable={!clientChosen}
-        options={clientOptions}
-        onChange={clientChosen ? undefined : chooseClient}
-      />
-    </div>
-  );
-}
-
-export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
-  const webUiInstance = isClientSelected(webui.client) ? WebUIFactory.createWebUI(webui) : null;
-
-  return (
-    <div>
-      <DetailHeader webui={webui} isPrimary={isPrimary} onPromote={onPromote} onRemove={onRemove} />
-
-      <ClientSelect webui={webui} onChange={onChange} />
-
-      {webUiInstance
-        ? <ConfiguredClient webui={webui} webUiInstance={webUiInstance} onChange={onChange} />
-        : <div style={{ color: MUTED, fontSize: 15 }}>Select a client type above to configure this WebUI.</div>}
-    </div>
+    <AutoLabelDirSettingsEditor
+      value={webui.autoLabelDirSettings ?? []}
+      onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
+      showLabel={!!webUiInstance.isLabelSupported}
+      showDir={!!webUiInstance.isDirSupported}
+      labels={webui.labels}
+      dirs={webui.dirs}
+      defaultLabel={webui.defaultLabel}
+      defaultDir={webui.defaultDir}
+    />
   );
 }
