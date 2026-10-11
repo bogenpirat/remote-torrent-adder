@@ -12,6 +12,10 @@ export class PorlaWebUI extends JsonLoginWebUI {
         return !answer["error"] && !!answer["token"];
     }
 
+    protected override describeRejectedLogin(answer: LoginAnswer): string {
+        return answer["error"] ? String(answer["error"]) : super.describeRejectedLogin(answer);
+    }
+
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const jsonRpcToken = await this.authenticateForToken();
@@ -31,10 +35,7 @@ export class PorlaWebUI extends JsonLoginWebUI {
     }
 
     private async authenticateForToken(): Promise<string> {
-        const answer = await this.login();
-        if (answer["error"]) {
-            throw new Error(answer["error"] as string);
-        }
+        const answer = await this.authenticate();
         return answer["token"] as string;
     }
 

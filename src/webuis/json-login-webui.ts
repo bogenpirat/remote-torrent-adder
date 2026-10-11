@@ -2,6 +2,8 @@ import { type ConnectionTestResult, TorrentWebUI } from "../models/webui";
 
 export type LoginAnswer = Record<string, unknown>;
 
+const REJECTED_LOGIN_MESSAGE = "Authentication failed";
+
 export abstract class JsonLoginWebUI extends TorrentWebUI {
     protected abstract get loginUrl(): string;
 
@@ -19,9 +21,17 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
         }
     }
 
-    protected async login(): Promise<LoginAnswer> {
+    protected async authenticate(): Promise<LoginAnswer> {
         const response = await this.fetch(this.loginUrl, this.createLoginFetchOptions());
-        return response.json();
+        const answer: LoginAnswer = await response.json();
+        if (!this.isLoginAccepted(answer)) {
+            throw new Error(this.describeRejectedLogin(answer));
+        }
+        return answer;
+    }
+
+    protected describeRejectedLogin(_answer: LoginAnswer): string {
+        return REJECTED_LOGIN_MESSAGE;
     }
 
     protected createJsonPostOptions(payload: unknown, extraHeaders: Record<string, string> = {}): RequestInit {

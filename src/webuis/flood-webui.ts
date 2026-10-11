@@ -31,13 +31,6 @@ export class FloodWebUI extends JsonLoginWebUI {
         }
     }
 
-    private async authenticate(): Promise<void> {
-        const answer = await this.login();
-        if (!answer["success"]) {
-            throw new Error("Authentication failed");
-        }
-    }
-
     private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
         const payload = torrent.isMagnet
             ? this.createPayloadForMagnet(torrent.data as string, config)
