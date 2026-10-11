@@ -16,7 +16,7 @@ import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { readBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
-import { seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
+import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
 import { makeMagnetTorrent, seedWebUISettings } from "../helpers/fixtures";
 
@@ -26,7 +26,7 @@ const WEBUI_URL = "http://example.com:8080/";
 const SEND_ERROR = { httpResponseCode: 502, httpResponseBody: "boom" };
 
 function preAdd(url: string = MAGNET_URL, context?: TorrentDownloadContext): Promise<void> {
-    const message = { action: PreAddTorrentMessage.action, url, webUiId: "w1" };
+    const message = { action: PreAddTorrentMessage.action, url, webUiId: SEEDED_WEBUI_ID };
     return dispatchPreAddTorrent(message, 7, context).then(settle);
 }
 
@@ -130,7 +130,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
 
         const buffered = await readBufferedTorrent();
         expect(buffered!.torrent.data).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
-        expect(buffered!.webUiSettings.id).toBe("w1");
+        expect(buffered!.webUiSettings.id).toBe(SEEDED_WEBUI_ID);
     });
 });
 

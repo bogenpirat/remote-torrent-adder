@@ -247,7 +247,6 @@ function MatchResults({ regexes, link }: { regexes: RegExp[]; link: string }): J
       {regexes.map((reg: RegExp, idx: number) => (
         <MatchResult key={idx} pattern={reg.source} matched={testRegexSafely(reg, link)} />
       ))}
-      {/* Magnet link detection */}
       <MatchResult pattern="magnet:" matched={link.startsWith('magnet:')} />
     </ul>
   );

@@ -27,7 +27,7 @@ import {
 import { type Client } from "../../src/models/clients";
 import { serializeSettings, deserializeSettings, deserializeObject } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
-import { seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
+import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { readBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError } from "../../src/util/download";
@@ -57,16 +57,16 @@ function storedSettings() {
 }
 
 function addTorrent(url: string, sender: any = {}): Promise<void> {
-    return dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url, config: {} }, sender).then(settle);
+    return dispatch({ action: AddTorrentMessage.action, webUiId: SEEDED_WEBUI_ID, url, config: {} }, sender).then(settle);
 }
 
 function addBufferedTorrent(overrides: Record<string, unknown> = {}): Promise<any> {
-    const message = { action: AddTorrentMessageWithLabelAndDir.action, webUiId: "w1", config: {}, labels: [], directories: [] };
+    const message = { action: AddTorrentMessageWithLabelAndDir.action, webUiId: SEEDED_WEBUI_ID, config: {}, labels: [], directories: [] };
     return dispatch({ ...message, ...overrides });
 }
 
 function bufferTorrent(torrent = makeMagnetTorrent()): Promise<void> {
-    return saveBufferedTorrent({ torrent, webUiSettings: makeWebUISettings({ id: "w1" }) });
+    return saveBufferedTorrent({ torrent, webUiSettings: makeWebUISettings({ id: SEEDED_WEBUI_ID }) });
 }
 
 function shownNotification(index = 0) {
@@ -168,7 +168,7 @@ describe("registerMessageListener routing", () => {
         seedSingleWebUi();
         stubClientAccepts();
 
-        const response = await dispatch({ action: PreAddTorrentMessage.action, url: TRACKER_URL, webUiId: "w1" }, TRACKER_TAB);
+        const response = await dispatch({ action: PreAddTorrentMessage.action, url: TRACKER_URL, webUiId: SEEDED_WEBUI_ID }, TRACKER_TAB);
         await settle();
 
         expect(response).toEqual({});

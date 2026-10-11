@@ -54,7 +54,6 @@ function SettingsHelp() {
       </p>
       <h2>Relative Path</h2>
       <p>Should be optional for some clients, but is available for all of them in case you use a reverse proxy.</p>
-      <h2>Auto Label/Dir Settings</h2>
     </>
   );
 }
@@ -62,6 +61,7 @@ function SettingsHelp() {
 function AutoLabelDirHelp() {
   return (
     <>
+      <h2>Auto Label/Dir Settings</h2>
       <p>
         This feature allows you to automatically assign labels and destination directories based on the contents of a
         torrent. Each rule can combine two kinds of criteria: <em>Tracker URL</em>, matched against every tracker

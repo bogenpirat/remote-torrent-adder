@@ -93,7 +93,7 @@ async function downloadTorrentOrNotify(chooser: ChooserRequest): Promise<Torrent
         return await downloadTorrent(chooser.url, chooser.context);
     } catch (error) {
         console.error("Error downloading torrent:", error);
-        notifyDownloadFailure(error, await new Settings().loadSettings(), addTrailingSlash(chooser.webUi.createBaseUrl()));
+        notifyDownloadFailure(error, await new Settings().loadSettings(), webUiUrlOf(chooser.webUi));
         return null;
     }
 }
@@ -144,7 +144,7 @@ function downloadAndAddTorrentToWebUi(
             sendTorrentToWebUi(webUi, torrent, request.config ?? fallbackConfig);
         }).catch(error => {
             console.error("Error downloading torrent:", error);
-            notifyDownloadFailure(error, settings, addTrailingSlash(webUi.createBaseUrl()));
+            notifyDownloadFailure(error, settings, webUiUrlOf(webUi));
         });
     });
 }

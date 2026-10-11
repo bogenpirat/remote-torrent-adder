@@ -34,7 +34,7 @@ interface ChoiceSelectProps {
 
 type RuleChoices = Pick<AutoLabelDirSettingsEditorProps, "showLabel" | "showDir" | "labels" | "dirs">;
 
-type TestedRules = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
+type RuleTesterProps = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
 
 interface RuleCardProps {
   setting: AutoLabelDirSetting;
@@ -210,7 +210,7 @@ function RuleCard({ setting, choices, onPatch, onRemove }: RuleCardProps) {
   );
 }
 
-function RuleTester({ value, defaultLabel, defaultDir, showLabel, showDir }: TestedRules) {
+function RuleTester({ value, defaultLabel, defaultDir, showLabel, showDir }: RuleTesterProps) {
   return (
     <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
   );

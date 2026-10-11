@@ -12,9 +12,7 @@ class FakeAudio {
     constructor(source: string) {
         playedSources.push(source);
     }
-    addEventListener(): void {
-        return undefined;
-    }
+    addEventListener = vi.fn();
     play(): Promise<void> {
         return Promise.resolve();
     }
