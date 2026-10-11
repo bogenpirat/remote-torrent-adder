@@ -35,11 +35,11 @@
     "count": 1,
     "measure": 1
   },
-  "ER2|src/options/pages/LinkCatchingPage.tsx|stringToRegex": {
+  "ER2|src/options/components/WebUIList.tsx|indicatorFor": {
     "count": 1,
     "measure": 1
   },
-  "ER2|src/options/pages/WebUIsPage.tsx|WebUIsPage": {
+  "ER2|src/options/pages/LinkCatchingPage.tsx|stringToRegex": {
     "count": 1,
     "measure": 1
   },
@@ -115,13 +115,25 @@
     "count": 1,
     "measure": 4
   },
-  "F1|src/options/pages/WebUIsPage.tsx|WebUIDetail": {
+  "F1|src/options/components/WebUIDetail.tsx|DetailHeader": {
+    "count": 1,
+    "measure": 4
+  },
+  "F1|src/options/components/WebUIDetail.tsx|WebUIDetail": {
     "count": 1,
     "measure": 5
   },
-  "F1|src/options/pages/WebUIsPage.tsx|WebUIListItem": {
+  "F1|src/options/components/WebUILabelDirSettings.tsx|ChoiceColumn": {
     "count": 1,
-    "measure": 14
+    "measure": 5
+  },
+  "F1|src/options/components/WebUIList.tsx|WebUIListItems": {
+    "count": 1,
+    "measure": 4
+  },
+  "F1|src/options/components/webui-fields.tsx|TextField": {
+    "count": 1,
+    "measure": 4
   },
   "F1|src/popup/app/page.tsx|ChoiceField": {
     "count": 1,
@@ -175,20 +187,12 @@
     "count": 1,
     "measure": 1
   },
-  "FM1|src/options/pages/WebUIsPage.tsx|": {
-    "count": 1,
-    "measure": 640
-  },
   "FM1|test/util/auto-label-dir-matcher.test.ts|": {
     "count": 1,
     "measure": 340
   },
   "FM2|e2e/firefox/add-torrent.e2e.spec.ts|": {
     "count": 1,
-    "measure": 1
-  },
-  "FM2|src/options/pages/WebUIsPage.tsx|": {
-    "count": 8,
     "measure": 1
   },
   "FM2|test/util/parsers.test.ts|": {
@@ -227,26 +231,6 @@
     "count": 1,
     "measure": 29
   },
-  "FN1|src/options/pages/WebUIsPage.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 84
-  },
-  "FN1|src/options/pages/WebUIsPage.tsx|WebUIDetail": {
-    "count": 1,
-    "measure": 110
-  },
-  "FN1|src/options/pages/WebUIsPage.tsx|WebUIListItem": {
-    "count": 1,
-    "measure": 104
-  },
-  "FN1|src/options/pages/WebUIsPage.tsx|WebUIsPage": {
-    "count": 1,
-    "measure": 79
-  },
-  "FN1|src/options/pages/WebUIsPage.tsx|getDefaultWebUISettings": {
-    "count": 1,
-    "measure": 39
-  },
   "FN1|test/helpers/chrome-mock.ts|createChromeMock": {
     "count": 1,
     "measure": 54
@@ -278,22 +262,6 @@
   "FN3|e2e/fixtures/fake-qbittorrent.ts|handle": {
     "count": 1,
     "measure": 17
-  },
-  "FN3|src/options/pages/WebUIsPage.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 20
-  },
-  "FN3|src/options/pages/WebUIsPage.tsx|WebUIDetail": {
-    "count": 1,
-    "measure": 26
-  },
-  "FN3|src/options/pages/WebUIsPage.tsx|WebUIListItem": {
-    "count": 1,
-    "measure": 13
-  },
-  "FN3|src/options/pages/WebUIsPage.tsx|WebUIsPage": {
-    "count": 1,
-    "measure": 15
   },
   "FN3|test/helpers/fetch-mock.ts|mockResponse": {
     "count": 1,
@@ -368,7 +336,7 @@
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|(anonymous)": {
-    "count": 8,
+    "count": 10,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|build": {
@@ -380,7 +348,11 @@
     "measure": 1
   },
   "G5|test/webuis/porla-webui.test.ts|": {
-    "count": 2,
+    "count": 1,
+    "measure": 1
+  },
+  "G5|test/webuis/porla-webui.test.ts|build": {
+    "count": 1,
     "measure": 1
   },
   "G5|test/webuis/qbittorrent-webui.test.ts|": {
@@ -396,7 +368,11 @@
     "measure": 1
   },
   "G5|test/webuis/rqbit-webui.test.ts|": {
-    "count": 2,
+    "count": 1,
+    "measure": 1
+  },
+  "G5|test/webuis/rqbit-webui.test.ts|build": {
+    "count": 1,
     "measure": 1
   },
   "G5|test/webuis/rutorrent-webui.test.ts|": {
@@ -424,7 +400,7 @@
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
-    "count": 6,
+    "count": 8,
     "measure": 1
   },
   "G5|test/webuis/tixati-webui.test.ts|build": {
@@ -448,7 +424,7 @@
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
-    "count": 7,
+    "count": 8,
     "measure": 1
   },
   "G5|test/webuis/ttorrent-webui.test.ts|build": {
