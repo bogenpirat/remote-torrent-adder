@@ -9,10 +9,6 @@ export function buildBaseUrl(settings: WebUISettings): string {
     return `${scheme}://${settings.host}${buildPortPart(settings)}${path}`;
 }
 
-export function buildBaseUrlPatternForFilter(settings: WebUISettings): string {
-    return buildBaseUrl(settings).replace(/\/+$/, "") + "/";
-}
-
 export function addLeadingAndTrimTrailingSlashes(urlPart: string): string {
     if (!urlPart) {
         return "";

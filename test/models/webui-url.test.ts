@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { addLeadingAndTrimTrailingSlashes, buildBaseUrl, buildBaseUrlPatternForFilter } from "../../src/models/webui-url";
+import { addLeadingAndTrimTrailingSlashes, buildBaseUrl } from "../../src/models/webui-url";
 import { makeWebUISettings } from "../helpers/fixtures";
 
 describe("buildBaseUrl", () => {
@@ -12,18 +12,6 @@ describe("buildBaseUrl", () => {
     it("omits the default port of the scheme only", () => {
         expect(buildBaseUrl(makeWebUISettings({ host: "h", port: 443, secure: true }))).toBe("https://h");
         expect(buildBaseUrl(makeWebUISettings({ host: "h", port: 80, secure: true }))).toBe("https://h:80");
-    });
-});
-
-describe("buildBaseUrlPatternForFilter", () => {
-    it("ensures exactly one trailing slash", () => {
-        expect(buildBaseUrlPatternForFilter(makeWebUISettings({ host: "h", port: 80 }))).toBe("http://h/");
-    });
-
-    it("normalizes a relative path to a single trailing slash", () => {
-        const settings = makeWebUISettings({ host: "h", port: 80, relativePath: "app" });
-
-        expect(buildBaseUrlPatternForFilter(settings)).toBe("http://h/app/");
     });
 });
 

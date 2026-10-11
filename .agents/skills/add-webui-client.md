@@ -53,7 +53,6 @@ The base class holds what depends on the client's settings. Request and result h
 
 URL and request helpers:
 - `this.createBaseUrl()` → `http(s)://host[:port][/relativePath]` (omits the port when it is 80/443 for the matching scheme)
-- `buildBaseUrlPatternForFilter(settings)` from `src/models/webui-url.ts` → base URL normalised with a single trailing slash, used for `declarativeNetRequest` filters
 - `fetchOrThrow(url, options)` → wraps `fetch`, throws `HttpError(status, body)` on a non-OK response
 - `createBasicAuthHeaders(this.settings)` → `{ Authorization: "Basic …" }`, or `{}` when both username and password are empty
 
