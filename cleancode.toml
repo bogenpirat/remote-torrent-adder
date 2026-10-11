@@ -22,7 +22,7 @@ exclude = ["dist-prod/", "coverage/", ".tmp/", "playwright-report/", "test-resul
 # The project's own test command. Put the coverage floor in it, for example
 #   command = "pytest --cov=src --cov-fail-under=90"
 [tests]
-command = "npx vitest run --coverage --coverage.thresholds.lines=72 --coverage.thresholds.statements=71 --coverage.thresholds.functions=68 --coverage.thresholds.branches=65"
+command = "npx vitest run --coverage --coverage.thresholds.lines=89 --coverage.thresholds.statements=89 --coverage.thresholds.functions=90 --coverage.thresholds.branches=84"
 
 # Domain vocabulary. One word per concept; code uses these terms and no synonyms.
 [glossary]
