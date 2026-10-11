@@ -79,21 +79,25 @@
     "count": 1,
     "measure": 4
   },
-  "F1|src/options/components/AutoLabelDirSettingsEditor.tsx|AutoLabelDirSettingsEditor": {
-    "count": 1,
-    "measure": 8
-  },
-  "F1|src/options/components/AutoLabelDirTester.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 10
-  },
-  "F1|src/options/components/AutoLabelDirTester.tsx|AutoLabelDirTester": {
-    "count": 1,
-    "measure": 5
-  },
-  "F1|src/options/components/AutoLabelDirTester.tsx|RuleRow": {
+  "F1|src/options/components/AutoLabelDirRuleRow.tsx|RuleVerdict": {
     "count": 1,
     "measure": 4
+  },
+  "F1|src/options/components/AutoLabelDirSettingsEditor.tsx|ChoiceSelect": {
+    "count": 1,
+    "measure": 4
+  },
+  "F1|src/options/components/AutoLabelDirSettingsEditor.tsx|RuleCard": {
+    "count": 1,
+    "measure": 4
+  },
+  "F1|src/options/components/AutoLabelDirTestResult.tsx|AutoLabelDirTestResult": {
+    "count": 1,
+    "measure": 4
+  },
+  "F1|src/options/components/AutoLabelDirTestResult.tsx|SourcedOutcome": {
+    "count": 1,
+    "measure": 5
   },
   "F1|src/options/components/ChipList.tsx|ChipList": {
     "count": 1,
@@ -183,14 +187,6 @@
     "count": 1,
     "measure": 1
   },
-  "FM2|src/options/components/AutoLabelDirSettingsEditor.tsx|": {
-    "count": 9,
-    "measure": 1
-  },
-  "FM2|src/options/components/AutoLabelDirTester.tsx|": {
-    "count": 8,
-    "measure": 1
-  },
   "FM2|src/options/pages/WebUIsPage.tsx|": {
     "count": 8,
     "measure": 1
@@ -230,26 +226,6 @@
   "FN1|e2e/service-worker.smoke.spec.ts|(anonymous)": {
     "count": 1,
     "measure": 29
-  },
-  "FN1|src/options/components/AutoLabelDirSettingsEditor.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 51
-  },
-  "FN1|src/options/components/AutoLabelDirSettingsEditor.tsx|AutoLabelDirSettingsEditor": {
-    "count": 1,
-    "measure": 26
-  },
-  "FN1|src/options/components/AutoLabelDirTester.tsx|AutoLabelDirTester": {
-    "count": 1,
-    "measure": 94
-  },
-  "FN1|src/options/components/AutoLabelDirTester.tsx|RuleRow": {
-    "count": 1,
-    "measure": 35
-  },
-  "FN1|src/options/components/AutoLabelDirTester.tsx|verdict": {
-    "count": 1,
-    "measure": 24
   },
   "FN1|src/options/pages/WebUIsPage.tsx|(anonymous)": {
     "count": 1,
@@ -302,14 +278,6 @@
   "FN3|e2e/fixtures/fake-qbittorrent.ts|handle": {
     "count": 1,
     "measure": 17
-  },
-  "FN3|src/options/components/AutoLabelDirSettingsEditor.tsx|(anonymous)": {
-    "count": 1,
-    "measure": 15
-  },
-  "FN3|src/options/components/AutoLabelDirTester.tsx|AutoLabelDirTester": {
-    "count": 1,
-    "measure": 30
   },
   "FN3|src/options/pages/WebUIsPage.tsx|(anonymous)": {
     "count": 1,
