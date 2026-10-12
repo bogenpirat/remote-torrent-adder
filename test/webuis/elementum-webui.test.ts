@@ -1,44 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { callArgs } from "../helpers/assert";
 import { ElementumWebUI } from "../../src/webuis/elementum-webui";
-import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
-import { mockResponse, queueFetch } from "../helpers/fetch-mock";
+import { describeFormClient } from "../helpers/form-client-contract";
 
-const build = (over = {}) => new ElementumWebUI(makeWebUISettings({ host: "h", port: 65220, ...over }));
-
-describe("ElementumWebUI", () => {
-    it("posts a magnet uri to /playuri", async () => {
-        const fetch = queueFetch(mockResponse({ status: 200, body: "ok" }));
-        const result = await build().sendTorrent(makeMagnetTorrent(), {});
-
-        expect(result.success).toBe(true);
-        const [url, opts] = callArgs(fetch, 0);
-        expect(url).toBe("http://h:65220/playuri");
-        const body = opts.body as FormData;
-        expect(body.get("uri")).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
-    });
-
-    it("posts a torrent file blob under the file field", async () => {
-        const fetch = queueFetch(mockResponse({ status: 200, body: "ok" }));
-        await build().sendTorrent(makeFileTorrent(), {});
-
-        const body = callArgs(fetch, 0)[1].body as FormData;
-        expect(body.get("file")).toBeInstanceOf(Blob);
-    });
-
-    it("reports the real status and body on a non-2xx response", async () => {
-        queueFetch(mockResponse({ status: 500, body: "err" }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({
-            success: false,
-            httpResponseCode: 500,
-            httpResponseBody: "err",
-        });
-    });
-
-    it("supports neither labels, dirs nor add-paused", () => {
-        const ui = build();
-        expect(ui.isLabelSupported).toBe(false);
-        expect(ui.isDirSupported).toBe(false);
-        expect(ui.isAddPausedSupported).toBe(false);
-    });
+describeFormClient({
+    client: ElementumWebUI,
+    port: 65220,
+    magnet: { path: "/playuri", fields: { uri: "magnet:?xt=urn:btih:abc123&dn=Cool+Torrent" } },
+    file: { blobField: "file" },
+    supports: [],
 });
