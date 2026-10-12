@@ -22,12 +22,12 @@ export interface AutoLabelDirExplanation {
     dir: string | null;
 }
 
-export function getAutoLabelResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | null {
-    return explainAutoLabelDir(torrent, autoLabelDirSettings).label;
+export function getAutoLabelResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | undefined {
+    return explainAutoLabelDir(torrent, autoLabelDirSettings).label ?? undefined;
 }
 
-export function getAutoDirResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | null {
-    return explainAutoLabelDir(torrent, autoLabelDirSettings).dir;
+export function getAutoDirResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | undefined {
+    return explainAutoLabelDir(torrent, autoLabelDirSettings).dir ?? undefined;
 }
 
 export function explainAutoLabelDir(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): AutoLabelDirExplanation {

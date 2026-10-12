@@ -55,9 +55,9 @@ describe("isBencodeDictionary", () => {
 describe("value accessors", () => {
     it("toText decodes byte strings and rejects everything else", () => {
         expect(toText(enc("hello"))).toBe("hello");
-        expect(toText(5)).toBeNull();
-        expect(toText([])).toBeNull();
-        expect(toText(undefined)).toBeNull();
+        expect(toText(5)).toBeUndefined();
+        expect(toText([])).toBeUndefined();
+        expect(toText(undefined)).toBeUndefined();
     });
 
     it("toList passes lists through and flattens everything else to empty", () => {
@@ -69,14 +69,14 @@ describe("value accessors", () => {
     it("toInteger only accepts numbers", () => {
         expect(toInteger(0)).toBe(0);
         expect(toInteger(1)).toBe(1);
-        expect(toInteger(enc("1"))).toBeNull();
-        expect(toInteger(undefined)).toBeNull();
+        expect(toInteger(enc("1"))).toBeUndefined();
+        expect(toInteger(undefined)).toBeUndefined();
     });
 
     it("toInfo reads a well-formed info dictionary and rejects a malformed one", () => {
         expect(toInfo({ info: { name: enc("x") } })).toEqual({ name: enc("x") });
-        expect(toInfo({ info: enc("x") })).toBeNull();
-        expect(toInfo({})).toBeNull();
-        expect(toInfo(null)).toBeNull();
+        expect(toInfo({ info: enc("x") })).toBeUndefined();
+        expect(toInfo({})).toBeUndefined();
+        expect(toInfo(null)).toBeUndefined();
     });
 });

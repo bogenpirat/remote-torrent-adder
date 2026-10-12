@@ -93,15 +93,15 @@ export abstract class TorrentWebUI {
         return buildBaseUrl(this._settings);
     }
 
-    protected getDirectory(config: TorrentUploadConfig): string | null {
-        return config.dir ?? this.settings.defaultDir ?? null;
+    protected getDirectory(config: TorrentUploadConfig): string | undefined {
+        return config.dir ?? this.settings.defaultDir ?? undefined;
     }
 
-    protected getLabel(config: TorrentUploadConfig): string | null {
-        return config.label ?? this.settings.defaultLabel ?? null;
+    protected getLabel(config: TorrentUploadConfig): string | undefined {
+        return config.label ?? this.settings.defaultLabel ?? undefined;
     }
 
-    protected getAddPaused(config: TorrentUploadConfig): boolean | null {
+    protected getAddPaused(config: TorrentUploadConfig): boolean {
         return config.addPaused ?? this.settings.addPaused ?? false;
     }
 

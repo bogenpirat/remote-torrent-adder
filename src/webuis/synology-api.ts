@@ -16,7 +16,7 @@ export interface SynologyApiEndpoint {
 export interface SynologyTask {
     sessionId: string;
     torrent: Torrent;
-    destination: string;
+    destination?: string;
 }
 
 export interface SynologyRequest {

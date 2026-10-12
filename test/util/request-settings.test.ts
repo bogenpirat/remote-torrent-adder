@@ -55,7 +55,7 @@ describe("requestSerializedSettings", () => {
         const pending = requestSerializedSettings();
         await vi.runAllTimersAsync();
 
-        await expect(pending).resolves.toBe("");
+        await expect(pending).resolves.toBeUndefined();
         expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(3);
     });
 });

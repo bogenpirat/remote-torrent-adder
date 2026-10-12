@@ -57,9 +57,9 @@ URL and request helpers:
 - `createBasicAuthHeaders(this.settings)` → `{ Authorization: "Basic …" }`, or `{}` when both username and password are empty
 
 Per-torrent value resolution (config value first, then the per-client default):
-- `this.getLabel(config)` → `string | null`
-- `this.getDirectory(config)` → `string | null`
-- `this.getAddPaused(config)` → `boolean | null`
+- `this.getLabel(config)` → `string | undefined`
+- `this.getDirectory(config)` → `string | undefined`
+- `this.getAddPaused(config)` → `boolean`
 - `this.getClientSpecific(key, config)` → `boolean`, for options only this client understands. Declare them by overriding `get clientSpecificSettingDescriptors()`; the options page and the popup then render them with no further wiring. See Step 2b.
 
 Result construction:

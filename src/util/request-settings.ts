@@ -3,8 +3,8 @@ import { GetSettingsMessage } from "../models/messages";
 
 const MAX_ATTEMPTS = 3;
 
-export async function requestSerializedSettings(attemptNumber: number = 0): Promise<string> {
-    const serializedSettings = await trySendMessage(GetSettingsMessage);
+export async function requestSerializedSettings(attemptNumber: number = 0): Promise<string | undefined> {
+    const serializedSettings = await trySendMessage<string>(GetSettingsMessage);
     if (serializedSettings) {
         return serializedSettings;
     }
@@ -12,5 +12,5 @@ export async function requestSerializedSettings(attemptNumber: number = 0): Prom
         await new Promise(resolve => setTimeout(resolve, 100 * (attemptNumber + 1)));
         return requestSerializedSettings(attemptNumber + 1);
     }
-    return "";
+    return undefined;
 }

@@ -18,8 +18,8 @@ describe("resolveClientIdentifier", () => {
         expect(resolveClientIdentifier("QNAP Download Station WebUI")).toBe(Client.QNAPDownloadStationWebUI);
     });
 
-    it("returns null for an unknown identifier", () => {
-        expect(resolveClientIdentifier("SomeBogusClient")).toBeNull();
+    it("returns nothing for an unknown identifier", () => {
+        expect(resolveClientIdentifier("SomeBogusClient")).toBeUndefined();
     });
 
     it("maps every legacy identifier to a valid Client value", () => {

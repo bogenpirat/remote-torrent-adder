@@ -13,11 +13,11 @@ export function sendMessageAndForget(message: unknown): void {
     void ext.runtime.sendMessage(message).catch(() => undefined);
 }
 
-export async function trySendMessage(message: unknown): Promise<string> {
+export async function trySendMessage<T>(message: unknown): Promise<T | undefined> {
     try {
-        return (await ext.runtime.sendMessage(message) as string | undefined) ?? "";
+        return await ext.runtime.sendMessage(message) as T | undefined;
     } catch (error) {
         console.debug("Message send failed; the background script may be asleep.", error);
-        return "";
+        return undefined;
     }
 }

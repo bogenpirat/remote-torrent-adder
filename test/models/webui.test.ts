@@ -74,16 +74,16 @@ describe("createBaseUrl", () => {
 });
 
 describe("config resolution helpers", () => {
-    it("getDirectory prefers config, then default, then null", () => {
+    it("getDirectory prefers config, then default, then nothing", () => {
         expect(build({ defaultDir: "/def" }).publicGetDirectory({ dir: "/cfg" })).toBe("/cfg");
         expect(build({ defaultDir: "/def" }).publicGetDirectory({})).toBe("/def");
-        expect(build({ defaultDir: null }).publicGetDirectory({})).toBeNull();
+        expect(build({ defaultDir: null }).publicGetDirectory({})).toBeUndefined();
     });
 
-    it("getLabel prefers config, then default, then null", () => {
+    it("getLabel prefers config, then default, then nothing", () => {
         expect(build({ defaultLabel: "def" }).publicGetLabel({ label: "cfg" })).toBe("cfg");
         expect(build({ defaultLabel: "def" }).publicGetLabel({})).toBe("def");
-        expect(build({ defaultLabel: null }).publicGetLabel({})).toBeNull();
+        expect(build({ defaultLabel: null }).publicGetLabel({})).toBeUndefined();
     });
 
     it("getAddPaused prefers config, then default, then false", () => {

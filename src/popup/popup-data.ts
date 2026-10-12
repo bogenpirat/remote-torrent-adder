@@ -72,7 +72,7 @@ function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData
     };
 }
 
-function resolveInitialChoice(autoResult: string | null, defaultChoice: string | null, options: string[]): string {
+function resolveInitialChoice(autoResult: string | undefined, defaultChoice: string | null, options: string[]): string {
     return autoResult || defaultChoice || firstEntry(options) || "";
 }
 
@@ -130,6 +130,6 @@ export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
     }
 }
 
-function firstEntry(collection: Array<string>): string | null {
-    return collection?.[0] ?? null;
+function firstEntry(collection: Array<string>): string | undefined {
+    return collection?.[0];
 }

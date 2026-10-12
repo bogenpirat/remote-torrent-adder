@@ -24,10 +24,7 @@ export class RqbitWebUI extends BasicAuthWebUI {
             params.append("output_folder", dir);
         }
 
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            params.append("paused", addPaused.toString());
-        }
+        params.append("paused", this.getAddPaused(config).toString());
 
         const query = params.toString();
         return query ? `?${query}` : "";

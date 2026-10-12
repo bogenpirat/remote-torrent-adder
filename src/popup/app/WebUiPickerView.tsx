@@ -47,7 +47,7 @@ export default function WebUiPickerView() {
   return <WebUiOptionList options={state.options} onOpen={openWebUi} />;
 }
 
-function toWebUiOptions(serialized: string): WebUiOption[] {
+function toWebUiOptions(serialized: string | undefined): WebUiOption[] {
   const settings = serialized ? deserializeSettings(serialized) : null;
   return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
 }

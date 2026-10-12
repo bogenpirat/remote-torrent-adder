@@ -74,10 +74,7 @@ export class TransmissionWebUI extends BasicAuthWebUI {
             addArguments["download-dir"] = dir;
         }
 
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            addArguments["paused"] = addPaused;
-        }
+        addArguments["paused"] = this.getAddPaused(config);
         return addArguments;
     }
 

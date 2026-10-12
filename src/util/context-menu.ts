@@ -117,8 +117,8 @@ function resolveDownloadContext(onClickData: OnClickData, tab?: Tab): TorrentDow
     };
 }
 
-function resolvePageUrl(onClickData: OnClickData, tab?: Tab): string | null {
-    return onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url ?? null;
+function resolvePageUrl(onClickData: OnClickData, tab?: Tab): string | undefined {
+    return onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url;
 }
 
 async function resolveWindowId(tab?: Tab): Promise<number> {

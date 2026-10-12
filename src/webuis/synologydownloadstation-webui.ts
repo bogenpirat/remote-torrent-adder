@@ -162,8 +162,8 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
         return info;
     }
 
-    private resolveDestination(config: TorrentUploadConfig): string {
-        return (this.getDirectory(config) ?? "").replace(/^\/+/, "");
+    private resolveDestination(config: TorrentUploadConfig): string | undefined {
+        return this.getDirectory(config)?.replace(/^\/+/, "") || undefined;
     }
 
     get isLabelSupported(): boolean {

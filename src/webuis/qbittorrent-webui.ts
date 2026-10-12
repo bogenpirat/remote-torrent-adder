@@ -75,12 +75,11 @@ export class QBittorrentWebUI extends TorrentWebUI {
     }
 
     private createUploadConfigFields(config: TorrentUploadConfig): Array<[string, string]> {
-        const addPaused = this.getAddPaused(config);
-        const candidates: Array<[string, string | null]> = [
+        const candidates: Array<[string, string | undefined]> = [
             ["savepath", this.getDirectory(config)],
             ["category", this.getLabel(config)],
-            ["stopped", addPaused === null ? null : addPaused.toString()],
-            ["forced", this.getClientSpecific("forceStart", config) ? "true" : null],
+            ["stopped", this.getAddPaused(config).toString()],
+            ["forced", this.getClientSpecific("forceStart", config) ? "true" : undefined],
         ];
         return candidates.filter((field): field is [string, string] => !!field[1]);
     }

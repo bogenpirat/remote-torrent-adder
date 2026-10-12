@@ -32,13 +32,13 @@ const CURRENT_CLIENT_IDENTIFIERS: ReadonlySet<string> = new Set(Object.values(Cl
 
 /**
  * Resolves any stored client identifier — current or legacy — to a current
- * {@link Client}, or null if it is unknown.
+ * {@link Client}, or undefined if it is unknown.
  */
-export function resolveClientIdentifier(stored: string): Client | null {
+export function resolveClientIdentifier(stored: string): Client | undefined {
     if (CURRENT_CLIENT_IDENTIFIERS.has(stored)) {
         return stored as Client;
     }
-    return LEGACY_CLIENT_IDENTIFIERS[stored] ?? null;
+    return LEGACY_CLIENT_IDENTIFIERS[stored];
 }
 
 /**
@@ -52,7 +52,7 @@ export function migrateSettingsClientIdentifiers(settings: RTASettings): RTASett
     const webuiSettings = settings.webuiSettings.map(webui => {
         const stored = webui.client as string;
         const resolved = resolveClientIdentifier(stored);
-        if (resolved !== null && resolved !== stored) {
+        if (resolved !== undefined && resolved !== stored) {
             changed = true;
             return { ...webui, client: resolved };
         }

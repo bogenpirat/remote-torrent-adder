@@ -47,7 +47,7 @@ describe("getDeclaredTorrentNameFromMagnetLink", () => {
         ["dn is present but empty", "magnet:?xt=urn:btih:abc&dn="],
         ["dn= only appears inside another parameter's value", "magnet:?xt=urn:btih:abc&as=http://mirror.example/get?hdn=Bogus"],
     ])("declares no name when %s", (_situation, magnetLink) => {
-        expect(getDeclaredTorrentNameFromMagnetLink(magnetLink)).toBe("");
+        expect(getDeclaredTorrentNameFromMagnetLink(magnetLink)).toBeUndefined();
     });
 
     it("keeps a name containing a bare percent sign instead of throwing", () => {
@@ -108,17 +108,17 @@ describe("parseNameFromDecodedTorrentData", () => {
         expect(parseNameFromDecodedTorrentData({ info: { name: enc("ubuntu.iso") } })).toBe("ubuntu.iso");
     });
 
-    it("returns null when info is missing", () => {
-        expect(parseNameFromDecodedTorrentData({})).toBeNull();
+    it("returns nothing when info is missing", () => {
+        expect(parseNameFromDecodedTorrentData({})).toBeUndefined();
     });
 
-    it("returns null when name is missing", () => {
-        expect(parseNameFromDecodedTorrentData({ info: {} })).toBeNull();
+    it("returns nothing when name is missing", () => {
+        expect(parseNameFromDecodedTorrentData({ info: {} })).toBeUndefined();
     });
 
-    it("returns null for null/undefined data", () => {
-        expect(parseNameFromDecodedTorrentData(null)).toBeNull();
-        expect(parseNameFromDecodedTorrentData(undefined)).toBeNull();
+    it("returns nothing for null/undefined data", () => {
+        expect(parseNameFromDecodedTorrentData(null)).toBeUndefined();
+        expect(parseNameFromDecodedTorrentData(undefined)).toBeUndefined();
     });
 });
 
