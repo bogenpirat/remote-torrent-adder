@@ -5,45 +5,6 @@ import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
-interface AutoLabelDirSettingsEditorProps {
-  value: AutoLabelDirSetting[];
-  onChange: (settings: AutoLabelDirSetting[]) => void;
-  showLabel: boolean;
-  showDir: boolean;
-  labels: string[];
-  dirs: string[];
-  defaultLabel: string | null;
-  defaultDir: string | null;
-}
-
-interface CriteriaEditorProps {
-  criteria: AutoLabelDirCriterion[];
-  onChange: (c: AutoLabelDirCriterion[]) => void;
-}
-
-interface CriterionFormProps {
-  hasCriteria: boolean;
-  onAdd: (criterion: AutoLabelDirCriterion) => void;
-}
-
-interface ChoiceSelectProps {
-  title: string;
-  choice: string | null;
-  knownChoices: string[];
-  onChange: (choice: string | null) => void;
-}
-
-type RuleChoices = Pick<AutoLabelDirSettingsEditorProps, "showLabel" | "showDir" | "labels" | "dirs">;
-
-type RuleTesterProps = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
-
-interface RuleCardProps {
-  setting: AutoLabelDirSetting;
-  choices: RuleChoices;
-  onPatch: (patch: Partial<AutoLabelDirSetting>) => void;
-  onRemove: () => void;
-}
-
 const FIELD_TITLE_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 4, display: "block" };
 
 const CHIP_STYLE: CSSProperties = {
@@ -120,6 +81,72 @@ const REMOVE_RULE_BUTTON_STYLE: CSSProperties = {
   cursor: "pointer"
 };
 
+interface AutoLabelDirSettingsEditorProps {
+  value: AutoLabelDirSetting[];
+  onChange: (settings: AutoLabelDirSetting[]) => void;
+  showLabel: boolean;
+  showDir: boolean;
+  labels: string[];
+  dirs: string[];
+  defaultLabel: string | null;
+  defaultDir: string | null;
+}
+
+function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
+  const { value, onChange, showLabel, showDir } = props;
+  const handleAdd = () => {
+    onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
+  };
+  const removeAt = (idx: number) => onChange(value.filter((_setting, position) => position !== idx));
+  const patchAt = (idx: number, patch: Partial<AutoLabelDirSetting>) => {
+    onChange(value.map((setting, position) => (position === idx ? { ...setting, ...patch } : setting)));
+  };
+  return (
+    <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
+      {value.length === 0 && <div style={{ color: MUTED, marginBottom: 8 }}>No rules defined yet.</div>}
+      {value.map((setting, idx) => (
+        <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
+      ))}
+      {value.length > 0 && <RuleTester {...props} />}
+    </SettingsGroup>
+  );
+}
+
+type RuleChoices = Pick<AutoLabelDirSettingsEditorProps, "showLabel" | "showDir" | "labels" | "dirs">;
+
+interface RuleCardProps {
+  setting: AutoLabelDirSetting;
+  choices: RuleChoices;
+  onPatch: (patch: Partial<AutoLabelDirSetting>) => void;
+  onRemove: () => void;
+}
+
+function RuleCard({ setting, choices, onPatch, onRemove }: RuleCardProps) {
+  return (
+    <div style={RULE_CARD_STYLE}>
+      <button onClick={onRemove} style={REMOVE_RULE_BUTTON_STYLE} title="Remove rule">🗑</button>
+      <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <CriteriaEditor criteria={setting.criteria} onChange={criteria => onPatch({ criteria })} />
+        </div>
+        <div style={{ flex: 1 }}>
+          {choices.showLabel && (
+            <ChoiceSelect title="Label" choice={setting.label} knownChoices={choices.labels} onChange={label => onPatch({ label })} />
+          )}
+          {choices.showDir && (
+            <ChoiceSelect title="Directory" choice={setting.dir} knownChoices={choices.dirs} onChange={dir => onPatch({ dir })} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface CriteriaEditorProps {
+  criteria: AutoLabelDirCriterion[];
+  onChange: (c: AutoLabelDirCriterion[]) => void;
+}
+
 function CriteriaEditor({ criteria, onChange }: CriteriaEditorProps) {
   return (
     <div style={{ marginBottom: 12 }}>
@@ -137,15 +164,20 @@ function CriterionChips({ criteria, onChange }: CriteriaEditorProps) {
   const removeAt = (idx: number) => onChange(criteria.filter((_criterion, position) => position !== idx));
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
-      {criteria.map((c, idx) => (
+      {criteria.map((criterion, idx) => (
         <span key={idx} style={CHIP_STYLE}>
-          <span style={{ marginRight: 8 }}>{fieldLabel(c.field)}:</span>
-          <span style={{ marginRight: 8 }}>{c.value}</span>
+          <span style={{ marginRight: 8 }}>{fieldLabel(criterion.field)}:</span>
+          <span style={{ marginRight: 8 }}>{criterion.value}</span>
           <button onClick={() => removeAt(idx)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
         </span>
       ))}
     </div>
   );
+}
+
+interface CriterionFormProps {
+  hasCriteria: boolean;
+  onAdd: (criterion: AutoLabelDirCriterion) => void;
 }
 
 function CriterionForm({ hasCriteria, onAdd }: CriterionFormProps) {
@@ -170,9 +202,11 @@ function CriterionForm({ hasCriteria, onAdd }: CriterionFormProps) {
   );
 }
 
-function selectableChoices(choice: string | null, knownChoices: string[]): string[] {
-  const choices = knownChoices.includes(choice ?? "") || !choice ? knownChoices : [choice, ...knownChoices];
-  return choices.filter((candidate, idx) => candidate && choices.indexOf(candidate) === idx);
+interface ChoiceSelectProps {
+  title: string;
+  choice: string | null;
+  knownChoices: string[];
+  onChange: (choice: string | null) => void;
 }
 
 function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectProps) {
@@ -190,50 +224,16 @@ function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectPro
   );
 }
 
-function RuleCard({ setting, choices, onPatch, onRemove }: RuleCardProps) {
-  return (
-    <div style={RULE_CARD_STYLE}>
-      <button onClick={onRemove} style={REMOVE_RULE_BUTTON_STYLE} title="Remove rule">🗑</button>
-      <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <CriteriaEditor criteria={setting.criteria} onChange={criteria => onPatch({ criteria })} />
-        </div>
-        <div style={{ flex: 1 }}>
-          {choices.showLabel && (
-            <ChoiceSelect title="Label" choice={setting.label} knownChoices={choices.labels} onChange={label => onPatch({ label })} />
-          )}
-          {choices.showDir && (
-            <ChoiceSelect title="Directory" choice={setting.dir} knownChoices={choices.dirs} onChange={dir => onPatch({ dir })} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
+function selectableChoices(choice: string | null, knownChoices: string[]): string[] {
+  const choices = knownChoices.includes(choice ?? "") || !choice ? knownChoices : [choice, ...knownChoices];
+  return choices.filter((candidate, idx) => candidate && choices.indexOf(candidate) === idx);
 }
+
+type RuleTesterProps = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
 
 function RuleTester({ value, defaultLabel, defaultDir, showLabel, showDir }: RuleTesterProps) {
   return (
     <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
-  );
-}
-
-function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
-  const { value, onChange, showLabel, showDir } = props;
-  const handleAdd = () => {
-    onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
-  };
-  const removeAt = (idx: number) => onChange(value.filter((_setting, position) => position !== idx));
-  const patchAt = (idx: number, patch: Partial<AutoLabelDirSetting>) => {
-    onChange(value.map((setting, position) => (position === idx ? { ...setting, ...patch } : setting)));
-  };
-  return (
-    <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
-      {value.length === 0 && <div style={{ color: MUTED, marginBottom: 8 }}>No rules defined yet.</div>}
-      {value.map((setting, idx) => (
-        <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
-      ))}
-      {value.length > 0 && <RuleTester {...props} />}
-    </SettingsGroup>
   );
 }
 

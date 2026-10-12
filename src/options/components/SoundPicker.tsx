@@ -122,18 +122,16 @@ function SoundActions({ sound, onPreview, onChoose, onReset }: SoundActionsProps
         Choose…
       </button>
 
-      {fileName && (
-        <button
-          type="button"
-          style={{ ...BUTTON_STYLE, color: DANGER }}
-          onClick={onReset}
-          disabled={busy}
-          title="Reset to default"
-        >
-          Reset
-        </button>
-      )}
+      {fileName && <ResetButton busy={busy} onReset={onReset} />}
     </>
+  );
+}
+
+function ResetButton({ busy, onReset }: { busy: boolean; onReset: () => void }) {
+  return (
+    <button type="button" style={{ ...BUTTON_STYLE, color: DANGER }} onClick={onReset} disabled={busy} title="Reset to default">
+      Reset
+    </button>
   );
 }
 

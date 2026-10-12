@@ -53,9 +53,9 @@ interface ToggleLabelProps {
 }
 
 function ToggleLabel({ label, checked, onToggle }: ToggleLabelProps) {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
         onToggle();
       }
     }

@@ -66,21 +66,29 @@ interface ChoiceColumnProps {
 function ChoiceColumn({ noun, defaultChoice, choices, onDefaultChange, onChoicesChange }: ChoiceColumnProps) {
   return (
     <div style={{ flex: 1, minWidth: 240 }}>
-      <div style={{ marginBottom: 8 }}>
-        <label style={FIELD_LABEL_STYLE}>Default {noun.title}</label>
-        <input
-          type="text"
-          value={defaultChoice ?? ""}
-          onChange={e => onDefaultChange(e.target.value)}
-          style={{ ...FIELD_INPUT_STYLE, minWidth: 180 }}
-          placeholder={`Default ${noun.lower}`}
-        />
-      </div>
+      <DefaultChoiceField noun={noun} defaultChoice={defaultChoice} onDefaultChange={onDefaultChange} />
       <ChipList
         label={`${noun.plural} for per-torrent selection`}
         values={choices}
         onChange={onChoicesChange}
         placeholder={`Add ${noun.lower}`}
+      />
+    </div>
+  );
+}
+
+type DefaultChoiceFieldProps = Pick<ChoiceColumnProps, "noun" | "defaultChoice" | "onDefaultChange">;
+
+function DefaultChoiceField({ noun, defaultChoice, onDefaultChange }: DefaultChoiceFieldProps) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <label style={FIELD_LABEL_STYLE}>Default {noun.title}</label>
+      <input
+        type="text"
+        value={defaultChoice ?? ""}
+        onChange={e => onDefaultChange(e.target.value)}
+        style={{ ...FIELD_INPUT_STYLE, minWidth: 180 }}
+        placeholder={`Default ${noun.lower}`}
       />
     </div>
   );

@@ -71,8 +71,8 @@ interface ComboInputProps {
 }
 
 function ComboInput({ value, placeholder, rainbowOutline, onChange, disclosure }: ComboInputProps) {
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value)
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      onChange(event.target.value)
       disclosure.open()
     }
 
@@ -107,8 +107,8 @@ interface OptionListProps {
 }
 
 function OptionList({ options, onSelect, onRemove }: OptionListProps) {
-    const handleRemoveOption = (option: string, e: React.MouseEvent) => {
-      e.stopPropagation()
+    const handleRemoveOption = (option: string, event: React.MouseEvent) => {
+      event.stopPropagation()
       if (onRemove) {
         onRemove(option)
       }

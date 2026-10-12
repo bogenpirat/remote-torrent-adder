@@ -107,18 +107,18 @@ type DraggedItem = Pick<WebUIListItemProps, "webui" | "onDragStart" | "onDragOve
 
 function dragHandlers(item: DraggedItem, disarm: () => void) {
   return {
-    onDragStart: (e: React.DragEvent) => {
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", item.webui.id);
+    onDragStart: (event: React.DragEvent) => {
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", item.webui.id);
       item.onDragStart();
     },
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
+    onDragOver: (event: React.DragEvent) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
       item.onDragOver();
     },
-    onDrop: (e: React.DragEvent) => {
-      e.preventDefault();
+    onDrop: (event: React.DragEvent) => {
+      event.preventDefault();
       item.onDrop();
     },
     onDragEnd: () => {
@@ -147,10 +147,10 @@ function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps):
 type ReorderHandleProps = Pick<WebUIListItemProps, "webui" | "index" | "selected" | "onMove"> & { onArm: () => void };
 
 function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleProps) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    const step = REORDER_STEP_BY_KEY.get(e.key);
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    const step = REORDER_STEP_BY_KEY.get(event.key);
     if (step === undefined) return;
-    e.preventDefault();
+    event.preventDefault();
     onMove(index, index + step);
   };
   return (

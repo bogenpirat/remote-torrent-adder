@@ -85,12 +85,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
 
   return (
     <FormFrame torrentName={data.torrent.name}>
-      {data.supports.label && (
-        <ChoiceField label="Label" choice={label} highlighted={data.auto.label} placeholder="Select or type label..." />
-      )}
-      {data.supports.directory && (
-        <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
-      )}
+      <ChoiceFields data={data} label={label} directory={directory} />
       {data.supports.paused && (
         <Toggle label="Start Paused" checked={paused} onEnable={() => setPaused(true)} onDisable={() => setPaused(false)} />
       )}
@@ -105,6 +100,25 @@ interface RemovableChoice {
   setValue: (value: string) => void;
   options: string[];
   removeOption: (option: string) => void;
+}
+
+interface ChoiceFieldsProps {
+  data: PopupData;
+  label: RemovableChoice;
+  directory: RemovableChoice;
+}
+
+function ChoiceFields({ data, label, directory }: ChoiceFieldsProps) {
+  return (
+    <>
+      {data.supports.label && (
+        <ChoiceField label="Label" choice={label} highlighted={data.auto.label} placeholder="Select or type label..." />
+      )}
+      {data.supports.directory && (
+        <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
+      )}
+    </>
+  );
 }
 
 function useRemovableChoice(initialValue: string, initialOptions: string[]): RemovableChoice {

@@ -48,12 +48,8 @@ export async function resolveAuthCredentials(
     }
 
     rememberRequest(details.requestId);
-    return {
-        authCredentials: {
-            username: webUi.settings.username,
-            password: webUi.settings.password
-        }
-    };
+    const { username, password } = webUi.settings;
+    return { authCredentials: { username, password } };
 }
 
 function isRequestForWebUi(url: string, webUi: TorrentWebUI): boolean {
