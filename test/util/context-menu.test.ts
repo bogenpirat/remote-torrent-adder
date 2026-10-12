@@ -127,9 +127,9 @@ describe("refreshContextMenu", () => {
 
     it("reports a failed menu creation instead of swallowing it", async () => {
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-        (chrome.contextMenus.create as any).mockImplementation((opts: any, cb?: () => void) => {
+        (chrome.contextMenus.create as any).mockImplementation((opts: any, callback?: () => void) => {
             (chrome.runtime as any).lastError = { message: "Cannot create item with duplicate id" };
-            cb?.();
+            callback?.();
             (chrome.runtime as any).lastError = undefined;
             return opts.id;
         });

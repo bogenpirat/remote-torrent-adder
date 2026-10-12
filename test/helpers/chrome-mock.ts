@@ -44,7 +44,7 @@ export function createChromeMock(): any {
                 // The browser answers reads over IPC, so the promise never
                 // settles in the caller's tick. Deferring here is what lets
                 // concurrent readers interleave the way they do in the browser.
-                get: vi.fn((keys: string[], cb?: (items: Record<string, any>) => void) => {
+                get: vi.fn((keys: string[], callback?: (items: Record<string, any>) => void) => {
                     const result: Record<string, any> = {};
                     for (const key of keys) {
                         if (key in storage) {
@@ -53,18 +53,18 @@ export function createChromeMock(): any {
                     }
                     return new Promise<Record<string, any>>(resolve => {
                         queueMicrotask(() => {
-                            cb?.(result);
+                            callback?.(result);
                             resolve(result);
                         });
                     });
                 }),
-                set: vi.fn((items: Record<string, any>, cb?: () => void) => {
+                set: vi.fn((items: Record<string, any>, callback?: () => void) => {
                     const changes: Record<string, any> = {};
                     for (const [key, newValue] of Object.entries(items)) {
                         changes[key] = { oldValue: storage[key], newValue };
                     }
                     Object.assign(storage, items);
-                    cb?.();
+                    callback?.();
                     // Chrome dispatches change events out of band, after the
                     // write has already been acknowledged.
                     queueMicrotask(() => storageListeners.forEach(listener => listener(changes, "local")));
@@ -108,12 +108,12 @@ export function createChromeMock(): any {
         },
 
         notifications: {
-            create: vi.fn((_id: string, _options: any, cb?: (id: string) => void) => {
-                cb?.("notif-id");
+            create: vi.fn((_notificationId: string, _options: any, callback?: (id: string) => void) => {
+                callback?.("notif-id");
                 return Promise.resolve("notif-id");
             }),
-            clear: vi.fn((_id: string, cb?: (wasCleared: boolean) => void) => {
-                cb?.(true);
+            clear: vi.fn((_notificationId: string, callback?: (wasCleared: boolean) => void) => {
+                callback?.(true);
                 return Promise.resolve(true);
             }),
             onClicked: {
@@ -152,22 +152,22 @@ export function createChromeMock(): any {
         },
 
         contextMenus: {
-            create: vi.fn((opts: any, cb?: () => void) => {
+            create: vi.fn((opts: any, callback?: () => void) => {
                 const id = opts?.id;
                 if (contextMenuIds.has(id)) {
                     rejectedMenuIds.push(id);
                     runtime.lastError = { message: `Cannot create item with duplicate id ${id}` };
-                    cb?.();
+                    callback?.();
                     runtime.lastError = undefined;
                     return id;
                 }
                 contextMenuIds.add(id);
-                cb?.();
+                callback?.();
                 return id;
             }),
-            removeAll: vi.fn((cb?: () => void) => {
+            removeAll: vi.fn((callback?: () => void) => {
                 contextMenuIds.clear();
-                cb?.();
+                callback?.();
                 return Promise.resolve();
             }),
             onClicked: {

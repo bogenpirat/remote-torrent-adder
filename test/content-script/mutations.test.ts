@@ -11,8 +11,8 @@ describe("observe", () => {
         document.body.innerHTML = "";
         observers = [];
         globalThis.MutationObserver = class extends RealMutationObserver {
-            constructor(cb: MutationCallback) {
-                super(cb);
+            constructor(callback: MutationCallback) {
+                super(callback);
                 observers.push(this);
             }
         };
@@ -26,23 +26,23 @@ describe("observe", () => {
 
     it("invokes the callback for elements already present", () => {
         document.body.innerHTML = `<a class="x"></a><a class="x"></a><span></span>`;
-        const cb = vi.fn();
-        observe("a.x", cb);
-        expect(cb).toHaveBeenCalledTimes(2);
+        const callback = vi.fn();
+        observe("a.x", callback);
+        expect(callback).toHaveBeenCalledTimes(2);
     });
 
     it("does not invoke the callback twice for the same element", () => {
         document.body.innerHTML = `<a class="x"></a>`;
-        const cb = vi.fn();
-        observe("a.x", cb);
-        observe("a.x", cb); // second observe sees __bound and skips
-        expect(cb).toHaveBeenCalledTimes(1);
+        const callback = vi.fn();
+        observe("a.x", callback);
+        observe("a.x", callback); // second observe sees __bound and skips
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it("invokes the callback for elements added later", async () => {
-        const cb = vi.fn();
-        observe("a.late", cb);
-        expect(cb).not.toHaveBeenCalled();
+        const callback = vi.fn();
+        observe("a.late", callback);
+        expect(callback).not.toHaveBeenCalled();
 
         const link = document.createElement("a");
         link.className = "late";
@@ -50,19 +50,19 @@ describe("observe", () => {
 
         // MutationObserver callbacks are delivered as microtasks
         await new Promise((r) => setTimeout(r, 0));
-        expect(cb).toHaveBeenCalledTimes(1);
-        expect(cb).toHaveBeenCalledWith(link);
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith(link);
     });
 
     it("invokes the callback for matching descendants of an added subtree", async () => {
-        const cb = vi.fn();
-        observe("a.deep", cb);
+        const callback = vi.fn();
+        observe("a.deep", callback);
 
         const container = document.createElement("div");
         container.innerHTML = `<span><a class="deep"></a></span>`;
         document.body.appendChild(container);
 
         await new Promise((r) => setTimeout(r, 0));
-        expect(cb).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 });

@@ -9,7 +9,7 @@
   },
   "CL2|e2e/fixtures/extension.ts|class ExtensionHarness {": {
     "count": 1,
-    "measure": 21
+    "measure": 31
   },
   "CL2|e2e/fixtures/fake-qbittorrent.ts|class FakeQBittorrent {": {
     "count": 1,
@@ -31,7 +31,7 @@
     "count": 1,
     "measure": 4
   },
-  "F3|test/helpers/chrome-mock.ts|": {
+  "F3|test/helpers/chrome-mock.ts|(anonymous)": {
     "count": 1,
     "measure": 1
   },
@@ -49,11 +49,11 @@
   },
   "FN1|e2e/firefox/add-torrent.e2e.spec.ts|(anonymous)": {
     "count": 1,
-    "measure": 27
+    "measure": 24
   },
   "FN1|e2e/firefox/buffered-add.e2e.spec.ts|(anonymous)": {
     "count": 1,
-    "measure": 34
+    "measure": 33
   },
   "FN1|e2e/fixtures/fake-qbittorrent.ts|handle": {
     "count": 1,
@@ -81,11 +81,7 @@
   },
   "FN1|test/helpers/chrome-mock.ts|createChromeMock": {
     "count": 1,
-    "measure": 53
-  },
-  "FN1|test/helpers/fetch-mock.ts|mockResponse": {
-    "count": 1,
-    "measure": 33
+    "measure": 112
   },
   "FN1|test/helpers/fixtures.ts|makeWebUISettings": {
     "count": 1,
@@ -97,7 +93,7 @@
   },
   "FN1|test/util/context-menu.test.ts|(anonymous)": {
     "count": 1,
-    "measure": 22
+    "measure": 23
   },
   "FN2|e2e/fixtures/firefox-extension.ts|openExtensionTab": {
     "count": 1,
@@ -105,34 +101,14 @@
   },
   "FN3|e2e/fixtures/fake-qbittorrent.ts|handle": {
     "count": 1,
-    "measure": 17
-  },
-  "FN3|test/helpers/fetch-mock.ts|mockResponse": {
-    "count": 1,
-    "measure": 18
+    "measure": 14
   },
   "G5|e2e/popup.smoke.spec.ts|(anonymous)": {
-    "count": 5,
+    "count": 2,
     "measure": 1
   },
   "G5|test/models/webui.test.ts|(anonymous)": {
-    "count": 5,
-    "measure": 1
-  },
-  "G5|test/options/SettingsContext.test.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/options/pages/IconClickPage.test.tsx|": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/options/pages/WebUIsPage.test.tsx|(anonymous)": {
-    "count": 4,
-    "measure": 1
-  },
-  "G5|test/popup/WebUiPickerView.test.tsx|": {
-    "count": 1,
+    "count": 2,
     "measure": 1
   },
   "G5|test/popup/page.test.tsx|(anonymous)": {
@@ -148,94 +124,34 @@
     "measure": 1
   },
   "G5|test/util/add-torrent.test.ts|(anonymous)": {
-    "count": 2,
-    "measure": 1
-  },
-  "G5|test/util/auto-label-dir-matcher.test.ts|(anonymous)": {
-    "count": 8,
-    "measure": 1
-  },
-  "G5|test/util/context-menu.test.ts|(anonymous)": {
     "count": 1,
     "measure": 1
   },
   "G5|test/util/cors-tricks.test.ts|(anonymous)": {
-    "count": 5,
+    "count": 4,
     "measure": 1
   },
   "G5|test/util/messaging.test.ts|(anonymous)": {
-    "count": 2,
-    "measure": 1
-  },
-  "G5|test/webuis/biglybt-webui.test.ts|(anonymous)": {
-    "count": 2,
+    "count": 1,
     "measure": 1
   },
   "G5|test/webuis/elementum-webui.test.ts|(anonymous)": {
-    "count": 7,
-    "measure": 1
-  },
-  "G5|test/webuis/elementum-webui.test.ts|build": {
-    "count": 4,
-    "measure": 1
-  },
-  "G5|test/webuis/porla-webui.test.ts|build": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/qbittorrent-webui.test.ts|(anonymous)": {
-    "count": 26,
-    "measure": 1
-  },
-  "G5|test/webuis/rqbit-webui.test.ts|build": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/rutorrent-webui.test.ts|(anonymous)": {
     "count": 3,
-    "measure": 1
-  },
-  "G5|test/webuis/rutorrent-webui.test.ts|build": {
-    "count": 2,
     "measure": 1
   },
   "G5|test/webuis/synologydownloadstation-webui.test.ts|(anonymous)": {
-    "count": 7,
-    "measure": 1
-  },
-  "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
-    "count": 5,
-    "measure": 1
-  },
-  "G5|test/webuis/tixati-webui.test.ts|build": {
-    "count": 4,
-    "measure": 1
-  },
-  "G5|test/webuis/transmission-webui.test.ts|(anonymous)": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/transmission-webui.test.ts|build": {
-    "count": 1,
-    "measure": 1
-  },
-  "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
     "count": 6,
     "measure": 1
   },
-  "G5|test/webuis/ttorrent-webui.test.ts|build": {
-    "count": 3,
+  "G5|test/webuis/tixati-webui.test.ts|(anonymous)": {
+    "count": 2,
+    "measure": 1
+  },
+  "G5|test/webuis/ttorrent-webui.test.ts|(anonymous)": {
+    "count": 2,
     "measure": 1
   },
   "N5|e2e/fixtures/extension.ts|evaluate:fn": {
-    "count": 1,
-    "measure": 1
-  },
-  "N5|test/models/decoded-torrent.test.ts|enc:s": {
-    "count": 1,
-    "measure": 1
-  },
-  "N5|test/util/parsers.test.ts|enc:s": {
     "count": 1,
     "measure": 1
   }
