@@ -163,6 +163,15 @@ describe("registerMessageListener routing", () => {
         expect(response).toEqual({});
         expect(downloadTorrent).toHaveBeenCalledWith(TRACKER_URL, TRACKER_TAB_CONTEXT);
     });
+
+    it("answers PreAddTorrent with an error when the settings cannot be loaded", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.storage.local.get as any).mockRejectedValueOnce(new Error("storage unavailable"));
+
+        const response = await dispatch({ action: PreAddTorrentMessage.action, url: TRACKER_URL, webUiId: SEEDED_WEBUI_ID }, TRACKER_TAB);
+
+        expect(response).toEqual({ error: "storage unavailable" });
+    });
 });
 
 describe("AddTorrent flow", () => {

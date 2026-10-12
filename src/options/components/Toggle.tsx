@@ -1,5 +1,5 @@
 import React from "react";
-import { SURFACE, SUCCESS } from "../theme";
+import { SURFACE, NEUTRAL, SUCCESS } from "../theme";
 
 interface ToggleProps {
   checked: boolean;
@@ -38,7 +38,7 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
   <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
     <span style={{ position: "relative", width: 44, height: 24, display: "inline-block" }}>
       <input type="checkbox" checked={checked} onChange={event => onChange(event.target.checked)} style={CHECKBOX_STYLE} />
-      <Track background={checked ? SUCCESS : "var(--rta-neutral, #ccc)"} />
+      <Track background={checked ? SUCCESS : NEUTRAL} />
       <span style={{ position: "absolute", top: 2, left: checked ? 20 : 4, ...THUMB_SHAPE_STYLE }}></span>
     </span>
     <span style={{ fontWeight: 500 }}>{label}</span>

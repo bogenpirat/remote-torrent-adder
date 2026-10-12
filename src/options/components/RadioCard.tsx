@@ -1,5 +1,5 @@
 import React from "react";
-import { TEXT, GREEN_DARK, SURFACE } from "../theme";
+import { TEXT, MUTED, GREEN_DARK, ACCENT, BORDER, CHIP_BG, SURFACE } from "../theme";
 
 interface RadioCardProps {
   name: string;
@@ -17,7 +17,7 @@ const RADIO_STYLE: React.CSSProperties = { marginTop: 3, accentColor: GREEN_DARK
 const LABEL_STYLE: React.CSSProperties = { fontWeight: 600, display: "block", color: TEXT };
 
 const DESCRIPTION_STYLE: React.CSSProperties = {
-  color: "var(--rta-text-muted, #6b7a70)",
+  color: MUTED,
   fontSize: 13,
   display: "block",
   marginTop: 2,
@@ -25,7 +25,7 @@ const DESCRIPTION_STYLE: React.CSSProperties = {
 };
 
 const NOTE_STYLE: React.CSSProperties = {
-  color: "var(--rta-text-muted, #6b7a70)",
+  color: MUTED,
   fontSize: 12,
   fontStyle: "italic",
   display: "block",
@@ -39,8 +39,8 @@ function cardStyle({ checked, disabled }: Pick<RadioCardProps, "checked" | "disa
     alignItems: "flex-start",
     padding: "12px 16px",
     borderRadius: 10,
-    border: `1px solid ${checked ? "var(--rta-accent, #8fae7c)" : "var(--rta-border, #d8e2d3)"}`,
-    background: checked ? "var(--rta-chip-bg, #eaf5ea)" : SURFACE,
+    border: `1px solid ${checked ? ACCENT : BORDER}`,
+    background: checked ? CHIP_BG : SURFACE,
     boxShadow: checked ? "0 1px 4px rgba(110,139,116,0.15)" : "none",
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? "not-allowed" : "pointer",

@@ -1,5 +1,5 @@
 import React, { useId } from "react";
-import { BORDER } from "../theme";
+import { BORDER, SURFACE_ALT } from "../theme";
 
 interface SettingsGroupProps {
   title: string;
@@ -12,7 +12,7 @@ const GROUP_STYLE: React.CSSProperties = {
   border: `1px solid ${BORDER}`,
   borderRadius: 10,
   padding: 16,
-  background: "var(--rta-surface-alt, #f7faf7)",
+  background: SURFACE_ALT,
 };
 
 const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, actions, children }) => {

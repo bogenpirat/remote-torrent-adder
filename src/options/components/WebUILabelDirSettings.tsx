@@ -1,6 +1,7 @@
 import ChipList from "./ChipList";
 import SettingsGroup from "./SettingsGroup";
-import { FIELD_INPUT_STYLE, FIELD_LABEL_STYLE, type WebUISectionProps } from "./webui-fields";
+import { FIELD_INPUT_STYLE, type WebUISectionProps } from "./webui-fields";
+import { FIELD_LABEL_STYLE } from "../shared-styles";
 
 interface ChoiceNoun {
   title: string;

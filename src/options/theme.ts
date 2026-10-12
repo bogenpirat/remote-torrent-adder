@@ -1,8 +1,17 @@
 export const TEXT = "var(--rta-text, #1b241d)";
 export const MUTED = "var(--rta-text-muted, #888)";
+export const GREEN = "var(--rta-green, #6e8b74)";
 export const GREEN_DARK = "var(--rta-green-dark, #4e6a57)";
+export const ACCENT = "var(--rta-accent, #b7c9a7)";
 export const BORDER = "var(--rta-border, #b7c9a7)";
 export const SURFACE = "var(--rta-surface, #fff)";
+export const SURFACE_ALT = "var(--rta-surface-alt, #f7faf7)";
+export const CHIP_BG = "var(--rta-chip-bg, #eaf5ea)";
+export const CHIP_BORDER = "var(--rta-chip-border, #b7c9a7)";
 export const INPUT_BG = "var(--rta-input-bg, #fff)";
+export const NEUTRAL = "var(--rta-neutral, #eee)";
 export const SUCCESS = "var(--rta-success, #228B22)";
+export const WARNING = "var(--rta-warning, #B8860B)";
 export const DANGER = "var(--rta-danger, #B22222)";
+export const DANGER_DARK = "var(--rta-danger-dark, #8B0000)";
+export const INFO = "var(--rta-info, #4682B4)";

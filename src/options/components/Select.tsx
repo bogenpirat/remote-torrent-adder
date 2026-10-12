@@ -1,4 +1,5 @@
 import React from "react";
+import { FIELD_LABEL_STYLE } from "../shared-styles";
 import { TEXT, BORDER, INPUT_BG } from "../theme";
 
 interface SelectProps {
@@ -21,7 +22,7 @@ const SELECT_STYLE: React.CSSProperties = {
 
 const Select: React.FC<SelectProps> = ({ label, value, changeable, options, onChange }) => (
   <div>
-    <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>{label}</label>
+    <label style={FIELD_LABEL_STYLE}>{label}</label>
     <select
       value={value}
       onChange={onChange ? e => onChange(e.target.value) : undefined}

@@ -2,13 +2,13 @@ import { type CSSProperties, type JSX } from "react";
 import { useSettings } from "../SettingsContext";
 import RadioCard from "../components/RadioCard";
 import { type IconClickAction } from "../../models/settings";
-import { GREEN_DARK, BORDER } from "../theme";
+import { GREEN_DARK, BORDER, SURFACE_ALT } from "../theme";
 
 const SECTION_STYLE: CSSProperties = {
   display: "inline-flex",
   flexDirection: "column",
   gap: 10,
-  background: "var(--rta-surface-alt, #f7faf7)",
+  background: SURFACE_ALT,
   border: `1px solid ${BORDER}`,
   borderRadius: 12,
   padding: 18,

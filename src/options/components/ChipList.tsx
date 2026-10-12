@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { TEXT, GREEN_DARK, BORDER, INPUT_BG } from "../theme";
+import { ACCENT_BUTTON_STYLE, CHIP_STYLE, LIST_HEADING_STYLE } from "../shared-styles";
+import { TEXT, BORDER, INPUT_BG } from "../theme";
 
 interface ChipListProps {
   label: string;
@@ -7,17 +8,6 @@ interface ChipListProps {
   onChange: (values: string[]) => void;
   placeholder?: string;
 }
-
-const CHIP_STYLE: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  background: "var(--rta-chip-bg, #eaf5ea)",
-  border: "1px solid var(--rta-chip-border, #b7c9a7)",
-  borderRadius: 16,
-  padding: "4px 12px",
-  fontFamily: "monospace",
-  fontSize: 15,
-};
 
 const CHIP_INPUT_STYLE: React.CSSProperties = {
   fontFamily: "monospace",
@@ -41,16 +31,6 @@ const NEW_ENTRY_INPUT_STYLE: React.CSSProperties = {
   padding: "4px 10px",
 };
 
-const ADD_BUTTON_STYLE: React.CSSProperties = {
-  background: "var(--rta-accent, #b7c9a7)",
-  color: GREEN_DARK,
-  border: "none",
-  borderRadius: 8,
-  padding: "4px 12px",
-  fontWeight: 500,
-  cursor: "pointer",
-};
-
 interface ChipProps {
   value: string;
   onEdit: (newValue: string) => void;
@@ -70,7 +50,7 @@ const ChipList: React.FC<ChipListProps> = ({ label, values, onChange, placeholde
   };
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ fontWeight: 500, marginBottom: 8, display: "block" }}>{label}</label>
+      <label style={LIST_HEADING_STYLE}>{label}</label>
       {values.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 40 }}>
           {values.map((value, index) => (
@@ -109,7 +89,7 @@ function NewEntry({ values, placeholder, onAdd }: NewEntryProps) {
         placeholder={placeholder || "Add new entry"}
         style={NEW_ENTRY_INPUT_STYLE}
       />
-      <button onClick={handleAdd} style={ADD_BUTTON_STYLE}>Add</button>
+      <button onClick={handleAdd} style={ACCENT_BUTTON_STYLE}>Add</button>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { type NotificationKind } from "../../util/notifications";
 import { BUTTON_STYLE, ROW_STYLE } from "../components/notification-styles";
 import SoundPicker from "../components/SoundPicker";
 import Toggle from "../components/Toggle";
-import { TEXT, MUTED, GREEN_DARK, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE_ALT, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
 const TEST_MESSAGE_BY_KIND: Record<NotificationKind, string> = {
   success: "This is a successful notification.",
@@ -15,7 +15,7 @@ const TEST_MESSAGE_BY_KIND: Record<NotificationKind, string> = {
 };
 
 const SECTION_STYLE: CSSProperties = {
-  background: "var(--rta-surface-alt, #f7faf7)",
+  background: SURFACE_ALT,
   border: `1px solid ${BORDER}`,
   borderRadius: 12,
   padding: 18,

@@ -3,21 +3,12 @@ import type { Torrent } from "../../models/torrent";
 import { explainAutoLabelDir } from "../../util/auto-label-dir-matcher";
 import { buildTorrentFromMagnetLink, parseTorrentFile } from "../../util/torrent-source";
 import AutoLabelDirTestResult, { type TestedRules } from "./AutoLabelDirTestResult";
-import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { ACCENT_BUTTON_STYLE } from "../shared-styles";
+import { TEXT, MUTED, BORDER, CHIP_BG, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
 const MAX_TORRENT_BYTES = 10 * 1024 * 1024;
 
 const DROP_ZONE_SHAPE_STYLE: React.CSSProperties = { borderRadius: 10, padding: "16px 12px", textAlign: "center" };
-
-const ACCENT_BUTTON_STYLE: React.CSSProperties = {
-  background: "var(--rta-accent, #b7c9a7)",
-  color: GREEN_DARK,
-  border: "none",
-  borderRadius: 8,
-  padding: "4px 12px",
-  fontWeight: 500,
-  cursor: "pointer",
-};
 
 const MAGNET_INPUT_STYLE: React.CSSProperties = {
   flex: 1,
@@ -107,7 +98,7 @@ function DropZone({ fileInputRef, onFile }: DropZoneProps) {
       onDrop={e => { e.preventDefault(); setDragging(false); onFile(e.dataTransfer.files?.[0]); }}
       style={{
         border: `2px dashed ${dragging ? SUCCESS : BORDER}`,
-        background: dragging ? "var(--rta-chip-bg, #eaf5ea)" : SURFACE,
+        background: dragging ? CHIP_BG : SURFACE,
         ...DROP_ZONE_SHAPE_STYLE,
       }}>
       <span style={{ marginRight: 8 }}>Drop a .torrent file here</span>

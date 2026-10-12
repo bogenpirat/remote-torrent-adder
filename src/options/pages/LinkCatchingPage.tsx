@@ -1,19 +1,11 @@
 import { useState, type CSSProperties, type JSX } from "react";
 import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
-import { TEXT, GREEN_DARK, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { ACCENT_BUTTON_STYLE, CHIP_STYLE, LIST_HEADING_STYLE } from "../shared-styles";
+import { TEXT, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
-const HEADING_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 8, display: "block" };
-
-const CHIP_STYLE: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  background: "var(--rta-chip-bg, #eaf5ea)",
-  border: "1px solid var(--rta-chip-border, #b7c9a7)",
-  borderRadius: 16,
-  padding: "4px 12px",
-  fontFamily: "monospace",
-  fontSize: 15,
+const REGEX_CHIP_STYLE: CSSProperties = {
+  ...CHIP_STYLE,
   boxShadow: "0 1px 4px rgba(110,139,116,0.08)",
   transition: "box-shadow 0.2s"
 };
@@ -38,16 +30,6 @@ const NEW_REGEX_INPUT_STYLE: CSSProperties = {
   color: TEXT,
   borderRadius: 8,
   padding: "4px 10px"
-};
-
-const ADD_BUTTON_STYLE: CSSProperties = {
-  background: "var(--rta-accent, #b7c9a7)",
-  color: GREEN_DARK,
-  border: "none",
-  borderRadius: 8,
-  padding: "4px 12px",
-  fontWeight: 500,
-  cursor: "pointer"
 };
 
 const SEPARATOR_STYLE: CSSProperties = {
@@ -104,10 +86,10 @@ function RegexList({ regexes, onChange }: RegexListProps): JSX.Element {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={HEADING_STYLE}>Link matching regexes:</label>
+      <label style={LIST_HEADING_STYLE}>Link matching regexes:</label>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 40 }}>
         {regexes.map((regex, idx) => (
-          <span key={idx} style={CHIP_STYLE}>
+          <span key={idx} style={REGEX_CHIP_STYLE}>
             {editing.editIdx === idx
               ? <ChipEditor idx={idx} editing={editing} />
               : <ChipView source={regex.source} onEdit={() => editing.start(idx)} onRemove={() => removeAt(idx)} />}
@@ -200,7 +182,7 @@ function NewRegexForm({ onAdd }: { onAdd: (regex: RegExp) => void }): JSX.Elemen
         placeholder="Add new regex"
         style={NEW_REGEX_INPUT_STYLE}
       />
-      <button onClick={handleAdd} style={ADD_BUTTON_STYLE}>Add</button>
+      <button onClick={handleAdd} style={ACCENT_BUTTON_STYLE}>Add</button>
     </div>
   );
 }
@@ -218,7 +200,7 @@ function RegexTester({ regexes }: { regexes: RegExp[] }): JSX.Element {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={HEADING_STYLE}>Test your regexes:</label>
+      <label style={LIST_HEADING_STYLE}>Test your regexes:</label>
       <input
         type="text"
         placeholder="Paste a link to test..."

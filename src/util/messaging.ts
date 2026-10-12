@@ -130,20 +130,23 @@ async function testConnection({ message }: MessageRequest): Promise<ConnectionTe
     return testConnectionForWebUiSettings((message as ITestConnectionMessage).webUiSettings);
 }
 
-async function preAddTorrent({ message, sender }: MessageRequest): Promise<object> {
+async function preAddTorrent({ message, sender, settingsProvider }: MessageRequest): Promise<object> {
     const preAddTorrentMessage = message as IPreAddTorrentMessage;
     const lastFocusedWindow = await ext.windows.getLastFocused();
-    void dispatchPreAddTorrent(
-        preAddTorrentMessage,
-        sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
-        downloadContextFromSender(preAddTorrentMessage, sender)
-    );
+    const preAddRequest = {
+        message: preAddTorrentMessage,
+        windowId: sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
+        context: downloadContextFromSender(preAddTorrentMessage, sender),
+    };
+    dispatchPreAddTorrent(preAddRequest, await settingsProvider.loadSettings())
+        .catch(error => console.error("Failed pre-adding a torrent:", error));
     return {};
 }
 
-async function addTorrent({ message, sender }: MessageRequest): Promise<object> {
+async function addTorrent({ message, sender, settingsProvider }: MessageRequest): Promise<object> {
     const addTorrentMessage = message as IAddTorrentMessage;
-    await addTorrentToWebUiById(addTorrentMessage, downloadContextFromSender(addTorrentMessage, sender));
+    const context = downloadContextFromSender(addTorrentMessage, sender);
+    await addTorrentToWebUiById(addTorrentMessage, context, await settingsProvider.loadSettings());
     return {};
 }
 

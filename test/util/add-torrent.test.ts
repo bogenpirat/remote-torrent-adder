@@ -7,16 +7,19 @@ import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { findBufferedTorrent, readBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
+import { Settings } from "../../src/util/settings";
+import { HttpError } from "../../src/models/webui-http";
 import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
 import { makeMagnetTorrent, seedWebUISettings } from "../helpers/fixtures";
 
 const WEBUI_URL = "http://example.com:8080/";
-const SEND_ERROR = { httpResponseCode: 502, httpResponseBody: "boom" };
+const WINDOW_ID = 7;
 
-function preAdd(url: string = MAGNET_URL, context?: TorrentDownloadContext): Promise<void> {
+async function preAdd(url: string = MAGNET_URL, context: TorrentDownloadContext = {}): Promise<void> {
     const message = { action: PreAddTorrentMessage.action, url, webUiId: SEEDED_WEBUI_ID };
-    return dispatchPreAddTorrent(message, 7, context).then(settle);
+    await dispatchPreAddTorrent({ message, windowId: WINDOW_ID, context }, await new Settings().loadSettings());
+    await settle();
 }
 
 function shownNotification(index = 0) {
@@ -91,7 +94,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
 
         expect(shownNotification()).toEqual({
             title: "Error downloading torrent",
-            message: "Error: Error: network down",
+            message: "Error: network down",
             isFailed: true,
             webUiUrl: WEBUI_URL,
         });
@@ -101,7 +104,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
         await preAdd();
 
         expect(downloadTorrent).toHaveBeenCalled();
-        expect(chrome.windows.update).toHaveBeenCalledWith(7, { focused: true });
+        expect(chrome.windows.update).toHaveBeenCalledWith(WINDOW_ID, { focused: true });
         expect(chrome.action.openPopup).toHaveBeenCalled();
     });
 
@@ -161,9 +164,10 @@ describe("notifications after handing the torrent to the client", () => {
         });
     });
 
-    it("reports the error when sending the torrent throws", async () => {
+    it("reports the status and body of an HTTP error thrown while sending", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedSingleWebUi();
-        vi.spyOn(QBittorrentWebUI.prototype, "sendTorrent").mockRejectedValue(SEND_ERROR);
+        vi.spyOn(QBittorrentWebUI.prototype, "sendTorrent").mockRejectedValue(new HttpError(502, "boom"));
 
         await preAdd();
 
@@ -201,17 +205,28 @@ describe("notifications after handing the torrent to the client", () => {
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("logs which torrent could not be sent when the settings fail to load", async () => {
+    it("reads the settings only once for a whole add", async () => {
+        seedSingleWebUi();
+        stubClientAccepts();
+
+        await preAdd();
+
+        expect(chrome.storage.local.get).toHaveBeenCalledTimes(1);
+    });
+
+    it("logs which WebUI a torrent could not be added to when the failure cannot be shown", async () => {
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedSingleWebUi();
-        const storageGet = chrome.storage.local.get as any;
-        storageGet.mockImplementationOnce(storageGet.getMockImplementation()).mockRejectedValueOnce(new Error("storage unavailable"));
+        downloadTorrent.mockRejectedValue(new Error("network down"));
+        showNotification.mockImplementationOnce(() => {
+            throw new Error("notifications unavailable");
+        });
 
         await preAdd();
 
         expect(consoleError).toHaveBeenCalledWith(
-            "Failed sending Cool Torrent to My Client:",
-            expect.objectContaining({ message: "storage unavailable" }),
+            "Failed adding a torrent to My Client:",
+            expect.objectContaining({ message: "notifications unavailable" }),
         );
     });
 
@@ -225,8 +240,9 @@ describe("notifications after handing the torrent to the client", () => {
     });
 
     it("still reports a thrown error when notifications are disabled", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedSingleWebUi({}, { notificationsEnabled: false });
-        vi.spyOn(QBittorrentWebUI.prototype, "sendTorrent").mockRejectedValue(SEND_ERROR);
+        vi.spyOn(QBittorrentWebUI.prototype, "sendTorrent").mockRejectedValue(new HttpError(502, "boom"));
 
         await preAdd();
 

@@ -3,20 +3,8 @@ import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/we
 import AutoLabelDirTester from "./AutoLabelDirTester";
 import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
-import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
-
-const FIELD_TITLE_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 4, display: "block" };
-
-const CHIP_STYLE: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  background: "var(--rta-chip-bg, #eaf5ea)",
-  border: "1px solid var(--rta-chip-border, #b7c9a7)",
-  borderRadius: 16,
-  padding: "4px 12px",
-  fontFamily: "monospace",
-  fontSize: 15,
-};
+import { ACCENT_BUTTON_STYLE, CHIP_STYLE, FIELD_LABEL_STYLE } from "../shared-styles";
+import { TEXT, MUTED, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
 
 const SELECT_STYLE: CSSProperties = {
   fontSize: 15,
@@ -37,16 +25,6 @@ const PATTERN_INPUT_STYLE: CSSProperties = {
   color: TEXT,
   borderRadius: 8,
   padding: "4px 10px",
-};
-
-const ADD_CRITERION_BUTTON_STYLE: CSSProperties = {
-  background: "var(--rta-accent, #b7c9a7)",
-  color: GREEN_DARK,
-  border: "none",
-  borderRadius: 8,
-  padding: "4px 12px",
-  fontWeight: 500,
-  cursor: "pointer",
 };
 
 const ADD_RULE_BUTTON_STYLE: CSSProperties = {
@@ -152,7 +130,7 @@ interface CriteriaEditorProps {
 function CriteriaEditor({ criteria, onChange }: CriteriaEditorProps) {
   return (
     <div style={{ marginBottom: 12 }}>
-      <label style={FIELD_TITLE_STYLE}>Criteria</label>
+      <label style={FIELD_LABEL_STYLE}>Criteria</label>
       <div style={{ color: MUTED, fontSize: 13, marginBottom: 6 }}>
         All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
       </div>
@@ -199,7 +177,7 @@ function CriterionForm({ hasCriteria, onAdd }: CriterionFormProps) {
         {CRITERIA_FIELDS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
       </select>
       <input type="text" value={value} onChange={e => setValue(e.target.value)} placeholder={placeholder} style={PATTERN_INPUT_STYLE} />
-      <button onClick={handleAdd} style={ADD_CRITERION_BUTTON_STYLE}>Add</button>
+      <button onClick={handleAdd} style={ACCENT_BUTTON_STYLE}>Add</button>
     </div>
   );
 }
@@ -214,7 +192,7 @@ interface ChoiceSelectProps {
 function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectProps) {
   return (
     <div style={{ marginBottom: 10 }}>
-      <label style={FIELD_TITLE_STYLE}>{title}</label>
+      <label style={FIELD_LABEL_STYLE}>{title}</label>
       <select
         value={choice ?? ""}
         onChange={e => onChange(e.target.value === "" ? null : e.target.value)}

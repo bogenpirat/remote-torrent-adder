@@ -1,5 +1,6 @@
 import { type CSSProperties } from "react";
 import { type TorrentWebUI, type WebUISettings } from "../../models/webui";
+import { FIELD_LABEL_STYLE } from "../shared-styles";
 import { TEXT, BORDER, INPUT_BG } from "../theme";
 
 export interface WebUISectionProps {
@@ -25,8 +26,6 @@ export const FIELD_INPUT_STYLE: CSSProperties = {
   background: INPUT_BG,
   color: TEXT,
 };
-
-export const FIELD_LABEL_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 4, display: "block" };
 
 export function TextField({ label, value, onChange, type = "text" }: TextFieldProps) {
   return (

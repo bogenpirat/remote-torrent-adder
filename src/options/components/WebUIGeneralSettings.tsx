@@ -4,7 +4,8 @@ import { parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
 import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
 import WebUIConnectionTest from "./WebUIConnectionTest";
-import { FIELD_INPUT_STYLE, FIELD_LABEL_STYLE, TextField, type WebUISectionProps } from "./webui-fields";
+import { FIELD_INPUT_STYLE, TextField, type WebUISectionProps } from "./webui-fields";
+import { FIELD_LABEL_STYLE } from "../shared-styles";
 import { MUTED } from "../theme";
 
 const FIELD_ROW_STYLE: CSSProperties = { display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" };

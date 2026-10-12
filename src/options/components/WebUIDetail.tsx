@@ -7,7 +7,7 @@ import Select from "./Select";
 import WebUIGeneralSettings from "./WebUIGeneralSettings";
 import WebUILabelDirSettings from "./WebUILabelDirSettings";
 import { UNNAMED_WEBUI_NAME, type WebUISectionProps } from "./webui-fields";
-import { MUTED, DANGER } from "../theme";
+import { MUTED, NEUTRAL, DANGER, DANGER_DARK, INFO } from "../theme";
 
 const CLIENT_OPTIONS = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
@@ -21,7 +21,7 @@ const HEADER_BUTTON_STYLE: CSSProperties = {
 };
 
 const CANCEL_BUTTON_STYLE: CSSProperties = {
-  background: "var(--rta-neutral, #eee)",
+  background: NEUTRAL,
   color: DANGER,
   border: "none",
   borderRadius: 8,
@@ -61,7 +61,7 @@ function DetailHeader({ webUiSettings, isPrimary, onPromote, onRemove }: DetailH
       {!isPrimary && (
         <button
           onClick={onPromote}
-          style={{ background: "var(--rta-info, #4682B4)", ...HEADER_BUTTON_STYLE, transition: "all 0.15s" }}
+          style={{ background: INFO, ...HEADER_BUTTON_STYLE, transition: "all 0.15s" }}
         >Promote to Primary</button>
       )}
       <RemoveControls onRemove={onRemove} />
@@ -80,9 +80,9 @@ function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
       <button
         onClick={handleRemove}
         style={{
-          background: confirmRemove ? "var(--rta-danger-dark, #8B0000)" : DANGER,
+          background: confirmRemove ? DANGER_DARK : DANGER,
           ...HEADER_BUTTON_STYLE,
-          boxShadow: confirmRemove ? "0 0 8px 2px var(--rta-danger-dark, #8B0000)" : undefined,
+          boxShadow: confirmRemove ? `0 0 8px 2px ${DANGER_DARK}` : undefined,
           transition: "all 0.15s",
         }}
       >

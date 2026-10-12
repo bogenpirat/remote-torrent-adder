@@ -5,16 +5,23 @@ import Tab = chrome.tabs.Tab;
 import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { type TorrentDownloadContext } from "./download";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
-import { loadWebUis } from "./webuis";
+import { type RTASettings } from "../models/settings";
+import { Settings } from "./settings";
+import { initiateWebUis } from "./webuis";
 
 const PARENT_MENU_ID = "server-main";
 const SEND_ALL_MENU_ID = "server-all";
 const SEPARATOR_MENU_ID = "sendall-separator";
 const PER_SERVER_MENU_PREFIX = "server-";
 
+interface MenuClick {
+    onClickData: OnClickData;
+    tab?: Tab;
+}
+
 export function registerContextMenuClickListener(): void {
     ext.contextMenus.onClicked.addListener((onClickData: OnClickData, tab?: Tab) => {
-        handleContextMenuClick(onClickData, tab)
+        handleContextMenuClick({ onClickData, tab }, new Settings())
             .catch(error => console.error("Context menu click failed", error));
     });
 }
@@ -64,37 +71,36 @@ function createMenuItem(properties: chrome.contextMenus.CreateProperties): void 
     });
 }
 
-async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Promise<void> {
-    const menuItemId = onClickData.menuItemId.toString();
+async function handleContextMenuClick(menuClick: MenuClick, settingsProvider: Settings): Promise<void> {
+    const menuItemId = menuClick.onClickData.menuItemId.toString();
     if (!menuItemId.startsWith(PER_SERVER_MENU_PREFIX)) {
         return;
     }
 
-    const targetWebUis = resolveTargetWebUis(menuItemId, await loadWebUis());
+    const settings = await settingsProvider.loadSettings();
+    const targetWebUis = resolveTargetWebUis(menuItemId, await initiateWebUis(settings));
     if (targetWebUis.length === 0) {
         console.warn("Context menu clicked, but no matching WebUI is configured.", menuItemId);
         return;
     }
 
-    await addLinkToWebUis(targetWebUis, onClickData, tab);
+    await addLinkToWebUis(targetWebUis, menuClick, settings);
 }
 
-async function addLinkToWebUis(targetWebUis: TorrentWebUI[], onClickData: OnClickData, tab?: Tab): Promise<void> {
+async function addLinkToWebUis(targetWebUis: TorrentWebUI[], { onClickData, tab }: MenuClick, settings: RTASettings): Promise<void> {
     const url = onClickData.linkUrl ?? "";
     const context = downloadContextFromMenuClick(onClickData, tab);
 
     const [singleTarget] = targetWebUis;
     if (targetWebUis.length === 1 && singleTarget) {
-        const preAddTorrentMessage: IPreAddTorrentMessage = {
-            action: PreAddTorrentMessage.action,
-            webUiId: singleTarget.settings.id,
-            url
-        };
-        await dispatchPreAddTorrent(preAddTorrentMessage, await resolveWindowId(tab), context);
+        const message: IPreAddTorrentMessage = { action: PreAddTorrentMessage.action, webUiId: singleTarget.settings.id, url };
+        await dispatchPreAddTorrent({ message, windowId: await resolveWindowId(tab), context }, settings);
         return;
     }
 
-    targetWebUis.forEach(webUi => addTorrentToWebUiById({ webUiId: webUi.settings.id, url, config: null }, context));
+    await Promise.all(
+        targetWebUis.map(webUi => addTorrentToWebUiById({ webUiId: webUi.settings.id, url, config: null }, context, settings))
+    );
 }
 
 function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): TorrentWebUI[] {

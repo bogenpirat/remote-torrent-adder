@@ -154,7 +154,7 @@ describe("registerContextMenuClickListener", () => {
     it("dispatches a pre-add for the first webui on the main entry", async () => {
         await click("server-main", [settingsFor("a", "Server A")]);
         expect(dispatchPreAddTorrent).toHaveBeenCalledTimes(1);
-        const [message, windowId] = callArgs(dispatchPreAddTorrent, 0);
+        const [{ message, windowId }] = callArgs(dispatchPreAddTorrent, 0);
         expect(message.action).toBe(PreAddTorrentMessage.action);
         expect(message.webUiId).toBe("a");
         expect(message.url).toBe("http://x/file.torrent");
@@ -163,7 +163,23 @@ describe("registerContextMenuClickListener", () => {
 
     it("dispatches a pre-add for the indexed webui", async () => {
         await click("server-1", [settingsFor("a", "A"), settingsFor("b", "B")]);
-        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("b");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].message.webUiId).toBe("b");
+    });
+
+    it("hands the settings it resolved the webui from to the pre-add", async () => {
+        await click("server-main", [settingsFor("a", "Server A")]);
+        const settings = callArgs(dispatchPreAddTorrent, 0)[1];
+        expect(settings.webuiSettings.map((webUiSettings: any) => webUiSettings.id)).toEqual(["a"]);
+        expect(chrome.storage.local.get).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports a send-all add that fails instead of dropping it", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        addTorrentToWebUiById.mockRejectedValueOnce(new Error("storage unavailable"));
+
+        await click("server-all", [settingsFor("a", "A"), settingsFor("b", "B")]);
+
+        expect(consoleError).toHaveBeenCalledWith("Context menu click failed", expect.objectContaining({ message: "storage unavailable" }));
     });
 
     it("adds the torrent directly to every webui on send-all, bypassing the selector", async () => {
@@ -178,7 +194,7 @@ describe("registerContextMenuClickListener", () => {
         seedWebUISettings([settingsFor("late", "Added Later")]);
         clickListener()(clickData("server-main"), tab);
         await flush();
-        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("late");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].message.webUiId).toBe("late");
     });
 
     it("falls back to the last focused window when the click carries no tab", async () => {
@@ -186,7 +202,7 @@ describe("registerContextMenuClickListener", () => {
         registerContextMenuClickListener();
         clickListener()(clickData("server-main"), undefined);
         await flush();
-        expect(callArgs(dispatchPreAddTorrent, 0)[1]).toBe(1);
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].windowId).toBe(1);
     });
 
     it("ignores clicks on unrelated menu entries", async () => {

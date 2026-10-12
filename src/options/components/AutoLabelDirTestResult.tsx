@@ -5,14 +5,14 @@ import { type AutoLabelDirExplanation } from "../../util/auto-label-dir-matcher"
 import RuleRow from "./AutoLabelDirRuleRow";
 import { type CriterionField } from "./auto-label-dir-fields";
 import { MONOSPACE_STYLE } from "./auto-label-dir-tester-styles";
-import { MUTED, BORDER, SURFACE } from "../theme";
+import { MUTED, BORDER, SURFACE, SURFACE_ALT, INFO } from "../theme";
 
 const CONTENTS_TOGGLE_STYLE: React.CSSProperties = {
   background: "none",
   border: "none",
   padding: 0,
   cursor: "pointer",
-  color: "var(--rta-info, #4682b4)",
+  color: INFO,
   fontSize: 14,
 };
 
@@ -31,7 +31,7 @@ const RESULT_PANEL_STYLE: React.CSSProperties = {
   border: `1px solid ${BORDER}`,
   borderRadius: 10,
   padding: 12,
-  background: "var(--rta-surface-alt, #f7faf7)",
+  background: SURFACE_ALT,
 };
 
 const CLEAR_BUTTON_STYLE: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", color: MUTED, fontSize: 13 };
