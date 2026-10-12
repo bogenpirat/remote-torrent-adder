@@ -21,7 +21,7 @@ export class QNAPDownloadStationWebUI extends JsonLoginWebUI {
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
-            const sessionId = await this.fetchSessionId();
+            const sessionId = await this.authenticateForSessionId();
             const fetchOptions = await this.createTorrentFetchOptions(sessionId, torrent, config);
             const response = await fetchOrThrow(this.createAddingUrlForTorrent(torrent), fetchOptions);
 
@@ -44,7 +44,7 @@ export class QNAPDownloadStationWebUI extends JsonLoginWebUI {
         ].join("");
     }
 
-    private async fetchSessionId(): Promise<string> {
+    private async authenticateForSessionId(): Promise<string> {
         const answer = await this.authenticate();
         return String(answer["sid"]);
     }
@@ -57,10 +57,10 @@ export class QNAPDownloadStationWebUI extends JsonLoginWebUI {
         const payload = new FormData();
         payload.append("sid", sessionId);
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            payload.append("temp", dir);
-            payload.append("move", dir);
+        const directory = this.getDirectory(config);
+        if (directory) {
+            payload.append("temp", directory);
+            payload.append("move", directory);
         }
 
         if (torrent.isMagnet) {

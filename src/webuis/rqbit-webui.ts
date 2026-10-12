@@ -19,9 +19,9 @@ export class RqbitWebUI extends BasicAuthWebUI {
     private createQueryString(config: TorrentUploadConfig): string {
         const params = new URLSearchParams();
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            params.append("output_folder", dir);
+        const directory = this.getDirectory(config);
+        if (directory) {
+            params.append("output_folder", directory);
         }
 
         params.append("paused", this.getAddPaused(config).toString());
@@ -31,14 +31,11 @@ export class RqbitWebUI extends BasicAuthWebUI {
     }
 
     private createTorrentFetchOptions(torrent: Torrent): RequestInit {
-        const fetchOpts: RequestInit = {
+        return {
             method: "POST",
             headers: createBasicAuthHeaders(this.settings),
+            body: torrent.isMagnet ? (torrent.data as string) : (torrent.data as Blob),
         };
-
-        fetchOpts.body = torrent.isMagnet ? (torrent.data as string) : (torrent.data as Blob);
-
-        return fetchOpts;
     }
 
     get isLabelSupported(): boolean {

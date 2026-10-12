@@ -33,7 +33,7 @@ const DRAFT_WEBUI_SETTINGS: Omit<WebUISettings, "id"> = {
   useAlternativeLabelDirChooser: false,
 };
 
-export function getDefaultWebUISettings(): WebUISettings {
+export function createDraftWebUISettings(): WebUISettings {
   return { id: generateId(), ...structuredClone(DRAFT_WEBUI_SETTINGS) };
 }
 

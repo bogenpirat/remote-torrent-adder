@@ -1,5 +1,5 @@
 import { type ConnectionTestResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toAuthenticatedResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
+import { createJsonPostOptions, fetchOrThrow, toAuthenticatedResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 export type LoginAnswer = Record<string, unknown>;
 
@@ -30,18 +30,10 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
     }
 
     protected createLoginFetchOptions(): RequestInit {
-        return this.createJsonPostOptions({ username: this.settings.username, password: this.settings.password });
+        return createJsonPostOptions({ username: this.settings.username, password: this.settings.password });
     }
 
     protected describeRejectedLogin(_answer: LoginAnswer): string {
         return REJECTED_LOGIN_MESSAGE;
-    }
-
-    protected createJsonPostOptions(payload: unknown, extraHeaders: Record<string, string> = {}): RequestInit {
-        return {
-            method: "POST",
-            headers: { "Content-Type": "application/json; charset=UTF-8", ...extraHeaders },
-            body: JSON.stringify(payload)
-        };
     }
 }

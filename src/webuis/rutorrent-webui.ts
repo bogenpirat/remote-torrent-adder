@@ -64,9 +64,9 @@ export class RuTorrentWebUI extends BasicAuthWebUI {
     createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): FormData {
         const message = new FormData();
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            message.append("dir_edit", dir);
+        const directory = this.getDirectory(config);
+        if (directory) {
+            message.append("dir_edit", directory);
         }
 
         const label = this.getLabel(config);

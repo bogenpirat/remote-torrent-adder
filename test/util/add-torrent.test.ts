@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { downloadTorrent, showNotification } from "../helpers/add-flow-mocks";
-import { callArgs } from "../helpers/assert";
 
 import { dispatchPreAddTorrent } from "../../src/util/add-torrent";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
@@ -8,7 +7,9 @@ import { findBufferedTorrent, readBufferedTorrent } from "../../src/util/buffere
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
 import { Settings } from "../../src/util/settings";
 import { HttpError } from "../../src/models/webui-http";
-import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
+import {
+    MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, shownNotification, stubClientAccepts, uploadRequestBody,
+} from "../helpers/add-flow";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
 import { makeMagnetTorrent, seedWebUISettings } from "../helpers/fixtures";
 
@@ -19,11 +20,6 @@ async function preAdd(url: string = MAGNET_URL, context: TorrentDownloadContext 
     const preAddRequest = { webUiId: SEEDED_WEBUI_ID, url, windowId: WINDOW_ID, context };
     await dispatchPreAddTorrent(preAddRequest, await new Settings().loadSettings());
     await settle();
-}
-
-function shownNotification(index = 0) {
-    const { title, message, isFailed, webUiUrl } = callArgs(showNotification, index)[0];
-    return { title, message, isFailed, webUiUrl };
 }
 
 beforeEach(() => {
@@ -50,8 +46,7 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
 
         await preAdd();
 
-        const uploadCall = (fetchMock.mock.calls as any[][]).find(call => String(call[0]).includes("/torrents/add"));
-        expect((uploadCall![1].body as FormData).get("category")).toBe("auto-movies");
+        expect(uploadRequestBody(fetchMock).get("category")).toBe("auto-movies");
     });
 
     it("tells the user when no WebUI is configured at all", async () => {
@@ -59,7 +54,7 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
 
         await preAdd();
 
-        expect(shownNotification()).toMatchObject({ title: "No WebUI configured", message: "Check your settings.", isFailed: true });
+        expect(shownNotification()).toMatchObject({ title: "No WebUI configured", message: "Check your settings.", kind: "failure" });
         expect(downloadTorrent).not.toHaveBeenCalled();
     });
 
@@ -109,7 +104,7 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
 
         await preAdd(TRACKER_URL);
 
-        expect(shownNotification()).toMatchObject({ title: "Cloudflare is blocking this download", webUiUrl: TRACKER_URL });
+        expect(shownNotification()).toMatchObject({ title: "Cloudflare is blocking this download", clickUrl: TRACKER_URL });
         expect(chrome.action.openPopup).not.toHaveBeenCalled();
         expect(await findBufferedTorrent()).toBeUndefined();
     });
@@ -122,8 +117,8 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
         expect(shownNotification()).toEqual({
             title: "Error downloading torrent",
             message: "Error: network down",
-            isFailed: true,
-            webUiUrl: WEBUI_URL,
+            kind: "failure",
+            clickUrl: WEBUI_URL,
         });
     });
 
@@ -172,8 +167,8 @@ describe("notifications after handing the torrent to the client", () => {
         expect(shownNotification()).toEqual({
             title: "Torrent added successfully",
             message: "Cool Torrent successfully added to My Client",
-            isFailed: false,
-            webUiUrl: WEBUI_URL,
+            kind: "success",
+            clickUrl: WEBUI_URL,
         });
     });
 
@@ -186,8 +181,8 @@ describe("notifications after handing the torrent to the client", () => {
         expect(shownNotification()).toEqual({
             title: "Torrent adding failed",
             message: "HTTP Response code: 500\nResponse body: nope",
-            isFailed: true,
-            webUiUrl: WEBUI_URL,
+            kind: "failure",
+            clickUrl: WEBUI_URL,
         });
     });
 
@@ -198,7 +193,7 @@ describe("notifications after handing the torrent to the client", () => {
 
         await preAdd();
 
-        expect(shownNotification()).toMatchObject({ title: "Torrent adding failed", message: "Error (502):\nboom", isFailed: true });
+        expect(shownNotification()).toMatchObject({ title: "Torrent adding failed", message: "Error (502):\nboom", kind: "failure" });
     });
 
     it("reports the message of an error that carries no HTTP response", async () => {

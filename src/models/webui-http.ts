@@ -4,6 +4,14 @@ export type Credentials = Pick<WebUISettings, "username" | "password">;
 
 export const FORM_URLENCODED_HEADERS = { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" };
 
+export function createJsonPostOptions(payload: unknown, extraHeaders: Record<string, string> = {}): RequestInit {
+    return {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=UTF-8", ...extraHeaders },
+        body: JSON.stringify(payload)
+    };
+}
+
 export class HttpError extends Error {
     constructor(public readonly status: number, public readonly body: string) {
         super(`HTTP error ${status}`);

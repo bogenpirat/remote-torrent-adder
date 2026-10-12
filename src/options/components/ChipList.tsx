@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { ACCENT_BUTTON_STYLE, CHIP_STYLE, LIST_HEADING_STYLE } from "../shared-styles";
-import { TEXT, BORDER, INPUT_BG } from "../theme";
+import { ACCENT_BUTTON_STYLE, CHIP_INPUT_STYLE, CHIP_STYLE, LIST_HEADING_STYLE, MONOSPACE_INPUT_STYLE } from "../shared-styles";
 
 interface ChipListProps {
   label: string;
@@ -8,28 +7,6 @@ interface ChipListProps {
   onChange: (values: string[]) => void;
   placeholder?: string;
 }
-
-const CHIP_INPUT_STYLE: React.CSSProperties = {
-  fontFamily: "monospace",
-  fontSize: 15,
-  border: "none",
-  outline: "none",
-  background: INPUT_BG,
-  color: TEXT,
-  borderRadius: 8,
-  padding: "2px 8px",
-  marginRight: 4,
-};
-
-const NEW_ENTRY_INPUT_STYLE: React.CSSProperties = {
-  fontFamily: "monospace",
-  fontSize: 15,
-  border: `1px solid ${BORDER}`,
-  background: INPUT_BG,
-  color: TEXT,
-  borderRadius: 8,
-  padding: "4px 10px",
-};
 
 interface ChipProps {
   value: string;
@@ -87,7 +64,7 @@ function NewEntry({ values, placeholder, onAdd }: NewEntryProps) {
         value={input}
         onChange={e => setInput(e.target.value)}
         placeholder={placeholder || "Add new entry"}
-        style={NEW_ENTRY_INPUT_STYLE}
+        style={MONOSPACE_INPUT_STYLE}
       />
       <button onClick={handleAdd} style={ACCENT_BUTTON_STYLE}>Add</button>
     </div>

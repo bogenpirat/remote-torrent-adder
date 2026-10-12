@@ -16,7 +16,7 @@ import { initiateWebUis } from "./webuis";
 export interface AddTorrentByUrlRequest {
     webUiId: string;
     url: string;
-    config: TorrentUploadConfig | null;
+    config?: TorrentUploadConfig;
 }
 
 export interface PreAddTorrentRequest {
@@ -25,6 +25,8 @@ export interface PreAddTorrentRequest {
     windowId: number;
     context: TorrentDownloadContext;
 }
+
+type TorrentSource = Pick<AddTorrentByUrlRequest, "url" | "config">;
 
 interface AddTarget {
     webUi: TorrentWebUI;
@@ -36,15 +38,15 @@ interface Delivery extends AddTarget {
 }
 
 export async function dispatchPreAddTorrent(preAddRequest: PreAddTorrentRequest, settings: RTASettings): Promise<void> {
-    const addByUrlRequest: AddTorrentByUrlRequest = { webUiId: preAddRequest.webUiId, url: preAddRequest.url, config: null };
+    const { webUiId, url, context } = preAddRequest;
     const allWebUis = await initiateWebUis(settings);
-    const webUi = findWebUiById(addByUrlRequest.webUiId, allWebUis) ?? allWebUis[0];
+    const webUi = findWebUiById(webUiId, allWebUis) ?? allWebUis[0];
     if (!webUi) {
-        reportNoWebUiConfigured(addByUrlRequest, settings);
+        reportNoWebUiConfigured(webUiId, settings);
     } else if (webUi.settings.showPerTorrentConfigSelector) {
         await addTorrentViaChooser({ webUi, settings }, preAddRequest);
     } else {
-        addTorrentInBackground({ webUi, settings }, addByUrlRequest, preAddRequest.context);
+        addTorrentInBackground({ webUi, settings }, { url }, context);
     }
 }
 
@@ -55,15 +57,15 @@ export async function addTorrentToWebUiById(
 ): Promise<void> {
     const webUi = findWebUiById(request.webUiId, await initiateWebUis(settings));
     if (!webUi) {
-        reportNoWebUiConfigured(request, settings);
+        reportNoWebUiConfigured(request.webUiId, settings);
         return;
     }
     addTorrentInBackground({ webUi, settings }, request, context);
 }
 
-function reportNoWebUiConfigured(request: AddTorrentByUrlRequest, settings: RTASettings): void {
-    console.error(`No WebUI found for id "${request.webUiId}".`);
-    notifyWithUserSettings(settings, { title: "No WebUI configured", message: "Check your settings.", isFailed: true });
+function reportNoWebUiConfigured(webUiId: string, settings: RTASettings): void {
+    console.error(`No WebUI found for id "${webUiId}".`);
+    notifyWithUserSettings(settings, { title: "No WebUI configured", message: "Check your settings.", kind: "failure" });
 }
 
 /**
@@ -81,19 +83,17 @@ export async function addBufferedTorrent(message: IAddTorrentMessageWithLabelAnd
 
     sendTorrentInBackground({ webUi, settings, torrent }, message.config);
     await clearBufferedTorrent();
-    await updateWebUiLabelsAndDirectories(settingsProvider, message)
-        .catch(e => console.error("Failed updating labels/dirs", e));
+    await saveLabelsAndDirectories(settingsProvider, { webUi, settings }, message)
+        .catch(error => console.error("Failed updating labels/dirs", error));
 }
 
-async function updateWebUiLabelsAndDirectories(settingsProvider: Settings, message: IAddTorrentMessageWithLabelAndDir): Promise<void> {
-    const { webUiId, labels, directories } = message;
-    const settings = await settingsProvider.loadSettings();
-    const webUiSettings = settings.webuiSettings.find(candidate => candidate.id === webUiId);
-    if (!webUiSettings) {
-        throw new Error(`WebUI with id ${webUiId} not found in settings; couldn't update labels and directories.`);
-    }
-    webUiSettings.labels = labels;
-    webUiSettings.dirs = directories;
+async function saveLabelsAndDirectories(
+    settingsProvider: Settings,
+    { webUi, settings }: AddTarget,
+    message: IAddTorrentMessageWithLabelAndDir,
+): Promise<void> {
+    webUi.settings.labels = message.labels;
+    webUi.settings.dirs = message.directories;
     await settingsProvider.saveSettings(settings);
 }
 
@@ -107,21 +107,21 @@ async function addTorrentViaChooser(addTarget: AddTarget, preAddRequest: PreAddT
     await openChooser(webUi, preAddRequest.windowId);
 }
 
-function addTorrentInBackground(addTarget: AddTarget, request: AddTorrentByUrlRequest, context: TorrentDownloadContext): void {
-    downloadAndAddTorrentToWebUi(addTarget, request, context)
+function addTorrentInBackground(addTarget: AddTarget, source: TorrentSource, context: TorrentDownloadContext): void {
+    downloadAndAddTorrentToWebUi(addTarget, source, context)
         .catch(error => console.error(`Failed adding a torrent to ${addTarget.webUi.name}:`, error));
 }
 
 async function downloadAndAddTorrentToWebUi(
     addTarget: AddTarget,
-    request: AddTorrentByUrlRequest,
+    source: TorrentSource,
     context: TorrentDownloadContext,
 ): Promise<void> {
-    const torrent = await downloadTorrentOrNotify(addTarget, request.url, context);
+    const torrent = await downloadTorrentOrNotify(addTarget, source.url, context);
     if (!torrent) {
         return;
     }
-    sendTorrentInBackground({ ...addTarget, torrent }, request.config ?? createFallbackUploadConfig(addTarget.webUi, torrent));
+    sendTorrentInBackground({ ...addTarget, torrent }, source.config ?? createFallbackUploadConfig(addTarget.webUi, torrent));
 }
 
 async function downloadTorrentOrNotify(
@@ -165,8 +165,8 @@ function createFallbackUploadConfig(webUi: TorrentWebUI, torrent: Torrent): Torr
     };
 }
 
-function sendTorrentInBackground(delivery: Delivery, config: TorrentUploadConfig | null): void {
-    deliverTorrent(delivery, config ?? {})
+function sendTorrentInBackground(delivery: Delivery, config: TorrentUploadConfig): void {
+    deliverTorrent(delivery, config)
         .catch(error => console.error(`Failed sending ${delivery.torrent.name} to ${delivery.webUi.name}:`, error));
 }
 
@@ -197,8 +197,8 @@ function reportAddingSuccess({ webUi, torrent, settings }: Delivery): void {
     notifyWithUserSettings(settings, {
         title: "Torrent added successfully",
         message: `${torrent.name} successfully added to ${webUi.name}`,
-        isFailed: false,
-        webUiUrl: webUiUrlOf(webUi),
+        kind: "success",
+        clickUrl: webUiUrlOf(webUi),
     });
 }
 
@@ -228,8 +228,8 @@ function notifyAddingFailure(delivery: Delivery, message: string): void {
     notifyWithUserSettings(delivery.settings, {
         title: "Torrent adding failed",
         message,
-        isFailed: true,
-        webUiUrl: webUiUrlOf(delivery.webUi),
+        kind: "failure",
+        clickUrl: webUiUrlOf(delivery.webUi),
     });
 }
 
@@ -238,8 +238,8 @@ function notifyDownloadFailure(error: unknown, { webUi, settings }: AddTarget): 
         notifyWithUserSettings(settings, {
             title: "Cloudflare is blocking this download",
             message: error.message,
-            isFailed: true,
-            webUiUrl: error.challengeUrl,
+            kind: "failure",
+            clickUrl: error.challengeUrl,
         });
         return;
     }
@@ -247,8 +247,8 @@ function notifyDownloadFailure(error: unknown, { webUi, settings }: AddTarget): 
     notifyWithUserSettings(settings, {
         title: "Error downloading torrent",
         message: `Error: ${messageOf(error)}`,
-        isFailed: true,
-        webUiUrl: webUiUrlOf(webUi),
+        kind: "failure",
+        clickUrl: webUiUrlOf(webUi),
     });
 }
 

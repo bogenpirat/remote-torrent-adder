@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { registerActionClickListener, openPrimaryWebUi, updateBadgeText } from "../../src/util/action";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { serializeSettings } from "../../src/util/serializer";
@@ -103,6 +103,18 @@ describe("openPrimaryWebUi", () => {
 });
 
 describe("updateBadgeText", () => {
+    it("logs the tab whose badge could not be set", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.action.setBadgeText as any).mockRejectedValueOnce(new Error("tab closed"));
+
+        updateBadgeText("3", 42);
+
+        await vi.waitFor(() => expect(consoleError).toHaveBeenCalledWith(
+            "Failed setting the badge text of tab 42:",
+            expect.objectContaining({ message: "tab closed" }),
+        ));
+    });
+
     it("sets the badge text for the tab when non-empty", () => {
         updateBadgeText("3", 42);
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "3", tabId: 42 });

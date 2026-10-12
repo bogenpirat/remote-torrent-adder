@@ -5,6 +5,8 @@ import { type WebUISettings } from "../../src/models/webui";
 import { serializeSettings } from "../../src/util/serializer";
 import { SETTINGS_KEY } from "../../src/util/settings";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
+import { showNotification } from "./add-flow-mocks";
+import { callArgs } from "./assert";
 import { mockResponse, queueFetch } from "./fetch-mock";
 import { makeWebUISettings } from "./fixtures";
 
@@ -20,6 +22,19 @@ export function seedSingleWebUi(webUiOverrides: Partial<WebUISettings> = {}, set
 
 export function stubClientAccepts(): ReturnType<typeof vi.fn> {
     return queueFetch(mockResponse({ body: "Ok." }));
+}
+
+export function shownNotification(index = 0) {
+    const { title, message, kind, clickUrl } = callArgs(showNotification, index)[0];
+    return { title, message, kind, clickUrl };
+}
+
+export function uploadRequestBody(fetchMock: ReturnType<typeof vi.fn>): FormData {
+    const uploadCall = fetchMock.mock.calls.find(fetchCall => String(fetchCall[0]).includes("/torrents/add"));
+    if (!uploadCall) {
+        throw new Error(`Expected a torrent upload, but ${fetchMock.mock.calls.length} other request(s) were made`);
+    }
+    return uploadCall[1].body as FormData;
 }
 
 export function settle(): Promise<void> {

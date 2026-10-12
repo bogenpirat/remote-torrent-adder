@@ -20,11 +20,11 @@ import {
 } from "../models/messages";
 import { type ConnectionTestResult, type WebUISettings } from "../models/webui";
 import { WebUIFactory } from "../models/clients";
-import { updateBadgeText } from "./action";
+import { resolveWindowId, updateBadgeText } from "./action";
 import { addBufferedTorrent, addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { type TorrentDownloadContext } from "./download";
-import { showNotification } from "./notifications";
+import { type NotificationKind, showNotification } from "./notifications";
 import { serializeSettings, serializeObject, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
 
@@ -130,13 +130,20 @@ async function testConnection({ message }: MessageRequest): Promise<ConnectionTe
     return testConnectionForWebUiSettings((message as ITestConnectionMessage).webUiSettings);
 }
 
+async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
+    if (!WebUIFactory.supports(webUiSettings.client)) {
+        return { reachable: false, authenticated: null, httpResponseCode: 0, message: "No client selected for this WebUI." };
+    }
+    const webUi = WebUIFactory.createWebUI(webUiSettings);
+    return executeMethodWrappedWithOriginStripped(() => webUi.testConnection(), webUi.createBaseUrl());
+}
+
 async function preAddTorrent({ message, sender, settingsProvider }: MessageRequest): Promise<object> {
     const preAddTorrentMessage = message as IPreAddTorrentMessage;
-    const lastFocusedWindow = await ext.windows.getLastFocused();
     const preAddRequest = {
         webUiId: preAddTorrentMessage.webUiId ?? "",
         url: preAddTorrentMessage.url,
-        windowId: sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
+        windowId: await resolveWindowId(sender.tab),
         context: downloadContextFromSender(preAddTorrentMessage, sender),
     };
     dispatchPreAddTorrent(preAddRequest, await settingsProvider.loadSettings())
@@ -161,11 +168,15 @@ function showTestNotification({ message }: MessageRequest, responder: Responder)
     showNotification({
         title: testNotificationMessage.title,
         message: testNotificationMessage.message,
-        isFailed: testNotificationMessage.isFailed,
+        kind: notificationKindOf(testNotificationMessage),
         popupDurationMs: testNotificationMessage.popupDurationMs,
         playSound: testNotificationMessage.playSound,
     });
     responder.finish({});
+}
+
+function notificationKindOf(testNotificationMessage: ITestNotificationMessage): NotificationKind {
+    return testNotificationMessage.isFailed ? "failure" : "success";
 }
 
 function updateActionBadgeText({ message, sender }: MessageRequest): void {
@@ -190,12 +201,4 @@ function contextCarriedByMessage(message: IPreAddTorrentMessage): TorrentDownloa
         frameId: message.frameId ?? 0,
         pageUrl: message.pageUrl ?? null
     };
-}
-
-async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
-    if (!WebUIFactory.supports(webUiSettings.client)) {
-        return { reachable: false, authenticated: null, httpResponseCode: 0, message: "No client selected for this WebUI." };
-    }
-    const webUi = WebUIFactory.createWebUI(webUiSettings);
-    return executeMethodWrappedWithOriginStripped(() => webUi.testConnection(), webUi.createBaseUrl());
 }

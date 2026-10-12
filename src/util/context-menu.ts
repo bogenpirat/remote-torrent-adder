@@ -3,6 +3,7 @@ import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
 import { type TorrentDownloadContext } from "./download";
+import { resolveWindowId } from "./action";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { type RTASettings } from "../models/settings";
 import { Settings } from "./settings";
@@ -98,7 +99,7 @@ async function addLinkToWebUis(targetWebUis: TorrentWebUI[], { onClickData, tab 
     }
 
     await Promise.all(
-        targetWebUis.map(webUi => addTorrentToWebUiById({ webUiId: webUi.settings.id, url, config: null }, context, settings))
+        targetWebUis.map(webUi => addTorrentToWebUiById({ webUiId: webUi.settings.id, url }, context, settings))
     );
 }
 
@@ -124,11 +125,4 @@ function downloadContextFromMenuClick(onClickData: OnClickData, tab?: Tab): Torr
 
 function resolvePageUrl(onClickData: OnClickData, tab?: Tab): string | undefined {
     return onClickData.frameUrl ?? onClickData.pageUrl ?? tab?.url;
-}
-
-async function resolveWindowId(tab?: Tab): Promise<number> {
-    if (tab?.windowId !== undefined) {
-        return tab.windowId;
-    }
-    return (await ext.windows.getLastFocused()).id ?? 0;
 }

@@ -3,7 +3,7 @@ import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/we
 import AutoLabelDirTester from "./AutoLabelDirTester";
 import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
-import { ACCENT_BUTTON_STYLE, CHIP_STYLE, FIELD_LABEL_STYLE } from "../shared-styles";
+import { ACCENT_BUTTON_STYLE, CHIP_STYLE, FIELD_LABEL_STYLE, MONOSPACE_INPUT_STYLE } from "../shared-styles";
 import { TEXT, MUTED, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER, ON_FILLED } from "../theme";
 
 const SELECT_STYLE: CSSProperties = {
@@ -15,17 +15,7 @@ const SELECT_STYLE: CSSProperties = {
   color: TEXT,
 };
 
-const PATTERN_INPUT_STYLE: CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-  fontFamily: "monospace",
-  fontSize: 15,
-  border: `1px solid ${BORDER}`,
-  background: INPUT_BG,
-  color: TEXT,
-  borderRadius: 8,
-  padding: "4px 10px",
-};
+const PATTERN_INPUT_STYLE: CSSProperties = { ...MONOSPACE_INPUT_STYLE, flex: 1, minWidth: 0 };
 
 const ADD_RULE_BUTTON_STYLE: CSSProperties = {
   background: SUCCESS,
@@ -75,15 +65,15 @@ function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
   const handleAdd = () => {
     onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
-  const removeAt = (idx: number) => onChange(value.filter((_setting, position) => position !== idx));
-  const patchAt = (idx: number, patch: Partial<AutoLabelDirSetting>) => {
-    onChange(value.map((setting, position) => (position === idx ? { ...setting, ...patch } : setting)));
+  const removeAt = (index: number) => onChange(value.filter((_setting, position) => position !== index));
+  const patchAt = (index: number, patch: Partial<AutoLabelDirSetting>) => {
+    onChange(value.map((setting, position) => (position === index ? { ...setting, ...patch } : setting)));
   };
   return (
     <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
       {value.length === 0 && <div style={{ color: MUTED, marginBottom: 8 }}>No rules defined yet.</div>}
-      {value.map((setting, idx) => (
-        <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
+      {value.map((setting, index) => (
+        <RuleCard key={index} setting={setting} choices={props} onPatch={patch => patchAt(index, patch)} onRemove={() => removeAt(index)} />
       ))}
       {value.length > 0 && (
         <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
@@ -141,14 +131,14 @@ function CriteriaEditor({ criteria, onChange }: CriteriaEditorProps) {
 }
 
 function CriterionChips({ criteria, onChange }: CriteriaEditorProps) {
-  const removeAt = (idx: number) => onChange(criteria.filter((_criterion, position) => position !== idx));
+  const removeAt = (index: number) => onChange(criteria.filter((_criterion, position) => position !== index));
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
-      {criteria.map((criterion, idx) => (
-        <span key={idx} style={CHIP_STYLE}>
+      {criteria.map((criterion, index) => (
+        <span key={index} style={CHIP_STYLE}>
           <span style={{ marginRight: 8 }}>{fieldLabel(criterion.field)}:</span>
           <span style={{ marginRight: 8 }}>{criterion.value}</span>
-          <button onClick={() => removeAt(idx)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
+          <button onClick={() => removeAt(index)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
         </span>
       ))}
     </div>
@@ -206,7 +196,7 @@ function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectPro
 
 function selectableChoices(choice: string | null, knownChoices: string[]): string[] {
   const choices = knownChoices.includes(choice ?? "") || !choice ? knownChoices : [choice, ...knownChoices];
-  return choices.filter((candidate, idx) => candidate && choices.indexOf(candidate) === idx);
+  return choices.filter((candidate, index) => candidate && choices.indexOf(candidate) === index);
 }
 
 export default AutoLabelDirSettingsEditor;

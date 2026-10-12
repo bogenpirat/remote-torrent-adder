@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createWebUIEditing, getDefaultWebUISettings } from "../../../src/options/components/webui-editing";
+import { createWebUIEditing, createDraftWebUISettings } from "../../../src/options/components/webui-editing";
 import { makeWebUISettings } from "../../helpers/fixtures";
 
 const ALPHA = makeWebUISettings({ id: "a", name: "Alpha" });
@@ -72,20 +72,20 @@ describe("createWebUIEditing", () => {
     });
 });
 
-describe("getDefaultWebUISettings", () => {
+describe("createDraftWebUISettings", () => {
     it("creates a draft with a fresh id and no client", () => {
-        const draft = getDefaultWebUISettings();
+        const draft = createDraftWebUISettings();
 
         expect(draft).toMatchObject({ client: "", name: "", host: "", port: null, secure: false });
-        expect(draft.id).not.toBe(getDefaultWebUISettings().id);
+        expect(draft.id).not.toBe(createDraftWebUISettings().id);
     });
 
     it("gives every draft collections of its own", () => {
-        const first = getDefaultWebUISettings();
+        const first = createDraftWebUISettings();
         first.labels.push("movies");
         first.autoLabelDirSettings.push({ criteria: [], label: null, dir: null });
 
-        const second = getDefaultWebUISettings();
+        const second = createDraftWebUISettings();
 
         expect(second.labels).toEqual([]);
         expect(second.autoLabelDirSettings).toEqual([]);

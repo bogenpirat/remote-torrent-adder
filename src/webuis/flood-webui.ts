@@ -2,7 +2,7 @@ import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
-import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { createJsonPostOptions, fetchOrThrow, toFailureResult } from "../models/webui-http";
 
 export class FloodWebUI extends JsonLoginWebUI {
     protected get loginUrl(): string {
@@ -18,8 +18,8 @@ export class FloodWebUI extends JsonLoginWebUI {
             const url = this.createBaseUrl() + (torrent.isMagnet ? "/api/torrents/add-urls" : "/api/torrents/add-files");
 
             await this.authenticate();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
-            const response = await fetchOrThrow(url, fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config);
+            const response = await fetchOrThrow(url, fetchOptions);
 
             const success = response.status === 200 || response.status === 202;
             return {
@@ -37,7 +37,7 @@ export class FloodWebUI extends JsonLoginWebUI {
             ? this.createPayloadForMagnet(torrent.data as string, config)
             : await this.createPayloadForTorrent(torrent, config);
 
-        return this.createJsonPostOptions(payload);
+        return createJsonPostOptions(payload);
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {

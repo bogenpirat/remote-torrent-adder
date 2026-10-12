@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSettings } from "../SettingsContext";
 import WebUIDetail from "../components/WebUIDetail";
 import WebUIList from "../components/WebUIList";
-import { createWebUIEditing, getDefaultWebUISettings, type WebUIEditing } from "../components/webui-editing";
+import { createDraftWebUISettings, createWebUIEditing, type WebUIEditing } from "../components/webui-editing";
 import type { WebUISettings } from "../../models/webui";
 import { MUTED } from "../theme";
 
@@ -30,7 +30,7 @@ function WebUIsEditor({ webuis, onSave }: WebUIsEditorProps) {
   const selected = webuis.find(w => w.id === selectedId) ?? null;
 
   const handleAdd = () => {
-    const newWebUI = getDefaultWebUISettings();
+    const newWebUI = createDraftWebUISettings();
     editing.append(newWebUI);
     setRequestedId(newWebUI.id);
   };

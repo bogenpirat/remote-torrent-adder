@@ -55,15 +55,3 @@ describe("Settings.saveSettings", () => {
         expect((chrome as any).__storage.settings).toContain("notificationsSoundEnabled");
     });
 });
-
-describe("Settings.serialize / deserialize", () => {
-    it("round-trips the in-memory settings", () => {
-        const settings = new Settings();
-        const value = getDefaultSettings();
-        value.notificationsDurationMs = 1234;
-        settings.rtaSettings = value;
-
-        const restored = settings.deserialize(settings.serialize());
-        expect(restored.notificationsDurationMs).toBe(1234);
-    });
-});

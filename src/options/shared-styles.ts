@@ -1,5 +1,5 @@
 import { type CSSProperties } from "react";
-import { ACCENT, CHIP_BG, CHIP_BORDER, GREEN_DARK } from "./theme";
+import { ACCENT, BORDER, CHIP_BG, CHIP_BORDER, GREEN_DARK, INPUT_BG, TEXT } from "./theme";
 
 export const FIELD_LABEL_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 4, display: "block" };
 
@@ -14,6 +14,28 @@ export const CHIP_STYLE: CSSProperties = {
   padding: "4px 12px",
   fontFamily: "monospace",
   fontSize: 15,
+};
+
+export const CHIP_INPUT_STYLE: CSSProperties = {
+  fontFamily: "monospace",
+  fontSize: 15,
+  border: "none",
+  outline: "none",
+  background: INPUT_BG,
+  color: TEXT,
+  borderRadius: 8,
+  padding: "2px 8px",
+  marginRight: 4,
+};
+
+export const MONOSPACE_INPUT_STYLE: CSSProperties = {
+  fontFamily: "monospace",
+  fontSize: 15,
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
+  borderRadius: 8,
+  padding: "4px 10px",
 };
 
 export const ACCENT_BUTTON_STYLE: CSSProperties = {

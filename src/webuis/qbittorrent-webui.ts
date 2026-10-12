@@ -26,8 +26,8 @@ export class QBittorrentWebUI extends TorrentWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             await this.authenticate();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
-            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v2/torrents/add", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v2/torrents/add", fetchOptions);
 
             const responseBody = await response.text();
             return {

@@ -37,8 +37,11 @@ describe("TransmissionWebUI", () => {
     });
 
     it("reports failure when the session-id request returns an unexpected status", async () => {
-        queueFetch(mockResponse({ status: 500 }));
-        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
+        queueFetch(mockResponse({ status: 500, body: "server on fire" }));
+
+        const result = await build().sendTorrent(makeMagnetTorrent(), {});
+
+        expect(result).toEqual({ success: false, httpResponseCode: 500, httpResponseBody: "server on fire" });
     });
 
     it("reports failure when the rpc result is not success", async () => {

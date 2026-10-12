@@ -1,17 +1,26 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
-import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { createJsonPostOptions, fetchOrThrow, HttpError, toFailureResult } from "../models/webui-http";
 import { BasicAuthWebUI } from "./basic-auth-webui";
 
+export const TRANSMISSION_RPC_PATH = "/transmission/rpc";
+const SESSION_ID_HEADER = "X-Transmission-Session-Id";
+const HTTP_OK = 200;
+const HTTP_SESSION_ID_REQUIRED = 409;
+
+export function isSessionHandshakeStatus(status: number): boolean {
+    return status === HTTP_OK || status === HTTP_SESSION_ID_REQUIRED;
+}
+
 export class TransmissionWebUI extends BasicAuthWebUI {
-    protected readonly connectionProbePath = "/transmission/rpc";
+    protected readonly connectionProbePath = TRANSMISSION_RPC_PATH;
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const sessionId = await this.fetchTransmissionSessionId();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config, sessionId);
-            const response = await fetchOrThrow(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config, sessionId);
+            const response = await fetchOrThrow(this.createBaseUrl() + TRANSMISSION_RPC_PATH, fetchOptions);
 
             const responseText = await response.text();
             const responseData = JSON.parse(responseText);
@@ -25,23 +34,12 @@ export class TransmissionWebUI extends BasicAuthWebUI {
         }
     }
 
-    private fetchTransmissionSessionId(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const rpcUrl = this.createBaseUrl() + "/transmission/rpc";
-            fetch(rpcUrl, {
-                method: "POST",
-                body: ""
-            }).then(response => {
-                if (response.status === 200 || response.status === 409) {
-                    const sessionId = response.headers.get("X-Transmission-Session-Id") ?? "";
-                    resolve(sessionId);
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
+    private async fetchTransmissionSessionId(): Promise<string> {
+        const response = await fetch(this.createBaseUrl() + TRANSMISSION_RPC_PATH, { method: "POST", body: "" });
+        if (!isSessionHandshakeStatus(response.status)) {
+            throw new HttpError(response.status, await response.text());
+        }
+        return response.headers.get(SESSION_ID_HEADER) ?? "";
     }
 
     private async createTorrentFetchOptions(
@@ -54,14 +52,7 @@ export class TransmissionWebUI extends BasicAuthWebUI {
             arguments: await this.createAddArguments(torrent, config)
         };
 
-        return {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8",
-                "X-Transmission-Session-Id": transmissionSessionId
-            },
-            body: JSON.stringify(payload)
-        };
+        return createJsonPostOptions(payload, { [SESSION_ID_HEADER]: transmissionSessionId });
     }
 
     private async createAddArguments(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, string | boolean>> {
@@ -69,9 +60,9 @@ export class TransmissionWebUI extends BasicAuthWebUI {
             ? { filename: torrent.data as string }
             : { metainfo: await blobToBase64(torrent.data as Blob) };
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            addArguments["download-dir"] = dir;
+        const directory = this.getDirectory(config);
+        if (directory) {
+            addArguments["download-dir"] = directory;
         }
 
         addArguments["paused"] = this.getAddPaused(config);

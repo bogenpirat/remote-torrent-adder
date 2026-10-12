@@ -30,6 +30,11 @@ interface FetchedTorrentFile {
     bytes: Uint8Array<ArrayBuffer>;
 }
 
+interface PageTarget {
+    tabId: number;
+    frameId: number;
+}
+
 const CLOUDFLARE_CHALLENGE_STATUSES = [403, 429, 503];
 
 const CLOUDFLARE_CHALLENGE_MARKERS = [
@@ -95,11 +100,6 @@ async function askPageToFetch(url: string, target: PageTarget): Promise<IFetchTo
     } catch (error) {
         return { error: "No content script answered in tab " + target.tabId + ": " + String(error) };
     }
-}
-
-interface PageTarget {
-    tabId: number;
-    frameId: number;
 }
 
 function toFetchedTorrentFile(fetched: IFetchedTorrentFile): FetchedTorrentFile {

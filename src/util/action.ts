@@ -62,6 +62,13 @@ export async function openActionPopup(windowId: number, mode?: PopupMode): Promi
     }
 }
 
+export async function resolveWindowId(tab?: chrome.tabs.Tab): Promise<number> {
+    if (tab?.windowId !== undefined) {
+        return tab.windowId;
+    }
+    return (await ext.windows.getLastFocused()).id ?? 0;
+}
+
 export function openPopupWindow(mode?: PopupMode): void {
     const url = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
     void ext.windows.create({
@@ -74,5 +81,6 @@ export function openPopupWindow(mode?: PopupMode): void {
 }
 
 export function updateBadgeText(text: string, tabId: number): void {
-    ext.action.setBadgeText({text, tabId}).then();
+    ext.action.setBadgeText({ text, tabId })
+        .catch(error => console.error(`Failed setting the badge text of tab ${tabId}:`, error));
 }

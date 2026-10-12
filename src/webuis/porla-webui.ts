@@ -2,7 +2,7 @@ import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
 import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
-import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { createJsonPostOptions, fetchOrThrow, toFailureResult } from "../models/webui-http";
 
 export class PorlaWebUI extends JsonLoginWebUI {
     protected get loginUrl(): string {
@@ -20,8 +20,8 @@ export class PorlaWebUI extends JsonLoginWebUI {
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const jsonRpcToken = await this.authenticateForToken();
-            const fetchOpts = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
-            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOptions);
 
             const responseText = await response.text();
             const responseJson = JSON.parse(responseText);
@@ -45,7 +45,7 @@ export class PorlaWebUI extends JsonLoginWebUI {
             ? this.createPayloadForMagnet(torrent.data as string, config)
             : await this.createPayloadForTorrent(torrent, config);
 
-        return this.createJsonPostOptions(payload, { "Authorization": "Bearer " + jsonRpcToken });
+        return createJsonPostOptions(payload, { "Authorization": "Bearer " + jsonRpcToken });
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {

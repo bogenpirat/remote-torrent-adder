@@ -8,17 +8,6 @@ import { serializeSettings, deserializeSettings } from "./serializer";
 export const SETTINGS_KEY: string = "settings";
 
 export class Settings {
-    private _rtaSettings!: RTASettings;
-
-    public get settings(): RTASettings {
-        return this._rtaSettings;
-    }
-
-    public set rtaSettings(settings: RTASettings) {
-        this._rtaSettings = settings;
-        this.saveSettings(settings);
-    }
-
     public async loadSettings(): Promise<RTASettings> {
         const response = await ext.storage.local.get([SETTINGS_KEY]) as Record<string, string>;
         console.debug("Loaded serialized RTAv2 settings:", response);
@@ -52,13 +41,5 @@ export class Settings {
     public async saveSettings(settings: RTASettings): Promise<void> {
         await ext.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) });
         console.log("Settings saved: ", settings);
-    }
-
-    public serialize(): string {
-        return serializeSettings(this._rtaSettings);
-    }
-
-    public deserialize(serialized: string): RTASettings {
-        return deserializeSettings(serialized);
     }
 }

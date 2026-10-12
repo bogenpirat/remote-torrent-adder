@@ -73,6 +73,10 @@ function resolveInitialChoice(autoResult: string | undefined, defaultChoice: str
     return autoResult || defaultChoice || firstEntry(options) || "";
 }
 
+function firstEntry(collection: Array<string>): string | undefined {
+    return collection?.[0];
+}
+
 function describeSupport(webUi: TorrentWebUI | undefined): PopupData["supports"] {
     return {
         label: webUi?.isLabelSupported ?? false,
@@ -125,8 +129,4 @@ export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
     if (response && typeof response === "object" && "error" in response) {
         throw new Error(String(response.error));
     }
-}
-
-function firstEntry(collection: Array<string>): string | undefined {
-    return collection?.[0];
 }

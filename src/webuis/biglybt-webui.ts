@@ -1,14 +1,17 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
-import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { fetchOrThrow, HttpError, toFailureResult } from "../models/webui-http";
 import { BasicAuthWebUI } from "./basic-auth-webui";
+import { isSessionHandshakeStatus, TRANSMISSION_RPC_PATH } from "./transmission-webui";
+
+const UPLOAD_PATH = "/transmission/upload";
 
 export class BiglyBTWebUI extends BasicAuthWebUI {
-    protected readonly connectionProbePath = "/transmission/rpc";
+    protected readonly connectionProbePath = TRANSMISSION_RPC_PATH;
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
-            const url = this.createBiglyBTBaseUrl(torrent, config);
+            const url = this.createAddUrl(torrent, config);
 
             await this.fetchSessionCookie(url);
 
@@ -28,28 +31,19 @@ export class BiglyBTWebUI extends BasicAuthWebUI {
         }
     }
 
-    createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {
+    createAddUrl(torrent: Torrent, config: TorrentUploadConfig): string {
         return [
             this.createBaseUrl(),
-            "/transmission/",
-            torrent.isMagnet ? "rpc" : "upload", 
+            torrent.isMagnet ? TRANSMISSION_RPC_PATH : UPLOAD_PATH,
             !torrent.isMagnet && this.getAddPaused(config) ? "?paused=true" : "",
         ].join("");
     }
 
-    fetchSessionCookie(apiBaseUrl: string): Promise<Response> {
-        return new Promise((resolve, reject) => {
-            fetch(apiBaseUrl)
-                .then(response => {
-                    if (response.status !== 200 && response.status !== 409) {
-                        reject(response);
-                    } else {
-                        resolve(response);
-                    }
-                }).catch(error => {
-                    reject(error);
-                });
-        });
+    async fetchSessionCookie(addUrl: string): Promise<void> {
+        const response = await fetch(addUrl);
+        if (!isSessionHandshakeStatus(response.status)) {
+            throw new HttpError(response.status, await response.text());
+        }
     }
 
     createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {

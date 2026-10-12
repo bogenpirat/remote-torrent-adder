@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 // The shared mocks replace the heavy collaborators so the dispatcher can be exercised in isolation.
 import { downloadTorrent, showNotification } from "../helpers/add-flow-mocks";
-import { at, callArgs } from "../helpers/assert";
 
-import { registerMessageListener } from "../../src/util/messaging";
 import {
     GetLinkCatchingConfig,
     GetSettingsMessage,
@@ -12,55 +10,23 @@ import {
     TestNotificationMessage,
     PreAddTorrentMessage,
     AddTorrentMessage,
-    AddTorrentMessageWithLabelAndDir,
     UpdateActionBadgeText,
 } from "../../src/models/messages";
 import { type Client } from "../../src/models/clients";
 import { serializeSettings, deserializeSettings, deserializeObject } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
-import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
-import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
-import { findBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
+import {
+    MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, shownNotification, stubClientAccepts,
+} from "../helpers/add-flow";
+import { makeWebUISettings, makeMagnetTorrent } from "../helpers/fixtures";
+import { dispatch, registerAndGetListener, storedSettings } from "../helpers/messaging";
 import { CloudflareChallengeError } from "../../src/util/download";
 
 const TRACKER_TAB = { tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 };
 const TRACKER_TAB_CONTEXT = { tabId: 9, frameId: 3, pageUrl: "https://tracker.org/browse" };
 
-/** Registers the listener and returns it so tests can invoke it directly. */
-function getListener() {
-    registerMessageListener();
-    const calls = (chrome.runtime.onMessage.addListener as any).mock.calls;
-    return calls[calls.length - 1][0];
-}
-
-/** Invokes the listener and resolves with the value passed to sendResponse. */
-function dispatch(message: any, sender: any = {}): Promise<any> {
-    const listener = getListener();
-    return new Promise((resolve) => {
-        listener(message, sender, resolve);
-    });
-}
-
-function storedSettings() {
-    return deserializeSettings((chrome as any).__storage.settings)!;
-}
-
 function addTorrent(url: string, sender: any = {}): Promise<void> {
     return dispatch({ action: AddTorrentMessage.action, webUiId: SEEDED_WEBUI_ID, url, config: {} }, sender).then(settle);
-}
-
-function addBufferedTorrent(overrides: Record<string, unknown> = {}): Promise<any> {
-    const message = { action: AddTorrentMessageWithLabelAndDir.action, webUiId: SEEDED_WEBUI_ID, config: {}, labels: [], directories: [] };
-    return dispatch({ ...message, ...overrides });
-}
-
-function bufferTorrent(torrent = makeMagnetTorrent()): Promise<void> {
-    return saveBufferedTorrent({ torrent, webUiSettings: makeWebUISettings({ id: SEEDED_WEBUI_ID }) });
-}
-
-function shownNotification(index = 0) {
-    const { title, message, isFailed, webUiUrl } = callArgs(showNotification, index)[0];
-    return { title, message, isFailed, webUiUrl };
 }
 
 beforeEach(() => {
@@ -88,7 +54,7 @@ describe("registerMessageListener routing", () => {
         (chrome as any).__storage.settings = serializeSettings(stored);
 
         const response = await dispatch({ action: GetSettingsMessage.action });
-        expect(deserializeSettings(response)!.notificationsDurationMs).toBe(4321);
+        expect(deserializeSettings(response).notificationsDurationMs).toBe(4321);
     });
 
     it("returns only the link catching settings for GetLinkCatchingConfig", async () => {
@@ -122,12 +88,20 @@ describe("registerMessageListener routing", () => {
     });
 
     it("shows a notification for TestNotification", async () => {
-        const notification = { title: "T", message: "M", isFailed: false, popupDurationMs: 1000, playSound: false };
+        const notification = { title: "T", message: "M", popupDurationMs: 1000, playSound: false };
 
-        const response = await dispatch({ action: TestNotificationMessage.action, ...notification });
+        const response = await dispatch({ action: TestNotificationMessage.action, ...notification, isFailed: false });
 
-        expect(showNotification).toHaveBeenCalledWith(notification);
+        expect(showNotification).toHaveBeenCalledWith({ ...notification, kind: "success" });
         expect(response).toEqual({});
+    });
+
+    it("shows a failed TestNotification as a failure", async () => {
+        const notification = { title: "T", message: "M", popupDurationMs: 1000, playSound: false };
+
+        await dispatch({ action: TestNotificationMessage.action, ...notification, isFailed: true });
+
+        expect(showNotification).toHaveBeenCalledWith({ ...notification, kind: "failure" });
     });
 
     it("reports an unreachable WebUI for TestConnection when no client is selected", async () => {
@@ -146,7 +120,9 @@ describe("registerMessageListener routing", () => {
     it("updates the badge of the sending tab without answering", () => {
         const sendResponse = vi.fn();
 
-        const willRespondAsync = getListener()({ action: UpdateActionBadgeText.action, text: "3" }, { tab: { id: 5 } }, sendResponse);
+        const listener = registerAndGetListener();
+
+        const willRespondAsync = listener({ action: UpdateActionBadgeText.action, text: "3" }, { tab: { id: 5 } }, sendResponse);
 
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "3", tabId: 5 });
         expect(willRespondAsync).toBe(false);
@@ -216,83 +192,6 @@ describe("AddTorrent flow", () => {
 
         await addTorrent(TRACKER_URL);
 
-        expect(shownNotification()).toMatchObject({ title: "Cloudflare is blocking this download", webUiUrl: TRACKER_URL });
-    });
-});
-
-describe("AddTorrentMessageWithLabelAndDir flow", () => {
-    beforeEach(() => seedSingleWebUi());
-
-    it("persists updated labels and dirs", async () => {
-        stubClientAccepts();
-        await bufferTorrent();
-
-        await addBufferedTorrent({ labels: ["movies", "tv"], directories: ["/data"] });
-        await settle();
-
-        const persistedWebUi = at(storedSettings().webuiSettings, 0);
-        expect(persistedWebUi.labels).toEqual(["movies", "tv"]);
-        expect(persistedWebUi.dirs).toEqual(["/data"]);
-    });
-
-    it("takes the torrent from IndexedDB rather than from the message", async () => {
-        const fetchMock = stubClientAccepts();
-        await bufferTorrent(makeFileTorrent({ name: "parked.torrent" }));
-
-        await addBufferedTorrent({ config: { label: "movies" } });
-        const uploadCall = await vi.waitFor(() => {
-            const call = (fetchMock.mock.calls as any[][]).find(fetchCall => String(fetchCall[0]).includes("/torrents/add"));
-            expect(call).toBeDefined();
-            return call!;
-        });
-        const body = uploadCall[1].body as FormData;
-        expect((body.get("torrents") as File).name).toBe("parked.torrent");
-        expect(body.get("category")).toBe("movies");
-    });
-
-    it("clears the buffered torrent once it has been handed to the client", async () => {
-        stubClientAccepts();
-        await bufferTorrent();
-
-        await addBufferedTorrent();
-        await settle();
-
-        expect(await findBufferedTorrent()).toBeUndefined();
-    });
-
-    it("reports an error when the popup adds with nothing buffered", async () => {
-        const response = await addBufferedTorrent();
-
-        expect(response.error).toMatch(/No buffered torrent/i);
-    });
-
-    it("reports an error when the chosen WebUI no longer exists", async () => {
-        await bufferTorrent();
-
-        const response = await addBufferedTorrent({ webUiId: "gone" });
-
-        expect(response).toEqual({ error: "No WebUI found for id gone" });
-    });
-
-    it("reports an error when the settings cannot be loaded", async () => {
-        vi.spyOn(console, "error").mockImplementation(() => undefined);
-        (chrome.storage.local.get as any).mockRejectedValueOnce(new Error("storage unavailable"));
-        await bufferTorrent();
-
-        const response = await addBufferedTorrent();
-
-        expect(response).toEqual({ error: "storage unavailable" });
-    });
-
-    it("still answers the popup when the labels and dirs cannot be saved", async () => {
-        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-        (chrome.storage.local.set as any).mockRejectedValueOnce(new Error("quota exceeded"));
-        stubClientAccepts();
-        await bufferTorrent();
-
-        const response = await addBufferedTorrent({ labels: ["movies"] });
-
-        expect(response).toEqual({});
-        expect(consoleError).toHaveBeenCalledWith("Failed updating labels/dirs", expect.objectContaining({ message: "quota exceeded" }));
+        expect(shownNotification()).toMatchObject({ title: "Cloudflare is blocking this download", clickUrl: TRACKER_URL });
     });
 });

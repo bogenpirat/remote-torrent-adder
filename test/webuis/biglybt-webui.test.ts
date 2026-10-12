@@ -45,6 +45,14 @@ describe("BiglyBTWebUI", () => {
         await expect(build().sendTorrent(makeFileTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
+    it("reports the status and body of a refused session-cookie request", async () => {
+        queueFetch(mockResponse({ status: 500, body: "server on fire" }));
+
+        const result = await build().sendTorrent(makeMagnetTorrent(), {});
+
+        expect(result).toEqual({ success: false, httpResponseCode: 500, httpResponseBody: "server on fire" });
+    });
+
     it("supports only add-paused", () => {
         const ui = build();
         expect(ui.isLabelSupported).toBe(false);
