@@ -8,6 +8,12 @@ import { buildBencodedTorrent } from "../helpers/fixtures";
 const CLOUDFLARE_CHALLENGE_BODY =
     "<html><head><script src='/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1'></script></head></html>";
 
+const FALLBACK_WARNING = "The page could not download the torrent; downloading from the service worker instead.";
+
+function silenceWarnings() {
+    return vi.spyOn(console, "warn").mockImplementation(() => undefined);
+}
+
 function bencodedTorrent(name = "ubuntu.iso"): string {
     return buildBencodedTorrent({ announce: "http://tracker.one/announce", info: { name } });
 }
@@ -127,7 +133,7 @@ describe("downloadTorrent (through the page)", () => {
     });
 
     it("falls back to the worker when no content script answers", async () => {
-        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const warn = silenceWarnings();
         const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
         (chrome.tabs.sendMessage as any).mockRejectedValue(new Error("Could not establish connection."));
 
@@ -135,16 +141,30 @@ describe("downloadTorrent (through the page)", () => {
 
         expect(fetch).toHaveBeenCalled();
         expect(torrent.name).toBe("from-worker");
+        const reason = "No content script answered in tab 9: Error: Could not establish connection.";
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, reason]]);
     });
 
     it("falls back to the worker when the page's fetch failed", async () => {
-        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const warn = silenceWarnings();
         const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
         (chrome.tabs.sendMessage as any).mockResolvedValue({ error: "Failed to fetch" });
 
         await downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 });
 
         expect(fetch).toHaveBeenCalled();
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, "Failed to fetch"]]);
+    });
+
+    it("falls back to the worker when the page answers with nothing", async () => {
+        const warn = silenceWarnings();
+        const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
+        (chrome.tabs.sendMessage as any).mockResolvedValue(undefined);
+
+        await downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 });
+
+        expect(fetch).toHaveBeenCalled();
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, "The content script in tab 9 answered with nothing."]]);
     });
 
     it("does not retry through the worker when the page itself was challenged", async () => {

@@ -9,7 +9,7 @@ function renderToggle(overrides: Partial<React.ComponentProps<typeof Toggle>> = 
 }
 
 describe("Toggle", () => {
-    it("asks to enable when an unchecked toggle is clicked", () => {
+    it("reports true when an unchecked toggle is clicked", () => {
         const { onChange, checkbox } = renderToggle();
 
         fireEvent.click(checkbox);
@@ -17,7 +17,7 @@ describe("Toggle", () => {
         expect(onChange.mock.calls).toEqual([[true]]);
     });
 
-    it("asks to disable when a checked toggle is clicked", () => {
+    it("reports false when a checked toggle is clicked", () => {
         const { onChange, checkbox } = renderToggle({ checked: true });
 
         fireEvent.click(checkbox);
