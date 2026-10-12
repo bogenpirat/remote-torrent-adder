@@ -136,14 +136,14 @@ async function preAddTorrent({ message, sender }: MessageRequest): Promise<objec
     void dispatchPreAddTorrent(
         preAddTorrentMessage,
         sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
-        resolveDownloadContext(preAddTorrentMessage, sender)
+        downloadContextFromSender(preAddTorrentMessage, sender)
     );
     return {};
 }
 
 async function addTorrent({ message, sender }: MessageRequest): Promise<object> {
     const addTorrentMessage = message as IAddTorrentMessage;
-    await addTorrentToWebUiById(addTorrentMessage, resolveDownloadContext(addTorrentMessage, sender));
+    await addTorrentToWebUiById(addTorrentMessage, downloadContextFromSender(addTorrentMessage, sender));
     return {};
 }
 
@@ -168,7 +168,7 @@ function updateActionBadgeText({ message, sender }: MessageRequest): void {
     updateBadgeText((message as IUpdateActionBadgeTextMessage).text, sender.tab?.id || -1);
 }
 
-export function resolveDownloadContext(message: IPreAddTorrentMessage, sender: MessageSender): TorrentDownloadContext {
+export function downloadContextFromSender(message: IPreAddTorrentMessage, sender: MessageSender): TorrentDownloadContext {
     const messageContext = contextCarriedByMessage(message);
     if (!sender.tab) {
         return messageContext;

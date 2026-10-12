@@ -6,11 +6,7 @@ import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult,
 export class DelugeWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
-            const response = await fetch(this.createBaseUrl() + "/json", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ method: "auth.login", params: [this._settings.password], id: this.randomId() })
-            });
+            const response = await fetch(this.jsonRpcUrl, this.createLoginFetchOptions());
             const isAccepted = response.ok && (await response.json())["result"] === true;
             return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
@@ -40,7 +36,7 @@ export class DelugeWebUI extends TorrentWebUI {
     }
 
     private async authenticate(): Promise<void> {
-        const response = await this.postJsonRpc("auth.login", [this._settings.password]);
+        const response = await fetchOrThrow(this.jsonRpcUrl, this.createLoginFetchOptions());
         if ((await response.json())["result"] !== true) {
             throw new Error("Authentication failed");
         }
@@ -86,11 +82,23 @@ export class DelugeWebUI extends TorrentWebUI {
     }
 
     private postJsonRpc(method: string, params: unknown[]): Promise<Response> {
-        return fetchOrThrow(this.createBaseUrl() + "/json", {
+        return fetchOrThrow(this.jsonRpcUrl, this.createJsonRpcFetchOptions(method, params));
+    }
+
+    private get jsonRpcUrl(): string {
+        return this.createBaseUrl() + "/json";
+    }
+
+    private createLoginFetchOptions(): RequestInit {
+        return this.createJsonRpcFetchOptions("auth.login", [this.settings.password]);
+    }
+
+    private createJsonRpcFetchOptions(method: string, params: unknown[]): RequestInit {
+        return {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ method, params, id: this.randomId() })
-        });
+        };
     }
 
     private randomId(): number {

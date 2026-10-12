@@ -130,11 +130,7 @@ async function openChooser(webUi: TorrentWebUI, windowId: number): Promise<void>
 }
 
 async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]> {
-    return new Promise((resolve) => {
-        settingsProvider.loadSettings().then(async (settings) => {
-            resolve(await initiateWebUis(settings));
-        });
-    });
+    return initiateWebUis(await settingsProvider.loadSettings());
 }
 
 function findWebUiById(webUiId: string, allWebUis: TorrentWebUI[]): TorrentWebUI | undefined {
@@ -142,7 +138,7 @@ function findWebUiById(webUiId: string, allWebUis: TorrentWebUI[]): TorrentWebUI
 }
 
 function createFallbackUploadConfig(webUi: TorrentWebUI, torrent: Torrent): TorrentUploadConfig {
-    const autoLabelDirSettings = webUi._settings.autoLabelDirSettings;
+    const autoLabelDirSettings = webUi.settings.autoLabelDirSettings;
     return {
         addPaused: webUi.settings.addPaused,
         dir: getAutoDirResult(torrent, autoLabelDirSettings) ?? webUi.settings.defaultDir ?? undefined,
@@ -151,36 +147,61 @@ function createFallbackUploadConfig(webUi: TorrentWebUI, torrent: Torrent): Torr
 }
 
 function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null): void {
-    new Settings().loadSettings().then(settings => {
-        const delivery: Delivery = { webUi, torrent, settings };
-        webUi.sendTorrent(torrent, config ?? {})
-            .then(torrentAddingResult => notifyAddingResult(delivery, torrentAddingResult))
-            .catch(error => notifyAddingError(delivery, error));
-    });
+    deliverTorrent(webUi, torrent, config ?? {})
+        .catch(error => console.error(`Failed sending ${torrent.name} to ${webUi.name}:`, error));
+}
+
+async function deliverTorrent(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig): Promise<void> {
+    const delivery: Delivery = { webUi, torrent, settings: await new Settings().loadSettings() };
+    try {
+        notifyAddingResult(delivery, await webUi.sendTorrent(torrent, config));
+    } catch (error) {
+        notifyAddingError(delivery, error);
+    }
 }
 
 function notifyAddingResult(delivery: Delivery, torrentAddingResult: TorrentAddingResult): void {
-    const { webUi, torrent, settings } = delivery;
+    if (torrentAddingResult.success) {
+        reportAddingSuccess(delivery);
+    } else {
+        reportAddingRefusal(delivery, torrentAddingResult);
+    }
+}
+
+function reportAddingSuccess({ webUi, torrent, settings }: Delivery): void {
     console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
     if (!settings.notificationsEnabled) {
         return;
     }
-    if (torrentAddingResult.success) {
-        notifyWithUserSettings(settings, {
-            title: "Torrent added successfully",
-            message: `${torrent.name} successfully added to ${webUi.name}`,
-            isFailed: false,
-            webUiUrl: webUiUrlOf(webUi),
-        });
-        return;
-    }
-    const { httpResponseCode, httpResponseBody } = torrentAddingResult;
-    notifyAddingFailure(delivery, `HTTP Response code: ${httpResponseCode}\nResponse body: ${httpResponseBody}`);
+    notifyWithUserSettings(settings, {
+        title: "Torrent added successfully",
+        message: `${torrent.name} successfully added to ${webUi.name}`,
+        isFailed: false,
+        webUiUrl: webUiUrlOf(webUi),
+    });
 }
 
-function notifyAddingError(delivery: Delivery, error: SendTorrentError): void {
+function reportAddingRefusal(delivery: Delivery, torrentAddingResult: TorrentAddingResult): void {
+    const { httpResponseCode, httpResponseBody } = torrentAddingResult;
+    const refusal = `HTTP Response code: ${httpResponseCode}\nResponse body: ${httpResponseBody}`;
+    console.error(`${delivery.webUi.name} refused ${delivery.torrent.name}:`, refusal);
+    if (!delivery.settings.notificationsEnabled) {
+        return;
+    }
+    notifyAddingFailure(delivery, refusal);
+}
+
+function notifyAddingError(delivery: Delivery, error: unknown): void {
     console.error("Error sending torrent:", error);
-    notifyAddingFailure(delivery, `Error (${error.httpResponseCode}):\n${error.httpResponseBody}`);
+    notifyAddingFailure(delivery, describeSendTorrentError(error));
+}
+
+function describeSendTorrentError(error: unknown): string {
+    const { httpResponseCode, httpResponseBody } = (error ?? {}) as SendTorrentError;
+    if (httpResponseCode === undefined) {
+        return `Error: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    return `Error (${httpResponseCode}):\n${httpResponseBody}`;
 }
 
 function notifyAddingFailure(delivery: Delivery, message: string): void {
@@ -224,22 +245,14 @@ function notifyWithUserSettings(settings: RTASettings, notification: Notificatio
     });
 }
 
-function updateWebUiLabelsAndDirectories(settingsProvider: Settings, message: IAddTorrentMessageWithLabelAndDir): Promise<void> {
+async function updateWebUiLabelsAndDirectories(settingsProvider: Settings, message: IAddTorrentMessageWithLabelAndDir): Promise<void> {
     const { webUiId, labels, directories } = message;
-    return new Promise((resolve, reject) => {
-        settingsProvider.loadSettings().then(settings => {
-            const webUiSettings = settings.webuiSettings.find(webUi => webUi.id === webUiId);
-            if (webUiSettings) {
-                webUiSettings.labels = labels;
-                webUiSettings.dirs = directories;
-                settingsProvider.saveSettings(settings).then(() => {
-                    resolve();
-                });
-            } else {
-                const errorMessage = `WebUI with id ${webUiId} not found in settings; couldn't update labels and directories.`;
-                console.error(errorMessage);
-                reject(new Error(errorMessage));
-            }
-        });
-    });
+    const settings = await settingsProvider.loadSettings();
+    const webUiSettings = settings.webuiSettings.find(candidate => candidate.id === webUiId);
+    if (!webUiSettings) {
+        throw new Error(`WebUI with id ${webUiId} not found in settings; couldn't update labels and directories.`);
+    }
+    webUiSettings.labels = labels;
+    webUiSettings.dirs = directories;
+    await settingsProvider.saveSettings(settings);
 }

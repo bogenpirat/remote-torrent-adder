@@ -30,9 +30,9 @@ const savedWebUIs = () => {
 const renderPage = () => render(<SettingsProvider><WebUIsPage /></SettingsProvider>);
 
 const webUIWithoutAutoLabelDirSettings = () => {
-    const webui = makeWebUISettings({ id: "a", name: "Alpha" });
-    delete (webui as Partial<WebUISettings>).autoLabelDirSettings;
-    return webui;
+    const webUiSettings = makeWebUISettings({ id: "a", name: "Alpha" });
+    delete (webUiSettings as Partial<WebUISettings>).autoLabelDirSettings;
+    return webUiSettings;
 };
 
 describe("WebUIsPage", () => {

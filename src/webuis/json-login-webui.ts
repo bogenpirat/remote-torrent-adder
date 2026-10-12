@@ -42,6 +42,6 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
     }
 
     private createLoginFetchOptions(): RequestInit {
-        return this.createJsonPostOptions({ username: this._settings.username, password: this._settings.password });
+        return this.createJsonPostOptions({ username: this.settings.username, password: this.settings.password });
     }
 }

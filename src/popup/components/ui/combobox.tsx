@@ -118,7 +118,6 @@ function OptionList({ options, onSelect, onRemove }: OptionListProps) {
       <div
         className={cn(
           "absolute z-50 w-full mt-1 max-h-60 overflow-auto",
-          // Use theme-aware background and border
           "bg-popover border border-popover shadow-lg rounded-lg"
         )}
       >

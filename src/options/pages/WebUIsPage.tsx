@@ -56,7 +56,7 @@ function DetailPanel({ webuis, selected, editing }: DetailPanelProps) {
       {selected ? (
         <WebUIDetail
           key={selected.id}
-          webui={selected}
+          webUiSettings={selected}
           onChange={updated => editing.change(selected.id, updated)}
           onRemove={() => editing.remove(selected.id)}
           onPromote={() => editing.promote(selected.id)}

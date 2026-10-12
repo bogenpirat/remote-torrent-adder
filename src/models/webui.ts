@@ -39,22 +39,14 @@ export interface ClientSpecificSettingDescriptor {
 }
 
 export abstract class TorrentWebUI {
-    _settings: WebUISettings;
-
-    constructor(settings: WebUISettings) {
-        this._settings = settings;
-    }
+    constructor(public readonly settings: WebUISettings) {}
 
     get name(): string {
-        return this._settings.name;
+        return this.settings.name;
     }
 
     get client(): Client {
-        return this._settings.client;
-    }
-
-    get settings(): WebUISettings {
-        return this._settings;
+        return this.settings.client;
     }
 
     abstract get isLabelSupported(): boolean;
@@ -90,7 +82,7 @@ export abstract class TorrentWebUI {
     }
 
     createBaseUrl(): string {
-        return buildBaseUrl(this._settings);
+        return buildBaseUrl(this.settings);
     }
 
     protected getDirectory(config: TorrentUploadConfig): string | undefined {

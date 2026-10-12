@@ -254,4 +254,26 @@ describe("AddTorrentMessageWithLabelAndDir flow", () => {
 
         expect(response).toEqual({ error: "No WebUI found for id gone" });
     });
+
+    it("reports an error when the settings cannot be loaded", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.storage.local.get as any).mockRejectedValueOnce(new Error("storage unavailable"));
+        await bufferTorrent();
+
+        const response = await addBufferedTorrent();
+
+        expect(response).toEqual({ error: "storage unavailable" });
+    });
+
+    it("still answers the popup when the labels and dirs cannot be saved", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.storage.local.set as any).mockRejectedValueOnce(new Error("quota exceeded"));
+        stubClientAccepts();
+        await bufferTorrent();
+
+        const response = await addBufferedTorrent({ labels: ["movies"] });
+
+        expect(response).toEqual({});
+        expect(consoleError).toHaveBeenCalledWith("Failed updating labels/dirs", expect.objectContaining({ message: "quota exceeded" }));
+    });
 });

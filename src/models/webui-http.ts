@@ -2,6 +2,8 @@ import { type ConnectionTestResult, type TorrentAddingResult, type WebUISettings
 
 export type Credentials = Pick<WebUISettings, "username" | "password">;
 
+export const FORM_URLENCODED_HEADERS = { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" };
+
 export class HttpError extends Error {
     constructor(public readonly status: number, public readonly body: string) {
         super(`HTTP error ${status}`);

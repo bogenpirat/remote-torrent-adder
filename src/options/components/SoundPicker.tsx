@@ -5,7 +5,7 @@ import { TEXT, MUTED, DANGER } from "../theme";
 
 // Custom sounds are kept small; they live in IndexedDB but are still loaded
 // into memory to play, so cap the size to keep things snappy.
-const MAX_SOUND_BYTES = 1024 * 1024; // 1 MB
+const MAX_SOUND_BYTES = 1024 * 1024;
 
 const SOUND_NAME_STYLE: CSSProperties = {
   flex: 1,

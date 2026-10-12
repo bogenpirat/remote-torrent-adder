@@ -17,8 +17,8 @@ const TEST_BUTTON_STYLE: CSSProperties = {
   fontWeight: 700,
 };
 
-export default function WebUIConnectionTest({ webui }: { webui: WebUISettings }) {
-  const { testing, result, run } = useConnectionTest(webui);
+export default function WebUIConnectionTest({ webUiSettings }: { webUiSettings: WebUISettings }) {
+  const { testing, result, run } = useConnectionTest(webUiSettings);
   return (
     <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
       <button
@@ -43,30 +43,29 @@ interface ConnectionTest {
   run: () => Promise<void>;
 }
 
-function useConnectionTest(webui: WebUISettings): ConnectionTest {
+function useConnectionTest(webUiSettings: WebUISettings): ConnectionTest {
   // A result only describes the endpoint + credentials it was produced for, so
   // it is stored together with a signature of those fields. Anything that would
   // change the request makes the stored result stale, which is derived during
   // render rather than cleared from an effect.
-  const endpointSignature = JSON.stringify([
-    webui.id, webui.client, webui.host, webui.port, webui.secure, webui.relativePath, webui.username, webui.password,
-  ]);
+  const { id, client, host, port, secure, relativePath, username, password } = webUiSettings;
+  const endpointSignature = JSON.stringify([id, client, host, port, secure, relativePath, username, password]);
   const [testState, setTestState] = useState<TestConnectionState>({ signature: endpointSignature, testing: false, result: null });
   const isCurrent = testState.signature === endpointSignature;
 
   const run = async () => {
     setTestState({ signature: endpointSignature, testing: true, result: null });
-    const result = await requestConnectionTest(webui);
+    const result = await requestConnectionTest(webUiSettings);
     setTestState({ signature: endpointSignature, testing: false, result });
   };
   return { testing: isCurrent && testState.testing, result: isCurrent ? testState.result : null, run };
 }
 
-async function requestConnectionTest(webui: WebUISettings): Promise<ConnectionTestResult> {
+async function requestConnectionTest(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
   try {
     const result = await ext.runtime.sendMessage({
       action: TestConnectionMessage.action,
-      webUiSettings: webui,
+      webUiSettings,
     } as ITestConnectionMessage);
     return result as ConnectionTestResult;
   } catch (error) {

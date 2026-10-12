@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
-import { FIELD_INPUT_STYLE } from "./webui-fields";
+import { FIELD_INPUT_STYLE, UNNAMED_WEBUI_NAME } from "./webui-fields";
 import { TEXT, MUTED, GREEN_DARK } from "../theme";
 
 const REORDER_STEP_BY_KEY = new Map([["ArrowUp", -1], ["ArrowDown", 1]]);
@@ -45,7 +45,7 @@ const PRIMARY_BADGE_STYLE: CSSProperties = {
 export type DropIndicator = "above" | "below" | "none";
 
 interface WebUIListItemProps {
-  webui: WebUISettings;
+  webUiSettings: WebUISettings;
   index: number;
   selected: boolean;
   isPrimary: boolean;
@@ -61,16 +61,16 @@ interface WebUIListItemProps {
 }
 
 export default function WebUIListItem(props: WebUIListItemProps) {
-  const { webui, selected } = props;
-  const subtitle = WebUIFactory.supports(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
+  const { webUiSettings, selected } = props;
+  const subtitle = WebUIFactory.supports(webUiSettings.client) ? ClientDisplayName[webUiSettings.client] : "No client selected";
   // Only the handle arms dragging, so the inline name input stays selectable.
   const arming = useDragArming(props);
 
   return (
     <div onClick={props.onSelect} draggable={arming.dragArmed} {...dragHandlers(props, arming.disarm)} style={itemStyle(props)}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <ReorderHandle webui={webui} index={props.index} selected={selected} onMove={props.onMove} onArm={arming.arm} />
-        <ItemName webui={webui} selected={selected} onNameChange={props.onNameChange} />
+        <ReorderHandle webUiSettings={webUiSettings} index={props.index} selected={selected} onMove={props.onMove} onArm={arming.arm} />
+        <ItemName webUiSettings={webUiSettings} selected={selected} onNameChange={props.onNameChange} />
         {props.isPrimary && <span style={PRIMARY_BADGE_STYLE}>Primary</span>}
       </div>
       <span style={{ fontSize: 12, color: selected ? GREEN_DARK : MUTED }}>
@@ -103,13 +103,13 @@ function useDragArming({ isDragging }: Pick<WebUIListItemProps, "isDragging">): 
   return { dragArmed, arm: () => setDragArmed(true), disarm: () => setDragArmed(false) };
 }
 
-type DraggedItem = Pick<WebUIListItemProps, "webui" | "onDragStart" | "onDragOver" | "onDragEnd" | "onDrop">;
+type DraggedItem = Pick<WebUIListItemProps, "webUiSettings" | "onDragStart" | "onDragOver" | "onDragEnd" | "onDrop">;
 
 function dragHandlers(item: DraggedItem, disarm: () => void) {
   return {
     onDragStart: (event: React.DragEvent) => {
       event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", item.webui.id);
+      event.dataTransfer.setData("text/plain", item.webUiSettings.id);
       item.onDragStart();
     },
     onDragOver: (event: React.DragEvent) => {
@@ -144,9 +144,9 @@ function itemStyle({ selected, isDragging, dropIndicator }: WebUIListItemProps):
   };
 }
 
-type ReorderHandleProps = Pick<WebUIListItemProps, "webui" | "index" | "selected" | "onMove"> & { onArm: () => void };
+type ReorderHandleProps = Pick<WebUIListItemProps, "webUiSettings" | "index" | "selected" | "onMove"> & { onArm: () => void };
 
-function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleProps) {
+function ReorderHandle({ webUiSettings, index, selected, onMove, onArm }: ReorderHandleProps) {
   const handleKeyDown = (event: React.KeyboardEvent) => {
     const step = REORDER_STEP_BY_KEY.get(event.key);
     if (step === undefined) return;
@@ -157,7 +157,7 @@ function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleP
     <button
       type="button"
       title="Drag to reorder (or use the arrow keys)"
-      aria-label={`Reorder ${webui.name || "Unnamed WebUI"}`}
+      aria-label={`Reorder ${webUiSettings.name || UNNAMED_WEBUI_NAME}`}
       onClick={e => e.stopPropagation()}
       onPointerDown={onArm}
       onKeyDown={handleKeyDown}
@@ -166,24 +166,24 @@ function ReorderHandle({ webui, index, selected, onMove, onArm }: ReorderHandleP
   );
 }
 
-type ItemNameProps = Pick<WebUIListItemProps, "webui" | "selected" | "onNameChange">;
+type ItemNameProps = Pick<WebUIListItemProps, "webUiSettings" | "selected" | "onNameChange">;
 
-function ItemName({ webui, selected, onNameChange }: ItemNameProps) {
+function ItemName({ webUiSettings, selected, onNameChange }: ItemNameProps) {
   if (!selected) {
     return (
-      <span style={{ ...NAME_STYLE, color: webui.name ? TEXT : MUTED }}>
-        {webui.name || "Unnamed WebUI"}
+      <span style={{ ...NAME_STYLE, color: webUiSettings.name ? TEXT : MUTED }}>
+        {webUiSettings.name || UNNAMED_WEBUI_NAME}
       </span>
     );
   }
   return (
     <input
       type="text"
-      value={webui.name}
-      autoFocus={!webui.name}
+      value={webUiSettings.name}
+      autoFocus={!webUiSettings.name}
       onClick={e => e.stopPropagation()}
       onChange={e => onNameChange(e.target.value)}
-      placeholder="Unnamed WebUI"
+      placeholder={UNNAMED_WEBUI_NAME}
       style={{ ...FIELD_INPUT_STYLE, flex: 1, minWidth: 0, padding: "4px 8px", fontWeight: 600 }}
     />
   );

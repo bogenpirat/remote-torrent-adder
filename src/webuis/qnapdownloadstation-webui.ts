@@ -5,10 +5,7 @@ import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult,
 export class QNAPDownloadStationWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
-            const payload = new FormData();
-            payload.append("user", this.settings.username);
-            payload.append("pass", btoa(this.settings.password));
-            const response = await fetch(this.createQNAPDownloadStationBaseUrl() + "/Misc/Login", { method: "POST", body: payload });
+            const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
             const isAccepted = response.ok && !!(await response.json())["sid"];
             return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
@@ -46,16 +43,23 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
     }
 
     private async fetchSessionId(): Promise<string> {
-        const loginUrl = this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
-        const payload = new FormData();
-        payload.append("user", this.settings.username);
-        payload.append("pass", btoa(this.settings.password));
-        const response = await fetchOrThrow(loginUrl, { method: 'POST', body: payload });
+        const response = await fetchOrThrow(this.loginUrl, this.createLoginFetchOptions());
         const responseJson = await response.json();
         if (!responseJson["sid"]) {
             throw new Error("Authentication failed");
         }
         return responseJson["sid"];
+    }
+
+    private get loginUrl(): string {
+        return this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
+    }
+
+    private createLoginFetchOptions(): RequestInit {
+        const payload = new FormData();
+        payload.append("user", this.settings.username);
+        payload.append("pass", btoa(this.settings.password));
+        return { method: "POST", body: payload };
     }
 
     private async createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {

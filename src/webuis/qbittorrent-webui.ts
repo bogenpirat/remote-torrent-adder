@@ -1,6 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
+import { FORM_URLENCODED_HEADERS, fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -16,14 +16,7 @@ const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> =
 export class QBittorrentWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
-            const body = new URLSearchParams();
-            body.append("username", this._settings.username);
-            body.append("password", this._settings.password);
-            const response = await fetch(this.createBaseUrl() + "/api/v2/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
-                body
-            });
+            const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
             return response.ok ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
             return toUnreachableResult(error);
@@ -48,16 +41,19 @@ export class QBittorrentWebUI extends TorrentWebUI {
     }
 
     private async authenticate(): Promise<void> {
-        const authenticationBody = new URLSearchParams();
-        authenticationBody.append("username", this._settings.username);
-        authenticationBody.append("password", this._settings.password);
-        await fetchOrThrow(this.createBaseUrl() + "/api/v2/auth/login", {
+        await fetchOrThrow(this.loginUrl, this.createLoginFetchOptions());
+    }
+
+    private get loginUrl(): string {
+        return this.createBaseUrl() + "/api/v2/auth/login";
+    }
+
+    private createLoginFetchOptions(): RequestInit {
+        return {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
-            },
-            body: authenticationBody
-        });
+            headers: FORM_URLENCODED_HEADERS,
+            body: new URLSearchParams({ username: this.settings.username, password: this.settings.password }),
+        };
     }
 
     private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {

@@ -3,7 +3,7 @@ import { type WebUISettings } from "../../models/webui";
 import { generateId, moveItem } from "../../util/utils";
 
 export interface WebUIEditing {
-  append: (webui: WebUISettings) => void;
+  append: (webUiSettings: WebUISettings) => void;
   change: (id: string, updated: WebUISettings) => void;
   remove: (id: string) => void;
   move: (from: number, to: number) => void;
@@ -45,7 +45,7 @@ export function createWebUIEditing(webuis: WebUISettings[], save: (webuis: WebUI
     if (reordered !== webuis) save(reordered);
   };
   return {
-    append: webui => save([...webuis, webui]),
+    append: webUiSettings => save([...webuis, webUiSettings]),
     change: (id, updated) => save(webuis.map(w => (w.id === id ? updated : w))),
     remove: id => save(webuis.filter(w => w.id !== id)),
     move,

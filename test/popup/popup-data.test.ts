@@ -28,7 +28,7 @@ describe("loadPopupData", () => {
     it("exposes the parked torrent and its webui", async () => {
         await park();
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.torrent.name).toBe("Cool Torrent");
         expect(data.webUiSettings.id).toBe("w1");
     });
@@ -36,7 +36,7 @@ describe("loadPopupData", () => {
     it("reports which controls the client supports", async () => {
         await park();
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         // qBittorrent supports all three
         expect(data.supports).toEqual({ label: true, directory: true, paused: true });
     });
@@ -44,7 +44,7 @@ describe("loadPopupData", () => {
     it("hides controls the client does not support", async () => {
         await park({ client: Client.TTorrentWebUI });
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.supports.label).toBe(false);
         expect(data.supports.directory).toBe(false);
     });
@@ -52,7 +52,7 @@ describe("loadPopupData", () => {
     it("prefers the configured defaults over the first stored option", async () => {
         await park({ defaultLabel: "tv", defaultDir: "/media", labels: ["movies"], dirs: ["/other"] });
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.initial.label).toBe("tv");
         expect(data.initial.directory).toBe("/media");
     });
@@ -60,7 +60,7 @@ describe("loadPopupData", () => {
     it("falls back to the first stored option when there is no default", async () => {
         await park({ defaultLabel: null, defaultDir: null, labels: ["movies", "tv"], dirs: ["/data"] });
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.initial.label).toBe("movies");
         expect(data.initial.directory).toBe("/data");
     });
@@ -68,7 +68,7 @@ describe("loadPopupData", () => {
     it("leaves the fields empty when nothing is configured, rather than inventing options", async () => {
         await park({ defaultLabel: null, defaultDir: null, labels: [], dirs: [] });
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.initial.label).toBe("");
         expect(data.initial.directory).toBe("");
         expect(data.labelOptions).toEqual([]);
@@ -82,7 +82,7 @@ describe("loadPopupData", () => {
         const rule = { criteria: [criterion], label: "auto-tv", dir: "/auto" };
         await park({ defaultLabel: "manual", autoLabelDirSettings: [rule] }, torrentOverrides);
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.initial.label).toBe("auto-tv");
         expect(data.initial.directory).toBe("/auto");
         expect(data.auto).toEqual({ label: true, directory: true });
@@ -99,7 +99,7 @@ describe("loadPopupData", () => {
             { trackers: ["http://tracker.example/announce"] },
         );
 
-        const data = (await loadParkedData());
+        const data = await loadParkedData();
         expect(data.initial.label).toBe("manual");
         expect(data.auto.label).toBe(false);
     });

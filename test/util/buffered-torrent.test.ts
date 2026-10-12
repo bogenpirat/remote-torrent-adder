@@ -22,8 +22,6 @@ describe("buffered torrent store", () => {
         await saveBufferedTorrent({ torrent: makeMagnetTorrent(), webUiSettings: makeWebUISettings({ id: "w1" }) });
 
         expect((await findBufferedTorrent())?.webUiSettings.id).toBe("w1");
-
-        await clearBufferedTorrent();
     });
 
     it("round-trips a magnet torrent", async () => {

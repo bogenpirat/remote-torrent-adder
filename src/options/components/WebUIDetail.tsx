@@ -6,10 +6,10 @@ import ClientSpecificSettingsEditor from "./ClientSpecificSettingsEditor";
 import Select from "./Select";
 import WebUIGeneralSettings from "./WebUIGeneralSettings";
 import WebUILabelDirSettings from "./WebUILabelDirSettings";
-import { type WebUISectionProps } from "./webui-fields";
+import { UNNAMED_WEBUI_NAME, type WebUISectionProps } from "./webui-fields";
 import { MUTED, DANGER } from "../theme";
 
-const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
+const CLIENT_OPTIONS = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
 const HEADER_BUTTON_STYLE: CSSProperties = {
   color: "#fff",
@@ -31,22 +31,22 @@ const CANCEL_BUTTON_STYLE: CSSProperties = {
 };
 
 interface WebUIDetailProps {
-  webui: WebUISettings;
+  webUiSettings: WebUISettings;
   onChange: (w: WebUISettings) => void;
   onRemove: () => void;
   onPromote: () => void;
   isPrimary: boolean;
 }
 
-export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
+export default function WebUIDetail({ webUiSettings, onChange, onRemove, onPromote, isPrimary }: WebUIDetailProps) {
   return (
     <div>
-      <DetailHeader webui={webui} isPrimary={isPrimary} onPromote={onPromote} onRemove={onRemove} />
+      <DetailHeader webUiSettings={webUiSettings} isPrimary={isPrimary} onPromote={onPromote} onRemove={onRemove} />
 
-      <ClientSelect webui={webui} onChange={onChange} />
+      <ClientSelect webUiSettings={webUiSettings} onChange={onChange} />
 
-      {WebUIFactory.supports(webui.client)
-        ? <ConfiguredClient webui={webui} webUiInstance={WebUIFactory.createWebUI(webui)} onChange={onChange} />
+      {WebUIFactory.supports(webUiSettings.client)
+        ? <ConfiguredClient webUiSettings={webUiSettings} webUi={WebUIFactory.createWebUI(webUiSettings)} onChange={onChange} />
         : <div style={{ color: MUTED, fontSize: 15 }}>Select a client type above to configure this WebUI.</div>}
     </div>
   );
@@ -54,10 +54,10 @@ export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPr
 
 type DetailHeaderProps = Omit<WebUIDetailProps, "onChange">;
 
-function DetailHeader({ webui, isPrimary, onPromote, onRemove }: DetailHeaderProps) {
+function DetailHeader({ webUiSettings, isPrimary, onPromote, onRemove }: DetailHeaderProps) {
   return (
     <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
-      <span style={{ fontWeight: 700, fontSize: 22, flex: 1 }}>{webui.name || "Unnamed WebUI"}</span>
+      <span style={{ fontWeight: 700, fontSize: 22, flex: 1 }}>{webUiSettings.name || UNNAMED_WEBUI_NAME}</span>
       {!isPrimary && (
         <button
           onClick={onPromote}
@@ -93,17 +93,17 @@ function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
   );
 }
 
-function ClientSelect({ webui, onChange }: Pick<WebUIDetailProps, "webui" | "onChange">) {
-  const clientChosen = WebUIFactory.supports(webui.client);
-  const chooseClient = (value: string) => onChange({ ...webui, client: value as Client });
+function ClientSelect({ webUiSettings, onChange }: Pick<WebUIDetailProps, "webUiSettings" | "onChange">) {
+  const clientChosen = WebUIFactory.supports(webUiSettings.client);
+  const chooseClient = (value: string) => onChange({ ...webUiSettings, client: value as Client });
   return (
     <div style={{ marginBottom: 20 }}>
       {/* Client type: choosable while still a draft, locked once chosen. */}
       <Select
         label="Client"
-        value={webui.client}
+        value={webUiSettings.client}
         changeable={!clientChosen}
-        options={clientOptions}
+        options={CLIENT_OPTIONS}
         onChange={clientChosen ? undefined : chooseClient}
       />
     </div>
@@ -111,35 +111,35 @@ function ClientSelect({ webui, onChange }: Pick<WebUIDetailProps, "webui" | "onC
 }
 
 function ConfiguredClient(props: WebUISectionProps) {
-  const { webui, webUiInstance, onChange } = props;
-  const descriptors = webUiInstance.clientSpecificSettingDescriptors;
+  const { webUiSettings, webUi, onChange } = props;
+  const descriptors = webUi.clientSpecificSettingDescriptors;
   return (
     <>
       <WebUIGeneralSettings {...props} />
       {descriptors.length > 0 && (
         <ClientSpecificSettingsEditor
           descriptors={descriptors}
-          value={webui.clientSpecificSettings ?? {}}
-          onChange={clientSpecificSettings => onChange({ ...webui, clientSpecificSettings })}
+          value={webUiSettings.clientSpecificSettings ?? {}}
+          onChange={clientSpecificSettings => onChange({ ...webUiSettings, clientSpecificSettings })}
         />
       )}
-      {(webUiInstance.isLabelSupported || webUiInstance.isDirSupported) && <WebUILabelDirSettings {...props} />}
-      {webUiInstance.isLabelDirChooserSupported && <AutoLabelDirRules {...props} />}
+      {(webUi.isLabelSupported || webUi.isDirSupported) && <WebUILabelDirSettings {...props} />}
+      {webUi.isLabelDirChooserSupported && <AutoLabelDirRules {...props} />}
     </>
   );
 }
 
-function AutoLabelDirRules({ webui, webUiInstance, onChange }: WebUISectionProps) {
+function AutoLabelDirRules({ webUiSettings, webUi, onChange }: WebUISectionProps) {
   return (
     <AutoLabelDirSettingsEditor
-      value={webui.autoLabelDirSettings ?? []}
-      onChange={autoLabelDirSettings => onChange({ ...webui, autoLabelDirSettings })}
-      showLabel={!!webUiInstance.isLabelSupported}
-      showDir={!!webUiInstance.isDirSupported}
-      labels={webui.labels}
-      dirs={webui.dirs}
-      defaultLabel={webui.defaultLabel}
-      defaultDir={webui.defaultDir}
+      value={webUiSettings.autoLabelDirSettings ?? []}
+      onChange={autoLabelDirSettings => onChange({ ...webUiSettings, autoLabelDirSettings })}
+      showLabel={!!webUi.isLabelSupported}
+      showDir={!!webUi.isDirSupported}
+      labels={webUiSettings.labels}
+      dirs={webUiSettings.dirs}
+      defaultLabel={webUiSettings.defaultLabel}
+      defaultDir={webUiSettings.defaultDir}
     />
   );
 }

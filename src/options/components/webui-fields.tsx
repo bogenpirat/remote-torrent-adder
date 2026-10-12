@@ -3,8 +3,8 @@ import { type TorrentWebUI, type WebUISettings } from "../../models/webui";
 import { TEXT, BORDER, INPUT_BG } from "../theme";
 
 export interface WebUISectionProps {
-  webui: WebUISettings;
-  webUiInstance: TorrentWebUI;
+  webUiSettings: WebUISettings;
+  webUi: TorrentWebUI;
   onChange: (w: WebUISettings) => void;
 }
 
@@ -14,6 +14,8 @@ interface TextFieldProps {
   onChange: (value: string) => void;
   type?: "text" | "password";
 }
+
+export const UNNAMED_WEBUI_NAME = "Unnamed WebUI";
 
 export const FIELD_INPUT_STYLE: CSSProperties = {
   fontSize: 15,

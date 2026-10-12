@@ -141,7 +141,6 @@ describe("refreshContextMenu", () => {
             "Failed creating context menu item server-main",
             "Cannot create item with duplicate id"
         );
-        consoleError.mockRestore();
     });
 });
 

@@ -16,7 +16,7 @@ import {
     type SynologyRequest,
     type SynologyTask,
 } from "./synology-api";
-import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
+import { FORM_URLENCODED_HEADERS, fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 export class SynologyDownloadStationWebUI extends TorrentWebUI {
     private apiInfo: SynologyApiInfoMap | null = null;
@@ -108,13 +108,13 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
         const info = this.requireApi(apis, AUTH_API);
         return {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+            headers: FORM_URLENCODED_HEADERS,
             body: new URLSearchParams({
                 api: AUTH_API,
                 version: String(info.maxVersion >= 7 ? 6 : 2),
                 method: "login",
-                account: this._settings.username,
-                passwd: this._settings.password,
+                account: this.settings.username,
+                passwd: this.settings.password,
                 session: "DownloadStation",
                 format: "sid",
             }),

@@ -81,7 +81,7 @@ async function handleContextMenuClick(onClickData: OnClickData, tab?: Tab): Prom
 
 async function addLinkToWebUis(targetWebUis: TorrentWebUI[], onClickData: OnClickData, tab?: Tab): Promise<void> {
     const url = onClickData.linkUrl ?? "";
-    const context = resolveDownloadContext(onClickData, tab);
+    const context = downloadContextFromMenuClick(onClickData, tab);
 
     const [singleTarget] = targetWebUis;
     if (targetWebUis.length === 1 && singleTarget) {
@@ -109,7 +109,7 @@ function resolveTargetWebUis(menuItemId: string, allWebUis: TorrentWebUI[]): Tor
     return webUiAtIndex ? [webUiAtIndex] : [];
 }
 
-function resolveDownloadContext(onClickData: OnClickData, tab?: Tab): TorrentDownloadContext {
+function downloadContextFromMenuClick(onClickData: OnClickData, tab?: Tab): TorrentDownloadContext {
     return {
         tabId: tab?.id ?? null,
         frameId: onClickData.frameId ?? 0,

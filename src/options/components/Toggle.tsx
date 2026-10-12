@@ -34,10 +34,6 @@ const THUMB_SHAPE_STYLE: React.CSSProperties = {
   transition: "left 0.2s",
 };
 
-const Track: React.FC<{ background: string }> = ({ background }) => (
-  <span style={{ ...TRACK_SHAPE_STYLE, background, transition: "background 0.2s" }}></span>
-);
-
 const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
   <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
     <span style={{ position: "relative", width: 44, height: 24, display: "inline-block" }}>
@@ -48,5 +44,9 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
     <span style={{ fontWeight: 500 }}>{label}</span>
   </label>
 );
+
+function Track({ background }: { background: string }) {
+  return <span style={{ ...TRACK_SHAPE_STYLE, background, transition: "background 0.2s" }}></span>;
+}
 
 export default Toggle;

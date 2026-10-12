@@ -60,17 +60,17 @@ function WebUIListItems({ webuis, selectedId, editing, onSelect }: Omit<WebUILis
   const drag = useDragReorder(editing.move);
   return (
     <>
-      {webuis.map((webui, idx) => (
+      {webuis.map((webUiSettings, idx) => (
         <WebUIListItem
-          key={webui.id}
-          webui={webui}
+          key={webUiSettings.id}
+          webUiSettings={webUiSettings}
           index={idx}
-          selected={webui.id === selectedId}
+          selected={webUiSettings.id === selectedId}
           isPrimary={idx === 0}
           isDragging={drag.dragIndex === idx}
           dropIndicator={drag.indicatorFor(idx)}
-          onSelect={() => onSelect(webui.id)}
-          onNameChange={name => editing.change(webui.id, { ...webui, name })}
+          onSelect={() => onSelect(webUiSettings.id)}
+          onNameChange={name => editing.change(webUiSettings.id, { ...webUiSettings, name })}
           onMove={editing.move}
           onDragStart={() => drag.start(idx)}
           onDragOver={() => drag.over(idx)}

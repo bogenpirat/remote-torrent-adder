@@ -93,7 +93,7 @@ interface AutoLabelDirSettingsEditorProps {
 }
 
 function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
-  const { value, onChange, showLabel, showDir } = props;
+  const { value, onChange, showLabel, showDir, defaultLabel, defaultDir } = props;
   const handleAdd = () => {
     onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
@@ -107,7 +107,9 @@ function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
       {value.map((setting, idx) => (
         <RuleCard key={idx} setting={setting} choices={props} onPatch={patch => patchAt(idx, patch)} onRemove={() => removeAt(idx)} />
       ))}
-      {value.length > 0 && <RuleTester {...props} />}
+      {value.length > 0 && (
+        <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
+      )}
     </SettingsGroup>
   );
 }
@@ -227,14 +229,6 @@ function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectPro
 function selectableChoices(choice: string | null, knownChoices: string[]): string[] {
   const choices = knownChoices.includes(choice ?? "") || !choice ? knownChoices : [choice, ...knownChoices];
   return choices.filter((candidate, idx) => candidate && choices.indexOf(candidate) === idx);
-}
-
-type RuleTesterProps = Pick<AutoLabelDirSettingsEditorProps, "value" | "defaultLabel" | "defaultDir" | "showLabel" | "showDir">;
-
-function RuleTester({ value, defaultLabel, defaultDir, showLabel, showDir }: RuleTesterProps) {
-  return (
-    <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
-  );
 }
 
 export default AutoLabelDirSettingsEditor;

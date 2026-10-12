@@ -1,33 +1,7 @@
 import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
 
-function hasUsableHost(baseUrl: string): boolean {
-    if (!baseUrl) {
-        return false;
-    }
-    try {
-        return new URL(baseUrl).hostname !== "";
-    } catch {
-        return false;
-    }
-}
-
 type HeaderModification = chrome.declarativeNetRequest.ModifyHeaderInfo;
-
-function createHeaderRule(id: number, urlPrefix: string, requestHeaders: HeaderModification[]): chrome.declarativeNetRequest.Rule {
-    return {
-        id,
-        priority: 100,
-        action: {
-            type: "modifyHeaders",
-            requestHeaders
-        },
-        condition: {
-            urlFilter: `|${urlPrefix}*`,
-            resourceTypes: ["xmlhttprequest"]
-        }
-    };
-}
 
 export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI[]): Promise<void> {
     const oldRuleIds = (await ext.declarativeNetRequest.getSessionRules())
@@ -43,11 +17,15 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
     });
 }
 
-let nextDynamicRuleId = 0;
-
-function allocateDynamicRuleId(): number {
-    nextDynamicRuleId = (nextDynamicRuleId % 2_000_000_000) + 1;
-    return nextDynamicRuleId;
+function hasUsableHost(baseUrl: string): boolean {
+    if (!baseUrl) {
+        return false;
+    }
+    try {
+        return new URL(baseUrl).hostname !== "";
+    } catch {
+        return false;
+    }
 }
 
 export async function executeMethodWrappedWithOriginStripped<T>(method: () => Promise<T>, baseUrl: string): Promise<T> {
@@ -81,4 +59,26 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
             removeRuleIds: [refererSetterRuleId],
         });
     }
+}
+
+let nextDynamicRuleId = 0;
+
+function allocateDynamicRuleId(): number {
+    nextDynamicRuleId = (nextDynamicRuleId % 2_000_000_000) + 1;
+    return nextDynamicRuleId;
+}
+
+function createHeaderRule(id: number, urlPrefix: string, requestHeaders: HeaderModification[]): chrome.declarativeNetRequest.Rule {
+    return {
+        id,
+        priority: 100,
+        action: {
+            type: "modifyHeaders",
+            requestHeaders
+        },
+        condition: {
+            urlFilter: `|${urlPrefix}*`,
+            resourceTypes: ["xmlhttprequest"]
+        }
+    };
 }

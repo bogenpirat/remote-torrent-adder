@@ -11,46 +11,46 @@ interface ChoiceNoun {
 const LABEL_NOUN: ChoiceNoun = { title: "Label", lower: "label", plural: "Labels" };
 const DIRECTORY_NOUN: ChoiceNoun = { title: "Directory", lower: "directory", plural: "Directories" };
 
-export default function WebUILabelDirSettings({ webui, webUiInstance, onChange }: WebUISectionProps) {
+export default function WebUILabelDirSettings({ webUiSettings, webUi, onChange }: WebUISectionProps) {
   return (
-    <SettingsGroup title={groupTitle({ webUiInstance })}>
+    <SettingsGroup title={groupTitle({ webUi })}>
       <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
-        {webUiInstance.isLabelSupported && <LabelColumn webui={webui} onChange={onChange} />}
-        {webUiInstance.isDirSupported && <DirectoryColumn webui={webui} onChange={onChange} />}
+        {webUi.isLabelSupported && <LabelColumn webUiSettings={webUiSettings} onChange={onChange} />}
+        {webUi.isDirSupported && <DirectoryColumn webUiSettings={webUiSettings} onChange={onChange} />}
       </div>
     </SettingsGroup>
   );
 }
 
-function groupTitle({ webUiInstance }: Pick<WebUISectionProps, "webUiInstance">): string {
-  if (webUiInstance.isLabelSupported && webUiInstance.isDirSupported) {
+function groupTitle({ webUi }: Pick<WebUISectionProps, "webUi">): string {
+  if (webUi.isLabelSupported && webUi.isDirSupported) {
     return "Labels & Directories";
   }
-  return webUiInstance.isLabelSupported ? "Labels" : "Directories";
+  return webUi.isLabelSupported ? "Labels" : "Directories";
 }
 
-type EditableWebUIProps = Pick<WebUISectionProps, "webui" | "onChange">;
+type EditableWebUIProps = Pick<WebUISectionProps, "webUiSettings" | "onChange">;
 
-function LabelColumn({ webui, onChange }: EditableWebUIProps) {
+function LabelColumn({ webUiSettings, onChange }: EditableWebUIProps) {
   return (
     <ChoiceColumn
       noun={LABEL_NOUN}
-      defaultChoice={webui.defaultLabel}
-      choices={webui.labels}
-      onDefaultChange={defaultLabel => onChange({ ...webui, defaultLabel })}
-      onChoicesChange={labels => onChange({ ...webui, labels })}
+      defaultChoice={webUiSettings.defaultLabel}
+      choices={webUiSettings.labels}
+      onDefaultChange={defaultLabel => onChange({ ...webUiSettings, defaultLabel })}
+      onChoicesChange={labels => onChange({ ...webUiSettings, labels })}
     />
   );
 }
 
-function DirectoryColumn({ webui, onChange }: EditableWebUIProps) {
+function DirectoryColumn({ webUiSettings, onChange }: EditableWebUIProps) {
   return (
     <ChoiceColumn
       noun={DIRECTORY_NOUN}
-      defaultChoice={webui.defaultDir}
-      choices={webui.dirs}
-      onDefaultChange={defaultDir => onChange({ ...webui, defaultDir })}
-      onChoicesChange={dirs => onChange({ ...webui, dirs })}
+      defaultChoice={webUiSettings.defaultDir}
+      choices={webUiSettings.dirs}
+      onDefaultChange={defaultDir => onChange({ ...webUiSettings, defaultDir })}
+      onChoicesChange={dirs => onChange({ ...webUiSettings, dirs })}
     />
   );
 }

@@ -1,6 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult } from "../models/webui";
-import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { createBasicAuthHeaders, fetchOrThrow, toFailureResult } from "../models/webui-http";
 import { BasicAuthWebUI } from "./basic-auth-webui";
 
 export class RqbitWebUI extends BasicAuthWebUI {
@@ -33,20 +33,12 @@ export class RqbitWebUI extends BasicAuthWebUI {
     private createTorrentFetchOptions(torrent: Torrent): RequestInit {
         const fetchOpts: RequestInit = {
             method: "POST",
-            headers: this.createAuthHeaders(),
+            headers: createBasicAuthHeaders(this.settings),
         };
 
         fetchOpts.body = torrent.isMagnet ? (torrent.data as string) : (torrent.data as Blob);
 
         return fetchOpts;
-    }
-
-    private createAuthHeaders(): Record<string, string> {
-        const headers: Record<string, string> = {};
-        if (this._settings.username || this._settings.password) {
-            headers["Authorization"] = "Basic " + btoa(`${this._settings.username}:${this._settings.password}`);
-        }
-        return headers;
     }
 
     get isLabelSupported(): boolean {

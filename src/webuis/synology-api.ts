@@ -1,4 +1,5 @@
 import { type Torrent } from "../models/torrent";
+import { FORM_URLENCODED_HEADERS } from "../models/webui-http";
 
 export interface SynologyApiInfo {
     path: string;
@@ -65,8 +66,6 @@ export const TASK_ERRORS: Record<number, string> = {
     407: "Set destination failed",
     408: "File does not exist",
 };
-
-const FORM_URLENCODED_HEADERS = { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" };
 
 export function describeError(code: unknown, errors: Record<number, string>): string {
     if (typeof code !== "number") {

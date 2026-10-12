@@ -68,7 +68,6 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
         await preAdd(TRACKER_URL);
 
         expect(consoleError).toHaveBeenCalledWith(`No WebUI found for id "${SEEDED_WEBUI_ID}".`);
-        consoleError.mockRestore();
     });
 });
 
@@ -128,8 +127,8 @@ describe("dispatchPreAddTorrent with the per-torrent selector", () => {
         await preAdd();
 
         const buffered = await readBufferedTorrent();
-        expect(buffered!.torrent.data).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
-        expect(buffered!.webUiSettings.id).toBe(SEEDED_WEBUI_ID);
+        expect(buffered.torrent.data).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
+        expect(buffered.webUiSettings.id).toBe(SEEDED_WEBUI_ID);
     });
 });
 
@@ -169,6 +168,51 @@ describe("notifications after handing the torrent to the client", () => {
         await preAdd();
 
         expect(shownNotification()).toMatchObject({ title: "Torrent adding failed", message: "Error (502):\nboom", isFailed: true });
+    });
+
+    it("reports the message of an error that carries no HTTP response", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        seedSingleWebUi();
+        vi.spyOn(QBittorrentWebUI.prototype, "sendTorrent").mockRejectedValue(new Error("connection reset"));
+
+        await preAdd();
+
+        expect(shownNotification()).toMatchObject({ title: "Torrent adding failed", message: "Error: connection reset" });
+    });
+
+    it("does not log a refused torrent as sent", async () => {
+        const consoleLog = vi.spyOn(console, "log").mockImplementation(() => undefined);
+        seedSingleWebUi();
+        queueFetch(mockResponse({ status: 500, body: "nope" }));
+
+        await preAdd();
+
+        expect(consoleLog).not.toHaveBeenCalledWith(expect.stringContaining("Torrent sent successfully"));
+    });
+
+    it("logs a refused torrent even when notifications are disabled", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        seedSingleWebUi({}, { notificationsEnabled: false });
+        queueFetch(mockResponse({ status: 500, body: "nope" }));
+
+        await preAdd();
+
+        expect(consoleError).toHaveBeenCalledWith("My Client refused Cool Torrent:", "HTTP Response code: 500\nResponse body: nope");
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+
+    it("logs which torrent could not be sent when the settings fail to load", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        seedSingleWebUi();
+        const storageGet = chrome.storage.local.get as any;
+        storageGet.mockImplementationOnce(storageGet.getMockImplementation()).mockRejectedValueOnce(new Error("storage unavailable"));
+
+        await preAdd();
+
+        expect(consoleError).toHaveBeenCalledWith(
+            "Failed sending Cool Torrent to My Client:",
+            expect.objectContaining({ message: "storage unavailable" }),
+        );
     });
 
     it("stays silent about results when notifications are disabled", async () => {
