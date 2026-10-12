@@ -89,22 +89,3 @@ rule = "F3"
 path = "src/options/components/Toggle.tsx"
 reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument."
 
-[[waivers]]
-rule = "G5"
-path = "src/webuis/biglybt-webui.ts"
-reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
-
-[[waivers]]
-rule = "G5"
-path = "src/webuis/rqbit-webui.ts"
-reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
-
-[[waivers]]
-rule = "G5"
-path = "src/webuis/tixati-webui.ts"
-reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
-
-[[waivers]]
-rule = "G5"
-path = "src/webuis/transmission-webui.ts"
-reason = "Shares only the class header and the sendTorrent signature every TorrentWebUI subclass must declare; the connection test is already shared through BasicAuthWebUI and the bodies differ."
