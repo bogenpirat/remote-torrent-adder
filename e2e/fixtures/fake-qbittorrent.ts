@@ -126,8 +126,9 @@ function parseMultipart(body: Buffer, contentType: string): RecordedBody {
     }
     const boundary = `--${boundaryMatch[1] ?? boundaryMatch[2]}`;
     for (const part of body.toString("binary").split(boundary)) {
-        Object.assign(parsed.fields, parsePart(part).fields);
-        Object.assign(parsed.files, parsePart(part).files);
+        const { fields, files } = parsePart(part);
+        Object.assign(parsed.fields, fields);
+        Object.assign(parsed.files, files);
     }
     return parsed;
 }

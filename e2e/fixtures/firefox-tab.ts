@@ -81,7 +81,7 @@ interface ExpectedTab {
 async function waitForNewTab(driver: firefox.Driver, expected: ExpectedTab): Promise<string> {
     const deadline = Date.now() + 15_000;
     while (Date.now() < deadline) {
-        const [handle] = await newTabsShowing(driver, expected);
+        const handle = await switchToNewTabShowing(driver, expected);
         if (handle) {
             return handle;
         }
@@ -90,11 +90,11 @@ async function waitForNewTab(driver: firefox.Driver, expected: ExpectedTab): Pro
     throw new Error(`Extension page never opened: ${expected.url}`);
 }
 
-async function newTabsShowing(driver: firefox.Driver, { handlesBefore, url }: ExpectedTab): Promise<string[]> {
+async function switchToNewTabShowing(driver: firefox.Driver, { handlesBefore, url }: ExpectedTab): Promise<string | undefined> {
     const fresh = (await driver.getAllWindowHandles()).find(handle => !handlesBefore.includes(handle));
     if (!fresh) {
-        return [];
+        return undefined;
     }
     await driver.switchTo().window(fresh);
-    return (await driver.getCurrentUrl()).startsWith(url) ? [fresh] : [];
+    return (await driver.getCurrentUrl()).startsWith(url) ? fresh : undefined;
 }

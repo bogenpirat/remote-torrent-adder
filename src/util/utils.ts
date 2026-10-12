@@ -50,10 +50,7 @@ export function clearDynamicRules(): void {
 export const MIN_PORT = 1;
 export const MAX_PORT = 65535;
 
-export function extractPortDigits(raw: string): string {
-    return raw.replace(/\D/g, "").replace(/^0+/, "");
-}
-
-export function toPort(portDigits: string): number {
-    return Math.min(Number(portDigits), MAX_PORT);
+export function parsePortInput(raw: string): number | undefined {
+    const digits = raw.replace(/\D/g, "").replace(/^0+/, "");
+    return digits === "" ? undefined : Math.min(Number(digits), MAX_PORT);
 }

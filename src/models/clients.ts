@@ -76,7 +76,7 @@ export const ClientClassByClient: Record<Client, ConcreteTorrentWebUIConstructor
 
 export class WebUIFactory {
     static supports(client: string): client is Client {
-        return ClientClassByClient[client as Client] !== undefined;
+        return Object.hasOwn(ClientClassByClient, client);
     }
 
     static createWebUI(settings: WebUISettings): TorrentWebUI {

@@ -5,7 +5,7 @@ import { Toggle } from '../components/ui/toggle';
 import Notice from './Notice';
 import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
-import { hasPendingTorrent, loadPopupData, submitTorrent, type PopupData } from '../popup-data';
+import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 import { type ClientSpecificSettingDescriptor } from '../../models/webui';
 
 export default function Home() {
@@ -59,10 +59,8 @@ function BufferedTorrentForm() {
 }
 
 async function loadState(): Promise<LoadState> {
-  if (!(await hasPendingTorrent())) {
-    return { status: 'empty' };
-  }
-  return { status: 'ready', data: await loadPopupData() };
+  const data = await loadPopupData();
+  return data ? { status: 'ready', data } : { status: 'empty' };
 }
 
 // The form only mounts once the data exists, so every field can be initialised

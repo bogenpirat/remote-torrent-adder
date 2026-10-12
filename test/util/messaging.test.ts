@@ -20,7 +20,7 @@ import { serializeSettings, deserializeSettings, deserializeObject } from "../..
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
-import { hasBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
+import { findBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError } from "../../src/util/download";
 
 const TRACKER_TAB = { tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 };
@@ -238,7 +238,7 @@ describe("AddTorrentMessageWithLabelAndDir flow", () => {
         await addBufferedTorrent();
         await settle();
 
-        expect(await hasBufferedTorrent()).toBe(false);
+        expect(await findBufferedTorrent()).toBeUndefined();
     });
 
     it("reports an error when the popup adds with nothing buffered", async () => {

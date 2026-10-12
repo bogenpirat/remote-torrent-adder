@@ -31,20 +31,21 @@ export function saveBufferedTorrent(buffered: BufferedTorrent): Promise<void> {
         .then(() => undefined);
 }
 
-export async function hasBufferedTorrent(): Promise<boolean> {
-    return await withStore(BUFFERED_TORRENT_STORE, "readonly", store => store.count(BUFFERED_TORRENT_KEY)) > 0;
-}
-
-export async function readBufferedTorrent(): Promise<BufferedTorrent> {
+export async function findBufferedTorrent(): Promise<BufferedTorrent | undefined> {
     const buffered = await withStore<BufferedTorrent | undefined>(
         BUFFERED_TORRENT_STORE,
         "readonly",
         store => store.get(BUFFERED_TORRENT_KEY),
     );
+    return buffered && { ...buffered, torrent: await detachTorrentData(buffered.torrent) };
+}
+
+export async function readBufferedTorrent(): Promise<BufferedTorrent> {
+    const buffered = await findBufferedTorrent();
     if (!buffered) {
         throw new Error("No buffered torrent to add; it may already have been consumed.");
     }
-    return { ...buffered, torrent: await detachTorrentData(buffered.torrent) };
+    return buffered;
 }
 
 async function detachTorrentData(torrent: Torrent): Promise<Torrent> {

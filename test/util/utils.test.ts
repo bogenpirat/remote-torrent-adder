@@ -6,8 +6,7 @@ import {
     getBaseUrl,
     addTrailingSlash,
     clearDynamicRules,
-    extractPortDigits,
-    toPort,
+    parsePortInput,
 } from "../../src/util/utils";
 
 describe("generateId", () => {
@@ -105,34 +104,33 @@ describe("clearDynamicRules", () => {
     });
 });
 
-describe("extractPortDigits", () => {
-    it("finds no digits in an empty field", () => {
-        expect(extractPortDigits("")).toBe("");
+describe("parsePortInput", () => {
+    it("reads no port from an empty field", () => {
+        expect(parsePortInput("")).toBeUndefined();
+    });
+
+    it("parses a plain port number", () => {
+        expect(parsePortInput("8080")).toBe(8080);
     });
 
     it("drops a leading minus so negative ports cannot be entered", () => {
-        expect(extractPortDigits("-8080")).toBe("8080");
-        expect(extractPortDigits("-")).toBe("");
-    });
-
-    it("treats zero and leading zeroes as no digits", () => {
-        expect(extractPortDigits("0")).toBe("");
-        expect(extractPortDigits("00080")).toBe("80");
-    });
-
-    it("ignores non-digit characters", () => {
-        expect(extractPortDigits("8e4")).toBe("84");
-        expect(extractPortDigits("abc")).toBe("");
-    });
-});
-
-describe("toPort", () => {
-    it("reads a plain port number", () => {
-        expect(toPort("8080")).toBe(8080);
+        expect(parsePortInput("-8080")).toBe(8080);
+        expect(parsePortInput("-")).toBeUndefined();
     });
 
     it("clamps anything above the maximum port", () => {
-        expect(toPort("65536")).toBe(65535);
-        expect(toPort("999999")).toBe(65535);
+        expect(parsePortInput("65536")).toBe(65535);
+        expect(parsePortInput("999999")).toBe(65535);
+    });
+
+    it("treats zero and leading zeroes as no port", () => {
+        expect(parsePortInput("0")).toBeUndefined();
+        expect(parsePortInput("00080")).toBe(80);
+    });
+
+    it("ignores non-digit characters", () => {
+        expect(parsePortInput("8e4")).toBe(84);
+        expect(parsePortInput("abc")).toBeUndefined();
     });
 });
+

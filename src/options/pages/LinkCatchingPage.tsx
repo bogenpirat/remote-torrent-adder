@@ -139,8 +139,8 @@ function useRegexEditing({ regexes, onChange }: RegexListProps): RegexEditing {
   };
 
   const save = (idx: number): void => {
-    if (isValidRegex(editValue)) {
-      const reg = new RegExp(editValue);
+    const reg = toRegex(editValue);
+    if (reg) {
       onChange(regexes.map((existing, position) => (position === idx ? reg : existing)));
       setEditIdx(null);
       setEditValue("");
@@ -185,8 +185,9 @@ function NewRegexForm({ onAdd }: { onAdd: (regex: RegExp) => void }): JSX.Elemen
   const [newRegex, setNewRegex] = useState<string>("");
 
   const handleAdd = (): void => {
-    if (isValidRegex(newRegex)) {
-      onAdd(new RegExp(newRegex));
+    const reg = toRegex(newRegex);
+    if (reg) {
+      onAdd(reg);
       setNewRegex("");
     }
   };
@@ -205,12 +206,11 @@ function NewRegexForm({ onAdd }: { onAdd: (regex: RegExp) => void }): JSX.Elemen
   );
 }
 
-function isValidRegex(source: string): boolean {
+function toRegex(source: string): RegExp | undefined {
   try {
-    new RegExp(source);
-    return true;
+    return new RegExp(source);
   } catch {
-    return false;
+    return undefined;
   }
 }
 

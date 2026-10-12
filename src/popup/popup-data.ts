@@ -4,7 +4,7 @@ import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDi
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
-import { type BufferedTorrent, hasBufferedTorrent, readBufferedTorrent } from "../util/buffered-torrent";
+import { type BufferedTorrent, findBufferedTorrent } from "../util/buffered-torrent";
 
 /**
  * Everything the popup needs, resolved once before the form is rendered, so the
@@ -40,17 +40,14 @@ export interface PopupData {
     };
 }
 
-export function hasPendingTorrent(): Promise<boolean> {
-    return hasBufferedTorrent();
-}
-
-/** Resolves the pending torrent; ask hasPendingTorrent first, as this rejects when nothing is waiting. */
-export async function loadPopupData(): Promise<PopupData> {
-    return createPopupData(await readBufferedTorrent());
+/** Resolves the pending torrent, or nothing when none is waiting to be added. */
+export async function loadPopupData(): Promise<PopupData | undefined> {
+    const buffered = await findBufferedTorrent();
+    return buffered && createPopupData(buffered);
 }
 
 function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData {
-    const webUis = WebUIFactory.supports(webUiSettings.client) ? [WebUIFactory.createWebUI(webUiSettings)] : [];
+    const webUi = WebUIFactory.supports(webUiSettings.client) ? WebUIFactory.createWebUI(webUiSettings) : undefined;
     // The matcher is pure, so the popup resolves this itself rather than having
     // the service worker compute it and ship the result across a message.
     const autoLabel = getAutoLabelResult(torrent, webUiSettings.autoLabelDirSettings);
@@ -59,7 +56,7 @@ function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData
     return {
         torrent,
         webUiSettings,
-        supports: describeSupport(webUis),
+        supports: describeSupport(webUi),
         initial: {
             label: resolveInitialChoice(autoLabel, webUiSettings.defaultLabel, webUiSettings.labels),
             directory: resolveInitialChoice(autoDir, webUiSettings.defaultDir, webUiSettings.dirs),
@@ -68,7 +65,7 @@ function createPopupData({ torrent, webUiSettings }: BufferedTorrent): PopupData
         auto: { label: !!autoLabel, directory: !!autoDir },
         labelOptions: webUiSettings.labels,
         directoryOptions: webUiSettings.dirs,
-        clientSpecific: describeClientSpecific(webUis, webUiSettings),
+        clientSpecific: describeClientSpecific(webUi, webUiSettings),
     };
 }
 
@@ -76,16 +73,16 @@ function resolveInitialChoice(autoResult: string | undefined, defaultChoice: str
     return autoResult || defaultChoice || firstEntry(options) || "";
 }
 
-function describeSupport(webUis: TorrentWebUI[]): PopupData["supports"] {
+function describeSupport(webUi: TorrentWebUI | undefined): PopupData["supports"] {
     return {
-        label: webUis.some(webUi => webUi.isLabelSupported),
-        directory: webUis.some(webUi => webUi.isDirSupported),
-        paused: webUis.some(webUi => webUi.isAddPausedSupported),
+        label: webUi?.isLabelSupported ?? false,
+        directory: webUi?.isDirSupported ?? false,
+        paused: webUi?.isAddPausedSupported ?? false,
     };
 }
 
-function describeClientSpecific(webUis: TorrentWebUI[], webUiSettings: WebUISettings): PopupData["clientSpecific"] {
-    const descriptors = webUis.flatMap(webUi => webUi.clientSpecificSettingDescriptors).filter(descriptor => descriptor.perTorrent);
+function describeClientSpecific(webUi: TorrentWebUI | undefined, webUiSettings: WebUISettings): PopupData["clientSpecific"] {
+    const descriptors = (webUi?.clientSpecificSettingDescriptors ?? []).filter(descriptor => descriptor.perTorrent);
     return {
         descriptors,
         initial: Object.fromEntries(descriptors.map(descriptor => [

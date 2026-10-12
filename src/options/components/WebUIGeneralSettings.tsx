@@ -1,6 +1,6 @@
 import { type CSSProperties } from "react";
 import type { WebUISettings } from "../../models/webui";
-import { extractPortDigits, toPort, MAX_PORT, MIN_PORT } from "../../util/utils";
+import { parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
 import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
 import WebUIConnectionTest from "./WebUIConnectionTest";
@@ -52,8 +52,7 @@ function EndpointFields({ webui, onPatch }: PatchableProps) {
 
 function PortField({ webui, onPatch }: PatchableProps) {
   const patchPort = (raw: string): void => {
-    const digits = extractPortDigits(raw);
-    onPatch({ port: digits === "" ? null : toPort(digits) });
+    onPatch({ port: parsePortInput(raw) ?? null });
   };
   return (
     <div>
