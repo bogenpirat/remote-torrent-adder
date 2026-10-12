@@ -79,3 +79,12 @@ rule = "F1"
 path = "src/**/*.tsx"
 reason = "A React component takes one props object and benefits from many props; destructuring them in the signature is encapsulation enough. This also exempts plain helpers in .tsx files, which review has to watch."
 
+[[waivers]]
+rule = "F3"
+path = "src/popup/components/ui/toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument that selects behaviour."
+
+[[waivers]]
+rule = "F3"
+path = "src/options/components/Toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument that selects behaviour."

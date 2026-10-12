@@ -11,21 +11,18 @@ const THUMB_CLASS_NAME = "inline-block h-4 w-4 transform rounded-full bg-backgro
 
 interface ToggleProps {
   checked: boolean
-  onEnable: () => void
-  onDisable: () => void
+  onChange: (checked: boolean) => void
   label?: string
   className?: string
   disabled?: boolean
   ref?: React.Ref<HTMLButtonElement>
 }
 
-function Toggle({ checked, onEnable, onDisable, label, className, disabled = false, ref }: ToggleProps) {
+function Toggle({ checked, onChange, label, className, disabled = false, ref }: ToggleProps) {
     const handleToggle = () => {
-      if (disabled) {
-        return
+      if (!disabled) {
+        onChange(!checked)
       }
-      const report = checked ? onDisable : onEnable
-      report()
     }
 
     return (

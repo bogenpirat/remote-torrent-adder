@@ -39,12 +39,7 @@ function EndpointFields({ webui, onPatch }: PatchableProps) {
     <div style={FIELD_ROW_STYLE}>
       <TextField label="Host" value={webui.host} onChange={host => onPatch({ host })} />
       <PortField webui={webui} onPatch={onPatch} />
-      <Toggle
-        checked={webui.secure}
-        onEnable={() => onPatch({ secure: true })}
-        onDisable={() => onPatch({ secure: false })}
-        label="Secure (HTTPS)"
-      />
+      <Toggle checked={webui.secure} onChange={secure => onPatch({ secure })} label="Secure (HTTPS)" />
       <TextField label="Relative Path" value={webui.relativePath || ""} onChange={relativePath => onPatch({ relativePath })} />
     </div>
   );
@@ -78,12 +73,7 @@ function BehaviourToggles({ webui, webUiInstance, onPatch }: BehaviourTogglesPro
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
       {webUiInstance.isAddPausedSupported && (
-        <Toggle
-          checked={webui.addPaused}
-          onEnable={() => onPatch({ addPaused: true })}
-          onDisable={() => onPatch({ addPaused: false })}
-          label="Add torrents paused"
-        />
+        <Toggle checked={webui.addPaused} onChange={addPaused => onPatch({ addPaused })} label="Add torrents paused" />
       )}
       {webUiInstance.isLabelDirChooserSupported && <ChooserToggles webui={webui} onPatch={onPatch} />}
     </div>
@@ -95,14 +85,12 @@ function ChooserToggles({ webui, onPatch }: PatchableProps) {
     <>
       <Toggle
         checked={webui.showPerTorrentConfigSelector}
-        onEnable={() => onPatch({ showPerTorrentConfigSelector: true })}
-        onDisable={() => onPatch({ showPerTorrentConfigSelector: false })}
+        onChange={showPerTorrentConfigSelector => onPatch({ showPerTorrentConfigSelector })}
         label="Show per-torrent config selector"
       />
       <Toggle
         checked={webui.useAlternativeLabelDirChooser ?? false}
-        onEnable={() => onPatch({ useAlternativeLabelDirChooser: true })}
-        onDisable={() => onPatch({ useAlternativeLabelDirChooser: false })}
+        onChange={useAlternativeLabelDirChooser => onPatch({ useAlternativeLabelDirChooser })}
         label="Use alternative container (window instead of popup)"
       />
     </>

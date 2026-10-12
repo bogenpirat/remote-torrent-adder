@@ -3,29 +3,26 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import Toggle from "../../../src/options/components/Toggle";
 
 function renderToggle(overrides: Partial<React.ComponentProps<typeof Toggle>> = {}) {
-    const onEnable = vi.fn();
-    const onDisable = vi.fn();
-    render(<Toggle checked={false} onEnable={onEnable} onDisable={onDisable} label="Play a sound" {...overrides} />);
-    return { onEnable, onDisable, checkbox: screen.getByRole("checkbox") };
+    const onChange = vi.fn();
+    render(<Toggle checked={false} onChange={onChange} label="Play a sound" {...overrides} />);
+    return { onChange, checkbox: screen.getByRole("checkbox") };
 }
 
 describe("Toggle", () => {
     it("asks to enable when an unchecked toggle is clicked", () => {
-        const { onEnable, onDisable, checkbox } = renderToggle();
+        const { onChange, checkbox } = renderToggle();
 
         fireEvent.click(checkbox);
 
-        expect(onEnable).toHaveBeenCalledTimes(1);
-        expect(onDisable).not.toHaveBeenCalled();
+        expect(onChange.mock.calls).toEqual([[true]]);
     });
 
     it("asks to disable when a checked toggle is clicked", () => {
-        const { onEnable, onDisable, checkbox } = renderToggle({ checked: true });
+        const { onChange, checkbox } = renderToggle({ checked: true });
 
         fireEvent.click(checkbox);
 
-        expect(onDisable).toHaveBeenCalledTimes(1);
-        expect(onEnable).not.toHaveBeenCalled();
+        expect(onChange.mock.calls).toEqual([[false]]);
     });
 
     it("shows its label", () => {

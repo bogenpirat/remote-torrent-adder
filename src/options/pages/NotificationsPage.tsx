@@ -81,12 +81,7 @@ function ToggleRow({ settings, settingKey, label }: ToggleRowProps) {
   const { updateSetting } = useSettings();
   return (
     <div style={ROW_STYLE}>
-      <Toggle
-        checked={settings[settingKey]}
-        onEnable={() => updateSetting(settingKey, true)}
-        onDisable={() => updateSetting(settingKey, false)}
-        label={label}
-      />
+      <Toggle checked={settings[settingKey]} onChange={enabled => updateSetting(settingKey, enabled)} label={label} />
     </div>
   );
 }

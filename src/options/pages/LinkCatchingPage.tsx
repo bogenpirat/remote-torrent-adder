@@ -82,8 +82,7 @@ export default function LinkCatchingPage(): JSX.Element {
       <div style={{ marginBottom: 16 }}>
         <Toggle
           checked={settings.linkCatchingEnabled}
-          onEnable={() => updateSetting("linkCatchingEnabled", true)}
-          onDisable={() => updateSetting("linkCatchingEnabled", false)}
+          onChange={enabled => updateSetting("linkCatchingEnabled", enabled)}
           label="Enable link catching"
         />
       </div>
