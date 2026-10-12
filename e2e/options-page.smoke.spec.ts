@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/extension";
+import { expectNoProblems } from "./fixtures/expectations";
 import { makeSettings, makeWebUISettings } from "./fixtures/settings";
 
 const TAB_TITLES = [
@@ -23,13 +24,11 @@ test.describe("options page", () => {
             await expect(page.getByRole("tabpanel")).not.toHaveText("Loading...");
         }
 
-        await logs.waitForQuiet();
-        const problems = logs.unexpectedProblems();
-        expect(problems, logs.report(problems)).toEqual([]);
+        await expectNoProblems(logs);
     });
 
     test("shows a configured WebUI", async ({ extension, logs }) => {
-        await extension.seedSettings(
+        await extension.settings.seed(
             makeSettings([makeWebUISettings({ id: "webui-1", name: "Living room box", host: "127.0.0.1", port: 8080 })]),
         );
 
@@ -37,9 +36,7 @@ test.describe("options page", () => {
         await expect(page.getByText("Living room box")).toBeVisible();
         await expect(page.getByRole("button", { name: "Reorder Living room box" })).toBeVisible();
 
-        await logs.waitForQuiet();
-        const problems = logs.unexpectedProblems();
-        expect(problems, logs.report(problems)).toEqual([]);
+        await expectNoProblems(logs);
     });
 
     test("adding a draft WebUI does not break the worker's CORS rules", async ({ extension, logs }) => {
@@ -55,7 +52,6 @@ test.describe("options page", () => {
             "a draft row has no host yet, so it must not produce a rule",
         ).toEqual([]);
 
-        const problems = logs.unexpectedProblems();
-        expect(problems, logs.report(problems)).toEqual([]);
+        await expectNoProblems(logs);
     });
 });

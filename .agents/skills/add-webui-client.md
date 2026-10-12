@@ -156,7 +156,7 @@ Read the value with `this.getClientSpecific("forceStart", config)`. The options 
 
 ### Step 3: Add tests
 
-Every client has a matching test file. Create `test/webuis/<clientname>-webui.test.ts` and follow the closest existing one. Use the helpers in `test/helpers/` (`fetch-mock.ts`, `fixtures.ts`, `chrome-mock.ts`) rather than hand-rolling mocks.
+Every client has a matching test file. Create `test/webuis/<clientname>-webui.test.ts` and follow the closest existing one. Use the helpers in `test/helpers/` (`fetch-mock.ts`, `fixtures.ts`, `chrome-mock.ts`, `webui-requests.ts`) rather than hand-rolling mocks. A client that adds torrents with one unauthenticated form POST only declares its fields through `describeFormClient` from `form-client-contract.ts`.
 
 Cover at minimum:
 - `.torrent` upload: correct URL, method, and body shape; the `File` filename is set

@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server } from "node:http";
-import { type AddressInfo } from "node:net";
+import { closeServer, listenOnLoopback, readBody } from "./local-server";
 
 export interface FakeFloodOptions {
     authenticateDelayMs?: number;
@@ -25,23 +25,17 @@ export class FakeFlood {
                 }, delay);
             });
         });
-        await new Promise<void>(resolve => this.server.listen(0, "127.0.0.1", resolve));
-        this.port = (this.server.address() as AddressInfo).port;
+        this.port = await listenOnLoopback(this.server);
     }
 
     private async handle(req: IncomingMessage): Promise<string> {
         const path = (req.url ?? "").split("?")[0] ?? "";
-        const chunks: Buffer[] = [];
-        for await (const chunk of req) {
-            chunks.push(chunk as Buffer);
-        }
-        this.requests.push({ path, body: Buffer.concat(chunks).toString("utf8") });
+        this.requests.push({ path, body: (await readBody(req)).toString("utf8") });
         return path;
     }
 
     async stop(): Promise<void> {
-        this.server.closeAllConnections();
-        await new Promise<void>(resolve => this.server.close(() => resolve()));
+        await closeServer(this.server);
     }
 
     pathsHit(): string[] {

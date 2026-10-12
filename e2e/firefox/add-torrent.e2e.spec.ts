@@ -1,9 +1,16 @@
-import { test, expect, NON_LOOPBACK_HOST, type FirefoxExtensionHarness } from "../fixtures/firefox-extension";
+import { test, expect, type FirefoxExtensionHarness } from "../fixtures/firefox-extension";
+import { NON_LOOPBACK_HOST } from "../fixtures/firefox-browser";
 import { FakeQBittorrent, type FakeQBittorrentOptions } from "../fixtures/fake-qbittorrent";
-import { makeSettings, makeWebUISettings } from "../fixtures/settings";
+import { makeFakeClientSettings } from "../fixtures/settings";
 import { StaticSite } from "../fixtures/static-site";
 
 const SITE_PATTERN = "http://127.0.0.1/*";
+const ADD_PATH = "/api/v2/torrents/add";
+const LOGIN_PATH = "/api/v2/auth/login";
+const POST_LOGIN_TO = [
+    'const login = { method: "POST", body: new URLSearchParams({ username: "u" }) };',
+    `await fetch(args[0] + "${LOGIN_PATH}", login).catch(() => undefined);`,
+].join("\n");
 
 let site: StaticSite;
 let client: FakeQBittorrent;
@@ -24,43 +31,32 @@ test.afterEach(async () => {
     }
 });
 
-async function configure(
-    extension: FirefoxExtensionHarness,
-    port: number,
-    name = "Fake qBittorrent",
-    host = "127.0.0.1",
-): Promise<void> {
-    await extension.seedSettings(
-        makeSettings([
-            makeWebUISettings({
-                id: "webui-1",
-                name,
-                host,
-                port,
-                username: "user",
-                password: "pass",
-            }),
-        ]),
-    );
+async function clickCaughtLink(extension: FirefoxExtensionHarness): Promise<void> {
+    const page = await extension.openPage(`${site.baseUrl}/`);
+    await expect.poll(async () => (await extension.pageLinks(SITE_PATTERN)).length).toBeGreaterThan(0);
+    await page.click("#torrent-link");
 }
 
-async function clickCaughtLink(extension: FirefoxExtensionHarness): Promise<void> {
-    await extension.openPage(`${site.baseUrl}/`);
-    await expect.poll(async () => (await extension.pageLinks(SITE_PATTERN)).length).toBeGreaterThan(0);
-    await extension.clickInPage("#torrent-link");
+async function waitForAddRequest(): Promise<void> {
+    await expect.poll(() => client.pathsHit(), { timeout: 30_000 }).toContain(ADD_PATH);
+}
+
+/** A request the extension page makes to a client it has no CORS rule for, so its Origin header survives. */
+async function sendControlRequest(extension: FirefoxExtensionHarness, control: FakeQBittorrent): Promise<void> {
+    await extension.evaluate(POST_LOGIN_TO, control.baseUrl);
+    await expect.poll(() => control.requests.length, { timeout: 15_000 }).toBeGreaterThan(0);
 }
 
 test.describe("adding a torrent end to end on firefox", () => {
     test("clicking a caught link uploads the torrent to the client", async ({ extension }) => {
         await startServers();
-        await configure(extension, client.port);
+        await extension.settings.seed(makeFakeClientSettings({ port: client.port }));
 
         await clickCaughtLink(extension);
+        await waitForAddRequest();
 
-        await expect.poll(() => client.pathsHit(), { timeout: 30_000 }).toContain("/api/v2/torrents/add");
-
-        expect(client.pathsHit()).toContain("/api/v2/auth/login");
-        const login = client.requests.find(request => request.path === "/api/v2/auth/login")!;
+        expect(client.pathsHit()).toContain(LOGIN_PATH);
+        const login = client.requests.find(request => request.path === LOGIN_PATH)!;
         expect(login.fields).toMatchObject({ username: "user", password: "pass" });
 
         const add = client.lastAddRequest()!;
@@ -71,46 +67,35 @@ test.describe("adding a torrent end to end on firefox", () => {
 
     test("reaches a plain-http client on a non-loopback host without upgrading to https", async ({ extension }) => {
         await startServers();
-        await configure(extension, client.port, "Remote qBittorrent", NON_LOOPBACK_HOST);
+        await extension.settings.seed(makeFakeClientSettings({ port: client.port, name: "Remote qBittorrent", host: NON_LOOPBACK_HOST }));
 
         await clickCaughtLink(extension);
 
         await expect
-            .poll(() => client.tlsHandshakes > 0 || client.pathsHit().includes("/api/v2/torrents/add"), {
-                timeout: 30_000,
-            })
+            .poll(() => client.tlsHandshakes > 0 || client.pathsHit().includes(ADD_PATH), { timeout: 30_000 })
             .toBe(true);
 
         expect(client.tlsHandshakes, "the client request was upgraded to https").toBe(0);
-        expect(client.pathsHit()).toContain("/api/v2/torrents/add");
+        expect(client.pathsHit()).toContain(ADD_PATH);
         expect(client.requests[0]!.headers.host).toBe(`${NON_LOOPBACK_HOST}:${client.port}`);
     });
 
     test("strips the moz-extension Origin header from client requests", async ({ extension }) => {
         await startServers();
-        await configure(extension, client.port);
-
+        await extension.settings.seed(makeFakeClientSettings({ port: client.port }));
         const control = new FakeQBittorrent();
         await control.start();
 
         try {
             await clickCaughtLink(extension);
-            await expect.poll(() => client.pathsHit(), { timeout: 30_000 }).toContain("/api/v2/torrents/add");
-
-            await extension.evaluate(
-                'await fetch(args[0] + "/api/v2/auth/login", { method: "POST", body: new URLSearchParams({ username: "u" }) }).catch(() => undefined);',
-                control.baseUrl,
-            );
-            await expect.poll(() => control.requests.length, { timeout: 15_000 }).toBeGreaterThan(0);
+            await waitForAddRequest();
+            await sendControlRequest(extension, control);
 
             expect(
                 control.requests[0]!.headers.origin,
                 "the control request must carry an Origin, or this test proves nothing",
             ).toMatch(/^moz-extension:\/\//);
-
-            for (const request of client.requests) {
-                expect(request.headers.origin, `${request.path} must not carry an Origin`).toBeUndefined();
-            }
+            expect(client.requests.filter(request => request.headers.origin !== undefined)).toEqual([]);
         } finally {
             await control.stop();
         }
@@ -118,11 +103,10 @@ test.describe("adding a torrent end to end on firefox", () => {
 
     test("a client that rejects the torrent is reported, not thrown", async ({ extension }) => {
         await startServers({ addResponse: "Fails." });
-        await configure(extension, client.port);
+        await extension.settings.seed(makeFakeClientSettings({ port: client.port }));
 
         await clickCaughtLink(extension);
-
-        await expect.poll(() => client.pathsHit(), { timeout: 30_000 }).toContain("/api/v2/torrents/add");
+        await waitForAddRequest();
 
         expect(
             await extension.evaluate<string>("return browser.runtime.id;"),
@@ -135,13 +119,12 @@ test.describe("adding a torrent end to end on firefox", () => {
         const deadPort = client.port;
         await client.stop();
         clientStopped = true;
-
-        await configure(extension, deadPort, "Offline");
+        await extension.settings.seed(makeFakeClientSettings({ port: deadPort, name: "Offline" }));
 
         await clickCaughtLink(extension);
         await extension.driver.sleep(3000);
 
         expect(await extension.evaluate<string>("return browser.runtime.id;")).toBeTruthy();
-        expect(await extension.readSettings()).toBeTruthy();
+        expect(await extension.settings.read()).toBeTruthy();
     });
 });

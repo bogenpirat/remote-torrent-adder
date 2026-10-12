@@ -160,7 +160,7 @@ protected getMyClientSetting(): boolean {
 ```
 
 ### 4. Tests
-Extend `test/models/webui.test.ts` for a new base-class getter, and the affected `test/webuis/<name>-webui.test.ts` for behaviour that changes per client. `test/helpers/fixtures.ts` builds `WebUISettings` — new **required** fields must be added there, and to `e2e/fixtures/settings.ts`.
+Extend `test/models/webui.test.ts` for a new base-class getter, and the affected `test/webuis/<name>-webui.test.ts` for behaviour that changes per client. `test/helpers/fixtures.ts` builds `WebUISettings` — new **required** fields must be added there; `e2e/fixtures/settings.ts` builds on it and picks them up.
 
 ---
 

@@ -1,7 +1,8 @@
 import { createServer, type IncomingMessage, type Server } from "node:http";
-import { type AddressInfo } from "node:net";
+import { closeServer, listenOnLoopback, readBody } from "./local-server";
 
 const TLS_HANDSHAKE_RECORD = 0x16;
+const PART_HEADER_END = "\r\n\r\n";
 
 export interface RecordedRequest {
     method: string;
@@ -10,6 +11,8 @@ export interface RecordedRequest {
     fields: Record<string, string>;
     files: Record<string, { filename: string; size: number }>;
 }
+
+type RecordedBody = Pick<RecordedRequest, "fields" | "files">;
 
 export interface FakeQBittorrentOptions {
     /** What `/api/v2/torrents/add` answers with. */
@@ -36,27 +39,16 @@ export class FakeQBittorrent {
     async start(): Promise<void> {
         this.server = createServer((req, res) => {
             void this.handle(req).then(([status, body]) => {
-                res.writeHead(status, {
-                    "Content-Type": "text/plain",
-                    "Access-Control-Allow-Origin": "*",
-                });
+                res.writeHead(status, { "Content-Type": "text/plain", "Access-Control-Allow-Origin": "*" });
                 res.end(body);
             });
         });
-        this.server.on("connection", socket => {
-            socket.once("data", chunk => {
-                if (chunk[0] === TLS_HANDSHAKE_RECORD) {
-                    this.tlsHandshakes++;
-                }
-            });
-        });
-        await new Promise<void>(resolve => this.server.listen(0, "127.0.0.1", resolve));
-        this.port = (this.server.address() as AddressInfo).port;
+        onTlsHandshake(this.server, () => this.tlsHandshakes++);
+        this.port = await listenOnLoopback(this.server);
     }
 
     async stop(): Promise<void> {
-        this.server.closeAllConnections();
-        await new Promise<void>(resolve => this.server.close(() => resolve()));
+        await closeServer(this.server);
     }
 
     get baseUrl(): string {
@@ -72,24 +64,12 @@ export class FakeQBittorrent {
     }
 
     private async handle(req: IncomingMessage): Promise<[number, string]> {
-        const path = (req.url ?? "").split("?")[0] ?? "";
-        const body = await readBody(req);
-        const headers: Record<string, string> = {};
-        for (const [name, value] of Object.entries(req.headers)) {
-            headers[name.toLowerCase()] = Array.isArray(value) ? value.join(", ") : String(value ?? "");
-        }
-        const recorded: RecordedRequest = { method: req.method ?? "GET", path, headers, fields: {}, files: {} };
-
-        const contentType = req.headers["content-type"] ?? "";
-        if (contentType.includes("multipart/form-data")) {
-            parseMultipart(body, contentType, recorded);
-        } else if (contentType.includes("application/x-www-form-urlencoded")) {
-            for (const [key, value] of new URLSearchParams(body.toString("utf8"))) {
-                recorded.fields[key] = value;
-            }
-        }
+        const recorded = await recordRequest(req);
         this.requests.push(recorded);
+        return this.respondTo(recorded.path);
+    }
 
+    private respondTo(path: string): [number, string] {
         if (path === "/api/v2/auth/login") {
             return this.options.loginStatus === 200 ? [200, "Ok."] : [this.options.loginStatus, "Fails."];
         }
@@ -100,37 +80,67 @@ export class FakeQBittorrent {
     }
 }
 
-async function readBody(req: IncomingMessage): Promise<Buffer> {
-    const chunks: Buffer[] = [];
-    for await (const chunk of req) {
-        chunks.push(chunk as Buffer);
-    }
-    return Buffer.concat(chunks);
+/** A client that speaks TLS to this plain-http server shows up as a handshake record in the first bytes. */
+function onTlsHandshake(server: Server, notify: () => void): void {
+    server.on("connection", socket => {
+        socket.once("data", chunk => {
+            if (chunk[0] === TLS_HANDSHAKE_RECORD) {
+                notify();
+            }
+        });
+    });
 }
 
-function parseMultipart(body: Buffer, contentType: string, into: RecordedRequest): void {
+async function recordRequest(req: IncomingMessage): Promise<RecordedRequest> {
+    const contentType = req.headers["content-type"] ?? "";
+    return {
+        method: req.method ?? "GET",
+        path: (req.url ?? "").split("?")[0] ?? "",
+        headers: flattenHeaders(req.headers),
+        ...parseBody(await readBody(req), contentType),
+    };
+}
+
+function flattenHeaders(headers: IncomingMessage["headers"]): Record<string, string> {
+    const flattened = Object.entries(headers).map(([name, value]) => {
+        return [name.toLowerCase(), Array.isArray(value) ? value.join(", ") : String(value ?? "")];
+    });
+    return Object.fromEntries(flattened);
+}
+
+function parseBody(body: Buffer, contentType: string): RecordedBody {
+    if (contentType.includes("multipart/form-data")) {
+        return parseMultipart(body, contentType);
+    }
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+        return { fields: Object.fromEntries(new URLSearchParams(body.toString("utf8"))), files: {} };
+    }
+    return { fields: {}, files: {} };
+}
+
+function parseMultipart(body: Buffer, contentType: string): RecordedBody {
+    const parsed: RecordedBody = { fields: {}, files: {} };
     const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
     if (!boundaryMatch) {
-        return;
+        return parsed;
     }
     const boundary = `--${boundaryMatch[1] ?? boundaryMatch[2]}`;
-
     for (const part of body.toString("binary").split(boundary)) {
-        const separator = part.indexOf("\r\n\r\n");
-        if (separator === -1) {
-            continue;
-        }
-        const headers = part.slice(0, separator);
-        const name = /name="([^"]*)"/.exec(headers)?.[1];
-        if (name === undefined) {
-            continue;
-        }
-        const value = part.slice(separator + 4).replace(/\r\n$/, "");
-        const filename = /filename="([^"]*)"/.exec(headers)?.[1];
-        if (filename !== undefined) {
-            into.files[name] = { filename, size: Buffer.from(value, "binary").length };
-        } else {
-            into.fields[name] = Buffer.from(value, "binary").toString("utf8");
-        }
+        Object.assign(parsed.fields, parsePart(part).fields);
+        Object.assign(parsed.files, parsePart(part).files);
     }
+    return parsed;
+}
+
+function parsePart(part: string): RecordedBody {
+    const [headers, ...content] = part.split(PART_HEADER_END);
+    const name = /name="([^"]*)"/.exec(headers ?? "")?.[1];
+    if (name === undefined || content.length === 0) {
+        return { fields: {}, files: {} };
+    }
+    const value = Buffer.from(content.join(PART_HEADER_END).replace(/\r\n$/, ""), "binary");
+    const filename = /filename="([^"]*)"/.exec(headers ?? "")?.[1];
+    return filename === undefined
+        ? { fields: { [name]: value.toString("utf8") }, files: {} }
+        : { fields: {}, files: { [name]: { filename, size: value.length } } };
 }
