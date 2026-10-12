@@ -92,7 +92,7 @@ function AddTorrentForm({ data }: { data: PopupData }) {
         <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
       )}
       {data.supports.paused && (
-        <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
+        <Toggle label="Start Paused" checked={paused} onEnable={() => setPaused(true)} onDisable={() => setPaused(false)} />
       )}
       <ClientSpecificToggles descriptors={data.clientSpecific.descriptors} values={clientSpecific} onChange={setClientSpecific} />
       <SubmitControls submission={submission} />
@@ -205,7 +205,8 @@ function ClientSpecificToggles({ descriptors, values, onChange }: ClientSpecific
           key={descriptor.key}
           label={descriptor.label}
           checked={values[descriptor.key] ?? descriptor.default}
-          onChange={value => onChange(previous => ({ ...previous, [descriptor.key]: value }))}
+          onEnable={() => onChange(previous => ({ ...previous, [descriptor.key]: true }))}
+          onDisable={() => onChange(previous => ({ ...previous, [descriptor.key]: false }))}
         />
       ))}
     </>

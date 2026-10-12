@@ -16,7 +16,8 @@ const ClientSpecificSettingsEditor: React.FC<ClientSpecificSettingsEditorProps> 
         <span style={{ display: "inline-flex" }} title={descriptor.description}>
           <Toggle
             checked={(value[descriptor.key] as boolean | undefined) ?? descriptor.default}
-            onChange={v => onChange({ ...value, [descriptor.key]: v })}
+            onEnable={() => onChange({ ...value, [descriptor.key]: true })}
+            onDisable={() => onChange({ ...value, [descriptor.key]: false })}
             label={descriptor.label}
           />
         </span>

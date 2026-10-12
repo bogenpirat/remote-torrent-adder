@@ -61,26 +61,33 @@ export default function NotificationsPage() {
 }
 
 function GeneralSection({ settings }: { settings: RTASettings }) {
-  const { updateSetting } = useSettings();
   return (
     <section style={SECTION_STYLE}>
       <h3 style={SECTION_TITLE_STYLE}>Notifications</h3>
-      <div style={ROW_STYLE}>
-        <Toggle
-          checked={settings.notificationsEnabled}
-          onChange={v => updateSetting("notificationsEnabled", v)}
-          label="Show notifications"
-        />
-      </div>
-      <div style={ROW_STYLE}>
-        <Toggle
-          checked={settings.notificationsSoundEnabled}
-          onChange={v => updateSetting("notificationsSoundEnabled", v)}
-          label="Play a sound"
-        />
-      </div>
+      <ToggleRow settings={settings} settingKey="notificationsEnabled" label="Show notifications" />
+      <ToggleRow settings={settings} settingKey="notificationsSoundEnabled" label="Play a sound" />
       <DurationRow settings={settings} />
     </section>
+  );
+}
+
+interface ToggleRowProps {
+  settings: RTASettings;
+  settingKey: "notificationsEnabled" | "notificationsSoundEnabled";
+  label: string;
+}
+
+function ToggleRow({ settings, settingKey, label }: ToggleRowProps) {
+  const { updateSetting } = useSettings();
+  return (
+    <div style={ROW_STYLE}>
+      <Toggle
+        checked={settings[settingKey]}
+        onEnable={() => updateSetting(settingKey, true)}
+        onDisable={() => updateSetting(settingKey, false)}
+        label={label}
+      />
+    </div>
   );
 }
 

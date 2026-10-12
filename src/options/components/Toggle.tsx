@@ -3,7 +3,8 @@ import { SURFACE, SUCCESS } from "../theme";
 
 interface ToggleProps {
   checked: boolean;
-  onChange: (v: boolean) => void;
+  onEnable: () => void;
+  onDisable: () => void;
   label: string;
 }
 
@@ -38,10 +39,10 @@ const Track: React.FC<{ background: string }> = ({ background }) => (
   <span style={{ ...TRACK_SHAPE_STYLE, background, transition: "background 0.2s" }}></span>
 );
 
-const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
+const Toggle: React.FC<ToggleProps> = ({ checked, onEnable, onDisable, label }) => (
   <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
     <span style={{ position: "relative", width: 44, height: 24, display: "inline-block" }}>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={CHECKBOX_STYLE} />
+      <input type="checkbox" checked={checked} onChange={checked ? onDisable : onEnable} style={CHECKBOX_STYLE} />
       <Track background={checked ? SUCCESS : "var(--rta-neutral, #ccc)"} />
       <span style={{ position: "absolute", top: 2, left: checked ? 20 : 4, ...THUMB_SHAPE_STYLE }}></span>
     </span>
