@@ -53,4 +53,8 @@ describe("WebUIFactory.supports", () => {
         expect(WebUIFactory.supports("nonexistent")).toBe(false);
         expect(WebUIFactory.supports("")).toBe(false);
     });
+
+    it("does not mistake an inherited object property for a client", () => {
+        expect(WebUIFactory.supports("constructor")).toBe(false);
+    });
 });
