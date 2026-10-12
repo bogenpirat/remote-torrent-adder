@@ -7,7 +7,7 @@ import { type NotificationKind } from "../../util/notifications";
 import { BUTTON_STYLE, ROW_STYLE } from "../components/notification-styles";
 import SoundPicker from "../components/SoundPicker";
 import Toggle from "../components/Toggle";
-import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE_ALT, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { TEXT, MUTED, GREEN_DARK, BORDER, SURFACE_ALT, INPUT_BG, SUCCESS, DANGER, ON_FILLED } from "../theme";
 
 const TEST_MESSAGE_BY_KIND: Record<NotificationKind, string> = {
   success: "This is a successful notification.",
@@ -40,7 +40,7 @@ const INPUT_STYLE: CSSProperties = {
   padding: "6px 10px",
 };
 
-const TEST_BUTTON_STYLE: CSSProperties = { ...BUTTON_STYLE, color: "#fff", border: "none", padding: "9px 18px" };
+const TEST_BUTTON_STYLE: CSSProperties = { ...BUTTON_STYLE, color: ON_FILLED, border: "none", padding: "9px 18px" };
 
 const CUSTOM_SOUNDS_HINT_STYLE: CSSProperties = { marginTop: 0, marginBottom: 16, color: MUTED, fontSize: 13 };
 

@@ -1,17 +1,19 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
+export class DelugeWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.jsonRpcUrl;
+    }
 
-export class DelugeWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.jsonRpcUrl, this.createLoginFetchOptions());
-            const isAccepted = response.ok && (await response.json())["result"] === true;
-            return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
-        } catch (error) {
-            return toUnreachableResult(error);
-        }
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return answer["result"] === true;
+    }
+
+    protected override createLoginFetchOptions(): RequestInit {
+        return this.createJsonRpcFetchOptions("auth.login", [this.settings.password]);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -32,13 +34,6 @@ export class DelugeWebUI extends TorrentWebUI {
             return result;
         } catch (error) {
             return toFailureResult(error);
-        }
-    }
-
-    private async authenticate(): Promise<void> {
-        const response = await fetchOrThrow(this.jsonRpcUrl, this.createLoginFetchOptions());
-        if ((await response.json())["result"] !== true) {
-            throw new Error("Authentication failed");
         }
     }
 
@@ -87,10 +82,6 @@ export class DelugeWebUI extends TorrentWebUI {
 
     private get jsonRpcUrl(): string {
         return this.createBaseUrl() + "/json";
-    }
-
-    private createLoginFetchOptions(): RequestInit {
-        return this.createJsonRpcFetchOptions("auth.login", [this.settings.password]);
     }
 
     private createJsonRpcFetchOptions(method: string, params: unknown[]): RequestInit {

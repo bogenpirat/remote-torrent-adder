@@ -134,7 +134,8 @@ async function preAddTorrent({ message, sender, settingsProvider }: MessageReque
     const preAddTorrentMessage = message as IPreAddTorrentMessage;
     const lastFocusedWindow = await ext.windows.getLastFocused();
     const preAddRequest = {
-        message: preAddTorrentMessage,
+        webUiId: preAddTorrentMessage.webUiId ?? "",
+        url: preAddTorrentMessage.url,
         windowId: sender.tab?.windowId ?? lastFocusedWindow.id ?? 0,
         context: downloadContextFromSender(preAddTorrentMessage, sender),
     };

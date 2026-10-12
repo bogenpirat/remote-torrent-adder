@@ -10,7 +10,6 @@ const { dispatchPreAddTorrent, addTorrentToWebUiById } = vi.hoisted(() => ({
 vi.mock("../../src/util/add-torrent", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
 
 import { refreshContextMenu, registerContextMenuClickListener } from "../../src/util/context-menu";
-import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { makeWebUISettings, seedWebUISettings } from "../helpers/fixtures";
 
@@ -154,16 +153,15 @@ describe("registerContextMenuClickListener", () => {
     it("dispatches a pre-add for the first webui on the main entry", async () => {
         await click("server-main", [settingsFor("a", "Server A")]);
         expect(dispatchPreAddTorrent).toHaveBeenCalledTimes(1);
-        const [{ message, windowId }] = callArgs(dispatchPreAddTorrent, 0);
-        expect(message.action).toBe(PreAddTorrentMessage.action);
-        expect(message.webUiId).toBe("a");
-        expect(message.url).toBe("http://x/file.torrent");
+        const [{ webUiId, url, windowId }] = callArgs(dispatchPreAddTorrent, 0);
+        expect(webUiId).toBe("a");
+        expect(url).toBe("http://x/file.torrent");
         expect(windowId).toBe(11);
     });
 
     it("dispatches a pre-add for the indexed webui", async () => {
         await click("server-1", [settingsFor("a", "A"), settingsFor("b", "B")]);
-        expect(callArgs(dispatchPreAddTorrent, 0)[0].message.webUiId).toBe("b");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("b");
     });
 
     it("hands the settings it resolved the webui from to the pre-add", async () => {
@@ -194,7 +192,7 @@ describe("registerContextMenuClickListener", () => {
         seedWebUISettings([settingsFor("late", "Added Later")]);
         clickListener()(clickData("server-main"), tab);
         await flush();
-        expect(callArgs(dispatchPreAddTorrent, 0)[0].message.webUiId).toBe("late");
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("late");
     });
 
     it("falls back to the last focused window when the click carries no tab", async () => {

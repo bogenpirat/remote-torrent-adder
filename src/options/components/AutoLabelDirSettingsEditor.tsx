@@ -4,7 +4,7 @@ import AutoLabelDirTester from "./AutoLabelDirTester";
 import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
 import { ACCENT_BUTTON_STYLE, CHIP_STYLE, FIELD_LABEL_STYLE } from "../shared-styles";
-import { TEXT, MUTED, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { TEXT, MUTED, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER, ON_FILLED } from "../theme";
 
 const SELECT_STYLE: CSSProperties = {
   fontSize: 15,
@@ -29,7 +29,7 @@ const PATTERN_INPUT_STYLE: CSSProperties = {
 
 const ADD_RULE_BUTTON_STYLE: CSSProperties = {
   background: SUCCESS,
-  color: "#fff",
+  color: ON_FILLED,
   border: "none",
   borderRadius: 8,
   padding: "6px 16px",
@@ -51,7 +51,7 @@ const REMOVE_RULE_BUTTON_STYLE: CSSProperties = {
   top: 8,
   right: 8,
   background: DANGER,
-  color: "#fff",
+  color: ON_FILLED,
   border: "none",
   borderRadius: 8,
   padding: "4px 10px",

@@ -3,7 +3,6 @@ import { downloadTorrent, showNotification } from "../helpers/add-flow-mocks";
 import { callArgs } from "../helpers/assert";
 
 import { dispatchPreAddTorrent } from "../../src/util/add-torrent";
-import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { findBufferedTorrent, readBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
@@ -17,8 +16,8 @@ const WEBUI_URL = "http://example.com:8080/";
 const WINDOW_ID = 7;
 
 async function preAdd(url: string = MAGNET_URL, context: TorrentDownloadContext = {}): Promise<void> {
-    const message = { action: PreAddTorrentMessage.action, url, webUiId: SEEDED_WEBUI_ID };
-    await dispatchPreAddTorrent({ message, windowId: WINDOW_ID, context }, await new Settings().loadSettings());
+    const preAddRequest = { webUiId: SEEDED_WEBUI_ID, url, windowId: WINDOW_ID, context };
+    await dispatchPreAddTorrent(preAddRequest, await new Settings().loadSettings());
     await settle();
 }
 
@@ -71,6 +70,34 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
         await preAdd(TRACKER_URL);
 
         expect(consoleError).toHaveBeenCalledWith(`No WebUI found for id "${SEEDED_WEBUI_ID}".`);
+    });
+
+    it("does not read the settings again once they are handed in", async () => {
+        seedSingleWebUi();
+        stubClientAccepts();
+        const settings = await new Settings().loadSettings();
+        vi.mocked(chrome.storage.local.get).mockClear();
+
+        await dispatchPreAddTorrent({ webUiId: SEEDED_WEBUI_ID, url: MAGNET_URL, windowId: WINDOW_ID, context: {} }, settings);
+        await settle();
+
+        expect(chrome.storage.local.get).not.toHaveBeenCalled();
+    });
+
+    it("logs which WebUI a torrent could not be added to when the failure cannot be shown", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        seedSingleWebUi();
+        downloadTorrent.mockRejectedValue(new Error("network down"));
+        showNotification.mockImplementationOnce(() => {
+            throw new Error("notifications unavailable");
+        });
+
+        await preAdd();
+
+        expect(consoleError).toHaveBeenCalledWith(
+            "Failed adding a torrent to My Client:",
+            expect.objectContaining({ message: "notifications unavailable" }),
+        );
     });
 });
 
@@ -205,27 +232,19 @@ describe("notifications after handing the torrent to the client", () => {
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("reads the settings only once for a whole add", async () => {
-        seedSingleWebUi();
-        stubClientAccepts();
-
-        await preAdd();
-
-        expect(chrome.storage.local.get).toHaveBeenCalledTimes(1);
-    });
-
-    it("logs which WebUI a torrent could not be added to when the failure cannot be shown", async () => {
+    it("does not call an accepted torrent failed when the success cannot be shown", async () => {
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedSingleWebUi();
-        downloadTorrent.mockRejectedValue(new Error("network down"));
+        stubClientAccepts();
         showNotification.mockImplementationOnce(() => {
             throw new Error("notifications unavailable");
         });
 
         await preAdd();
 
+        expect(showNotification).toHaveBeenCalledTimes(1);
         expect(consoleError).toHaveBeenCalledWith(
-            "Failed adding a torrent to My Client:",
+            "Failed sending Cool Torrent to My Client:",
             expect.objectContaining({ message: "notifications unavailable" }),
         );
     });

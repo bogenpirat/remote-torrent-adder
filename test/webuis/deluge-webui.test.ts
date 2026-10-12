@@ -92,3 +92,27 @@ describe("DelugeWebUI", () => {
         expect(ui.isAddPausedSupported).toBe(true);
     });
 });
+
+describe("DelugeWebUI testConnection", () => {
+    it("logs in with the password over JSON-RPC", async () => {
+        const fetch = queueFetch(authOk());
+
+        await build().testConnection();
+
+        const [loginUrl, loginOptions] = callArgs(fetch, 0);
+        expect(loginUrl).toBe("http://h:8112/json");
+        expect(JSON.parse(loginOptions.body as string)).toMatchObject({ method: "auth.login", params: ["pass"] });
+    });
+
+    it("reports an accepted login as authenticated", async () => {
+        queueFetch(authOk());
+
+        await expect(build().testConnection()).resolves.toMatchObject({ reachable: true, authenticated: true });
+    });
+
+    it("reports a refused password as reachable but not authenticated", async () => {
+        queueFetch(mockResponse({ status: 200, json: { result: false } }));
+
+        await expect(build().testConnection()).resolves.toMatchObject({ reachable: true, authenticated: false });
+    });
+});

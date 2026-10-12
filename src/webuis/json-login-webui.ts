@@ -29,6 +29,10 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
         return answer;
     }
 
+    protected createLoginFetchOptions(): RequestInit {
+        return this.createJsonPostOptions({ username: this.settings.username, password: this.settings.password });
+    }
+
     protected describeRejectedLogin(_answer: LoginAnswer): string {
         return REJECTED_LOGIN_MESSAGE;
     }
@@ -39,9 +43,5 @@ export abstract class JsonLoginWebUI extends TorrentWebUI {
             headers: { "Content-Type": "application/json; charset=UTF-8", ...extraHeaders },
             body: JSON.stringify(payload)
         };
-    }
-
-    private createLoginFetchOptions(): RequestInit {
-        return this.createJsonPostOptions({ username: this.settings.username, password: this.settings.password });
     }
 }

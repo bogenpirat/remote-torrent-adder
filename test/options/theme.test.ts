@@ -6,6 +6,7 @@ const OPTIONS_DIRECTORY = "src/options";
 const THEME_MODULE = "theme.ts";
 const STYLESHEET = readFileSync(`${OPTIONS_DIRECTORY}/options-theme.css`, "utf-8");
 const LIGHT_RULES = STYLESHEET.slice(0, STYLESHEET.indexOf("@media"));
+const HEX_COLOUR_PATTERN = /#[0-9a-fA-F]{3,8}\b/;
 const TOKEN_PATTERN = /^var\((--rta-[a-z-]+), (#[0-9a-fA-F]+)\)$/;
 
 function expandShortHex(color: string): string {
@@ -15,6 +16,11 @@ function expandShortHex(color: string): string {
 
 function lightValueOf(property: string): string | undefined {
     return new RegExp(`${property}: *(#[0-9a-fA-F]+)`).exec(LIGHT_RULES)?.[1];
+}
+
+function scriptsContaining(pattern: RegExp): string[] {
+    return scriptsOutsideThemeModule()
+        .filter(path => pattern.test(readFileSync(`${OPTIONS_DIRECTORY}/${path}`, "utf-8")));
 }
 
 function scriptsOutsideThemeModule(): string[] {
@@ -33,9 +39,10 @@ describe.each(Object.entries(theme))("theme colour %s", (_name, token) => {
 
 describe("theme colours outside the theme module", () => {
     it("are never spelled out as a custom property with its own fallback", () => {
-        const offenders = scriptsOutsideThemeModule()
-            .filter(path => readFileSync(`${OPTIONS_DIRECTORY}/${path}`, "utf-8").includes("var(--rta-"));
+        expect(scriptsContaining(/var\(--rta-/)).toEqual([]);
+    });
 
-        expect(offenders).toEqual([]);
+    it("are never spelled out as a hex literal", () => {
+        expect(scriptsContaining(HEX_COLOUR_PATTERN)).toEqual([]);
     });
 });

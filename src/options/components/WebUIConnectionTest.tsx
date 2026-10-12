@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { ext } from "../../util/browser-api";
 import { TestConnectionMessage, type ITestConnectionMessage } from "../../models/messages";
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
-import { SUCCESS, WARNING, DANGER, INFO } from "../theme";
+import { SUCCESS, WARNING, DANGER, INFO, ON_FILLED } from "../theme";
 
 const UNREACHABLE = { color: DANGER, icon: "❌" };
 const CREDENTIALS_REFUSED = { color: WARNING, icon: "⚠" };
@@ -10,7 +10,7 @@ const REACHABLE = { color: SUCCESS, icon: "✅" };
 
 const TEST_BUTTON_STYLE: CSSProperties = {
   background: INFO,
-  color: "#fff",
+  color: ON_FILLED,
   border: "none",
   borderRadius: 8,
   padding: "6px 16px",

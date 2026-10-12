@@ -2,7 +2,6 @@ import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
 import OnClickData = chrome.contextMenus.OnClickData;
 import Tab = chrome.tabs.Tab;
-import { type IPreAddTorrentMessage, PreAddTorrentMessage } from "../models/messages";
 import { type TorrentDownloadContext } from "./download";
 import { addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { type RTASettings } from "../models/settings";
@@ -93,8 +92,8 @@ async function addLinkToWebUis(targetWebUis: TorrentWebUI[], { onClickData, tab 
 
     const [singleTarget] = targetWebUis;
     if (targetWebUis.length === 1 && singleTarget) {
-        const message: IPreAddTorrentMessage = { action: PreAddTorrentMessage.action, webUiId: singleTarget.settings.id, url };
-        await dispatchPreAddTorrent({ message, windowId: await resolveWindowId(tab), context }, settings);
+        const windowId = await resolveWindowId(tab);
+        await dispatchPreAddTorrent({ webUiId: singleTarget.settings.id, url, windowId, context }, settings);
         return;
     }
 

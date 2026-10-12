@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from "react";
 import type { WebUISettings } from "../../models/webui";
 import WebUIListItem, { type DropIndicator } from "./WebUIListItem";
 import { type WebUIEditing } from "./webui-editing";
-import { MUTED, BORDER, SUCCESS } from "../theme";
+import { MUTED, BORDER, SUCCESS, ON_FILLED } from "../theme";
 
 const PANEL_STYLE: CSSProperties = {
   width: 260,
@@ -15,7 +15,7 @@ const PANEL_STYLE: CSSProperties = {
 
 const ADD_BUTTON_STYLE: CSSProperties = {
   background: SUCCESS,
-  color: "#fff",
+  color: ON_FILLED,
   border: "none",
   borderRadius: 8,
   width: 32,

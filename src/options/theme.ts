@@ -9,6 +9,7 @@ export const SURFACE_ALT = "var(--rta-surface-alt, #f7faf7)";
 export const CHIP_BG = "var(--rta-chip-bg, #eaf5ea)";
 export const CHIP_BORDER = "var(--rta-chip-border, #b7c9a7)";
 export const INPUT_BG = "var(--rta-input-bg, #fff)";
+export const ON_FILLED = "var(--rta-on-filled, #fff)";
 export const NEUTRAL = "var(--rta-neutral, #eee)";
 export const SUCCESS = "var(--rta-success, #228B22)";
 export const WARNING = "var(--rta-warning, #B8860B)";

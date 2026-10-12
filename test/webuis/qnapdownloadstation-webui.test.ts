@@ -58,3 +58,28 @@ describe("QNAPDownloadStationWebUI", () => {
         expect(ui.isAddPausedSupported).toBe(false);
     });
 });
+
+describe("QNAPDownloadStationWebUI testConnection", () => {
+    it("logs in with the user and the base64 password as form data", async () => {
+        const fetch = queueFetch(loginOk());
+
+        await build().testConnection();
+
+        const [loginUrl, loginOptions] = callArgs(fetch, 0);
+        expect(loginUrl).toBe("http://h:8080/downloadstation/V4/Misc/Login");
+        expect((loginOptions.body as FormData).get("user")).toBe("u");
+        expect((loginOptions.body as FormData).get("pass")).toBe(btoa("p"));
+    });
+
+    it("reports a login that returns a sid as authenticated", async () => {
+        queueFetch(loginOk());
+
+        await expect(build().testConnection()).resolves.toMatchObject({ reachable: true, authenticated: true });
+    });
+
+    it("reports a login without a sid as reachable but not authenticated", async () => {
+        queueFetch(mockResponse({ status: 200, json: {} }));
+
+        await expect(build().testConnection()).resolves.toMatchObject({ reachable: true, authenticated: false });
+    });
+});

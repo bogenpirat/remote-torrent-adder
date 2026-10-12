@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
 import { FIELD_INPUT_STYLE, UNNAMED_WEBUI_NAME } from "./webui-fields";
-import { TEXT, MUTED, GREEN, GREEN_DARK, ACCENT } from "../theme";
+import { TEXT, MUTED, GREEN, GREEN_DARK, ACCENT, ON_FILLED } from "../theme";
 
 const REORDER_STEP_BY_KEY = new Map([["ArrowUp", -1], ["ArrowDown", 1]]);
 
@@ -35,7 +35,7 @@ const NAME_STYLE: CSSProperties = {
 const PRIMARY_BADGE_STYLE: CSSProperties = {
   fontSize: 11,
   fontWeight: 700,
-  color: "#fff",
+  color: ON_FILLED,
   background: GREEN,
   borderRadius: 6,
   padding: "2px 6px",

@@ -1,16 +1,22 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
-import { fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
-export class QNAPDownloadStationWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
-            const isAccepted = response.ok && !!(await response.json())["sid"];
-            return isAccepted ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
-        } catch (error) {
-            return toUnreachableResult(error);
-        }
+export class QNAPDownloadStationWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return !!answer["sid"];
+    }
+
+    protected override createLoginFetchOptions(): RequestInit {
+        const payload = new FormData();
+        payload.append("user", this.settings.username);
+        payload.append("pass", btoa(this.settings.password));
+        return { method: "POST", body: payload };
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -38,28 +44,13 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         ].join("");
     }
 
+    private async fetchSessionId(): Promise<string> {
+        const answer = await this.authenticate();
+        return String(answer["sid"]);
+    }
+
     private createAddingUrlForTorrent(torrent: Torrent): string {
         return this.createQNAPDownloadStationBaseUrl() + (torrent.isMagnet ? "/Task/AddUrl" : "/Task/AddTorrent");
-    }
-
-    private async fetchSessionId(): Promise<string> {
-        const response = await fetchOrThrow(this.loginUrl, this.createLoginFetchOptions());
-        const responseJson = await response.json();
-        if (!responseJson["sid"]) {
-            throw new Error("Authentication failed");
-        }
-        return responseJson["sid"];
-    }
-
-    private get loginUrl(): string {
-        return this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
-    }
-
-    private createLoginFetchOptions(): RequestInit {
-        const payload = new FormData();
-        payload.append("user", this.settings.username);
-        payload.append("pass", btoa(this.settings.password));
-        return { method: "POST", body: payload };
     }
 
     private async createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {

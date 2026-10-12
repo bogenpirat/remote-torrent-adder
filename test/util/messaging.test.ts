@@ -164,6 +164,16 @@ describe("registerMessageListener routing", () => {
         expect(downloadTorrent).toHaveBeenCalledWith(TRACKER_URL, TRACKER_TAB_CONTEXT);
     });
 
+    it("adds to the first WebUI when the pre-add names none", async () => {
+        seedSingleWebUi();
+        const fetch = stubClientAccepts();
+
+        await dispatch({ action: PreAddTorrentMessage.action, url: MAGNET_URL }, TRACKER_TAB);
+        await settle();
+
+        expect(fetch).toHaveBeenCalled();
+    });
+
     it("answers PreAddTorrent with an error when the settings cannot be loaded", async () => {
         vi.spyOn(console, "error").mockImplementation(() => undefined);
         (chrome.storage.local.get as any).mockRejectedValueOnce(new Error("storage unavailable"));

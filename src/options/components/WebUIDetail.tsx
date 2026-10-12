@@ -7,12 +7,12 @@ import Select from "./Select";
 import WebUIGeneralSettings from "./WebUIGeneralSettings";
 import WebUILabelDirSettings from "./WebUILabelDirSettings";
 import { UNNAMED_WEBUI_NAME, type WebUISectionProps } from "./webui-fields";
-import { MUTED, NEUTRAL, DANGER, DANGER_DARK, INFO } from "../theme";
+import { MUTED, NEUTRAL, DANGER, DANGER_DARK, INFO, ON_FILLED } from "../theme";
 
 const CLIENT_OPTIONS = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
 
 const HEADER_BUTTON_STYLE: CSSProperties = {
-  color: "#fff",
+  color: ON_FILLED,
   border: "none",
   borderRadius: 8,
   padding: "6px 16px",
