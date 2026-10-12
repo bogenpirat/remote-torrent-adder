@@ -8,6 +8,11 @@ import { makeWebUISettings } from "../helpers/fixtures";
 
 const webUi = (over = {}) => new QBittorrentWebUI(makeWebUISettings(over));
 
+async function addedRulesFor(webUis: QBittorrentWebUI[]): Promise<any[]> {
+    await registerCorsCircumventionForWebUis(webUis);
+    return (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0].addRules;
+}
+
 describe("registerCorsCircumventionForWebUis", () => {
     it("replaces old session rules with origin-removing rules for each webui", async () => {
         (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([{ id: 7 }, { id: 8 }]);
@@ -26,32 +31,21 @@ describe("registerCorsCircumventionForWebUis", () => {
     it("skips webuis that produce an empty base url", async () => {
         const broken = webUi({ host: "x", port: 80 });
         vi.spyOn(broken, "createBaseUrl").mockReturnValue("");
-        await registerCorsCircumventionForWebUis([broken]);
-        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
-        expect(arg.addRules).toHaveLength(0);
+
+        expect(await addedRulesFor([broken])).toHaveLength(0);
     });
 
     it("skips half-configured webuis whose host is still blank", async () => {
-        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
-        await registerCorsCircumventionForWebUis([
-            webUi({ host: "", port: 80 }),
-            webUi({ host: "   ", port: 8080 }),
-        ]);
+        const addedRules = await addedRulesFor([webUi({ host: "", port: 80 }), webUi({ host: "   ", port: 8080 })]);
 
-        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
-        expect(arg.addRules).toHaveLength(0);
+        expect(addedRules).toHaveLength(0);
     });
 
     it("still registers valid webuis alongside a blank-host sibling", async () => {
-        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
-        await registerCorsCircumventionForWebUis([
-            webUi({ host: "", port: 80 }),
-            webUi({ host: "127.0.0.1", port: 8080 }),
-        ]);
+        const addedRules = await addedRulesFor([webUi({ host: "", port: 80 }), webUi({ host: "127.0.0.1", port: 8080 })]);
 
-        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
-        expect(arg.addRules).toHaveLength(1);
-        expect(arg.addRules[0].condition.urlFilter).toBe("|http://127.0.0.1:8080*");
+        expect(addedRules).toHaveLength(1);
+        expect(addedRules[0].condition.urlFilter).toBe("|http://127.0.0.1:8080*");
     });
 });
 

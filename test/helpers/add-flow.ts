@@ -9,6 +9,8 @@ import { mockResponse, queueFetch } from "./fetch-mock";
 import { makeWebUISettings } from "./fixtures";
 
 export const SEEDED_WEBUI_ID = "w1";
+export const MAGNET_URL = "magnet:?x";
+export const TRACKER_URL = "https://tracker.org/get/1.torrent";
 
 export function seedSingleWebUi(webUiOverrides: Partial<WebUISettings> = {}, settingsOverrides: Partial<RTASettings> = {}): void {
     const webUiSettings = makeWebUISettings({ id: SEEDED_WEBUI_ID, client: Client.QBittorrentWebUI, ...webUiOverrides });

@@ -67,34 +67,17 @@ describe("loadPopupData", () => {
         expect(data.labelOptions).toEqual([]);
     });
 
-    it("applies a matching auto-label rule and flags it as automatic", async () => {
-        await park(
-            {
-                defaultLabel: "manual",
-                autoLabelDirSettings: [
-                    { criteria: [{ field: "trackerUrl", value: "tracker\\.example" }], label: "auto-tv", dir: "/auto" },
-                ],
-            },
-            { trackers: ["http://tracker.example/announce"] },
-        );
+    it.each([
+        ["a matching tracker rule", { field: "trackerUrl", value: "tracker\\.example" }, { trackers: ["http://tracker.example/announce"] }],
+        // the parked magnet's name is "Cool Torrent"; the match is case-insensitive
+        ["a rule matching the torrent name", { field: "torrentName", value: "cool" }, {}],
+    ] as const)("applies %s and flags it as automatic", async (_title, criterion, torrentOverrides) => {
+        const rule = { criteria: [criterion], label: "auto-tv", dir: "/auto" };
+        await park({ defaultLabel: "manual", autoLabelDirSettings: [rule] }, torrentOverrides);
 
         const data = (await loadPopupData());
         expect(data.initial.label).toBe("auto-tv");
         expect(data.initial.directory).toBe("/auto");
-        expect(data.auto).toEqual({ label: true, directory: true });
-    });
-
-    it("applies a rule matching the torrent name", async () => {
-        await park({
-            autoLabelDirSettings: [
-                { criteria: [{ field: "torrentName", value: "cool" }], label: "auto-name", dir: "/by-name" },
-            ],
-        });
-
-        const data = (await loadPopupData());
-        // the parked magnet's name is "Cool Torrent"; the match is case-insensitive
-        expect(data.initial.label).toBe("auto-name");
-        expect(data.initial.directory).toBe("/by-name");
         expect(data.auto).toEqual({ label: true, directory: true });
     });
 

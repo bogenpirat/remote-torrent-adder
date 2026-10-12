@@ -1,34 +1,21 @@
 import { vi } from "vitest";
 
+type StoredItems = Record<string, any>;
+type StorageListener = (changes: StoredItems, areaName: string) => void;
+type RuntimeMock = ReturnType<typeof createRuntimeMock>;
+
 /**
  * Builds a fresh, fully-stubbed `chrome` namespace covering every API the
  * extension touches. Each call returns an independent object so tests never
  * leak listeners or stored state into one another.
  */
 export function createChromeMock(): any {
-    const storage: Record<string, any> = {};
-    const sessionStorage: Record<string, any> = {};
-    const storageListeners: ((changes: Record<string, any>, areaName: string) => void)[] = [];
+    const storage: StoredItems = {};
     // Mirrors the ids Chrome is holding, so create() can reject duplicates the
     // way the real API does instead of silently succeeding.
     const contextMenuIds = new Set<string>();
     const rejectedMenuIds: string[] = [];
-
-    const runtime = {
-        onMessage: {
-            addListener: vi.fn(),
-            removeListener: vi.fn(),
-        },
-        sendMessage: vi.fn(() => Promise.resolve()),
-        onInstalled: {
-            addListener: vi.fn(),
-        },
-        onStartup: {
-            addListener: vi.fn(),
-        },
-        lastError: undefined as { message: string } | undefined,
-        getURL: vi.fn((path: string) => `chrome-extension://rta-test-id/${path.replace(/^\//, "")}`),
-    };
+    const runtime = createRuntimeMock();
 
     return {
         // backing store exposed for assertions/seeding in tests
@@ -36,166 +23,181 @@ export function createChromeMock(): any {
         __contextMenuIds: contextMenuIds,
         // ids Chrome refused because they were already registered
         __rejectedMenuIds: rejectedMenuIds,
-
         runtime,
+        storage: { local: createLocalStorageMock(storage), session: createSessionStorageMock() },
+        contextMenus: createContextMenusMock(runtime, { contextMenuIds, rejectedMenuIds }),
+        ...createStatelessApiMocks(),
+    };
+}
 
-        storage: {
-            local: {
-                // The browser answers reads over IPC, so the promise never
-                // settles in the caller's tick. Deferring here is what lets
-                // concurrent readers interleave the way they do in the browser.
-                get: vi.fn((keys: string[], callback?: (items: Record<string, any>) => void) => {
-                    const result: Record<string, any> = {};
-                    for (const key of keys) {
-                        if (key in storage) {
-                            result[key] = storage[key];
-                        }
-                    }
-                    return new Promise<Record<string, any>>(resolve => {
-                        queueMicrotask(() => {
-                            callback?.(result);
-                            resolve(result);
-                        });
-                    });
-                }),
-                set: vi.fn((items: Record<string, any>, callback?: () => void) => {
-                    const changes: Record<string, any> = {};
-                    for (const [key, newValue] of Object.entries(items)) {
-                        changes[key] = { oldValue: storage[key], newValue };
-                    }
-                    Object.assign(storage, items);
-                    callback?.();
-                    // Chrome dispatches change events out of band, after the
-                    // write has already been acknowledged.
-                    queueMicrotask(() => storageListeners.forEach(listener => listener(changes, "local")));
-                    return Promise.resolve();
-                }),
-                onChanged: {
-                    addListener: vi.fn((listener: (changes: Record<string, any>, areaName: string) => void) => {
-                        storageListeners.push(listener);
-                    }),
-                    removeListener: vi.fn((listener: (changes: Record<string, any>, areaName: string) => void) => {
-                        const index = storageListeners.indexOf(listener);
-                        if (index >= 0) {
-                            storageListeners.splice(index, 1);
-                        }
-                    }),
-                },
-            },
-            session: {
-                get: vi.fn((key: string) => {
-                    const result: Record<string, any> = {};
-                    if (key in sessionStorage) {
-                        result[key] = sessionStorage[key];
-                    }
-                    return Promise.resolve(result);
-                }),
-                set: vi.fn((items: Record<string, any>) => {
-                    Object.assign(sessionStorage, items);
-                    return Promise.resolve();
-                }),
-            },
-        },
+function createRuntimeMock() {
+    return {
+        onMessage: createEventMock(),
+        sendMessage: vi.fn(() => Promise.resolve()),
+        onInstalled: { addListener: vi.fn() },
+        onStartup: { addListener: vi.fn() },
+        lastError: undefined as { message: string } | undefined,
+        getURL: vi.fn((path: string) => `chrome-extension://rta-test-id/${path.replace(/^\//, "")}`),
+    };
+}
 
-        action: {
-            onClicked: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-            setBadgeText: vi.fn(() => Promise.resolve()),
-            setPopup: vi.fn(),
-            openPopup: vi.fn(() => Promise.resolve()),
-        },
+function createEventMock() {
+    return { addListener: vi.fn(), removeListener: vi.fn() };
+}
 
-        notifications: {
-            create: vi.fn((_notificationId: string, _options: any, callback?: (id: string) => void) => {
-                callback?.("notif-id");
-                return Promise.resolve("notif-id");
-            }),
-            clear: vi.fn((_notificationId: string, callback?: (wasCleared: boolean) => void) => {
-                callback?.(true);
-                return Promise.resolve(true);
-            }),
-            onClicked: {
-                addListener: vi.fn(),
-            },
-        },
+function createLocalStorageMock(storage: StoredItems) {
+    const listeners: StorageListener[] = [];
+    return {
+        get: vi.fn((keys: string[], callback?: (items: StoredItems) => void) => readDeferred(storage, keys, callback)),
+        set: vi.fn((items: StoredItems, callback?: () => void) => {
+            const changes = describeChanges(storage, items);
+            Object.assign(storage, items);
+            callback?.();
+            // Chrome dispatches change events out of band, after the
+            // write has already been acknowledged.
+            queueMicrotask(() => listeners.forEach(listener => listener(changes, "local")));
+            return Promise.resolve();
+        }),
+        onChanged: createStorageEventMock(listeners),
+    };
+}
 
-        permissions: {
-            contains: vi.fn(() => Promise.resolve(true)),
-            request: vi.fn(() => Promise.resolve(true)),
-            onAdded: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-            onRemoved: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-        },
+// The browser answers reads over IPC, so the promise never settles in the
+// caller's tick. Deferring here is what lets concurrent readers interleave the
+// way they do in the browser.
+function readDeferred(storage: StoredItems, keys: string[], callback?: (items: StoredItems) => void): Promise<StoredItems> {
+    const result = pickStored(storage, keys);
+    return new Promise<StoredItems>(resolve => {
+        queueMicrotask(() => {
+            callback?.(result);
+            resolve(result);
+        });
+    });
+}
 
-        offscreen: {
-            hasDocument: vi.fn(() => Promise.resolve(false)),
-            createDocument: vi.fn(() => Promise.resolve()),
-        },
+function pickStored(storage: StoredItems, keys: string[]): StoredItems {
+    return Object.fromEntries(keys.filter(key => key in storage).map(key => [key, storage[key]]));
+}
 
-        tabs: {
-            create: vi.fn(() => Promise.resolve()),
-            query: vi.fn(() => Promise.resolve([])),
-            sendMessage: vi.fn(() => Promise.resolve(undefined)),
-        },
+function describeChanges(storage: StoredItems, items: StoredItems): StoredItems {
+    return Object.fromEntries(Object.entries(items).map(([key, newValue]) => [key, { oldValue: storage[key], newValue }]));
+}
 
-        windows: {
-            getLastFocused: vi.fn(() => Promise.resolve({ id: 1 })),
-            create: vi.fn(() => Promise.resolve()),
-            update: vi.fn(() => Promise.resolve()),
-        },
+function createStorageEventMock(listeners: StorageListener[]) {
+    return {
+        addListener: vi.fn((listener: StorageListener) => {
+            listeners.push(listener);
+        }),
+        removeListener: vi.fn((listener: StorageListener) => {
+            const index = listeners.indexOf(listener);
+            if (index >= 0) {
+                listeners.splice(index, 1);
+            }
+        }),
+    };
+}
 
-        contextMenus: {
-            create: vi.fn((opts: any, callback?: () => void) => {
-                const id = opts?.id;
-                if (contextMenuIds.has(id)) {
-                    rejectedMenuIds.push(id);
-                    runtime.lastError = { message: `Cannot create item with duplicate id ${id}` };
-                    callback?.();
-                    runtime.lastError = undefined;
-                    return id;
-                }
-                contextMenuIds.add(id);
-                callback?.();
-                return id;
-            }),
-            removeAll: vi.fn((callback?: () => void) => {
-                contextMenuIds.clear();
-                callback?.();
-                return Promise.resolve();
-            }),
-            onClicked: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-        },
+function createSessionStorageMock() {
+    const sessionStorage: StoredItems = {};
+    return {
+        get: vi.fn((key: string) => Promise.resolve(pickStored(sessionStorage, [key]))),
+        set: vi.fn((items: StoredItems) => {
+            Object.assign(sessionStorage, items);
+            return Promise.resolve();
+        }),
+    };
+}
 
-        webRequest: {
-            onAuthRequired: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-            onCompleted: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-            onErrorOccurred: {
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-            },
-        },
+interface ContextMenuRegistry {
+    contextMenuIds: Set<string>;
+    rejectedMenuIds: string[];
+}
 
-        declarativeNetRequest: {
-            getDynamicRules: vi.fn(() => Promise.resolve([])),
-            getSessionRules: vi.fn(() => Promise.resolve([])),
-            updateDynamicRules: vi.fn(() => Promise.resolve()),
-            updateSessionRules: vi.fn(() => Promise.resolve()),
-        },
+function createContextMenusMock(runtime: RuntimeMock, registry: ContextMenuRegistry) {
+    return {
+        create: vi.fn((opts: any, callback?: () => void) => {
+            const id = opts?.id;
+            if (registry.contextMenuIds.has(id)) {
+                registry.rejectedMenuIds.push(id);
+                runtime.lastError = { message: `Cannot create item with duplicate id ${id}` };
+            }
+            registry.contextMenuIds.add(id);
+            callback?.();
+            runtime.lastError = undefined;
+            return id;
+        }),
+        removeAll: vi.fn((callback?: () => void) => {
+            registry.contextMenuIds.clear();
+            callback?.();
+            return Promise.resolve();
+        }),
+        onClicked: createEventMock(),
+    };
+}
+
+function createStatelessApiMocks() {
+    return {
+        action: createActionMock(),
+        notifications: createNotificationsMock(),
+        permissions: createPermissionsMock(),
+        offscreen: { hasDocument: vi.fn(() => Promise.resolve(false)), createDocument: vi.fn(() => Promise.resolve()) },
+        tabs: createTabsMock(),
+        windows: createWindowsMock(),
+        webRequest: { onAuthRequired: createEventMock(), onCompleted: createEventMock(), onErrorOccurred: createEventMock() },
+        declarativeNetRequest: createDeclarativeNetRequestMock(),
+    };
+}
+
+function createActionMock() {
+    return {
+        onClicked: createEventMock(),
+        setBadgeText: vi.fn(() => Promise.resolve()),
+        setPopup: vi.fn(),
+        openPopup: vi.fn(() => Promise.resolve()),
+    };
+}
+
+function createNotificationsMock() {
+    return {
+        create: vi.fn((_notificationId: string, _options: any, callback?: (id: string) => void) => {
+            callback?.("notif-id");
+            return Promise.resolve("notif-id");
+        }),
+        clear: vi.fn((_notificationId: string) => Promise.resolve(true)),
+        onClicked: { addListener: vi.fn() },
+    };
+}
+
+function createPermissionsMock() {
+    return {
+        contains: vi.fn(() => Promise.resolve(true)),
+        request: vi.fn(() => Promise.resolve(true)),
+        onAdded: createEventMock(),
+        onRemoved: createEventMock(),
+    };
+}
+
+function createTabsMock() {
+    return {
+        create: vi.fn(() => Promise.resolve()),
+        query: vi.fn(() => Promise.resolve([])),
+        sendMessage: vi.fn(() => Promise.resolve(undefined)),
+    };
+}
+
+function createWindowsMock() {
+    return {
+        getLastFocused: vi.fn(() => Promise.resolve({ id: 1 })),
+        create: vi.fn(() => Promise.resolve()),
+        update: vi.fn(() => Promise.resolve()),
+    };
+}
+
+function createDeclarativeNetRequestMock() {
+    return {
+        getDynamicRules: vi.fn(() => Promise.resolve([])),
+        getSessionRules: vi.fn(() => Promise.resolve([])),
+        updateDynamicRules: vi.fn(() => Promise.resolve()),
+        updateSessionRules: vi.fn(() => Promise.resolve()),
     };
 }

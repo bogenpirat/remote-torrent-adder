@@ -41,29 +41,19 @@ class TestWebUI extends TorrentWebUI {
 const build = (over = {}) => new TestWebUI(makeWebUISettings(over));
 
 describe("createBaseUrl", () => {
-    it("builds a plain http url with explicit port", () => {
-        expect(build({ host: "h", port: 8080, secure: false }).createBaseUrl()).toBe("http://h:8080");
-    });
-
-    it("builds an https url", () => {
-        expect(build({ host: "h", port: 8443, secure: true }).createBaseUrl()).toBe("https://h:8443");
-    });
-
-    it("omits port 80 for insecure connections", () => {
-        expect(build({ host: "h", port: 80, secure: false }).createBaseUrl()).toBe("http://h");
-    });
-
-    it("omits port 443 for secure connections", () => {
-        expect(build({ host: "h", port: 443, secure: true }).createBaseUrl()).toBe("https://h");
+    it.each([
+        ["builds a plain http url with explicit port", { port: 8080, secure: false }, "http://h:8080"],
+        ["builds an https url", { port: 8443, secure: true }, "https://h:8443"],
+        ["omits port 80 for insecure connections", { port: 80, secure: false }, "http://h"],
+        ["omits port 443 for secure connections", { port: 443, secure: true }, "https://h"],
+        ["keeps port 443 when not secure", { port: 443, secure: false }, "http://h:443"],
+    ])("%s", (_title, endpoint, expectedUrl) => {
+        expect(build({ host: "h", ...endpoint }).createBaseUrl()).toBe(expectedUrl);
     });
 
     it("omits the port entirely when none is configured", () => {
         expect(build({ host: "h", port: null, secure: false }).createBaseUrl()).toBe("http://h");
         expect(build({ host: "h", port: null, secure: true }).createBaseUrl()).toBe("https://h");
-    });
-
-    it("keeps port 443 when not secure", () => {
-        expect(build({ host: "h", port: 443, secure: false }).createBaseUrl()).toBe("http://h:443");
     });
 
     it("appends a normalized relative path", () => {

@@ -36,6 +36,12 @@ async function settle(): Promise<void> {
     }
 }
 
+async function saveWebUis(webuiSettings: ReturnType<typeof makeWebUISettings>[]): Promise<void> {
+    const { Settings } = await import("../src/util/settings");
+    const settings = new Settings();
+    await settings.saveSettings({ ...(await settings.loadSettings()), webuiSettings });
+}
+
 function fireLifecycleEvent(event: { addListener: { mock: { calls: any[][] } } }): void {
     event.addListener.mock.calls.forEach(([listener]) => listener());
 }
@@ -131,14 +137,7 @@ describe("service worker boot on a configured profile", () => {
 
         await bootServiceWorker();
 
-        const { Settings } = await import("../src/util/settings");
-        const settings = new Settings();
-        const loaded = await settings.loadSettings();
-        loaded.webuiSettings = [
-            makeWebUISettings({ id: "a", name: "Server A" }),
-            makeWebUISettings({ id: "b", name: "Server B" }),
-        ];
-        await settings.saveSettings(loaded);
+        await saveWebUis([makeWebUISettings({ id: "a", name: "Server A" }), makeWebUISettings({ id: "b", name: "Server B" })]);
         await settle();
 
         expect(consoleError).not.toHaveBeenCalled();

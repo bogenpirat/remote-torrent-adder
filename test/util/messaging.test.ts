@@ -1,16 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+// The shared mocks replace the heavy collaborators so the dispatcher can be exercised in isolation.
+import { downloadTorrent, showNotification } from "../helpers/add-flow-mocks";
 import { at, callArgs } from "../helpers/assert";
-
-// Mock the heavy collaborators so the dispatcher can be exercised in isolation.
-const { showNotification, downloadTorrent } = vi.hoisted(() => ({
-    showNotification: vi.fn(),
-    downloadTorrent: vi.fn(),
-}));
-vi.mock("../../src/util/notifications", () => ({ showNotification }));
-vi.mock("../../src/util/download", async (importOriginal) => ({
-    ...(await importOriginal<Record<string, unknown>>()),
-    downloadTorrent,
-}));
 
 import { registerMessageListener } from "../../src/util/messaging";
 import {
@@ -27,13 +18,11 @@ import {
 import { type Client } from "../../src/models/clients";
 import { serializeSettings, deserializeSettings, deserializeObject } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
-import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
+import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { hasBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError } from "../../src/util/download";
 
-const MAGNET_URL = "magnet:?x";
-const TRACKER_URL = "https://tracker.org/get/1.torrent";
 const TRACKER_TAB = { tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 };
 const TRACKER_TAB_CONTEXT = { tabId: 9, frameId: 3, pageUrl: "https://tracker.org/browse" };
 

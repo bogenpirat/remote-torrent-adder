@@ -23,6 +23,10 @@ export function seedWebUISettings(webuiSettings: WebUISettings[]): void {
  * can selectively override.
  */
 export function makeWebUISettings(overrides: Partial<WebUISettings> = {}): WebUISettings {
+    return { ...makeConnectionDefaults(), ...makeAddingDefaults(), ...overrides };
+}
+
+function makeConnectionDefaults() {
     return {
         id: "webui-1",
         client: Client.QBittorrentWebUI,
@@ -33,6 +37,11 @@ export function makeWebUISettings(overrides: Partial<WebUISettings> = {}): WebUI
         relativePath: null,
         username: "user",
         password: "pass",
+    };
+}
+
+function makeAddingDefaults() {
+    return {
         showPerTorrentConfigSelector: false,
         defaultLabel: null,
         defaultDir: null,
@@ -41,7 +50,6 @@ export function makeWebUISettings(overrides: Partial<WebUISettings> = {}): WebUI
         addPaused: false,
         autoLabelDirSettings: [],
         clientSpecificSettings: {},
-        ...overrides,
     };
 }
 

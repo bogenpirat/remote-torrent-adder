@@ -30,6 +30,16 @@ function popupData(overrides: Partial<PopupData> = {}): PopupData {
     };
 }
 
+const FORCE_START_SETTING: PopupData["clientSpecific"] = {
+    descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
+    initial: { forceStart: false },
+};
+
+function renderHomeWith(overrides: Partial<PopupData> = {}): void {
+    loadPopupData.mockResolvedValue(popupData(overrides));
+    render(<Home />);
+}
+
 beforeEach(() => {
     loadPopupData.mockReset();
     hasPendingTorrent.mockReset();
@@ -132,14 +142,7 @@ describe("control visibility", () => {
     });
 
     it("renders a toggle for each per-torrent client-specific setting", async () => {
-        loadPopupData.mockResolvedValue(popupData({
-            clientSpecific: {
-                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
-                initial: { forceStart: false },
-            },
-        }));
-
-        render(<Home />);
+        renderHomeWith({ clientSpecific: FORCE_START_SETTING });
         await screen.findByRole("button", { name: "Add Torrent" });
 
         expect(screen.getByText("Force start")).toBeInTheDocument();
@@ -171,13 +174,7 @@ describe("submitting", () => {
     });
 
     it("sends the toggled client-specific value", async () => {
-        loadPopupData.mockResolvedValue(popupData({
-            clientSpecific: {
-                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
-                initial: { forceStart: false },
-            },
-        }));
-        render(<Home />);
+        renderHomeWith({ clientSpecific: FORCE_START_SETTING });
 
         await userEvent.click(await screen.findByText("Force start"));
         await userEvent.click(screen.getByRole("button", { name: "Add Torrent" }));

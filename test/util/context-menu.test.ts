@@ -35,6 +35,24 @@ async function click(menuItemId: string, webuis: ReturnType<typeof settingsFor>[
     await flush();
 }
 
+function holdRemoveAlls(order: string[]): Array<() => void> {
+    const pendingRemoveAlls: Array<() => void> = [];
+    (chrome.contextMenus.removeAll as any).mockImplementation(
+        () => new Promise<void>(resolve => {
+            order.push("removeAll");
+            pendingRemoveAlls.push(resolve);
+        })
+    );
+    return pendingRemoveAlls;
+}
+
+function recordCreatedMenuItems(order: string[]): void {
+    (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
+        order.push(`create:${opts.id}`);
+        return opts.id;
+    });
+}
+
 beforeEach(() => {
     dispatchPreAddTorrent.mockClear();
     addTorrentToWebUiById.mockClear();
@@ -76,10 +94,7 @@ describe("refreshContextMenu", () => {
                 };
             })
         );
-        (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
-            order.push(`create:${opts.id}`);
-            return opts.id;
-        });
+        recordCreatedMenuItems(order);
 
         const refreshed = refreshContextMenu([webUi("a", "A")]);
         await flush();
@@ -93,17 +108,8 @@ describe("refreshContextMenu", () => {
 
     it("serializes concurrent refreshes so ids are never created twice", async () => {
         const order: string[] = [];
-        const pendingRemoveAlls: (() => void)[] = [];
-        (chrome.contextMenus.removeAll as any).mockImplementation(
-            () => new Promise<void>(resolve => {
-                order.push("removeAll");
-                pendingRemoveAlls.push(resolve);
-            })
-        );
-        (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
-            order.push(`create:${opts.id}`);
-            return opts.id;
-        });
+        const pendingRemoveAlls = holdRemoveAlls(order);
+        recordCreatedMenuItems(order);
 
         const first = refreshContextMenu([webUi("a", "A")]);
         const second = refreshContextMenu([webUi("a", "A")]);
@@ -117,12 +123,7 @@ describe("refreshContextMenu", () => {
         pendingRemoveAlls[1]!();
         await second;
 
-        expect(order).toEqual([
-            "removeAll",
-            "create:server-main",
-            "removeAll",
-            "create:server-main",
-        ]);
+        expect(order).toEqual(["removeAll", "create:server-main", "removeAll", "create:server-main"]);
     });
 
     it("reports a failed menu creation instead of swallowing it", async () => {

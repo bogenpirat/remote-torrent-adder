@@ -152,7 +152,9 @@ describe("parseFilesFromDecodedTorrentData", () => {
     });
 
     it("falls back to info.name when files is not an array", () => {
-        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso"), files: "nope" } } as unknown as DecodedTorrent)).toEqual(["x.iso"]);
+        const malformed = { info: { name: enc("x.iso"), files: "nope" } } as unknown as DecodedTorrent;
+
+        expect(parseFilesFromDecodedTorrentData(malformed)).toEqual(["x.iso"]);
     });
 
     it("tolerates a file entry with a missing path", () => {

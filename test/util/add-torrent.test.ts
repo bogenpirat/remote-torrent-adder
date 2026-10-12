@@ -1,27 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { downloadTorrent, showNotification } from "../helpers/add-flow-mocks";
 import { callArgs } from "../helpers/assert";
-
-const { showNotification, downloadTorrent } = vi.hoisted(() => ({
-    showNotification: vi.fn(),
-    downloadTorrent: vi.fn(),
-}));
-vi.mock("../../src/util/notifications", () => ({ showNotification }));
-vi.mock("../../src/util/download", async (importOriginal) => ({
-    ...(await importOriginal<Record<string, unknown>>()),
-    downloadTorrent,
-}));
 
 import { dispatchPreAddTorrent } from "../../src/util/add-torrent";
 import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { hasBufferedTorrent, readBufferedTorrent } from "../../src/util/buffered-torrent";
 import { CloudflareChallengeError, type TorrentDownloadContext } from "../../src/util/download";
-import { SEEDED_WEBUI_ID, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
+import { MAGNET_URL, SEEDED_WEBUI_ID, TRACKER_URL, seedSingleWebUi, settle, stubClientAccepts } from "../helpers/add-flow";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
 import { makeMagnetTorrent, seedWebUISettings } from "../helpers/fixtures";
 
-const MAGNET_URL = "magnet:?x";
-const TRACKER_URL = "https://tracker.org/get/1.torrent";
 const WEBUI_URL = "http://example.com:8080/";
 const SEND_ERROR = { httpResponseCode: 502, httpResponseBody: "boom" };
 
