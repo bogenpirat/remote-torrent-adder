@@ -1,5 +1,4 @@
 import { type CSSProperties } from "react";
-import { type Client, ClientClassByClient } from "../../models/clients";
 import { type TorrentWebUI, type WebUISettings } from "../../models/webui";
 import { TEXT, BORDER, INPUT_BG } from "../theme";
 
@@ -26,10 +25,6 @@ export const FIELD_INPUT_STYLE: CSSProperties = {
 };
 
 export const FIELD_LABEL_STYLE: CSSProperties = { fontWeight: 500, marginBottom: 4, display: "block" };
-
-export function isClientSelected(client: Client | ""): client is Client {
-  return !!client && client in ClientClassByClient;
-}
 
 export function TextField({ label, value, onChange, type = "text" }: TextFieldProps) {
   return (

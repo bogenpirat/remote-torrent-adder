@@ -70,6 +70,13 @@ describe("WebUIsPage list", () => {
         expect(screen.getByText("No client selected")).toBeInTheDocument();
     });
 
+    it("treats an inherited object property as no client", async () => {
+        await renderPage([makeWebUISettings({ id: "odd", client: "constructor" as Client, name: "" })]);
+
+        expect(screen.getByText("Select a client type above to configure this WebUI.")).toBeInTheDocument();
+        expect(screen.getByText("No client selected")).toBeInTheDocument();
+    });
+
     it("opens on the primary WebUI and marks it as such", async () => {
         await renderPage();
 

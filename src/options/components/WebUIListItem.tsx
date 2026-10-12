@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { ClientDisplayName } from "../../models/clients";
+import { ClientDisplayName, WebUIFactory } from "../../models/clients";
 import type { WebUISettings } from "../../models/webui";
-import { FIELD_INPUT_STYLE, isClientSelected } from "./webui-fields";
+import { FIELD_INPUT_STYLE } from "./webui-fields";
 import { TEXT, MUTED, GREEN_DARK } from "../theme";
 
 const REORDER_STEP_BY_KEY = new Map([["ArrowUp", -1], ["ArrowDown", 1]]);
@@ -62,7 +62,7 @@ interface WebUIListItemProps {
 
 export default function WebUIListItem(props: WebUIListItemProps) {
   const { webui, selected } = props;
-  const subtitle = isClientSelected(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
+  const subtitle = WebUIFactory.supports(webui.client) ? ClientDisplayName[webui.client] : "No client selected";
   // Only the handle arms dragging, so the inline name input stays selectable.
   const arming = useDragArming(props);
 

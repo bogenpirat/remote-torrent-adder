@@ -6,7 +6,7 @@ import ClientSpecificSettingsEditor from "./ClientSpecificSettingsEditor";
 import Select from "./Select";
 import WebUIGeneralSettings from "./WebUIGeneralSettings";
 import WebUILabelDirSettings from "./WebUILabelDirSettings";
-import { isClientSelected, type WebUISectionProps } from "./webui-fields";
+import { type WebUISectionProps } from "./webui-fields";
 import { MUTED, DANGER } from "../theme";
 
 const clientOptions = Object.values(Client).map(c => ({ value: c, label: ClientDisplayName[c] }));
@@ -45,7 +45,7 @@ export default function WebUIDetail({ webui, onChange, onRemove, onPromote, isPr
 
       <ClientSelect webui={webui} onChange={onChange} />
 
-      {isClientSelected(webui.client)
+      {WebUIFactory.supports(webui.client)
         ? <ConfiguredClient webui={webui} webUiInstance={WebUIFactory.createWebUI(webui)} onChange={onChange} />
         : <div style={{ color: MUTED, fontSize: 15 }}>Select a client type above to configure this WebUI.</div>}
     </div>
@@ -94,7 +94,7 @@ function RemoveControls({ onRemove }: Pick<WebUIDetailProps, "onRemove">) {
 }
 
 function ClientSelect({ webui, onChange }: Pick<WebUIDetailProps, "webui" | "onChange">) {
-  const clientChosen = isClientSelected(webui.client);
+  const clientChosen = WebUIFactory.supports(webui.client);
   const chooseClient = (value: string) => onChange({ ...webui, client: value as Client });
   return (
     <div style={{ marginBottom: 20 }}>

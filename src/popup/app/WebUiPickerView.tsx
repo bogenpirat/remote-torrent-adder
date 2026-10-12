@@ -48,20 +48,19 @@ export default function WebUiPickerView() {
 }
 
 function toWebUiOptions(serialized: string | undefined): WebUiOption[] {
-  const settings = serialized ? deserializeSettings(serialized) : null;
-  return (settings?.webuiSettings ?? []).flatMap(webUiSettings => toWebUiOption(webUiSettings));
+  const settings = serialized ? deserializeSettings(serialized) : undefined;
+  return (settings?.webuiSettings ?? [])
+    .filter(webUiSettings => WebUIFactory.supports(webUiSettings.client))
+    .map(toWebUiOption);
 }
 
-function toWebUiOption(webUiSettings: WebUISettings): WebUiOption[] {
-  if (!WebUIFactory.supports(webUiSettings.client)) {
-    return [];
-  }
+function toWebUiOption(webUiSettings: WebUISettings): WebUiOption {
   const webUi = WebUIFactory.createWebUI(webUiSettings);
-  return [{
+  return {
     id: webUiSettings.id,
     name: webUiSettings.name || webUi.name,
     url: addTrailingSlash(webUi.createBaseUrl()),
-  }];
+  };
 }
 
 function WebUiOptionList({ options, onOpen }: { options: WebUiOption[]; onOpen: (url: string) => void }) {

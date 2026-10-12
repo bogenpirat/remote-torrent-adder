@@ -12,7 +12,7 @@ import { Settings } from "./settings";
 import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
 
-export interface AddTorrentRequest {
+export interface AddTorrentByUrlRequest {
     webUiId: string;
     url: string;
     config: TorrentUploadConfig | null;
@@ -41,25 +41,25 @@ export async function dispatchPreAddTorrent(
     windowId: number,
     context: TorrentDownloadContext = {},
 ): Promise<void> {
-    const request: AddTorrentRequest = { webUiId: message.webUiId ?? "", url: message.url, config: null };
+    const request: AddTorrentByUrlRequest = { webUiId: message.webUiId ?? "", url: message.url, config: null };
     const allWebUis = await getAllWebUis(new Settings());
     const webUi = findWebUiById(request.webUiId, allWebUis) ?? allWebUis[0];
     if (!webUi) {
-        notifyNoWebUi(request);
+        void notifyNoWebUiConfigured(request);
     } else if (webUi.settings.showPerTorrentConfigSelector) {
         await addTorrentViaChooser({ webUi, url: message.url, windowId, context });
     } else {
-        downloadAndAddTorrentToWebUi(webUi, request, context);
+        void downloadAndAddTorrentToWebUi(webUi, request, context);
     }
 }
 
-export async function addTorrentToWebUiById(request: AddTorrentRequest, context: TorrentDownloadContext = {}): Promise<void> {
+export async function addTorrentToWebUiById(request: AddTorrentByUrlRequest, context: TorrentDownloadContext = {}): Promise<void> {
     const webUi = findWebUiById(request.webUiId, await getAllWebUis(new Settings()));
     if (!webUi) {
-        notifyNoWebUi(request);
+        void notifyNoWebUiConfigured(request);
         return;
     }
-    downloadAndAddTorrentToWebUi(webUi, request, context);
+    void downloadAndAddTorrentToWebUi(webUi, request, context);
 }
 
 /**
@@ -81,7 +81,7 @@ export async function addBufferedTorrent(message: IAddTorrentMessageWithLabelAnd
 }
 
 async function addTorrentViaChooser(chooser: ChooserRequest): Promise<void> {
-    const torrent = await downloadTorrentOrNotify(chooser);
+    const torrent = await downloadTorrentOrNotify(chooser.webUi, chooser.url, chooser.context);
     if (!torrent) {
         return;
     }
@@ -89,12 +89,28 @@ async function addTorrentViaChooser(chooser: ChooserRequest): Promise<void> {
     await openChooser(chooser.webUi, chooser.windowId);
 }
 
-async function downloadTorrentOrNotify(chooser: ChooserRequest): Promise<Torrent | undefined> {
+async function downloadAndAddTorrentToWebUi(
+    webUi: TorrentWebUI,
+    request: AddTorrentByUrlRequest,
+    context: TorrentDownloadContext,
+): Promise<void> {
+    const torrent = await downloadTorrentOrNotify(webUi, request.url, context);
+    if (!torrent) {
+        return;
+    }
+    sendTorrentToWebUi(webUi, torrent, request.config ?? createFallbackUploadConfig(webUi, torrent));
+}
+
+async function downloadTorrentOrNotify(
+    webUi: TorrentWebUI,
+    url: string,
+    context: TorrentDownloadContext,
+): Promise<Torrent | undefined> {
     try {
-        return await downloadTorrent(chooser.url, chooser.context);
+        return await downloadTorrent(url, context);
     } catch (error) {
         console.error("Error downloading torrent:", error);
-        notifyDownloadFailure(error, await new Settings().loadSettings(), webUiUrlOf(chooser.webUi));
+        notifyDownloadFailure(error, await new Settings().loadSettings(), webUiUrlOf(webUi));
         return undefined;
     }
 }
@@ -123,26 +139,6 @@ async function getAllWebUis(settingsProvider: Settings): Promise<TorrentWebUI[]>
 
 function findWebUiById(webUiId: string, allWebUis: TorrentWebUI[]): TorrentWebUI | undefined {
     return webUiId ? allWebUis.find(webUi => webUi.settings.id === webUiId) : undefined;
-}
-
-function notifyNoWebUi(request: AddTorrentRequest): void {
-    new Settings().loadSettings().then(settings => notifyNoWebUiConfigured(request, settings));
-}
-
-function downloadAndAddTorrentToWebUi(
-    webUi: TorrentWebUI,
-    request: AddTorrentRequest,
-    context: TorrentDownloadContext = {},
-): void {
-    new Settings().loadSettings().then(settings => {
-        downloadTorrent(request.url, context).then(torrent => {
-            const fallbackConfig = createFallbackUploadConfig(webUi, torrent);
-            sendTorrentToWebUi(webUi, torrent, request.config ?? fallbackConfig);
-        }).catch(error => {
-            console.error("Error downloading torrent:", error);
-            notifyDownloadFailure(error, settings, webUiUrlOf(webUi));
-        });
-    });
 }
 
 function createFallbackUploadConfig(webUi: TorrentWebUI, torrent: Torrent): TorrentUploadConfig {
@@ -200,7 +196,8 @@ function webUiUrlOf(webUi: TorrentWebUI): string {
     return addTrailingSlash(webUi.createBaseUrl());
 }
 
-function notifyNoWebUiConfigured(request: AddTorrentRequest, settings: RTASettings): void {
+async function notifyNoWebUiConfigured(request: AddTorrentByUrlRequest): Promise<void> {
+    const settings = await new Settings().loadSettings();
     console.error(`No WebUI found for id "${request.webUiId}".`);
     notifyWithUserSettings(settings, { title: "No WebUI configured", message: "Check your settings.", isFailed: true });
 }
