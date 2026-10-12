@@ -71,6 +71,16 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
         expect(shownNotification()).toMatchObject({ title: "No WebUI configured", message: "Check your settings.", isFailed: true });
         expect(downloadTorrent).not.toHaveBeenCalled();
     });
+
+    it("logs which WebUI was missing without the torrent URL", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        seedWebUISettings([]);
+
+        await preAdd(TRACKER_URL);
+
+        expect(consoleError).toHaveBeenCalledWith(`No WebUI found for id "${SEEDED_WEBUI_ID}".`);
+        consoleError.mockRestore();
+    });
 });
 
 describe("dispatchPreAddTorrent with the per-torrent selector", () => {

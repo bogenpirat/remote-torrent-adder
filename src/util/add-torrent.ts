@@ -199,7 +199,7 @@ function webUiUrlOf(webUi: TorrentWebUI): string {
 }
 
 function notifyNoWebUiConfigured(request: AddTorrentRequest, settings: RTASettings): void {
-    console.error("No WebUI found for addTorrentMessage:", request);
+    console.error(`No WebUI found for id "${request.webUiId}".`);
     notifyWithUserSettings(settings, { title: "No WebUI configured", message: "Check your settings.", isFailed: true });
 }
 
