@@ -20,6 +20,7 @@
         "lint:firefox": "web-ext lint --source-dir dist/firefox",
         "lint:firefox:unlisted": "web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted",
         "audit": "node scripts/audit.mjs",
+        "cleancode": "ccs check",
         "verify": "npm run typecheck && npm run lint && npm test",
         "prebuild": "npm run verify",
         "build": "npm run build:run",
