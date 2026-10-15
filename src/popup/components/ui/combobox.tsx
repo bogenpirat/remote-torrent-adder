@@ -8,6 +8,12 @@ const INPUT_CLASS_NAME = [
   "disabled:cursor-not-allowed disabled:opacity-50",
 ].join(" ")
 
+const OPTION_LIST_CLASS_NAME = [
+  "absolute z-50 w-full mt-1 max-h-60 overflow-auto",
+  "bg-popover text-popover-foreground rounded-lg",
+  "border border-muted-foreground/30 shadow-lg shadow-black/40",
+].join(" ")
+
 const OPTION_CLASS_NAME = [
   "flex items-center justify-between px-3 py-2 text-sm cursor-pointer",
   "hover:bg-accent hover:text-accent-foreground transition-colors group",
@@ -115,12 +121,7 @@ function OptionList({ options, onSelect, onRemove }: OptionListProps) {
     }
 
     return (
-      <div
-        className={cn(
-          "absolute z-50 w-full mt-1 max-h-60 overflow-auto",
-          "bg-popover border border-popover shadow-lg rounded-lg"
-        )}
-      >
+      <div className={OPTION_LIST_CLASS_NAME}>
         {options.map((option, index) => (
           <div key={index} className={OPTION_CLASS_NAME} onClick={() => onSelect(option)}>
             <span className="flex-1">{option}</span>
