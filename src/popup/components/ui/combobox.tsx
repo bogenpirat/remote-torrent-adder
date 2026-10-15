@@ -75,7 +75,8 @@ function ComboBox({ options, value, onChange, onRemoveOption, placeholder = "Sel
             className={cn(
               "absolute z-50 w-full mt-1 max-h-60 overflow-auto",
               // Use theme-aware background and border
-              "bg-popover border border-popover shadow-lg rounded-lg"
+              "bg-popover text-popover-foreground rounded-lg",
+              "border border-muted-foreground/30 shadow-lg shadow-black/40"
             )}
           >
             {options.map((option, index) => (
