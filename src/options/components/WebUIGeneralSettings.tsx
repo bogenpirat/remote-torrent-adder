@@ -1,5 +1,6 @@
 import { type CSSProperties } from "react";
 import type { WebUISettings } from "../../models/webui";
+import { defaultPortFor } from "../../models/webui-url";
 import { parsePortInput, MAX_PORT, MIN_PORT } from "../../util/utils";
 import SettingsGroup from "./SettingsGroup";
 import Toggle from "./Toggle";
@@ -59,7 +60,7 @@ function PortField({ webUiSettings, onPatch }: PatchableProps) {
         inputMode="numeric"
         min={MIN_PORT}
         max={MAX_PORT}
-        placeholder={webUiSettings.secure ? "443" : "80"}
+        placeholder={String(defaultPortFor(webUiSettings))}
         value={webUiSettings.port ?? ""}
         onChange={e => patchPort(e.target.value)}
         style={{ ...FIELD_INPUT_STYLE, minWidth: 80 }}

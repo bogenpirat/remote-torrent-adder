@@ -90,7 +90,7 @@ describe("registerMessageListener routing", () => {
     it("shows a notification for TestNotification", async () => {
         const notification = { title: "T", message: "M", popupDurationMs: 1000, playSound: false };
 
-        const response = await dispatch({ action: TestNotificationMessage.action, ...notification, isFailed: false });
+        const response = await dispatch({ action: TestNotificationMessage.action, ...notification, kind: "success" });
 
         expect(showNotification).toHaveBeenCalledWith({ ...notification, kind: "success" });
         expect(response).toEqual({});
@@ -99,7 +99,7 @@ describe("registerMessageListener routing", () => {
     it("shows a failed TestNotification as a failure", async () => {
         const notification = { title: "T", message: "M", popupDurationMs: 1000, playSound: false };
 
-        await dispatch({ action: TestNotificationMessage.action, ...notification, isFailed: true });
+        await dispatch({ action: TestNotificationMessage.action, ...notification, kind: "failure" });
 
         expect(showNotification).toHaveBeenCalledWith({ ...notification, kind: "failure" });
     });

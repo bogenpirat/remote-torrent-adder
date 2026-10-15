@@ -16,8 +16,12 @@ export function addLeadingAndTrimTrailingSlashes(urlPart: string): string {
     return "/" + urlPart.replace(/^\/+|\/+$/g, "");
 }
 
+export function defaultPortFor(settings: WebUISettings): number {
+    return settings.secure ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT;
+}
+
 function buildPortPart(settings: WebUISettings): string {
-    const defaultPort = settings.secure ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT;
+    const defaultPort = defaultPortFor(settings);
     const isImplied = settings.port === null || settings.port === undefined || settings.port === defaultPort;
     return isImplied ? "" : `:${settings.port}`;
 }

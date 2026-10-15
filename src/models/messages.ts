@@ -1,3 +1,4 @@
+import { type NotificationKind } from "./notification-kind";
 import { type TorrentUploadConfig } from "./torrent";
 import { type WebUISettings } from "./webui";
 
@@ -100,13 +101,13 @@ export interface ISaveSettingsMessage extends IMessagable {
 export interface ITestNotificationMessage extends IMessagable {
     title: string;
     message: string;
-    isFailed: boolean;
+    kind: NotificationKind;
     popupDurationMs: number;
     playSound: boolean;
 }
 
 export interface IPlaySoundMessage extends IMessagable {
-    isFailed: boolean;
+    kind: NotificationKind;
 }
 
 export interface ITestConnectionMessage extends IMessagable {

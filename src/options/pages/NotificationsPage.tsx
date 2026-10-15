@@ -3,7 +3,7 @@ import { type CSSProperties } from "react";
 import { useSettings } from "../SettingsContext";
 import { type ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
 import { type RTASettings } from "../../models/settings";
-import { type NotificationKind } from "../../util/notifications";
+import { type NotificationKind } from "../../models/notification-kind";
 import { BUTTON_STYLE, ROW_STYLE } from "../components/notification-styles";
 import SoundPicker from "../components/SoundPicker";
 import Toggle from "../components/Toggle";
@@ -141,7 +141,7 @@ function sendTestNotification(kind: NotificationKind, settings: RTASettings): vo
     action: TestNotificationMessage.action,
     title: "Test Notification",
     message: TEST_MESSAGE_BY_KIND[kind],
-    isFailed: kind === "failure",
+    kind,
     popupDurationMs: settings.notificationsDurationMs,
     playSound: settings.notificationsSoundEnabled,
   } as ITestNotificationMessage);

@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { deleteCustomSound, getCustomSound, saveCustomSound, type SoundKind } from "../../util/sound-storage";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { type NotificationKind } from "../../models/notification-kind";
+import { playNotificationSound } from "../../util/play-sound";
+import { deleteCustomSound, getCustomSound, saveCustomSound } from "../../util/sound-storage";
 import { BUTTON_STYLE, ROW_STYLE } from "./notification-styles";
 import { TEXT, MUTED, DANGER } from "../theme";
 
 // Custom sounds are kept small; they live in IndexedDB but are still loaded
 // into memory to play, so cap the size to keep things snappy.
 const MAX_SOUND_BYTES = 1024 * 1024;
+
+const DEFAULT_SOUND_LABEL = "Default sound";
 
 const SOUND_NAME_STYLE: CSSProperties = {
   flex: 1,
@@ -15,17 +19,9 @@ const SOUND_NAME_STYLE: CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-export default function SoundPicker({ kind, label }: { kind: SoundKind; label: string }) {
+export default function SoundPicker({ kind, label }: { kind: NotificationKind; label: string }) {
   const sound = useCustomSound(kind);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = (file: File | undefined) => {
-    if (file && file.size > MAX_SOUND_BYTES) {
-      alert(`That sound file is too large (max ${Math.round(MAX_SOUND_BYTES / 1024)} KB).`);
-    } else if (file) {
-      void sound.store(file);
-    }
-  };
 
   const reset = async () => {
     await sound.reset();
@@ -38,17 +34,36 @@ export default function SoundPicker({ kind, label }: { kind: SoundKind; label: s
 
       <SoundName sound={sound} />
 
-      <SoundActions sound={sound} onPreview={() => previewSound(kind)} onChoose={() => fileInputRef.current?.click()} onReset={reset} />
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*"
-        onChange={e => handleFile(e.target.files?.[0])}
-        style={{ display: "none" }}
+      <SoundActions
+        sound={sound}
+        onPreview={() => void playNotificationSound(kind)}
+        onChoose={() => fileInputRef.current?.click()}
+        onReset={reset}
       />
+
+      <HiddenSoundFileInput sound={sound} inputRef={fileInputRef} />
     </div>
   );
+}
+
+function HiddenSoundFileInput({ sound, inputRef }: { sound: CustomSound; inputRef: RefObject<HTMLInputElement | null> }) {
+  return (
+    <input
+      ref={inputRef}
+      type="file"
+      accept="audio/*"
+      onChange={e => storeIfSmallEnough(sound, e.target.files?.[0])}
+      style={{ display: "none" }}
+    />
+  );
+}
+
+function storeIfSmallEnough(sound: CustomSound, file: File | undefined): void {
+  if (file && file.size > MAX_SOUND_BYTES) {
+    alert(`That sound file is too large (max ${Math.round(MAX_SOUND_BYTES / 1024)} KB).`);
+  } else if (file) {
+    void sound.store(file);
+  }
 }
 
 interface CustomSound {
@@ -58,7 +73,7 @@ interface CustomSound {
   reset: () => Promise<void>;
 }
 
-function useCustomSound(kind: SoundKind): CustomSound {
+function useCustomSound(kind: NotificationKind): CustomSound {
   const [fileName, setFileName] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
 
@@ -66,7 +81,10 @@ function useCustomSound(kind: SoundKind): CustomSound {
     let active = true;
     getCustomSound(kind)
       .then(stored => { if (active) setFileName(stored?.name ?? null); })
-      .catch(() => { if (active) setFileName(null); })
+      .catch(error => {
+        console.error(`Failed loading the custom ${kind} sound:`, error);
+        if (active) setFileName(null);
+      })
       .finally(() => { if (active) setBusy(false); });
     return () => { active = false; };
   }, [kind]);
@@ -78,13 +96,18 @@ function useCustomSound(kind: SoundKind): CustomSound {
   const store = (file: File) => whileBusy(() => {
     return saveCustomSound(kind, file, file.name).then(() => setFileName(file.name), reportSaveFailure);
   });
-  const reset = () => whileBusy(() => deleteCustomSound(kind).then(() => setFileName(null)));
+  const reset = () => whileBusy(() => deleteCustomSound(kind).then(() => setFileName(null), reportResetFailure));
   return { fileName, busy, store, reset };
 }
 
 function reportSaveFailure(error: unknown): void {
   console.error(error);
   alert("Could not save that sound file.");
+}
+
+function reportResetFailure(error: unknown): void {
+  console.error(error);
+  alert("Could not reset that sound.");
 }
 
 function SoundName({ sound }: { sound: CustomSound }) {
@@ -96,9 +119,9 @@ function SoundName({ sound }: { sound: CustomSound }) {
         color: fileName ? TEXT : MUTED,
         fontStyle: fileName ? "normal" : "italic",
       }}
-      title={fileName ?? "Default sound"}
+      title={fileName ?? DEFAULT_SOUND_LABEL}
     >
-      {busy ? "…" : fileName ?? "Default sound"}
+      {busy ? "…" : fileName ?? DEFAULT_SOUND_LABEL}
     </span>
   );
 }
@@ -133,22 +156,4 @@ function ResetButton({ busy, onReset }: { busy: boolean; onReset: () => void }) 
       Reset
     </button>
   );
-}
-
-async function previewSound(kind: SoundKind): Promise<void> {
-  let src = `../assets/sounds/${kind}.ogg`;
-  let objectUrl: string | undefined;
-  try {
-    const stored = await getCustomSound(kind);
-    if (stored) {
-      objectUrl = URL.createObjectURL(stored.blob);
-      src = objectUrl;
-    }
-    const audio = new Audio(src);
-    if (objectUrl) audio.addEventListener("ended", () => URL.revokeObjectURL(objectUrl!));
-    await audio.play();
-  } catch (e) {
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    console.error(e);
-  }
 }

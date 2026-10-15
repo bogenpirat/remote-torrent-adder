@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import NotificationsPage from "../../../src/options/pages/NotificationsPage";
 import { TestNotificationMessage } from "../../../src/models/messages";
 import { type RTASettings } from "../../../src/models/settings";
+import { IDBObjectStore } from "fake-indexeddb";
 import { getCustomSound, saveCustomSound } from "../../../src/util/sound-storage";
 import { lastSavedSettings, renderWithSettings, respondWithSettings, sentMessages } from "../../helpers/options";
 
@@ -52,6 +53,7 @@ beforeEach(() => {
 
 afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
 });
 
 describe("NotificationsPage settings", () => {
@@ -104,7 +106,7 @@ describe("NotificationsPage test buttons", () => {
             action: TestNotificationMessage.action,
             title: "Test Notification",
             message: "This is a successful notification.",
-            isFailed: false,
+            kind: "success",
             popupDurationMs: 3000,
             playSound: true,
         }]);
@@ -119,7 +121,7 @@ describe("NotificationsPage test buttons", () => {
             action: TestNotificationMessage.action,
             title: "Test Notification",
             message: "This is a failed notification.",
-            isFailed: true,
+            kind: "failure",
             popupDurationMs: 3000,
             playSound: false,
         }]);
@@ -175,12 +177,37 @@ describe("NotificationsPage custom sounds", () => {
         expect(await getCustomSound("success")).toBeUndefined();
     });
 
+    it("tells the user when a stored sound cannot be reset", async () => {
+        await saveCustomSound("success", soundFile("ding.ogg"), "ding.ogg");
+        await renderPage();
+        const row = await soundRow("Success sound");
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        vi.spyOn(IDBObjectStore.prototype, "delete").mockImplementation(() => { throw new Error("quota"); });
+
+        fireEvent.click(buttonIn(row, "Reset")!);
+
+        await waitFor(() => expect(alert).toHaveBeenCalledWith("Could not reset that sound."));
+        expect(row).toHaveTextContent("ding.ogg");
+    });
+
+    it("logs a stored sound that cannot be read and names the default", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        vi.spyOn(IDBObjectStore.prototype, "get").mockImplementation(() => { throw new Error("corrupt"); });
+        await renderPage();
+
+        const row = await soundRow("Success sound");
+
+        await waitFor(() => expect(consoleError).toHaveBeenCalledWith(
+            "Failed loading the custom success sound:", expect.any(Error)));
+        expect(row).toHaveTextContent("Default sound");
+    });
+
     it("previews the built-in sound when nothing is stored", async () => {
         await renderPage();
 
         fireEvent.click(buttonIn(await soundRow("Failure sound"), "▶")!);
 
-        await waitFor(() => expect(playedSources).toEqual(["../assets/sounds/failure.ogg"]));
+        await waitFor(() => expect(playedSources).toEqual(["chrome-extension://rta-test-id/assets/sounds/failure.ogg"]));
     });
 
     it("previews the stored sound when there is one", async () => {

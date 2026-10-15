@@ -65,6 +65,7 @@ describe("dispatchPreAddTorrent without the per-torrent selector", () => {
         await preAdd(TRACKER_URL);
 
         expect(consoleError).toHaveBeenCalledWith(`No WebUI found for id "${SEEDED_WEBUI_ID}".`);
+        expect(consoleError.mock.calls.flat().join(" ")).not.toContain(TRACKER_URL);
     });
 
     it("does not read the settings again once they are handed in", async () => {

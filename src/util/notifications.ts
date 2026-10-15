@@ -2,9 +2,7 @@ import { ext, sendMessageAndForget } from "./browser-api";
 import { type IPlaySoundMessage, PlaySoundMessage } from "../models/messages";
 import { canUseOffscreen } from "./platform";
 import { playNotificationSound } from "./play-sound";
-import { type SoundKind } from "./sound-storage";
-
-export type NotificationKind = SoundKind;
+import { type NotificationKind } from "../models/notification-kind";
 
 export interface NotificationRequest {
     title: string;
@@ -66,7 +64,7 @@ function rememberClickUrl(notificationId: string, clickUrl?: string): void {
     }
 }
 
-function playSoundOfKind(kind: SoundKind): void {
+function playSoundOfKind(kind: NotificationKind): void {
     if (!canUseOffscreen()) {
         void playNotificationSound(kind);
         return;
@@ -74,7 +72,7 @@ function playSoundOfKind(kind: SoundKind): void {
     ensureOffscreenDocument().then(() => {
         const playSoundMessage = {
             action: PlaySoundMessage.action,
-            isFailed: kind === "failure"
+            kind
         } as IPlaySoundMessage;
         sendMessageAndForget(playSoundMessage);
     }).catch(error => console.error(`Failed playing the ${kind} notification sound:`, error));

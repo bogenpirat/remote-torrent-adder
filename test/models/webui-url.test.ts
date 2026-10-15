@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { addLeadingAndTrimTrailingSlashes, buildBaseUrl } from "../../src/models/webui-url";
+import { addLeadingAndTrimTrailingSlashes, buildBaseUrl, defaultPortFor } from "../../src/models/webui-url";
 import { makeWebUISettings } from "../helpers/fixtures";
 
 describe("buildBaseUrl", () => {
@@ -12,6 +12,13 @@ describe("buildBaseUrl", () => {
     it("omits the default port of the scheme only", () => {
         expect(buildBaseUrl(makeWebUISettings({ host: "h", port: 443, secure: true }))).toBe("https://h");
         expect(buildBaseUrl(makeWebUISettings({ host: "h", port: 80, secure: true }))).toBe("https://h:80");
+    });
+});
+
+describe("defaultPortFor", () => {
+    it("is the port the scheme implies", () => {
+        expect(defaultPortFor(makeWebUISettings({ secure: true }))).toBe(443);
+        expect(defaultPortFor(makeWebUISettings({ secure: false }))).toBe(80);
     });
 });
 

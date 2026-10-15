@@ -26,7 +26,7 @@ import { resolveWindowId, updateBadgeText } from "./action";
 import { addBufferedTorrent, addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { type TorrentDownloadContext } from "./download";
-import { type NotificationKind, showNotification } from "./notifications";
+import { showNotification } from "./notifications";
 import { serializeSettings, serializeObject, deserializeSettings } from "./serializer";
 import { Settings } from "./settings";
 
@@ -169,15 +169,11 @@ function showTestNotification({ message }: MessageRequest, responder: Responder)
     showNotification({
         title: testNotificationMessage.title,
         message: testNotificationMessage.message,
-        kind: notificationKindOf(testNotificationMessage),
+        kind: testNotificationMessage.kind,
         popupDurationMs: testNotificationMessage.popupDurationMs,
         playSound: testNotificationMessage.playSound,
     });
     responder.finish({});
-}
-
-function notificationKindOf(testNotificationMessage: ITestNotificationMessage): NotificationKind {
-    return testNotificationMessage.isFailed ? "failure" : "success";
 }
 
 function updateActionBadgeText({ message, sender }: MessageRequest): void {

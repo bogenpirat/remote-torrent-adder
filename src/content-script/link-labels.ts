@@ -1,3 +1,5 @@
+import { getDeclaredTorrentNameFromMagnetLink } from '../util/parsers';
+
 export function isMagnetLink(url: string): boolean {
     return typeof url === 'string' && url.startsWith('magnet:');
 }
@@ -18,15 +20,7 @@ function labelFromElement(element: Element): string {
 }
 
 function labelFromMagnetName(url: string): string {
-    const dnValue = isMagnetLink(url) ? /[?&]dn=([^&]+)/.exec(url)?.[1] : undefined;
-    if (!dnValue) {
-        return '';
-    }
-    try {
-        return decodeURIComponent(dnValue.replace(/\+/g, ' '));
-    } catch {
-        return '';
-    }
+    return isMagnetLink(url) ? getDeclaredTorrentNameFromMagnetLink(url) ?? '' : '';
 }
 
 // Last resort: the full url is displayed right below the label anyway, so
