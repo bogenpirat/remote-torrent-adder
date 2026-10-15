@@ -74,8 +74,13 @@ export function describeError(code: unknown, errors: Record<number, string>): st
     return errors[code] ?? COMMON_ERRORS[code] ?? `Unknown error ${code}`;
 }
 
+// The highest version of each task call whose parameters these requests are written against.
+const TASK2_MAX_VERSION = 2;
+const LEGACY_MAGNET_MAX_VERSION = 3;
+const LEGACY_FILE_MAX_VERSION = 2;
+
 export function createModernTaskRequest(endpoint: SynologyApiEndpoint, task: SynologyTask): SynologyRequest {
-    const version = String(Math.min(endpoint.maxVersion, 2));
+    const version = String(Math.min(endpoint.maxVersion, TASK2_MAX_VERSION));
     return task.torrent.isMagnet
         ? createModernMagnetRequest(endpoint.url, version, task)
         : createModernFileRequest(endpoint.url, version, task);
@@ -123,7 +128,7 @@ export function createLegacyTaskRequest(endpoint: SynologyApiEndpoint, task: Syn
 function createLegacyMagnetRequest(endpoint: SynologyApiEndpoint, task: SynologyTask): SynologyRequest {
     const body = new URLSearchParams({
         api: TASK_API,
-        version: String(Math.min(endpoint.maxVersion, 3)),
+        version: String(Math.min(endpoint.maxVersion, LEGACY_MAGNET_MAX_VERSION)),
         method: "create",
         _sid: task.sessionId,
         uri: task.torrent.data as string,
@@ -137,7 +142,7 @@ function createLegacyMagnetRequest(endpoint: SynologyApiEndpoint, task: Synology
 function createLegacyFileRequest(endpoint: SynologyApiEndpoint, task: SynologyTask): SynologyRequest {
     const payload = new FormData();
     payload.append("api", TASK_API);
-    payload.append("version", String(Math.min(endpoint.maxVersion, 2)));
+    payload.append("version", String(Math.min(endpoint.maxVersion, LEGACY_FILE_MAX_VERSION)));
     payload.append("method", "create");
     payload.append("_sid", task.sessionId);
     if (task.destination) {

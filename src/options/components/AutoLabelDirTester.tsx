@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import type { Torrent } from "../../models/torrent";
+import { messageOf } from "../../models/error-message";
 import { explainAutoLabelDir } from "../../util/auto-label-dir-matcher";
 import { buildTorrentFromMagnetLink, parseTorrentFile } from "../../util/torrent-source";
 import AutoLabelDirTestResult, { type TestedRules } from "./AutoLabelDirTestResult";
@@ -130,8 +131,8 @@ async function tryTorrentFile(file: File | undefined, trial: RuleTrial): Promise
   }
   try {
     trial.showParsedFile(await parseTorrentFile(file));
-  } catch (e) {
-    trial.fail((e as Error).message);
+  } catch (error) {
+    trial.fail(messageOf(error));
   }
 }
 

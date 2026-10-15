@@ -21,6 +21,9 @@
   --rta-info: #4682b4;
   --rta-neutral: #eeeeee;
   --rta-shadow-color: rgba(110,139,116,0.10);
+  --rta-chip-shadow: 0 1px 4px rgba(110,139,116,0.08);
+  --rta-selected-shadow: 0 1px 4px rgba(110,139,116,0.15);
+  --rta-thumb-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,6 +46,8 @@
     --rta-info: #5ca2d6;
     --rta-neutral: #444444;
     --rta-shadow-color: rgba(0,0,0,0.5);
+    --rta-chip-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    --rta-selected-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
   body {
     background: #0d110f;

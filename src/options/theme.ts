@@ -16,3 +16,6 @@ export const WARNING = "var(--rta-warning, #B8860B)";
 export const DANGER = "var(--rta-danger, #B22222)";
 export const DANGER_DARK = "var(--rta-danger-dark, #8B0000)";
 export const INFO = "var(--rta-info, #4682B4)";
+export const CHIP_SHADOW = "var(--rta-chip-shadow, 0 1px 4px rgba(110,139,116,0.08))";
+export const SELECTED_SHADOW = "var(--rta-selected-shadow, 0 1px 4px rgba(110,139,116,0.15))";
+export const THUMB_SHADOW = "var(--rta-thumb-shadow, 0 1px 4px rgba(0,0,0,0.4))";

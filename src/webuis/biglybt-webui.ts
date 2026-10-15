@@ -31,7 +31,7 @@ export class BiglyBTWebUI extends BasicAuthWebUI {
         }
     }
 
-    createAddUrl(torrent: Torrent, config: TorrentUploadConfig): string {
+    private createAddUrl(torrent: Torrent, config: TorrentUploadConfig): string {
         return [
             this.createBaseUrl(),
             torrent.isMagnet ? TRANSMISSION_RPC_PATH : UPLOAD_PATH,
@@ -39,21 +39,21 @@ export class BiglyBTWebUI extends BasicAuthWebUI {
         ].join("");
     }
 
-    async fetchSessionCookie(addUrl: string): Promise<void> {
+    private async fetchSessionCookie(addUrl: string): Promise<void> {
         const response = await fetch(addUrl);
         if (!isSessionHandshakeStatus(response.status)) {
             throw new HttpError(response.status, await response.text());
         }
     }
 
-    createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
+    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
         return JSON.stringify({
             "method": "torrent-add",
             "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri }
         });
     }
 
-    createPayloadForTorrent(torrent: Torrent): FormData {
+    private createPayloadForTorrent(torrent: Torrent): FormData {
         const payload = new FormData();
 
         const blobData = new Blob([torrent.data], { type: "application/x-bittorrent" });

@@ -1,5 +1,5 @@
 import React from "react";
-import { TEXT, MUTED, GREEN_DARK, ACCENT, BORDER, CHIP_BG, SURFACE } from "../theme";
+import { TEXT, MUTED, GREEN_DARK, ACCENT, BORDER, CHIP_BG, SURFACE, SELECTED_SHADOW } from "../theme";
 
 interface RadioCardProps {
   name: string;
@@ -41,7 +41,7 @@ function cardStyle({ checked, disabled }: Pick<RadioCardProps, "checked" | "disa
     borderRadius: 10,
     border: `1px solid ${checked ? ACCENT : BORDER}`,
     background: checked ? CHIP_BG : SURFACE,
-    boxShadow: checked ? "0 1px 4px rgba(110,139,116,0.15)" : "none",
+    boxShadow: checked ? SELECTED_SHADOW : "none",
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? "not-allowed" : "pointer",
     transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",

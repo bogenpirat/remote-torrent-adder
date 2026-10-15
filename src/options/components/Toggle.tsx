@@ -1,5 +1,5 @@
 import React from "react";
-import { SURFACE, NEUTRAL, SUCCESS } from "../theme";
+import { SURFACE, NEUTRAL, SUCCESS, THUMB_SHADOW } from "../theme";
 
 interface ToggleProps {
   checked: boolean;
@@ -30,7 +30,7 @@ const THUMB_SHAPE_STYLE: React.CSSProperties = {
   height: 20,
   borderRadius: "50%",
   background: SURFACE,
-  boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
+  boxShadow: THUMB_SHADOW,
   transition: "left 0.2s",
 };
 

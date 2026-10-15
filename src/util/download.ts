@@ -13,6 +13,7 @@ import { executeMethodWrappedWithReferer } from "./cors-tricks";
 import { getBaseUrl } from "./utils";
 import { base64ToBytes, MAX_TORRENT_FILE_BYTES } from "./torrent-bytes";
 import { buildTorrentFromDecodedData, buildTorrentFromMagnetLink } from "./torrent-source";
+import { messageOf } from "../models/error-message";
 
 export interface TorrentDownloadContext {
     tabId?: number | null;
@@ -98,7 +99,7 @@ async function askPageToFetch(url: string, target: PageTarget): Promise<IFetchTo
         const response: IFetchTorrentInPageResponse | undefined = await ext.tabs.sendMessage(target.tabId, message, frame);
         return response ?? { error: "The content script in tab " + target.tabId + " answered with nothing." };
     } catch (error) {
-        return { error: "No content script answered in tab " + target.tabId + ": " + String(error) };
+        return { error: "No content script answered in tab " + target.tabId + ": " + messageOf(error) };
     }
 }
 
@@ -137,7 +138,7 @@ async function fetchWithReferer(url: string, referer: string): Promise<Response>
     try {
         return await executeMethodWrappedWithReferer(() => fetch(url, { credentials: "include" }), url, referer);
     } catch (error) {
-        throw new Error("Failed to fetch torrent file: " + (error as Error).message, { cause: error });
+        throw new Error("Failed to fetch torrent file: " + messageOf(error), { cause: error });
     }
 }
 

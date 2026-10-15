@@ -7,6 +7,7 @@ import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
 import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 import { type ClientSpecificSettingDescriptor } from '../../models/webui';
+import { messageOf } from '../../models/error-message';
 
 export default function Home() {
   const mode = new URLSearchParams(window.location.search).get('mode');
@@ -39,7 +40,7 @@ function BufferedTorrentForm() {
       .catch((error: unknown) => {
         if (cancelled) return;
         console.error('Failed loading the pending torrent', error);
-        setState({ status: 'failed', message: errorMessage(error) });
+        setState({ status: 'failed', message: messageOf(error) });
       });
     return () => {
       cancelled = true;
@@ -149,16 +150,12 @@ function useSubmission(send: () => Promise<void>): Submission {
       window.close();
     } catch (failure: unknown) {
       console.error('Failed adding the torrent', failure);
-      setError(errorMessage(failure));
+      setError(messageOf(failure));
       setSubmitting(false);
     }
   };
 
   return { submitting, error, submit };
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 function moveToFront(value: string, options: string[]): string[] {

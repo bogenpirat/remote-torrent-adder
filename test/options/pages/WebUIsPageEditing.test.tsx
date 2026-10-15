@@ -17,7 +17,7 @@ async function renderPage(webuiSettings: WebUISettings[] = [ALPHA, BETA]): Promi
     await screen.findByRole("button", { name: "Add new WebUI" });
 }
 
-async function testConnection(outcome: () => Promise<ConnectionTestResult>): Promise<HTMLElement> {
+async function testConnection(outcome: () => Promise<unknown>): Promise<HTMLElement> {
     respondWithSettings({ webuiSettings: [ALPHA] }, message => {
         return message.action === TestConnectionMessage.action ? outcome() : Promise.resolve(undefined);
     });
@@ -239,7 +239,13 @@ describe("WebUIsPage connection test", () => {
     it("reports a test that could not be run at all", async () => {
         const general = await testConnection(() => Promise.reject(new Error("worker asleep")));
 
-        expect(await within(general).findByText("❌ Error: worker asleep")).toBeInTheDocument();
+        expect(await within(general).findByText("❌ worker asleep")).toBeInTheDocument();
+    });
+
+    it("reports the error the service worker sent back instead of a result", async () => {
+        const general = await testConnection(() => Promise.resolve({ error: "handler crashed" }));
+
+        expect(await within(general).findByText("❌ handler crashed")).toBeInTheDocument();
     });
 
     it("disables the button while a test is running", async () => {

@@ -6,6 +6,8 @@ import { type RTASettings } from "../models/settings";
 
 
 export const POPUP_PAGE = "popup/popup.html";
+const POPUP_WINDOW_WIDTH = 420;
+const POPUP_WINDOW_HEIGHT = 600;
 
 export type PopupMode = "picker" | "links";
 
@@ -53,8 +55,7 @@ export async function openPrimaryWebUi(): Promise<void> {
 }
 
 export async function openActionPopup(windowId: number, mode?: PopupMode): Promise<void> {
-    const popup = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
-    await ext.action.setPopup({ popup });
+    await ext.action.setPopup({ popup: popupPageFor(mode) });
     try {
         await ext.action.openPopup({ windowId });
     } finally {
@@ -70,14 +71,17 @@ export async function resolveWindowId(tab?: chrome.tabs.Tab): Promise<number> {
 }
 
 export function openPopupWindow(mode?: PopupMode): void {
-    const url = mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
-    void ext.windows.create({
-        url,
+    ext.windows.create({
+        url: popupPageFor(mode),
         type: "popup",
-        width: 420,
-        height: 600,
+        width: POPUP_WINDOW_WIDTH,
+        height: POPUP_WINDOW_HEIGHT,
         focused: true
-    });
+    }).catch(error => console.error("Failed opening the popup window:", error));
+}
+
+function popupPageFor(mode?: PopupMode): string {
+    return mode ? `${POPUP_PAGE}?mode=${mode}` : POPUP_PAGE;
 }
 
 export function updateBadgeText(text: string, tabId: number): void {

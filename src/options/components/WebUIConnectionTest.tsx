@@ -1,7 +1,8 @@
 import { useState, type CSSProperties } from "react";
 import { ext } from "../../util/browser-api";
-import { TestConnectionMessage, type ITestConnectionMessage } from "../../models/messages";
+import { TestConnectionMessage, type ITestConnectionMessage, isErrorReply } from "../../models/messages";
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
+import { messageOf } from "../../models/error-message";
 import { SUCCESS, WARNING, DANGER, INFO, ON_FILLED } from "../theme";
 
 const UNREACHABLE = { color: DANGER, icon: "❌" };
@@ -63,14 +64,21 @@ function useConnectionTest(webUiSettings: WebUISettings): ConnectionTest {
 
 async function requestConnectionTest(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
   try {
-    const result = await ext.runtime.sendMessage({
+    const response: unknown = await ext.runtime.sendMessage({
       action: TestConnectionMessage.action,
       webUiSettings,
     } as ITestConnectionMessage);
-    return result as ConnectionTestResult;
+    if (isErrorReply(response)) {
+      return failedTestResult(response.error);
+    }
+    return response as ConnectionTestResult;
   } catch (error) {
-    return { reachable: false, authenticated: null, httpResponseCode: 0, message: String(error) };
+    return failedTestResult(messageOf(error));
   }
+}
+
+function failedTestResult(message: string): ConnectionTestResult {
+  return { reachable: false, authenticated: null, httpResponseCode: 0, message };
 }
 
 function TestOutcome({ result }: { result: ConnectionTestResult }) {

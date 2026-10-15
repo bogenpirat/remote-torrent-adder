@@ -2,11 +2,11 @@ import { useState, type CSSProperties, type JSX } from "react";
 import Toggle from "../components/Toggle";
 import { useSettings } from "../SettingsContext";
 import { ACCENT_BUTTON_STYLE, CHIP_INPUT_STYLE, CHIP_STYLE, LIST_HEADING_STYLE, MONOSPACE_INPUT_STYLE } from "../shared-styles";
-import { TEXT, BORDER, INPUT_BG, SUCCESS, DANGER } from "../theme";
+import { TEXT, BORDER, INPUT_BG, SUCCESS, DANGER, CHIP_SHADOW } from "../theme";
 
 const REGEX_CHIP_STYLE: CSSProperties = {
   ...CHIP_STYLE,
-  boxShadow: "0 1px 4px rgba(110,139,116,0.08)",
+  boxShadow: CHIP_SHADOW,
   transition: "box-shadow 0.2s"
 };
 

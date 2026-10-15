@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import { useSettings } from "../SettingsContext";
 import { type RTASettings } from "../../models/settings";
+import { messageOf } from "../../models/error-message";
 import { serializeSettings, deserializeSettings } from "../../util/serializer";
 import { migrateSettingsClientIdentifiers } from "../../util/legacy-client-identifiers";
 
@@ -60,7 +61,7 @@ function ImportCard({ onImport }: { onImport: (settings: RTASettings) => void })
     try {
       imported = parseSettingsExport(importValue);
     } catch (error) {
-      setImportError((error as Error).message);
+      setImportError(messageOf(error));
       return;
     }
     onImport(migrateSettingsClientIdentifiers(imported));

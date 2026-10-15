@@ -15,10 +15,12 @@ import {
     TestConnectionMessage,
     type ITestConnectionMessage,
     type ISaveSettingsMessage,
+    type ErrorReply,
     type ITestNotificationMessage,
     type IMessagable
 } from "../models/messages";
 import { type ConnectionTestResult, type WebUISettings } from "../models/webui";
+import { messageOf } from "../models/error-message";
 import { WebUIFactory } from "../models/clients";
 import { resolveWindowId, updateBadgeText } from "./action";
 import { addBufferedTorrent, addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
@@ -86,7 +88,7 @@ function createResponder(message: IMessagable, sendResponse: SendResponse): Resp
     };
     const fail = (err: unknown) => {
         console.error("Message handling error", message?.action, err);
-        finish({ error: (err as Error)?.message || String(err) });
+        finish({ error: messageOf(err) } satisfies ErrorReply);
     };
     return { finish, fail };
 }
@@ -121,8 +123,7 @@ async function loadSerializedLinkCatchingConfig({ settingsProvider }: MessageReq
 }
 
 async function saveSettings({ message, settingsProvider }: MessageRequest): Promise<object> {
-    const saveSettingsMessage = message as ISaveSettingsMessage & { settings: string };
-    await settingsProvider.saveSettings(deserializeSettings(saveSettingsMessage.settings));
+    await settingsProvider.saveSettings(deserializeSettings((message as ISaveSettingsMessage).settings));
     return {};
 }
 

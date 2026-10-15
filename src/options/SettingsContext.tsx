@@ -1,7 +1,7 @@
 import { sendMessageAndForget } from "../util/browser-api";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { RTASettings } from "../models/settings";
-import { SaveSettingsMessage } from "../models/messages";
+import { SaveSettingsMessage, type ISaveSettingsMessage } from "../models/messages";
 import { deserializeSettings, serializeSettings } from "../util/serializer";
 import { requestSerializedSettings } from "../util/request-settings";
 
@@ -35,7 +35,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Save settings to service worker whenever they change
   const saveSettings = (newSettings: RTASettings) => {
     setSettings(newSettings);
-    sendMessageAndForget({ action: SaveSettingsMessage.action, settings: serializeSettings(newSettings) });
+    sendMessageAndForget({
+      action: SaveSettingsMessage.action,
+      settings: serializeSettings(newSettings),
+    } satisfies ISaveSettingsMessage);
   };
 
   const updateSetting = <Key extends keyof RTASettings>(key: Key, value: RTASettings[Key]) => {

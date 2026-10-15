@@ -4,6 +4,7 @@ import { type RTASettings } from "../models/settings";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type TorrentAddingResult, type TorrentWebUI } from "../models/webui";
 import { HttpError } from "../models/webui-http";
+import { messageOf } from "../models/error-message";
 import { openActionPopup, openPopupWindow } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { clearBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "./buffered-torrent";
@@ -83,18 +84,18 @@ export async function addBufferedTorrent(message: IAddTorrentMessageWithLabelAnd
 
     sendTorrentInBackground({ webUi, settings, torrent }, message.config);
     await clearBufferedTorrent();
-    await saveLabelsAndDirectories(settingsProvider, { webUi, settings }, message)
+    await settingsProvider.saveSettings(withLabelsAndDirectories(settings, message))
         .catch(error => console.error("Failed updating labels/dirs", error));
 }
 
-async function saveLabelsAndDirectories(
-    settingsProvider: Settings,
-    { webUi, settings }: AddTarget,
-    message: IAddTorrentMessageWithLabelAndDir,
-): Promise<void> {
-    webUi.settings.labels = message.labels;
-    webUi.settings.dirs = message.directories;
-    await settingsProvider.saveSettings(settings);
+/** Keeps the label and directory options the user edited in the popup for the next add to that WebUI. */
+function withLabelsAndDirectories(settings: RTASettings, message: IAddTorrentMessageWithLabelAndDir): RTASettings {
+    return {
+        ...settings,
+        webuiSettings: settings.webuiSettings.map(webUiSettings => webUiSettings.id === message.webUiId
+            ? { ...webUiSettings, labels: message.labels, dirs: message.directories }
+            : webUiSettings),
+    };
 }
 
 async function addTorrentViaChooser(addTarget: AddTarget, preAddRequest: PreAddTorrentRequest): Promise<void> {
@@ -250,10 +251,6 @@ function notifyDownloadFailure(error: unknown, { webUi, settings }: AddTarget): 
         kind: "failure",
         clickUrl: webUiUrlOf(webUi),
     });
-}
-
-function messageOf(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
 }
 
 function webUiUrlOf(webUi: TorrentWebUI): string {

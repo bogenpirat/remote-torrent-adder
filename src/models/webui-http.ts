@@ -1,3 +1,4 @@
+import { messageOf } from "./error-message";
 import { type ConnectionTestResult, type TorrentAddingResult, type WebUISettings } from "./webui";
 
 export type Credentials = Pick<WebUISettings, "username" | "password">;
@@ -38,7 +39,7 @@ export function toFailureResult(error: unknown): TorrentAddingResult {
     if (error instanceof HttpError) {
         return { success: false, httpResponseCode: error.status, httpResponseBody: error.body };
     }
-    return { success: false, httpResponseCode: 0, httpResponseBody: (error as Error)?.message ?? null };
+    return { success: false, httpResponseCode: 0, httpResponseBody: messageOf(error) };
 }
 
 export function toAuthenticatedResult(httpResponseCode: number): ConnectionTestResult {
@@ -54,7 +55,7 @@ export function toUnreachableResult(error: unknown): ConnectionTestResult {
         reachable: false,
         authenticated: null,
         httpResponseCode: error instanceof HttpError ? error.status : 0,
-        message: `Could not reach server: ${(error as Error)?.message ?? error}`,
+        message: `Could not reach server: ${messageOf(error)}`,
     };
 }
 

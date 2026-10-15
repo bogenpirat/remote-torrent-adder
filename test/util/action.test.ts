@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { registerActionClickListener, openPrimaryWebUi, updateBadgeText } from "../../src/util/action";
+import { registerActionClickListener, openPrimaryWebUi, openPopupWindow, updateBadgeText } from "../../src/util/action";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { serializeSettings } from "../../src/util/serializer";
 import { SETTINGS_KEY } from "../../src/util/settings";
@@ -123,5 +123,25 @@ describe("updateBadgeText", () => {
     it("clears the badge with an empty string", () => {
         updateBadgeText("", 42);
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "", tabId: 42 });
+    });
+});
+
+describe("openPopupWindow", () => {
+    it("opens the popup page in the requested mode", () => {
+        openPopupWindow("picker");
+
+        expect(chrome.windows.create).toHaveBeenCalledWith(expect.objectContaining({ url: "popup/popup.html?mode=picker" }));
+    });
+
+    it("logs a window that could not be opened", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.windows.create as any).mockRejectedValueOnce(new Error("no display"));
+
+        openPopupWindow();
+
+        await vi.waitFor(() => expect(consoleError).toHaveBeenCalledWith(
+            "Failed opening the popup window:",
+            expect.objectContaining({ message: "no display" }),
+        ));
     });
 });

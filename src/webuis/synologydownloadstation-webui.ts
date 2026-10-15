@@ -18,10 +18,12 @@ import {
 } from "./synology-api";
 import { FORM_URLENCODED_HEADERS, fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
-export class SynologyDownloadStationWebUI extends TorrentWebUI {
-    private apiInfo: SynologyApiInfoMap | null = null;
-    private sessionId: string | null = null;
+// DSM 7 reports auth API v7 or later; the login is sent as v6 there and as v2 on older DSM.
+const DSM7_AUTH_MIN_VERSION = 7;
+const DSM7_AUTH_VERSION = 6;
+const LEGACY_AUTH_VERSION = 2;
 
+export class SynologyDownloadStationWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
             const apis = await this.discoverApis();
@@ -56,17 +58,13 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             const sessionId = await this.login(apis);
 
             const request = this.createTaskRequest(apis, { sessionId, torrent, destination: this.resolveDestination(config) });
-            return await this.toTorrentAddingResult(await fetchOrThrow(request.url, request.options), TASK_ERRORS);
+            return await this.toTorrentAddingResult(await fetchOrThrow(request.url, request.options));
         } catch (error) {
             return toFailureResult(error);
         }
     }
 
     private async discoverApis(): Promise<SynologyApiInfoMap> {
-        if (this.apiInfo) {
-            return this.apiInfo;
-        }
-
         const params = new URLSearchParams({
             api: INFO_API,
             version: "1",
@@ -80,15 +78,10 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             throw new Error(`Could not query the Synology API list: ${describeError(json?.error?.code, {})}`);
         }
 
-        this.apiInfo = json.data as SynologyApiInfoMap;
-        return this.apiInfo;
+        return json.data as SynologyApiInfoMap;
     }
 
     private async login(apis: SynologyApiInfoMap): Promise<string> {
-        if (this.sessionId) {
-            return this.sessionId;
-        }
-
         const response = await fetchOrThrow(this.createLoginUrl(apis), this.createLoginFetchOptions(apis));
         const json = await response.json();
 
@@ -96,8 +89,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             throw new Error(`Authentication failed: ${describeError(json?.error?.code, AUTH_ERRORS)}`);
         }
 
-        this.sessionId = json.data.sid as string;
-        return this.sessionId;
+        return json.data.sid as string;
     }
 
     private createLoginUrl(apis: SynologyApiInfoMap): string {
@@ -111,7 +103,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
             headers: FORM_URLENCODED_HEADERS,
             body: new URLSearchParams({
                 api: AUTH_API,
-                version: String(info.maxVersion >= 7 ? 6 : 2),
+                version: String(info.maxVersion >= DSM7_AUTH_MIN_VERSION ? DSM7_AUTH_VERSION : LEGACY_AUTH_VERSION),
                 method: "login",
                 account: this.settings.username,
                 passwd: this.settings.password,
@@ -133,7 +125,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
         return { url: `${this.createBaseUrl()}/webapi/${info.path}`, maxVersion: info.maxVersion };
     }
 
-    private async toTorrentAddingResult(response: Response, errors: Record<number, string>): Promise<TorrentAddingResult> {
+    private async toTorrentAddingResult(response: Response): Promise<TorrentAddingResult> {
         const responseText = await response.text();
 
         let json: { success?: boolean; error?: { code?: number } };
@@ -150,7 +142,7 @@ export class SynologyDownloadStationWebUI extends TorrentWebUI {
         return {
             success: false,
             httpResponseCode: response.status,
-            httpResponseBody: describeError(json?.error?.code, errors),
+            httpResponseBody: describeError(json?.error?.code, TASK_ERRORS),
         };
     }
 

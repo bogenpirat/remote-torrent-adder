@@ -6,16 +6,19 @@ const OPTIONS_DIRECTORY = "src/options";
 const THEME_MODULE = "theme.ts";
 const STYLESHEET = readFileSync(`${OPTIONS_DIRECTORY}/options-theme.css`, "utf-8");
 const LIGHT_RULES = STYLESHEET.slice(0, STYLESHEET.indexOf("@media"));
-const HEX_COLOUR_PATTERN = /#[0-9a-fA-F]{3,8}\b/;
-const TOKEN_PATTERN = /^var\((--rta-[a-z-]+), (#[0-9a-fA-F]+)\)$/;
+const LITERAL_STYLE_VALUE_PATTERN = /#[0-9a-fA-F]{3,8}\b|rgba?\(/;
+const TOKEN_PATTERN = /^var\((--rta-[a-z-]+), (.+)\)$/;
 
-function expandShortHex(color: string): string {
-    const digits = color.slice(1).toLowerCase();
+function normalizeHex(value: string): string {
+    if (!value.startsWith("#")) {
+        return value;
+    }
+    const digits = value.slice(1).toLowerCase();
     return "#" + (digits.length === 3 ? [...digits].map(digit => digit + digit).join("") : digits);
 }
 
 function lightValueOf(property: string): string | undefined {
-    return new RegExp(`${property}: *(#[0-9a-fA-F]+)`).exec(LIGHT_RULES)?.[1];
+    return new RegExp(`${property}: *([^;]+);`).exec(LIGHT_RULES)?.[1];
 }
 
 function scriptsContaining(pattern: RegExp): string[] {
@@ -28,21 +31,21 @@ function scriptsOutsideThemeModule(): string[] {
         .filter(path => /\.tsx?$/.test(path) && path !== THEME_MODULE);
 }
 
-describe.each(Object.entries(theme))("theme colour %s", (_name, token) => {
+describe.each(Object.entries(theme))("theme token %s", (_name, token) => {
     it("falls back to the light value of a custom property the stylesheet defines", () => {
         const [, property, fallback] = TOKEN_PATTERN.exec(token) ?? [];
 
         expect(property).toBeDefined();
-        expect(expandShortHex(fallback!)).toBe(lightValueOf(property!));
+        expect(normalizeHex(fallback!)).toBe(lightValueOf(property!));
     });
 });
 
-describe("theme colours outside the theme module", () => {
+describe("theme tokens outside the theme module", () => {
     it("are never spelled out as a custom property with its own fallback", () => {
         expect(scriptsContaining(/var\(--rta-/)).toEqual([]);
     });
 
-    it("are never spelled out as a hex literal", () => {
-        expect(scriptsContaining(HEX_COLOUR_PATTERN)).toEqual([]);
+    it("are never spelled out as a hex or rgb literal", () => {
+        expect(scriptsContaining(LITERAL_STYLE_VALUE_PATTERN)).toEqual([]);
     });
 });

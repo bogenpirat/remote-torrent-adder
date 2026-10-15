@@ -1,6 +1,6 @@
 import { ext } from "../util/browser-api";
 import { WebUIFactory } from "../models/clients";
-import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir } from "../models/messages";
+import { AddTorrentMessageWithLabelAndDir, type IAddTorrentMessageWithLabelAndDir, isErrorReply } from "../models/messages";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type TorrentWebUI, type WebUISettings } from "../models/webui";
 import { getAutoDirResult, getAutoLabelResult } from "../util/auto-label-dir-matcher";
@@ -126,7 +126,7 @@ export async function submitTorrent(request: AddTorrentRequest): Promise<void> {
     };
 
     const response = await ext.runtime.sendMessage(message);
-    if (response && typeof response === "object" && "error" in response) {
-        throw new Error(String(response.error));
+    if (isErrorReply(response)) {
+        throw new Error(response.error);
     }
 }

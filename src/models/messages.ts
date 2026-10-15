@@ -1,4 +1,3 @@
-import { type RTASettings } from "./settings";
 import { type TorrentUploadConfig } from "./torrent";
 import { type WebUISettings } from "./webui";
 
@@ -94,7 +93,8 @@ export interface IUpdateActionBadgeTextMessage extends IMessagable {
 }
 
 export interface ISaveSettingsMessage extends IMessagable {
-    settings: RTASettings;
+    /** Serialized with serializeSettings, because extension messages are JSON and would drop the RegExps. */
+    settings: string;
 }
 
 export interface ITestNotificationMessage extends IMessagable {
@@ -129,4 +129,14 @@ export interface IPageLinksResponse {
 
 export interface IMessagable {
     action: string;
+}
+
+/** The reply a message handler sends instead of its result when it fails. */
+export interface ErrorReply {
+    error: string;
+}
+
+export function isErrorReply(response: unknown): response is ErrorReply {
+    return typeof response === "object" && response !== null && "error" in response
+        && typeof response.error === "string";
 }

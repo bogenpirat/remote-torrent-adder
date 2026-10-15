@@ -106,7 +106,7 @@ describe("downloadTorrent (file)", () => {
         const addedRule = (chrome.declarativeNetRequest.updateDynamicRules as any).mock.calls[0][0].addRules[0];
         expect(addedRule.action.requestHeaders).toEqual([
             { header: "Referer", operation: "set", value: "https://tracker.org/browse?id=7" },
-            { header: "Origin", operation: "remove" },
+            { header: "origin", operation: "remove" },
         ]);
     });
 
@@ -141,7 +141,7 @@ describe("downloadTorrent (through the page)", () => {
 
         expect(fetch).toHaveBeenCalled();
         expect(torrent.name).toBe("from-worker");
-        const reason = "No content script answered in tab 9: Error: Could not establish connection.";
+        const reason = "No content script answered in tab 9: Could not establish connection.";
         expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, reason]]);
     });
 
