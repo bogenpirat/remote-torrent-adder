@@ -3,7 +3,7 @@ import { CloudflareChallengeError, downloadTorrent } from "../../src/util/downlo
 import { FetchTorrentInPageMessage } from "../../src/models/messages";
 import { bytesToBase64 } from "../../src/util/torrent-bytes";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
-import { buildBencodedTorrent } from "../helpers/fixtures";
+import { buildBencodedTorrent, utf8Bytes } from "../helpers/fixtures";
 
 const CLOUDFLARE_CHALLENGE_BODY =
     "<html><head><script src='/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1'></script></head></html>";
@@ -27,7 +27,7 @@ function pageResponse(body: string, over: Record<string, unknown> = {}) {
             contentType: "application/x-bittorrent",
             cfMitigated: null,
             finalUrl: "https://tracker.org/get/1.torrent",
-            base64: bytesToBase64(new TextEncoder().encode(body)),
+            base64: bytesToBase64(utf8Bytes(body)),
             ...over,
         },
     };
@@ -173,7 +173,7 @@ describe("downloadTorrent (through the page)", () => {
             ok: false,
             status: 403,
             contentType: "text/html; charset=utf-8",
-            base64: bytesToBase64(new TextEncoder().encode(CLOUDFLARE_CHALLENGE_BODY)),
+            base64: bytesToBase64(utf8Bytes(CLOUDFLARE_CHALLENGE_BODY)),
         }));
 
         await expect(downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 })).rejects.toThrow(CloudflareChallengeError);

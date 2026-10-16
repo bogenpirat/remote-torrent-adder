@@ -10,7 +10,7 @@ import {
     parsePrivateFlagFromDecodedTorrentData,
 } from "../../src/util/parsers";
 
-const enc = (s: string) => new TextEncoder().encode(s);
+import { utf8Bytes } from "../helpers/fixtures";
 
 describe("getTorrentNameFromMagnetLink", () => {
     it("extracts and decodes the dn parameter", () => {
@@ -72,14 +72,14 @@ describe("getTorrentNameFromLink", () => {
 
 describe("parseTrackersFromDecodedTorrentData", () => {
     it("returns the single announce tracker", () => {
-        const data = { announce: enc("http://tracker.one/announce") };
+        const data = { announce: utf8Bytes("http://tracker.one/announce") };
         expect(parseTrackersFromDecodedTorrentData(data)).toEqual(["http://tracker.one/announce"]);
     });
 
     it("includes announce-list trackers and de-duplicates", () => {
         const data = {
-            announce: enc("http://tracker.one/announce"),
-            "announce-list": [[enc("http://tracker.one/announce")], [enc("http://tracker.two/announce")]],
+            announce: utf8Bytes("http://tracker.one/announce"),
+            "announce-list": [[utf8Bytes("http://tracker.one/announce")], [utf8Bytes("http://tracker.two/announce")]],
         };
         expect(parseTrackersFromDecodedTorrentData(data)).toEqual([
             "http://tracker.one/announce",
@@ -89,14 +89,14 @@ describe("parseTrackersFromDecodedTorrentData", () => {
 
     it("returns no trackers when the torrent has no announce key", () => {
         expect(parseTrackersFromDecodedTorrentData({ info: {} })).toEqual([]);
-        expect(parseTrackersFromDecodedTorrentData({ "announce-list": [[enc("http://tracker.two/announce")]] }))
+        expect(parseTrackersFromDecodedTorrentData({ "announce-list": [[utf8Bytes("http://tracker.two/announce")]] }))
             .toEqual(["http://tracker.two/announce"]);
     });
 
     it("ignores a non-array entry in announce-list", () => {
         // deliberately malformed: announce-list entries must themselves be lists
         const data = {
-            announce: enc("http://tracker.one/announce"),
+            announce: utf8Bytes("http://tracker.one/announce"),
             "announce-list": ["not-an-array"],
         } as unknown as DecodedTorrent;
         expect(parseTrackersFromDecodedTorrentData(data)).toEqual(["http://tracker.one/announce"]);
@@ -105,7 +105,7 @@ describe("parseTrackersFromDecodedTorrentData", () => {
 
 describe("parseNameFromDecodedTorrentData", () => {
     it("decodes info.name", () => {
-        expect(parseNameFromDecodedTorrentData({ info: { name: enc("ubuntu.iso") } })).toBe("ubuntu.iso");
+        expect(parseNameFromDecodedTorrentData({ info: { name: utf8Bytes("ubuntu.iso") } })).toBe("ubuntu.iso");
     });
 
     it("returns nothing when info is missing", () => {
@@ -127,8 +127,8 @@ describe("parseFilesFromDecodedTorrentData", () => {
         const data = {
             info: {
                 files: [
-                    { path: [enc("dir"), enc("a.mkv")] },
-                    { path: [enc("b.nfo")] },
+                    { path: [utf8Bytes("dir"), utf8Bytes("a.mkv")] },
+                    { path: [utf8Bytes("b.nfo")] },
                 ],
             },
         };
@@ -136,7 +136,7 @@ describe("parseFilesFromDecodedTorrentData", () => {
     });
 
     it("falls back to info.name for a single-file torrent (no files key)", () => {
-        expect(parseFilesFromDecodedTorrentData({ info: { name: enc("x.iso") } })).toEqual(["x.iso"]);
+        expect(parseFilesFromDecodedTorrentData({ info: { name: utf8Bytes("x.iso") } })).toEqual(["x.iso"]);
     });
 
     it("returns an empty array when info has neither files nor name", () => {
@@ -152,13 +152,13 @@ describe("parseFilesFromDecodedTorrentData", () => {
     });
 
     it("falls back to info.name when files is not an array", () => {
-        const malformed = { info: { name: enc("x.iso"), files: "nope" } } as unknown as DecodedTorrent;
+        const malformed = { info: { name: utf8Bytes("x.iso"), files: "nope" } } as unknown as DecodedTorrent;
 
         expect(parseFilesFromDecodedTorrentData(malformed)).toEqual(["x.iso"]);
     });
 
     it("tolerates a file entry with a missing path", () => {
-        expect(parseFilesFromDecodedTorrentData({ info: { files: [{}, { path: [enc("b.nfo")] }] } })).toEqual(["", "b.nfo"]);
+        expect(parseFilesFromDecodedTorrentData({ info: { files: [{}, { path: [utf8Bytes("b.nfo")] }] } })).toEqual(["", "b.nfo"]);
     });
 });
 

@@ -87,7 +87,8 @@ async function handleContextMenuClick(menuClick: MenuClick, settingsProvider: Se
     await addLinkToWebUis(targetWebUis, menuClick, settings);
 }
 
-async function addLinkToWebUis(targetWebUis: TorrentWebUI[], { onClickData, tab }: MenuClick, settings: RTASettings): Promise<void> {
+async function addLinkToWebUis(targetWebUis: TorrentWebUI[], menuClick: MenuClick, settings: RTASettings): Promise<void> {
+    const { onClickData, tab } = menuClick;
     const url = onClickData.linkUrl ?? "";
     const context = downloadContextFromMenuClick(onClickData, tab);
 

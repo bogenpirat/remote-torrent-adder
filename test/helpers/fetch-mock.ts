@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { utf8Bytes } from "./fixtures";
 
 interface MockResponseInit {
     status?: number;
@@ -15,21 +16,34 @@ interface MockResponseInit {
  */
 export function mockResponse(init: MockResponseInit = {}): Response {
     const status = init.status ?? 200;
-    const bodyText = init.json !== undefined ? JSON.stringify(init.json) : (init.body ?? "");
-    const headers = init.headers ?? {};
     return {
-        ok: status >= 200 && status < 300,
+        ok: isSuccessStatus(status),
         status,
         statusText: "",
         url: init.url ?? "",
-        headers: {
-            get: (name: string) => headers[name] ?? headers[name.toLowerCase()] ?? null,
-        },
+        headers: headerLookup(init.headers ?? {}),
+        ...bodyReaders(init),
+    } as unknown as Response;
+}
+
+function isSuccessStatus(status: number): boolean {
+    return status >= 200 && status < 300;
+}
+
+function headerLookup(headers: Record<string, string>) {
+    return {
+        get: (name: string) => headers[name] ?? headers[name.toLowerCase()] ?? null,
+    };
+}
+
+function bodyReaders(init: MockResponseInit) {
+    const bodyText = init.json !== undefined ? JSON.stringify(init.json) : (init.body ?? "");
+    return {
         text: () => Promise.resolve(bodyText),
         json: () => Promise.resolve(init.json !== undefined ? init.json : JSON.parse(bodyText || "null")),
         blob: () => Promise.resolve(new Blob([bodyText])),
-        arrayBuffer: () => Promise.resolve(new TextEncoder().encode(bodyText).buffer),
-    } as unknown as Response;
+        arrayBuffer: () => Promise.resolve(utf8Bytes(bodyText).buffer),
+    };
 }
 
 /**

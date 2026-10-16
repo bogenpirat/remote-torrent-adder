@@ -7,7 +7,9 @@ import { TEXT, MUTED, DANGER } from "../theme";
 
 // Custom sounds are kept small; they live in IndexedDB but are still loaded
 // into memory to play, so cap the size to keep things snappy.
-const MAX_SOUND_BYTES = 1024 * 1024;
+const BYTES_PER_KB = 1024;
+const MAX_SOUND_KB = 1024;
+const MAX_SOUND_BYTES = MAX_SOUND_KB * BYTES_PER_KB;
 
 const DEFAULT_SOUND_LABEL = "Default sound";
 
@@ -52,15 +54,15 @@ function HiddenSoundFileInput({ sound, inputRef }: { sound: CustomSound; inputRe
       ref={inputRef}
       type="file"
       accept="audio/*"
-      onChange={e => storeIfSmallEnough(sound, e.target.files?.[0])}
+      onChange={e => storeOrAlertTooLarge(sound, e.target.files?.[0])}
       style={{ display: "none" }}
     />
   );
 }
 
-function storeIfSmallEnough(sound: CustomSound, file: File | undefined): void {
+function storeOrAlertTooLarge(sound: CustomSound, file: File | undefined): void {
   if (file && file.size > MAX_SOUND_BYTES) {
-    alert(`That sound file is too large (max ${Math.round(MAX_SOUND_BYTES / 1024)} KB).`);
+    alert(`That sound file is too large (max ${MAX_SOUND_KB} KB).`);
   } else if (file) {
     void sound.store(file);
   }

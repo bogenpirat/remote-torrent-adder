@@ -57,7 +57,8 @@ interface ScriptBundle {
     fileName: string;
 }
 
-function scriptTarget({ entry, globalName, outSubDir, fileName }: ScriptBundle): UserConfig {
+function scriptTarget(bundle: ScriptBundle): UserConfig {
+    const { entry, globalName, outSubDir, fileName } = bundle;
     return {
         ...shared,
         root: rootDir,
