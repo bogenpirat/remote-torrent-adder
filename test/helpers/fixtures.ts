@@ -7,10 +7,6 @@ import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { serializeSettings } from "../../src/util/serializer";
 import { SETTINGS_KEY } from "../../src/util/settings";
 
-export function utf8Bytes(text: string): Uint8Array {
-    return new TextEncoder().encode(text);
-}
-
 /**
  * Writes the given WebUIs into the mocked chrome.storage.local, so code that
  * resolves clients lazily (context menu clicks, auth challenges, the action

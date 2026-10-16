@@ -8,7 +8,7 @@ import {
     toList,
     toText,
 } from "../../src/models/decoded-torrent";
-import { utf8Bytes } from "../helpers/fixtures";
+import { utf8Bytes } from "../helpers/bytes";
 
 describe("isBytes", () => {
     it("recognises a typed array regardless of which realm built it", () => {

@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { utf8Bytes } from "./fixtures";
+import { utf8Bytes } from "./bytes";
 
 interface MockResponseInit {
     status?: number;

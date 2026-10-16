@@ -3,7 +3,8 @@ import { CloudflareChallengeError, downloadTorrent } from "../../src/util/downlo
 import { FetchTorrentInPageMessage } from "../../src/models/messages";
 import { bytesToBase64 } from "../../src/util/torrent-bytes";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
-import { buildBencodedTorrent, utf8Bytes } from "../helpers/fixtures";
+import { utf8Bytes } from "../helpers/bytes";
+import { buildBencodedTorrent } from "../helpers/fixtures";
 
 const CLOUDFLARE_CHALLENGE_BODY =
     "<html><head><script src='/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1'></script></head></html>";
