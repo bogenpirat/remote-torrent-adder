@@ -1,5 +1,7 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type ClientSpecificSettingDescriptor, type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { BasicAuthWebUI } from "./basic-auth-webui";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -12,10 +14,8 @@ const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> =
     },
 ];
 
-export class RuTorrentWebUI extends TorrentWebUI {
-    public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/");
-    }
+export class RuTorrentWebUI extends BasicAuthWebUI {
+    protected readonly connectionProbePath = "/";
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
@@ -30,12 +30,12 @@ export class RuTorrentWebUI extends TorrentWebUI {
                 payload = this.createPayloadForTorrent(torrent, config);
             }
 
-            const response = await this.fetch(url, { method: 'POST', headers, body: payload });
+            const response = await fetchOrThrow(url, { method: 'POST', headers, body: payload });
             const responseBody = await response.text();
             const success = /result\[\]=Success/.test(response.url) || /addTorrentSuccess/.test(responseBody);
             return { success, httpResponseCode: response.status, httpResponseBody: responseBody };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
@@ -64,9 +64,9 @@ export class RuTorrentWebUI extends TorrentWebUI {
     createPayloadForTorrent(torrent: Torrent, config: TorrentUploadConfig): FormData {
         const message = new FormData();
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            message.append("dir_edit", dir);
+        const directory = this.getDirectory(config);
+        if (directory) {
+            message.append("dir_edit", directory);
         }
 
         const label = this.getLabel(config);

@@ -10,11 +10,11 @@ import {
 const FALLBACK_TORRENT_NAME = "file.torrent";
 const FALLBACK_MAGNET_NAME = "Some magnet link you clicked there, buddy.";
 
-export function getDeclaredTorrentNameFromMagnetLink(magnetLink: string): string | null {
+export function getDeclaredTorrentNameFromMagnetLink(magnetLink: string): string | undefined {
     try {
-        return new URL(magnetLink).searchParams.get("dn") || null;
+        return new URL(magnetLink).searchParams.get("dn") || undefined;
     } catch {
-        return null;
+        return undefined;
     }
 }
 
@@ -40,14 +40,14 @@ export function parseTrackersFromDecodedTorrentData(data: DecodedTorrent | null 
     const trackers = new Set<string>();
 
     const announce = toText(data?.announce);
-    if (announce !== null) {
+    if (announce !== undefined) {
         trackers.add(announce);
     }
 
     toList(data?.["announce-list"]).forEach(tier => {
         toList(tier).forEach(tracker => {
             const url = toText(tracker);
-            if (url !== null) {
+            if (url !== undefined) {
                 trackers.add(url);
             }
         });
@@ -56,8 +56,8 @@ export function parseTrackersFromDecodedTorrentData(data: DecodedTorrent | null 
     return Array.from(trackers);
 }
 
-export function parseNameFromDecodedTorrentData(data: DecodedTorrent | null | undefined): string | null {
-    return toText(toInfo(data)?.name) || null;
+export function parseNameFromDecodedTorrentData(data: DecodedTorrent | null | undefined): string | undefined {
+    return toText(toInfo(data)?.name) || undefined;
 }
 
 export function parseFilesFromDecodedTorrentData(data: DecodedTorrent | null | undefined): string[] {
@@ -73,7 +73,7 @@ export function parseFilesFromDecodedTorrentData(data: DecodedTorrent | null | u
 
     return info.files.map(file => toList(isBencodeDictionary(file) ? file["path"] : undefined)
         .map(segment => toText(segment))
-        .filter((segment): segment is string => segment !== null)
+        .filter((segment): segment is string => segment !== undefined)
         .join("/"));
 }
 

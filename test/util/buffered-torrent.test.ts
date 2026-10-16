@@ -6,12 +6,22 @@
 // store-and-read path that Chrome performs natively.
 
 import { describe, it, expect } from "vitest";
-import { clearBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
+import { clearBufferedTorrent, findBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "../../src/util/buffered-torrent";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 
 describe("buffered torrent store", () => {
-    it("returns null when nothing has been buffered", async () => {
-        expect(await readBufferedTorrent()).toBeNull();
+    it("finds nothing until a torrent is buffered", async () => {
+        expect(await findBufferedTorrent()).toBeUndefined();
+    });
+
+    it("refuses to read a torrent that is not there", async () => {
+        await expect(readBufferedTorrent()).rejects.toThrow("No buffered torrent to add; it may already have been consumed.");
+    });
+
+    it("finds a buffered torrent", async () => {
+        await saveBufferedTorrent({ torrent: makeMagnetTorrent(), webUiSettings: makeWebUISettings({ id: "w1" }) });
+
+        expect((await findBufferedTorrent())?.webUiSettings.id).toBe("w1");
     });
 
     it("round-trips a magnet torrent", async () => {
@@ -65,7 +75,7 @@ describe("buffered torrent store", () => {
         await saveBufferedTorrent({ torrent: makeMagnetTorrent(), webUiSettings: makeWebUISettings() });
         await clearBufferedTorrent();
 
-        expect(await readBufferedTorrent()).toBeNull();
+        expect(await findBufferedTorrent()).toBeUndefined();
     });
 
     it("tolerates clearing when nothing is buffered", async () => {

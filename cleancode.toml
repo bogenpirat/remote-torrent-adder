@@ -1,0 +1,90 @@
+# Clean Code contract for this project. Read by `ccs check`, the agent hooks and the reviewer.
+
+# Limits. Delete a line to use the default shown.
+[thresholds]
+function_lines = 20
+arguments = 3
+nesting = 2
+complexity = 10
+file_lines = 300
+line_length = 140
+class_lines = 200
+class_methods = 15
+name_length = 3
+duplicate_tokens = 70
+
+[names]
+allowed_short = ["id", "x", "y", "z", "_", "ok", "db", "io", "to", "at", "by", "of", "on", "cn"]
+
+[files]
+exclude = ["dist-prod/", "coverage/", ".tmp/", "playwright-report/", "test-results/", "web-ext-artifacts*/"]
+
+# The project's own test command. Put the coverage floor in it, for example
+#   command = "pytest --cov=src --cov-fail-under=90"
+[tests]
+command = "npx vitest run --coverage --coverage.thresholds.lines=89 --coverage.thresholds.statements=89 --coverage.thresholds.functions=90 --coverage.thresholds.branches=84"
+
+# Domain vocabulary. One word per concept; code uses these terms and no synonyms.
+[glossary]
+torrent = "A .torrent file or magnet link to be added (Torrent; data is Blob | string)."
+magnet = "A magnet URI; a torrent with no file payload."
+client = "A BitTorrent application, identified by a stable Client slug."
+webui = "The class that talks to one client's HTTP API (TorrentWebUI)."
+label = "The client-side tag/category applied to an added torrent."
+directory = "The download location on the client's host."
+"link catching" = "Intercepting torrent/magnet link clicks in a page."
+settings = "Persisted user configuration (RTASettings)."
+"client-specific setting" = "A per-client option described by a descriptor."
+"upload config" = "Per-torrent overrides chosen in the popup (TorrentUploadConfig)."
+"add result" = "The success/failure outcome of sending a torrent to a client."
+
+# Layers, innermost first. A file may import only its own layer and those in may_use.
+[layers.registry]
+paths = ["src/models/clients.ts"]
+modules = ["models/clients"]
+may_use = ["models", "webuis"]
+
+[layers.models]
+paths = ["src/models/**"]
+may_use = []
+
+[layers.util]
+paths = ["src/util/**"]
+may_use = ["models", "registry"]
+
+[layers.webuis]
+paths = ["src/webuis/**"]
+modules = ["../webuis"]
+may_use = ["models", "util"]
+
+[layers.entry]
+paths = [
+    "src/popup/**",
+    "src/options/**",
+    "src/content-script/**",
+    "src/notifications/**",
+    "src/service_worker.ts",
+]
+modules = ["../popup", "../options", "../content-script", "../notifications", "../service_worker"]
+may_use = ["models", "registry", "util", "webuis"]
+
+# Third-party packages confined to a boundary directory.
+# [[boundaries]]
+# package = "requests"
+# allowed = ["src/adapters/**"]
+
+# Exceptions. Each one needs a reason and is visible in review.
+[[waivers]]
+rule = "F1"
+path = "src/**/*.tsx"
+reason = "A React component takes one props object and benefits from many props; destructuring them in the signature is encapsulation enough. This also exempts plain helpers in .tsx files, which review has to watch."
+
+[[waivers]]
+rule = "F3"
+path = "src/popup/components/ui/toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument that selects behaviour."
+
+[[waivers]]
+rule = "F3"
+path = "src/options/components/Toggle.tsx"
+reason = "The boolean is the value a toggle reports through its onChange callback type, not a flag argument that selects behaviour."

@@ -15,36 +15,23 @@ type LoadState =
   | { status: 'error'; message: string }
   | { status: 'ready'; links: IPageLinkInfo[] };
 
-export default function PageLinksView() {
-  const [state, setState] = useState<LoadState>({ status: 'loading' });
-  const [sourceTab, setSourceTab] = useState<{ tabId: number; pageUrl: string | null } | null>(null);
+interface SourceTab {
+  tabId: number;
+  pageUrl: string | null;
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
-        if (!tab?.id) {
-          if (!cancelled) setState({ status: 'empty' });
-          return;
-        }
-        if (!cancelled) setSourceTab({ tabId: tab.id, pageUrl: tab.url ?? null });
-        const response = (await ext.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
-          | IPageLinksResponse
-          | undefined;
-        if (cancelled) return;
-        const links = response?.links ?? [];
-        setState(links.length ? { status: 'ready', links } : { status: 'empty' });
-      } catch (error: unknown) {
-        if (cancelled) return;
-        console.error('Failed loading page links', error);
-        setState({ status: 'error', message: 'Could not scan this page for links.' });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+interface PageScan {
+  state: LoadState;
+  sourceTab: SourceTab | null;
+}
+
+const FAILED_SCAN: PageScan = {
+  state: { status: 'error', message: 'Could not scan this page for links.' },
+  sourceTab: null,
+};
+
+export default function PageLinksView() {
+  const { state, sourceTab } = usePageScan();
 
   const addLink = (url: string) => {
     sendMessageAndForget({
@@ -57,20 +44,64 @@ export default function PageLinksView() {
     window.close();
   };
 
+  if (state.status !== 'ready') {
+    return <ScanNotice state={state} />;
+  }
+  return <LinkList links={state.links} onAdd={addLink} />;
+}
+
+function usePageScan(): PageScan {
+  const [scan, setScan] = useState<PageScan>({ state: { status: 'loading' }, sourceTab: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    scanActiveTab()
+      .then(result => {
+        if (!cancelled) setScan(result);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.error('Failed loading page links', error);
+        setScan(FAILED_SCAN);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return scan;
+}
+
+async function scanActiveTab(): Promise<PageScan> {
+  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) {
+    return { state: { status: 'empty' }, sourceTab: null };
+  }
+  const response = (await ext.tabs.sendMessage(tab.id, GetPageLinksMessage, { frameId: 0 })) as
+    | IPageLinksResponse
+    | undefined;
+  const links = response?.links ?? [];
+  return {
+    state: links.length ? { status: 'ready', links } : { status: 'empty' },
+    sourceTab: { tabId: tab.id, pageUrl: tab.url ?? null },
+  };
+}
+
+function ScanNotice({ state }: { state: Exclude<LoadState, { status: 'ready' }> }) {
   if (state.status === 'loading') {
     return <Notice title="Remote Torrent Adder">Scanning page…</Notice>;
   }
   if (state.status === 'empty') {
     return <Notice title="No links found">No torrent or magnet links were found on this page.</Notice>;
   }
-  if (state.status === 'error') {
-    return (
-      <Notice title="Could not scan this page" tone="error">
-        {state.message}
-      </Notice>
-    );
-  }
+  return (
+    <Notice title="Could not scan this page" tone="error">
+      {state.message}
+    </Notice>
+  );
+}
 
+function LinkList({ links, onAdd }: { links: IPageLinkInfo[]; onAdd: (url: string) => void }) {
   return (
     <div className="h-full bg-background p-6">
       <div className="max-w-sm mx-auto space-y-4">
@@ -78,10 +109,10 @@ export default function PageLinksView() {
           <h1 className="text-xl font-bold text-foreground">Links found on this page</h1>
         </div>
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {state.links.map(link => (
+          {links.map(link => (
             <button
               key={link.url}
-              onClick={() => addLink(link.url)}
+              onClick={() => onAdd(link.url)}
               className="w-full text-left bg-card p-3 rounded-lg border border-border shadow-sm hover:bg-accent transition-colors"
             >
               <span className="block font-medium text-foreground truncate">{link.label}</span>

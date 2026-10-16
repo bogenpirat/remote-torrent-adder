@@ -1,17 +1,26 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { createJsonPostOptions, fetchOrThrow, HttpError, toFailureResult } from "../models/webui-http";
+import { BasicAuthWebUI } from "./basic-auth-webui";
 
-export class TransmissionWebUI extends TorrentWebUI {
-    public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
-    }
+export const TRANSMISSION_RPC_PATH = "/transmission/rpc";
+const SESSION_ID_HEADER = "X-Transmission-Session-Id";
+const HTTP_OK = 200;
+const HTTP_SESSION_ID_REQUIRED = 409;
+
+export function isSessionHandshakeStatus(status: number): boolean {
+    return status === HTTP_OK || status === HTTP_SESSION_ID_REQUIRED;
+}
+
+export class TransmissionWebUI extends BasicAuthWebUI {
+    protected readonly connectionProbePath = TRANSMISSION_RPC_PATH;
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const sessionId = await this.fetchTransmissionSessionId();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config, sessionId);
-            const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config, sessionId);
+            const response = await fetchOrThrow(this.createBaseUrl() + TRANSMISSION_RPC_PATH, fetchOptions);
 
             const responseText = await response.text();
             const responseData = JSON.parse(responseText);
@@ -21,62 +30,43 @@ export class TransmissionWebUI extends TorrentWebUI {
                 httpResponseBody: responseText,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
-    private fetchTransmissionSessionId(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const rpcUrl = this.createBaseUrl() + "/transmission/rpc";
-            fetch(rpcUrl, {
-                method: "POST",
-                body: ""
-            }).then(response => {
-                if (response.status === 200 || response.status === 409) {
-                    const sessionId = response.headers.get("X-Transmission-Session-Id") ?? "";
-                    resolve(sessionId);
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
+    private async fetchTransmissionSessionId(): Promise<string> {
+        const response = await fetch(this.createBaseUrl() + TRANSMISSION_RPC_PATH, { method: "POST", body: "" });
+        if (!isSessionHandshakeStatus(response.status)) {
+            throw new HttpError(response.status, await response.text());
+        }
+        return response.headers.get(SESSION_ID_HEADER) ?? "";
     }
 
-    private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig, transmissionSessionId: string): Promise<RequestInit> {
-        const payload: Record<string, string | Record<string, string | boolean>> = {
+    private async createTorrentFetchOptions(
+        torrent: Torrent,
+        config: TorrentUploadConfig,
+        transmissionSessionId: string,
+    ): Promise<RequestInit> {
+        const payload = {
             method: "torrent-add",
-            arguments: {}
+            arguments: await this.createAddArguments(torrent, config)
         };
-        if (torrent.isMagnet) {
-            payload["arguments"] = {
-                filename: torrent.data as string
-            };
-        } else {
-            payload["arguments"] = {
-                metainfo: await blobToBase64(torrent.data as Blob)
-            };
+
+        return createJsonPostOptions(payload, { [SESSION_ID_HEADER]: transmissionSessionId });
+    }
+
+    private async createAddArguments(torrent: Torrent, config: TorrentUploadConfig): Promise<Record<string, string | boolean>> {
+        const addArguments: Record<string, string | boolean> = torrent.isMagnet
+            ? { filename: torrent.data as string }
+            : { metainfo: await blobToBase64(torrent.data as Blob) };
+
+        const directory = this.getDirectory(config);
+        if (directory) {
+            addArguments["download-dir"] = directory;
         }
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            payload["arguments"]["download-dir"] = dir;
-        }
-
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            payload["arguments"]["paused"] = addPaused;
-        }
-
-        return {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8",
-                "X-Transmission-Session-Id": transmissionSessionId
-            },
-            body: JSON.stringify(payload)
-        };
+        addArguments["paused"] = this.getAddPaused(config);
+        return addArguments;
     }
 
     get isLabelSupported(): boolean {

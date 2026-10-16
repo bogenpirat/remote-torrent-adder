@@ -1,6 +1,6 @@
 import bencode from "bencode";
 import { createServer, type Server } from "node:http";
-import { type AddressInfo } from "node:net";
+import { closeServer, listenOnLoopback } from "./local-server";
 
 export const TORRENT_NAME = "sample";
 
@@ -50,13 +50,11 @@ export class StaticSite {
             res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
             res.end(PAGE);
         });
-        await new Promise<void>(resolve => this.server.listen(0, "127.0.0.1", resolve));
-        this.port = (this.server.address() as AddressInfo).port;
+        this.port = await listenOnLoopback(this.server);
     }
 
     async stop(): Promise<void> {
-        this.server.closeAllConnections();
-        await new Promise<void>(resolve => this.server.close(() => resolve()));
+        await closeServer(this.server);
     }
 
     get baseUrl(): string {

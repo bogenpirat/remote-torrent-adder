@@ -20,6 +20,7 @@
         "lint:firefox": "web-ext lint --source-dir dist/firefox",
         "lint:firefox:unlisted": "web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted",
         "audit": "node scripts/audit.mjs",
+        "cleancode": "ccs check",
         "verify": "npm run typecheck && npm run lint && npm test",
         "prebuild": "npm run verify",
         "build": "npm run build:run",
@@ -84,12 +85,10 @@
         "web-ext": "^10.6.0"
     },
     "dependencies": {
-        "@radix-ui/react-select": "^2.3.7",
         "@radix-ui/react-slot": "^1.3.0",
         "bencode": "^4.0.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "lucide-react": "^1.47.0",
         "react": "^19.3.0",
         "react-dom": "^19.3.0",
         "tailwind-merge": "^3.7.0"

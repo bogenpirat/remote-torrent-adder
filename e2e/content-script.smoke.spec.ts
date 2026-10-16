@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/extension";
+import { expectNoProblems } from "./fixtures/expectations";
 import { makeSettings } from "./fixtures/settings";
 import { StaticSite } from "./fixtures/static-site";
 
@@ -24,20 +25,16 @@ test.describe("content script", () => {
         expect(urls.some(url => url.startsWith("magnet:"))).toBe(true);
         expect(urls, "a plain .txt link must not be caught").not.toContain(`${site.baseUrl}/files/readme.txt`);
 
-        await logs.waitForQuiet();
-        const problems = logs.unexpectedProblems();
-        expect(problems, logs.report(problems)).toEqual([]);
+        await expectNoProblems(logs);
     });
 
     test("catches nothing when link catching is turned off", async ({ extension, logs }) => {
-        await extension.seedSettings(makeSettings([], { linkCatchingEnabled: false }));
+        await extension.settings.seed(makeSettings([], { linkCatchingEnabled: false }));
 
         await extension.openPage(site.baseUrl + "/");
 
         expect(await extension.pageLinks(`${site.baseUrl}/*`)).toEqual([]);
 
-        await logs.waitForQuiet();
-        const problems = logs.unexpectedProblems();
-        expect(problems, logs.report(problems)).toEqual([]);
+        await expectNoProblems(logs);
     });
 });

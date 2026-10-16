@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { registerActionClickListener, openPrimaryWebUi, updateBadgeText } from "../../src/util/action";
+import { describe, it, expect, vi } from "vitest";
+import { registerActionClickListener, openPrimaryWebUi, openPopupWindow, updateBadgeText } from "../../src/util/action";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { serializeSettings } from "../../src/util/serializer";
 import { SETTINGS_KEY } from "../../src/util/settings";
@@ -18,6 +18,24 @@ function seedSettings(overrides: Partial<ReturnType<typeof getDefaultSettings>>)
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
+const PRIMARY_WEBUI_TAB = { url: "http://h:8080/", active: true };
+
+async function clickAction(tab: Partial<chrome.tabs.Tab> = {}): Promise<void> {
+    registeredClickListener()(tab as chrome.tabs.Tab);
+    await flush();
+}
+
+function expectPopupOpened(mode: string, windowId: number): void {
+    expect(chrome.action.setPopup).toHaveBeenCalledWith({ popup: `popup/popup.html?mode=${mode}` });
+    expect(chrome.action.openPopup).toHaveBeenCalledWith({ windowId });
+    expect(chrome.tabs.create).not.toHaveBeenCalled();
+}
+
+function expectPrimaryWebUiOpened(): void {
+    expect(chrome.action.openPopup).not.toHaveBeenCalled();
+    expect(chrome.tabs.create).toHaveBeenCalledWith(PRIMARY_WEBUI_TAB);
+}
+
 describe("registerActionClickListener", () => {
     it("registers the listener without needing any settings loaded first", () => {
         registerActionClickListener();
@@ -27,56 +45,43 @@ describe("registerActionClickListener", () => {
 
     it("resolves the webui at click time and opens it", async () => {
         seedWebUISettings([makeWebUISettings({ host: "h", port: 8080 })]);
-        registeredClickListener()({} as chrome.tabs.Tab);
-        await flush();
-        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h:8080/", active: true });
+
+        await clickAction();
+
+        expect(chrome.tabs.create).toHaveBeenCalledWith(PRIMARY_WEBUI_TAB);
     });
 
     it("opens the WebUI picker popup when that behavior is selected and multiple WebUIs are configured", async () => {
-        seedSettings({
-            iconClickAction: "showWebUiPicker",
-            webuiSettings: [makeWebUISettings({ id: "a" }), makeWebUISettings({ id: "b" })],
-        });
-        registeredClickListener()({ windowId: 5 } as chrome.tabs.Tab);
-        await flush();
+        const webuiSettings = [makeWebUISettings({ id: "a" }), makeWebUISettings({ id: "b" })];
+        seedSettings({ iconClickAction: "showWebUiPicker", webuiSettings });
 
-        expect(chrome.action.setPopup).toHaveBeenCalledWith({ popup: "popup/popup.html?mode=picker" });
-        expect(chrome.action.openPopup).toHaveBeenCalledWith({ windowId: 5 });
-        expect(chrome.tabs.create).not.toHaveBeenCalled();
+        await clickAction({ windowId: 5 });
+
+        expectPopupOpened("picker", 5);
     });
 
     it("falls back to opening the primary WebUI when the picker is selected but only one WebUI is configured", async () => {
-        seedSettings({
-            iconClickAction: "showWebUiPicker",
-            webuiSettings: [makeWebUISettings({ id: "a", host: "h", port: 8080 })],
-        });
-        registeredClickListener()({ windowId: 5 } as chrome.tabs.Tab);
-        await flush();
+        seedSettings({ iconClickAction: "showWebUiPicker", webuiSettings: [makeWebUISettings({ id: "a", host: "h", port: 8080 })] });
 
-        expect(chrome.action.openPopup).not.toHaveBeenCalled();
-        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h:8080/", active: true });
+        await clickAction({ windowId: 5 });
+
+        expectPrimaryWebUiOpened();
     });
 
     it("opens the page-links popup when that behavior is selected", async () => {
         seedSettings({ iconClickAction: "showPageLinks", webuiSettings: [makeWebUISettings()] });
-        registeredClickListener()({ windowId: 9 } as chrome.tabs.Tab);
-        await flush();
 
-        expect(chrome.action.setPopup).toHaveBeenCalledWith({ popup: "popup/popup.html?mode=links" });
-        expect(chrome.action.openPopup).toHaveBeenCalledWith({ windowId: 9 });
-        expect(chrome.tabs.create).not.toHaveBeenCalled();
+        await clickAction({ windowId: 9 });
+
+        expectPopupOpened("links", 9);
     });
 
     it("falls back to opening the primary WebUI when the window id is unknown", async () => {
-        seedSettings({
-            iconClickAction: "showPageLinks",
-            webuiSettings: [makeWebUISettings({ host: "h", port: 8080 })],
-        });
-        registeredClickListener()({} as chrome.tabs.Tab);
-        await flush();
+        seedSettings({ iconClickAction: "showPageLinks", webuiSettings: [makeWebUISettings({ host: "h", port: 8080 })] });
 
-        expect(chrome.action.openPopup).not.toHaveBeenCalled();
-        expect(chrome.tabs.create).toHaveBeenCalledWith({ url: "http://h:8080/", active: true });
+        await clickAction();
+
+        expectPrimaryWebUiOpened();
     });
 });
 
@@ -98,6 +103,18 @@ describe("openPrimaryWebUi", () => {
 });
 
 describe("updateBadgeText", () => {
+    it("logs the tab whose badge could not be set", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.action.setBadgeText as any).mockRejectedValueOnce(new Error("tab closed"));
+
+        updateBadgeText("3", 42);
+
+        await vi.waitFor(() => expect(consoleError).toHaveBeenCalledWith(
+            "Failed setting the badge text of tab 42:",
+            expect.objectContaining({ message: "tab closed" }),
+        ));
+    });
+
     it("sets the badge text for the tab when non-empty", () => {
         updateBadgeText("3", 42);
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "3", tabId: 42 });
@@ -106,5 +123,25 @@ describe("updateBadgeText", () => {
     it("clears the badge with an empty string", () => {
         updateBadgeText("", 42);
         expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "", tabId: 42 });
+    });
+});
+
+describe("openPopupWindow", () => {
+    it("opens the popup page in the requested mode", () => {
+        openPopupWindow("picker");
+
+        expect(chrome.windows.create).toHaveBeenCalledWith(expect.objectContaining({ url: "popup/popup.html?mode=picker" }));
+    });
+
+    it("logs a window that could not be opened", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        (chrome.windows.create as any).mockRejectedValueOnce(new Error("no display"));
+
+        openPopupWindow();
+
+        await vi.waitFor(() => expect(consoleError).toHaveBeenCalledWith(
+            "Failed opening the popup window:",
+            expect.objectContaining({ message: "no display" }),
+        ));
     });
 });

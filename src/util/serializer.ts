@@ -6,7 +6,7 @@ export function serializeSettings(settings: RTASettings): string {
     return serializeObject(settings);
 }
 
-export function deserializeSettings(serialized: string): RTASettings | null {
+export function deserializeSettings(serialized: string): RTASettings {
     return deserializeObject<RTASettings>(serialized);
 }
 
@@ -14,9 +14,9 @@ export function serializeObject<T>(obj: T): string {
     return JSON.stringify(obj, customReplacer);
 }
 
-export function deserializeObject<T>(serialized: string): T | null {
+export function deserializeObject<T>(serialized: string): T {
     if (!serialized) {
-        return null;
+        throw new Error("Cannot deserialize an empty string.");
     }
     return JSON.parse(serialized, customReviver) as T;
 }

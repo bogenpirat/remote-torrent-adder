@@ -36,40 +36,24 @@ class TestWebUI extends TorrentWebUI {
     publicGetClientSpecific(key: string, config: TorrentUploadConfig) {
         return this.getClientSpecific(key, config);
     }
-    publicAddLeadingAndTrim(part: string) {
-        return this.addLeadingAndTrimTrailingSlashes(part);
-    }
-    publicFetch(url: string, options?: RequestInit) {
-        return this.fetch(url, options);
-    }
 }
 
 const build = (over = {}) => new TestWebUI(makeWebUISettings(over));
 
 describe("createBaseUrl", () => {
-    it("builds a plain http url with explicit port", () => {
-        expect(build({ host: "h", port: 8080, secure: false }).createBaseUrl()).toBe("http://h:8080");
-    });
-
-    it("builds an https url", () => {
-        expect(build({ host: "h", port: 8443, secure: true }).createBaseUrl()).toBe("https://h:8443");
-    });
-
-    it("omits port 80 for insecure connections", () => {
-        expect(build({ host: "h", port: 80, secure: false }).createBaseUrl()).toBe("http://h");
-    });
-
-    it("omits port 443 for secure connections", () => {
-        expect(build({ host: "h", port: 443, secure: true }).createBaseUrl()).toBe("https://h");
+    it.each([
+        ["builds a plain http url with explicit port", { port: 8080, secure: false }, "http://h:8080"],
+        ["builds an https url", { port: 8443, secure: true }, "https://h:8443"],
+        ["omits port 80 for insecure connections", { port: 80, secure: false }, "http://h"],
+        ["omits port 443 for secure connections", { port: 443, secure: true }, "https://h"],
+        ["keeps port 443 when not secure", { port: 443, secure: false }, "http://h:443"],
+    ])("%s", (_title, endpoint, expectedUrl) => {
+        expect(build({ host: "h", ...endpoint }).createBaseUrl()).toBe(expectedUrl);
     });
 
     it("omits the port entirely when none is configured", () => {
         expect(build({ host: "h", port: null, secure: false }).createBaseUrl()).toBe("http://h");
         expect(build({ host: "h", port: null, secure: true }).createBaseUrl()).toBe("https://h");
-    });
-
-    it("keeps port 443 when not secure", () => {
-        expect(build({ host: "h", port: 443, secure: false }).createBaseUrl()).toBe("http://h:443");
     });
 
     it("appends a normalized relative path", () => {
@@ -79,39 +63,17 @@ describe("createBaseUrl", () => {
     });
 });
 
-describe("createBaseUrlPatternForFilter", () => {
-    it("ensures exactly one trailing slash", () => {
-        expect(build({ host: "h", port: 80 }).createBaseUrlPatternForFilter()).toBe("http://h/");
-    });
-
-    it("normalizes a relative path to a single trailing slash", () => {
-        const url = build({ host: "h", port: 80, relativePath: "app" }).createBaseUrlPatternForFilter();
-        expect(url).toBe("http://h/app/");
-    });
-});
-
-describe("addLeadingAndTrimTrailingSlashes", () => {
-    it("returns empty string for empty input", () => {
-        expect(build().publicAddLeadingAndTrim("")).toBe("");
-    });
-
-    it("adds a leading slash and trims trailing slashes", () => {
-        expect(build().publicAddLeadingAndTrim("path/")).toBe("/path");
-        expect(build().publicAddLeadingAndTrim("//a/b//")).toBe("/a/b");
-    });
-});
-
 describe("config resolution helpers", () => {
-    it("getDirectory prefers config, then default, then null", () => {
+    it("getDirectory prefers config, then default, then nothing", () => {
         expect(build({ defaultDir: "/def" }).publicGetDirectory({ dir: "/cfg" })).toBe("/cfg");
         expect(build({ defaultDir: "/def" }).publicGetDirectory({})).toBe("/def");
-        expect(build({ defaultDir: null }).publicGetDirectory({})).toBeNull();
+        expect(build({ defaultDir: null }).publicGetDirectory({})).toBeUndefined();
     });
 
-    it("getLabel prefers config, then default, then null", () => {
+    it("getLabel prefers config, then default, then nothing", () => {
         expect(build({ defaultLabel: "def" }).publicGetLabel({ label: "cfg" })).toBe("cfg");
         expect(build({ defaultLabel: "def" }).publicGetLabel({})).toBe("def");
-        expect(build({ defaultLabel: null }).publicGetLabel({})).toBeNull();
+        expect(build({ defaultLabel: null }).publicGetLabel({})).toBeUndefined();
     });
 
     it("getAddPaused prefers config, then default, then false", () => {
@@ -161,22 +123,5 @@ describe("isLabelDirChooserSupported", () => {
         ui.isDirSupported = false;
         ui.isAddPausedSupported = false;
         expect(ui.isLabelDirChooserSupported).toBe(false);
-    });
-});
-
-describe("fetch", () => {
-    it("returns the response when ok", async () => {
-        (globalThis as any).fetch = async () => ({ ok: true, status: 200 });
-        const res = await build().publicFetch("http://x");
-        expect(res.status).toBe(200);
-    });
-
-    it("throws an HttpError carrying the status and body on a non-ok response", async () => {
-        (globalThis as any).fetch = async () => ({ ok: false, status: 500, text: async () => "boom" });
-        await expect(build().publicFetch("http://x")).rejects.toMatchObject({
-            message: "HTTP error 500",
-            status: 500,
-            body: "boom",
-        });
     });
 });

@@ -23,6 +23,7 @@ Create `src/webuis/<clientname>-webui.ts` — lowercase, with `-webui` as the su
 
 ```typescript
 import { TorrentWebUI, type TorrentAddingResult } from '../models/webui';
+import { fetchOrThrow, toFailureResult } from '../models/webui-http';
 import { type Torrent, type TorrentUploadConfig } from '../models/torrent';
 
 export class <ClientName>WebUI extends TorrentWebUI {
@@ -35,10 +36,10 @@ export class <ClientName>WebUI extends TorrentWebUI {
         try {
             // 1. Authenticate if needed
             // 2. Build request body — branch on `torrent.isMagnet`
-            // 3. POST torrent to client API via this.fetch()
+            // 3. POST torrent to client API via fetchOrThrow()
             return { success: true, httpResponseCode: 200, httpResponseBody: null };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 }
@@ -46,28 +47,29 @@ export class <ClientName>WebUI extends TorrentWebUI {
 
 The base class defines the constructor — don't redeclare one unless you need extra setup.
 
-### Base class API (`src/models/webui.ts`)
+### Base class API (`src/models/webui.ts`) and its helper modules
+
+The base class holds what depends on the client's settings. Request and result helpers are plain functions in `src/models/webui-http.ts`; import the ones you use.
 
 URL and request helpers:
 - `this.createBaseUrl()` → `http(s)://host[:port][/relativePath]` (omits the port when it is 80/443 for the matching scheme)
-- `this.createBaseUrlPatternForFilter()` → base URL normalised with a single trailing slash, used for `declarativeNetRequest` filters
-- `this.fetch(url, options)` → wraps `fetch`, throws `HttpError(status, body)` on a non-OK response
-- `this.createBasicAuthHeaders()` → `{ Authorization: "Basic …" }`, or `{}` when both username and password are empty
+- `fetchOrThrow(url, options)` → wraps `fetch`, throws `HttpError(status, body)` on a non-OK response
+- `createBasicAuthHeaders(this.settings)` → `{ Authorization: "Basic …" }`, or `{}` when both username and password are empty
 
 Per-torrent value resolution (config value first, then the per-client default):
-- `this.getLabel(config)` → `string | null`
-- `this.getDirectory(config)` → `string | null`
-- `this.getAddPaused(config)` → `boolean | null`
+- `this.getLabel(config)` → `string | undefined`
+- `this.getDirectory(config)` → `string | undefined`
+- `this.getAddPaused(config)` → `boolean`
 - `this.getClientSpecific(key, config)` → `boolean`, for options only this client understands. Declare them by overriding `get clientSpecificSettingDescriptors()`; the options page and the popup then render them with no further wiring. See Step 2b.
 
 Result construction:
-- `this.toFailureResult(error)` → `TorrentAddingResult`; maps `HttpError` to its status and body, anything else to code `0` and the error message. Use this in every `catch` rather than hand-building a failure object.
+- `toFailureResult(error)` → `TorrentAddingResult`; maps `HttpError` to its status and body, anything else to code `0` and the error message. Use this in every `catch` rather than hand-building a failure object.
 
 Connection testing:
 - `get isConnectionTestSupported(): boolean` — defaults to `true`. Override to `false` if the client has no probe-able endpoint; the Options page hides the Test Connection button when it is false.
 - `testConnection(): Promise<ConnectionTestResult>` — the default implementation only GETs the base URL and reports reachability *without* checking credentials. Nearly every existing client overrides it; do the same whenever the client can actually validate credentials.
-- `this.probeWithBasicAuth(url)` → ready-made `testConnection()` body for basic-auth clients; treats 401/403 as "reachable, not authenticated".
-- `this.toReachableResult(authenticated, code)` / `this.toUnreachableResult(error)` → build a `ConnectionTestResult` in a custom `testConnection()`.
+- `probeWithBasicAuth(url, this.settings)` → ready-made `testConnection()` body for basic-auth clients; treats 401/403 as "reachable, not authenticated".
+- `toAuthenticatedResult(code)` / `toRejectedResult(code)` / `toUnreachableResult(error)` → build a `ConnectionTestResult` in a custom `testConnection()`.
 
 ```typescript
 interface TorrentAddingResult {
@@ -154,7 +156,7 @@ Read the value with `this.getClientSpecific("forceStart", config)`. The options 
 
 ### Step 3: Add tests
 
-Every client has a matching test file. Create `test/webuis/<clientname>-webui.test.ts` and follow the closest existing one. Use the helpers in `test/helpers/` (`fetch-mock.ts`, `fixtures.ts`, `chrome-mock.ts`) rather than hand-rolling mocks.
+Every client has a matching test file. Create `test/webuis/<clientname>-webui.test.ts` and follow the closest existing one. Use the helpers in `test/helpers/` (`fetch-mock.ts`, `fixtures.ts`, `chrome-mock.ts`, `webui-requests.ts`) rather than hand-rolling mocks. A client that adds torrents with one unauthenticated form POST only declares its fields through `describeFormClient` from `form-client-contract.ts`.
 
 Cover at minimum:
 - `.torrent` upload: correct URL, method, and body shape; the `File` filename is set
@@ -192,7 +194,7 @@ Porla: POST JSON `{username, password}` to `/api/v1/auth/login`, receive token, 
 POST JSON `{username, password}` to `/api/auth/authenticate`; session cookie set by browser.
 
 ### Basic auth — see `rqbit-webui.ts`, `tixati-webui.ts`, `rutorrent-webui.ts`
-Use `this.createBasicAuthHeaders()`, and `this.probeWithBasicAuth(url)` for `testConnection()`. `biglybt-webui.ts` and `transmission-webui.ts` also probe this way.
+Use `createBasicAuthHeaders(this.settings)`, and `probeWithBasicAuth(url, this.settings)` for `testConnection()`. `biglybt-webui.ts` and `transmission-webui.ts` also probe this way.
 
 ### XML-RPC — see `rutorrent-webui.ts`
 Build an XML body and POST with `Content-Type: text/xml`.
@@ -205,12 +207,12 @@ const form = new FormData();
 form.append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
 const dir = this.getDirectory(config);
 if (dir) form.append("savepath", dir);
-await this.fetch(`${this.createBaseUrl()}/api/v2/torrents/add`, { method: "POST", body: form });
+await fetchOrThrow(`${this.createBaseUrl()}/api/v2/torrents/add`, { method: "POST", body: form });
 ```
 
 ### Magnet URI string in a JSON body
 ```typescript
-await this.fetch(`${this.createBaseUrl()}/api/endpoint`, {
+await fetchOrThrow(`${this.createBaseUrl()}/api/endpoint`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url: torrent.data as string }),  // torrent.isMagnet must be true

@@ -114,8 +114,8 @@ Two Firefox-specific gotchas when writing a spec there:
 
 Two things to know before adding a spec:
 
-- **Seeding races the boot.** On a fresh profile the worker writes its own defaults. `launch()` waits that out, so `seedSettings` is safe, but a seed followed immediately by a browser close can still be overtaken. Use `extension.restart()` (which closes and reopens the same profile) rather than `chrome.runtime.reload()` — a reloaded extension has no pending event, so Chrome leaves its worker dormant and the test hangs.
-- **Only errors fail.** The extension logs plenty at `debug`/`log` level, and a few warnings are normal (a cold worker, the service-worker download fallback). `console-collector.ts` fails on any `error`, any page exception, and any warning not on its allowlist. Adding to that allowlist needs a source reference; a spec that legitimately expects an error passes it to `unexpectedProblems([/pattern/])` instead.
+- **Seeding races the boot.** On a fresh profile the worker writes its own defaults. `launch()` waits that out, so `extension.settings.seed()` is safe, but a seed followed immediately by a browser close can still be overtaken. Use `extension.restart()` (which closes and reopens the same profile) rather than `chrome.runtime.reload()` — a reloaded extension has no pending event, so Chrome leaves its worker dormant and the test hangs.
+- **Only errors fail.** The extension logs plenty at `debug`/`log` level, and a few warnings are normal (a cold worker, the service-worker download fallback). `console-collector.ts` fails on any `error`, any page exception, and any warning not on its allowlist. Adding to that allowlist needs a source reference; a spec ends with `expectNoProblems(logs)` from `e2e/fixtures/expectations.ts`, and one that legitimately expects an error passes it as `expectNoProblems(logs, [/pattern/])`.
 
 ## Manual testing in a real browser
 

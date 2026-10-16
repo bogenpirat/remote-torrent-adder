@@ -4,8 +4,9 @@ import { type TorrentWebUI } from "../models/webui";
 import { Settings } from "./settings";
 
 export async function initiateWebUis(settings: RTASettings): Promise<TorrentWebUI[]> {
-    const allWebUis = settings.webuiSettings.map(webUiSettings => WebUIFactory.createWebUI(webUiSettings)).filter(webUi => webUi !== null);
-    return allWebUis;
+    return settings.webuiSettings
+        .filter(webUiSettings => WebUIFactory.supports(webUiSettings.client))
+        .map(webUiSettings => WebUIFactory.createWebUI(webUiSettings));
 }
 
 export async function loadWebUis(): Promise<TorrentWebUI[]> {

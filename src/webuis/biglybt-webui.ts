@@ -1,14 +1,17 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, HttpError, toFailureResult } from "../models/webui-http";
+import { BasicAuthWebUI } from "./basic-auth-webui";
+import { isSessionHandshakeStatus, TRANSMISSION_RPC_PATH } from "./transmission-webui";
 
-export class BiglyBTWebUI extends TorrentWebUI {
-    public override testConnection(): Promise<ConnectionTestResult> {
-        return this.probeWithBasicAuth(this.createBaseUrl() + "/transmission/rpc");
-    }
+const UPLOAD_PATH = "/transmission/upload";
+
+export class BiglyBTWebUI extends BasicAuthWebUI {
+    protected readonly connectionProbePath = TRANSMISSION_RPC_PATH;
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
-            const url = this.createBiglyBTBaseUrl(torrent, config);
+            const url = this.createAddUrl(torrent, config);
 
             await this.fetchSessionCookie(url);
 
@@ -16,7 +19,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
                 ? this.createPayloadForMagnet(torrent.data as string, config)
                 : this.createPayloadForTorrent(torrent);
 
-            const response = await this.fetch(url, { method: 'POST', body: payload });
+            const response = await fetchOrThrow(url, { method: 'POST', body: payload });
             const responseBody = await response.text();
             return {
                 success: this.isSuccessResponse(responseBody),
@@ -24,39 +27,33 @@ export class BiglyBTWebUI extends TorrentWebUI {
                 httpResponseBody: responseBody,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
-    createBiglyBTBaseUrl(torrent: Torrent, config: TorrentUploadConfig): string {
+    private createAddUrl(torrent: Torrent, config: TorrentUploadConfig): string {
         return [
             this.createBaseUrl(),
-            "/transmission/",
-            torrent.isMagnet ? "rpc" : "upload", 
+            torrent.isMagnet ? TRANSMISSION_RPC_PATH : UPLOAD_PATH,
             !torrent.isMagnet && this.getAddPaused(config) ? "?paused=true" : "",
         ].join("");
     }
 
-    fetchSessionCookie(apiBaseUrl: string): Promise<Response> {
-        return new Promise((resolve, reject) => {
-            fetch(apiBaseUrl)
-                .then(response => {
-                    if (response.status !== 200 && response.status !== 409) {
-                        reject(response);
-                    } else {
-                        resolve(response);
-                    }
-                }).catch(error => {
-                    reject(error);
-                });
+    private async fetchSessionCookie(addUrl: string): Promise<void> {
+        const response = await fetch(addUrl);
+        if (!isSessionHandshakeStatus(response.status)) {
+            throw new HttpError(response.status, await response.text());
+        }
+    }
+
+    private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
+        return JSON.stringify({
+            "method": "torrent-add",
+            "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri }
         });
     }
 
-    createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): string {
-        return JSON.stringify({ "method": "torrent-add", "arguments": { "paused": `${this.getAddPaused(config)}`, "filename": magnetUri } });
-    }
-
-    createPayloadForTorrent(torrent: Torrent): FormData {
+    private createPayloadForTorrent(torrent: Torrent): FormData {
         const payload = new FormData();
 
         const blobData = new Blob([torrent.data], { type: "application/x-bittorrent" });

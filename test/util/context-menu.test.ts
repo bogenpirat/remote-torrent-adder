@@ -7,10 +7,9 @@ const { dispatchPreAddTorrent, addTorrentToWebUiById } = vi.hoisted(() => ({
     dispatchPreAddTorrent: vi.fn(),
     addTorrentToWebUiById: vi.fn(),
 }));
-vi.mock("../../src/util/messaging", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
+vi.mock("../../src/util/add-torrent", () => ({ dispatchPreAddTorrent, addTorrentToWebUiById }));
 
 import { refreshContextMenu, registerContextMenuClickListener } from "../../src/util/context-menu";
-import { PreAddTorrentMessage } from "../../src/models/messages";
 import { QBittorrentWebUI } from "../../src/webuis/qbittorrent-webui";
 import { makeWebUISettings, seedWebUISettings } from "../helpers/fixtures";
 
@@ -33,6 +32,24 @@ async function click(menuItemId: string, webuis: ReturnType<typeof settingsFor>[
     registerContextMenuClickListener();
     clickListener()(clickData(menuItemId), tab);
     await flush();
+}
+
+function holdRemoveAlls(order: string[]): Array<() => void> {
+    const pendingRemoveAlls: Array<() => void> = [];
+    (chrome.contextMenus.removeAll as any).mockImplementation(
+        () => new Promise<void>(resolve => {
+            order.push("removeAll");
+            pendingRemoveAlls.push(resolve);
+        })
+    );
+    return pendingRemoveAlls;
+}
+
+function recordCreatedMenuItems(order: string[]): void {
+    (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
+        order.push(`create:${opts.id}`);
+        return opts.id;
+    });
 }
 
 beforeEach(() => {
@@ -76,10 +93,7 @@ describe("refreshContextMenu", () => {
                 };
             })
         );
-        (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
-            order.push(`create:${opts.id}`);
-            return opts.id;
-        });
+        recordCreatedMenuItems(order);
 
         const refreshed = refreshContextMenu([webUi("a", "A")]);
         await flush();
@@ -93,17 +107,8 @@ describe("refreshContextMenu", () => {
 
     it("serializes concurrent refreshes so ids are never created twice", async () => {
         const order: string[] = [];
-        const pendingRemoveAlls: (() => void)[] = [];
-        (chrome.contextMenus.removeAll as any).mockImplementation(
-            () => new Promise<void>(resolve => {
-                order.push("removeAll");
-                pendingRemoveAlls.push(resolve);
-            })
-        );
-        (chrome.contextMenus.create as any).mockImplementation((opts: any) => {
-            order.push(`create:${opts.id}`);
-            return opts.id;
-        });
+        const pendingRemoveAlls = holdRemoveAlls(order);
+        recordCreatedMenuItems(order);
 
         const first = refreshContextMenu([webUi("a", "A")]);
         const second = refreshContextMenu([webUi("a", "A")]);
@@ -117,19 +122,14 @@ describe("refreshContextMenu", () => {
         pendingRemoveAlls[1]!();
         await second;
 
-        expect(order).toEqual([
-            "removeAll",
-            "create:server-main",
-            "removeAll",
-            "create:server-main",
-        ]);
+        expect(order).toEqual(["removeAll", "create:server-main", "removeAll", "create:server-main"]);
     });
 
     it("reports a failed menu creation instead of swallowing it", async () => {
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-        (chrome.contextMenus.create as any).mockImplementation((opts: any, cb?: () => void) => {
+        (chrome.contextMenus.create as any).mockImplementation((opts: any, callback?: () => void) => {
             (chrome.runtime as any).lastError = { message: "Cannot create item with duplicate id" };
-            cb?.();
+            callback?.();
             (chrome.runtime as any).lastError = undefined;
             return opts.id;
         });
@@ -140,7 +140,6 @@ describe("refreshContextMenu", () => {
             "Failed creating context menu item server-main",
             "Cannot create item with duplicate id"
         );
-        consoleError.mockRestore();
     });
 });
 
@@ -154,10 +153,9 @@ describe("registerContextMenuClickListener", () => {
     it("dispatches a pre-add for the first webui on the main entry", async () => {
         await click("server-main", [settingsFor("a", "Server A")]);
         expect(dispatchPreAddTorrent).toHaveBeenCalledTimes(1);
-        const [message, windowId] = callArgs(dispatchPreAddTorrent, 0);
-        expect(message.action).toBe(PreAddTorrentMessage.action);
-        expect(message.webUiId).toBe("a");
-        expect(message.url).toBe("http://x/file.torrent");
+        const [{ webUiId, url, windowId }] = callArgs(dispatchPreAddTorrent, 0);
+        expect(webUiId).toBe("a");
+        expect(url).toBe("http://x/file.torrent");
         expect(windowId).toBe(11);
     });
 
@@ -166,10 +164,26 @@ describe("registerContextMenuClickListener", () => {
         expect(callArgs(dispatchPreAddTorrent, 0)[0].webUiId).toBe("b");
     });
 
+    it("hands the settings it resolved the webui from to the pre-add", async () => {
+        await click("server-main", [settingsFor("a", "Server A")]);
+        const settings = callArgs(dispatchPreAddTorrent, 0)[1];
+        expect(settings.webuiSettings.map((webUiSettings: any) => webUiSettings.id)).toEqual(["a"]);
+        expect(chrome.storage.local.get).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports a send-all add that fails instead of dropping it", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        addTorrentToWebUiById.mockRejectedValueOnce(new Error("storage unavailable"));
+
+        await click("server-all", [settingsFor("a", "A"), settingsFor("b", "B")]);
+
+        expect(consoleError).toHaveBeenCalledWith("Context menu click failed", expect.objectContaining({ message: "storage unavailable" }));
+    });
+
     it("adds the torrent directly to every webui on send-all, bypassing the selector", async () => {
         await click("server-all", [settingsFor("a", "A"), settingsFor("b", "B")]);
         expect(addTorrentToWebUiById).toHaveBeenCalledTimes(2);
-        expect(addTorrentToWebUiById.mock.calls.map((c: any[]) => c[0])).toEqual(["a", "b"]);
+        expect(addTorrentToWebUiById.mock.calls.map((call: any[]) => call[0].webUiId)).toEqual(["a", "b"]);
         expect(dispatchPreAddTorrent).not.toHaveBeenCalled();
     });
 
@@ -186,7 +200,7 @@ describe("registerContextMenuClickListener", () => {
         registerContextMenuClickListener();
         clickListener()(clickData("server-main"), undefined);
         await flush();
-        expect(callArgs(dispatchPreAddTorrent, 0)[1]).toBe(1);
+        expect(callArgs(dispatchPreAddTorrent, 0)[0].windowId).toBe(1);
     });
 
     it("ignores clicks on unrelated menu entries", async () => {

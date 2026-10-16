@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { callArgs } from "../helpers/assert";
+import { type Torrent, type TorrentUploadConfig } from "../../src/models/torrent";
 import { SynologyDownloadStationWebUI } from "../../src/webuis/synologydownloadstation-webui";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -30,6 +31,19 @@ const legacyDiscovery = (auth = AUTH_V7) =>
 const loginOk = () => mockResponse({ status: 200, json: { success: true, data: { sid: "sid-1" } } });
 const createOk = () => mockResponse({ status: 200, json: { success: true } });
 const apiError = (code: number) => mockResponse({ status: 200, json: { success: false, error: { code } } });
+
+/** Adds the torrent to a device that accepts it, and returns the request that created the task. */
+async function taskRequest(discoveryResponse: Response, torrent: Torrent, config: TorrentUploadConfig): Promise<any[]> {
+    const fetch = queueFetch(discoveryResponse, loginOk(), createOk());
+    await build().sendTorrent(torrent, config);
+    return callArgs(fetch, 2);
+}
+
+function uploadedFileName(body: FormData, field: string): string {
+    const upload = body.get(field);
+    expect(upload).toBeInstanceOf(File);
+    return (upload as File).name;
+}
 
 describe("SynologyDownloadStationWebUI", () => {
     it("queries the API list, logs in with format=sid, then creates the task", async () => {
@@ -72,97 +86,77 @@ describe("SynologyDownloadStationWebUI", () => {
     });
 
     it("creates a magnet task through DownloadStation2 using unquoted query params", async () => {
-        const fetch = queueFetch(modernDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeMagnetTorrent(), { dir: "video/movies" });
+        const [url, options] = await taskRequest(modernDiscovery(), makeMagnetTorrent(), { dir: "video/movies" });
 
-        const [url, options] = callArgs(fetch, 2);
         expect(options).toBeUndefined();
-
-        const params = new URL(url).searchParams;
         expect(new URL(url).pathname).toBe("/webapi/DownloadStation/task.cgi");
-        expect(params.get("_sid")).toBe("sid-1");
-        expect(params.get("api")).toBe("SYNO.DownloadStation2.Task");
-        expect(params.get("version")).toBe("2");
-        expect(params.get("method")).toBe("create");
-        expect(params.get("type")).toBe("url");
-        expect(params.get("url")).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
-        expect(params.get("create_list")).toBe("false");
-        expect(params.get("destination")).toBe("video/movies");
+        expect(Object.fromEntries(new URL(url).searchParams)).toMatchObject({
+            _sid: "sid-1",
+            api: "SYNO.DownloadStation2.Task",
+            version: "2",
+            method: "create",
+            type: "url",
+            url: "magnet:?xt=urn:btih:abc123&dn=Cool+Torrent",
+            create_list: "false",
+            destination: "video/movies",
+        });
     });
 
     it("creates a torrent-file task through DownloadStation2 with JSON-quoted form values", async () => {
-        const fetch = queueFetch(modernDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeFileTorrent(), { dir: "video/movies" });
+        const [url, options] = await taskRequest(modernDiscovery(), makeFileTorrent(), { dir: "video/movies" });
 
-        const [url, options] = callArgs(fetch, 2);
         expect(new URL(url).searchParams.get("_sid")).toBe("sid-1");
         expect(options.method).toBe("POST");
-
-        const body = options.body as FormData;
-        expect(body.get("api")).toBe("SYNO.DownloadStation2.Task");
-        expect(body.get("type")).toBe('"file"');
-        expect(body.get("file")).toBe('["fileData"]');
-        expect(body.get("destination")).toBe('"video/movies"');
-        expect(body.get("create_list")).toBe("false");
-        expect(body.get("fileData")).toBeInstanceOf(File);
-        expect((body.get("fileData") as File).name).toBe("file.torrent");
+        expect(Object.fromEntries(options.body)).toMatchObject({
+            api: "SYNO.DownloadStation2.Task",
+            type: '"file"',
+            file: '["fileData"]',
+            destination: '"video/movies"',
+            create_list: "false",
+        });
+        expect(uploadedFileName(options.body, "fileData")).toBe("file.torrent");
     });
 
     it("appends the DownloadStation2 upload part last, as the API requires", async () => {
-        const fetch = queueFetch(modernDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeFileTorrent(), { dir: "video/movies" });
+        const [, options] = await taskRequest(modernDiscovery(), makeFileTorrent(), { dir: "video/movies" });
 
-        const body = callArgs(fetch, 2)[1].body as FormData;
-        expect([...body.keys()].at(-1)).toBe("fileData");
+        expect([...options.body.keys()].at(-1)).toBe("fileData");
     });
 
     it("falls back to the legacy task API when DownloadStation2 is absent", async () => {
-        const fetch = queueFetch(legacyDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeMagnetTorrent(), { dir: "video/movies" });
+        const [url, options] = await taskRequest(legacyDiscovery(), makeMagnetTorrent(), { dir: "video/movies" });
 
-        const [url, options] = callArgs(fetch, 2);
         expect(url).toBe("http://nas:5000/webapi/DownloadStation/task.cgi");
         expect(options.method).toBe("POST");
-
-        const body = new URLSearchParams(options.body.toString());
-        expect(body.get("api")).toBe("SYNO.DownloadStation.Task");
-        expect(body.get("version")).toBe("3");
-        expect(body.get("method")).toBe("create");
-        expect(body.get("_sid")).toBe("sid-1");
-        expect(body.get("uri")).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
-        expect(body.get("destination")).toBe("video/movies");
+        expect(Object.fromEntries(new URLSearchParams(options.body.toString()))).toEqual({
+            api: "SYNO.DownloadStation.Task",
+            version: "3",
+            method: "create",
+            _sid: "sid-1",
+            uri: "magnet:?xt=urn:btih:abc123&dn=Cool+Torrent",
+            destination: "video/movies",
+        });
     });
 
     it("uploads a torrent file through the legacy task API with the file part last", async () => {
-        const fetch = queueFetch(legacyDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeFileTorrent(), {});
+        const [url, options] = await taskRequest(legacyDiscovery(), makeFileTorrent(), {});
 
-        const [url, options] = callArgs(fetch, 2);
         expect(url).toBe("http://nas:5000/webapi/DownloadStation/task.cgi");
-
-        const body = options.body as FormData;
-        expect(body.get("api")).toBe("SYNO.DownloadStation.Task");
-        expect(body.get("version")).toBe("2");
-        expect(body.get("_sid")).toBe("sid-1");
-        expect(body.get("file")).toBeInstanceOf(File);
-        expect((body.get("file") as File).name).toBe("file.torrent");
-        expect([...body.keys()].at(-1)).toBe("file");
+        expect(Object.fromEntries(options.body)).toMatchObject({ api: "SYNO.DownloadStation.Task", version: "2", _sid: "sid-1" });
+        expect(uploadedFileName(options.body, "file")).toBe("file.torrent");
+        expect([...options.body.keys()].at(-1)).toBe("file");
     });
 
     it("strips a leading slash from the destination", async () => {
-        const fetch = queueFetch(legacyDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeMagnetTorrent(), { dir: "/video/movies" });
+        const [, options] = await taskRequest(legacyDiscovery(), makeMagnetTorrent(), { dir: "/video/movies" });
 
-        const body = new URLSearchParams(callArgs(fetch, 2)[1].body.toString());
-        expect(body.get("destination")).toBe("video/movies");
+        expect(new URLSearchParams(options.body.toString()).get("destination")).toBe("video/movies");
     });
 
     it("omits the destination when neither a config dir nor a default is set", async () => {
-        const fetch = queueFetch(legacyDiscovery(), loginOk(), createOk());
-        await build().sendTorrent(makeMagnetTorrent(), {});
+        const [, options] = await taskRequest(legacyDiscovery(), makeMagnetTorrent(), {});
 
-        const body = new URLSearchParams(callArgs(fetch, 2)[1].body.toString());
-        expect(body.has("destination")).toBe(false);
+        expect(new URLSearchParams(options.body.toString()).has("destination")).toBe(false);
     });
 
     it("reports a task error code as a readable message", async () => {

@@ -4,7 +4,7 @@ import { makeSettings, makeWebUISettings } from "../fixtures/settings";
 
 test.describe("firefox event page", () => {
     test("boots on a fresh profile and persists default settings", async ({ extension }) => {
-        const stored = await extension.readSettings();
+        const stored = await extension.settings.read();
 
         expect(stored).toBeTruthy();
         const settings = JSON.parse(stored!) as { linkCatchingEnabled: boolean; webuiSettings: unknown[] };
@@ -37,7 +37,7 @@ test.describe("firefox event page", () => {
     });
 
     test("registers one CORS session rule per configured WebUI", async ({ extension }) => {
-        await extension.seedSettings(
+        await extension.settings.seed(
             makeSettings([
                 makeWebUISettings({ id: "a", name: "Alpha", host: "alpha.invalid", port: 8080 }),
                 makeWebUISettings({ id: "b", name: "Beta", host: "beta.invalid", port: 9090 }),
@@ -58,7 +58,7 @@ test.describe("firefox event page", () => {
     });
 
     test("re-asserts the CORS rules after a browser restart", async ({ extension }) => {
-        await extension.seedSettings(
+        await extension.settings.seed(
             makeSettings([makeWebUISettings({ id: "a", name: "Alpha", host: "alpha.invalid", port: 8080 })]),
         );
         await expect.poll(async () => (await extension.sessionRules()).length, { timeout: 15_000 }).toBe(1);
@@ -69,10 +69,10 @@ test.describe("firefox event page", () => {
     });
 
     test("recovers from corrupt stored settings", async ({ extension }) => {
-        await extension.writeRawSettings("this is not json");
+        await extension.settings.writeRaw("this is not json");
         await extension.restart();
 
-        const stored = await extension.readSettings();
+        const stored = await extension.settings.read();
         expect(() => JSON.parse(stored!)).not.toThrow();
     });
 });
@@ -104,7 +104,7 @@ test.describe("firefox content script", () => {
     });
 
     test("catches nothing when link catching is turned off", async ({ extension }) => {
-        await extension.seedSettings(makeSettings([], { linkCatchingEnabled: false }));
+        await extension.settings.seed(makeSettings([], { linkCatchingEnabled: false }));
         await extension.openPage(site.baseUrl);
 
         await extension.driver.sleep(2000);

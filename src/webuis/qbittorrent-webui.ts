@@ -1,5 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { FORM_URLENCODED_HEADERS, fetchOrThrow, toAuthenticatedResult, toFailureResult, toRejectedResult, toUnreachableResult } from "../models/webui-http";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -15,25 +16,18 @@ const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> =
 export class QBittorrentWebUI extends TorrentWebUI {
     public override async testConnection(): Promise<ConnectionTestResult> {
         try {
-            const body = new URLSearchParams();
-            body.append("username", this._settings.username);
-            body.append("password", this._settings.password);
-            const response = await fetch(this.createBaseUrl() + "/api/v2/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
-                body
-            });
-            return this.toReachableResult(response.ok, response.status);
+            const response = await fetch(this.loginUrl, this.createLoginFetchOptions());
+            return response.ok ? toAuthenticatedResult(response.status) : toRejectedResult(response.status);
         } catch (error) {
-            return this.toUnreachableResult(error);
+            return toUnreachableResult(error);
         }
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             await this.authenticate();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
-            const response = await this.fetch(this.createBaseUrl() + "/api/v2/torrents/add", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v2/torrents/add", fetchOptions);
 
             const responseBody = await response.text();
             return {
@@ -42,21 +36,24 @@ export class QBittorrentWebUI extends TorrentWebUI {
                 httpResponseBody: responseBody,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
     private async authenticate(): Promise<void> {
-        const authenticationBody = new URLSearchParams();
-        authenticationBody.append("username", this._settings.username);
-        authenticationBody.append("password", this._settings.password);
-        await this.fetch(this.createBaseUrl() + "/api/v2/auth/login", {
+        await fetchOrThrow(this.loginUrl, this.createLoginFetchOptions());
+    }
+
+    private get loginUrl(): string {
+        return this.createBaseUrl() + "/api/v2/auth/login";
+    }
+
+    private createLoginFetchOptions(): RequestInit {
+        return {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
-            },
-            body: authenticationBody
-        });
+            headers: FORM_URLENCODED_HEADERS,
+            body: new URLSearchParams({ username: this.settings.username, password: this.settings.password }),
+        };
     }
 
     private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
@@ -66,27 +63,21 @@ export class QBittorrentWebUI extends TorrentWebUI {
         } else {
             body.append("torrents", new File([torrent.data as Blob], torrent.name, { type: "application/x-bittorrent" }));
         }
-
-        const dir = this.getDirectory(config);
-        if (dir) {
-            body.append("savepath", dir);
-        }
-
-        const label = this.getLabel(config);
-        if (label) {
-            body.append("category", label);
-        }
-
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            body.append("stopped", addPaused.toString());
-        }
-
-        if (this.getClientSpecific("forceStart", config)) {
-            body.append("forced", "true");
+        for (const [name, value] of this.createUploadConfigFields(config)) {
+            body.append(name, value);
         }
 
         return { method: "POST", body };
+    }
+
+    private createUploadConfigFields(config: TorrentUploadConfig): Array<[string, string]> {
+        const candidates: Array<[string, string | undefined]> = [
+            ["savepath", this.getDirectory(config)],
+            ["category", this.getLabel(config)],
+            ["stopped", this.getAddPaused(config).toString()],
+            ["forced", this.getClientSpecific("forceStart", config) ? "true" : undefined],
+        ];
+        return candidates.filter((field): field is [string, string] => !!field[1]);
     }
 
     override get clientSpecificSettingDescriptors(): ReadonlyArray<ClientSpecificSettingDescriptor> {

@@ -3,10 +3,17 @@ import { CloudflareChallengeError, downloadTorrent } from "../../src/util/downlo
 import { FetchTorrentInPageMessage } from "../../src/models/messages";
 import { bytesToBase64 } from "../../src/util/torrent-bytes";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
+import { utf8Bytes } from "../helpers/bytes";
 import { buildBencodedTorrent } from "../helpers/fixtures";
 
 const CLOUDFLARE_CHALLENGE_BODY =
     "<html><head><script src='/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1'></script></head></html>";
+
+const FALLBACK_WARNING = "The page could not download the torrent; downloading from the service worker instead.";
+
+function silenceWarnings() {
+    return vi.spyOn(console, "warn").mockImplementation(() => undefined);
+}
 
 function bencodedTorrent(name = "ubuntu.iso"): string {
     return buildBencodedTorrent({ announce: "http://tracker.one/announce", info: { name } });
@@ -21,7 +28,7 @@ function pageResponse(body: string, over: Record<string, unknown> = {}) {
             contentType: "application/x-bittorrent",
             cfMitigated: null,
             finalUrl: "https://tracker.org/get/1.torrent",
-            base64: bytesToBase64(new TextEncoder().encode(body)),
+            base64: bytesToBase64(utf8Bytes(body)),
             ...over,
         },
     };
@@ -100,7 +107,7 @@ describe("downloadTorrent (file)", () => {
         const addedRule = (chrome.declarativeNetRequest.updateDynamicRules as any).mock.calls[0][0].addRules[0];
         expect(addedRule.action.requestHeaders).toEqual([
             { header: "Referer", operation: "set", value: "https://tracker.org/browse?id=7" },
-            { header: "Origin", operation: "remove" },
+            { header: "origin", operation: "remove" },
         ]);
     });
 
@@ -127,7 +134,7 @@ describe("downloadTorrent (through the page)", () => {
     });
 
     it("falls back to the worker when no content script answers", async () => {
-        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const warn = silenceWarnings();
         const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
         (chrome.tabs.sendMessage as any).mockRejectedValue(new Error("Could not establish connection."));
 
@@ -135,16 +142,30 @@ describe("downloadTorrent (through the page)", () => {
 
         expect(fetch).toHaveBeenCalled();
         expect(torrent.name).toBe("from-worker");
+        const reason = "No content script answered in tab 9: Could not establish connection.";
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, reason]]);
     });
 
     it("falls back to the worker when the page's fetch failed", async () => {
-        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const warn = silenceWarnings();
         const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
         (chrome.tabs.sendMessage as any).mockResolvedValue({ error: "Failed to fetch" });
 
         await downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 });
 
         expect(fetch).toHaveBeenCalled();
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, "Failed to fetch"]]);
+    });
+
+    it("falls back to the worker when the page answers with nothing", async () => {
+        const warn = silenceWarnings();
+        const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent("from-worker") }));
+        (chrome.tabs.sendMessage as any).mockResolvedValue(undefined);
+
+        await downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 });
+
+        expect(fetch).toHaveBeenCalled();
+        expect(warn.mock.calls).toEqual([[FALLBACK_WARNING, "The content script in tab 9 answered with nothing."]]);
     });
 
     it("does not retry through the worker when the page itself was challenged", async () => {
@@ -153,7 +174,7 @@ describe("downloadTorrent (through the page)", () => {
             ok: false,
             status: 403,
             contentType: "text/html; charset=utf-8",
-            base64: bytesToBase64(new TextEncoder().encode(CLOUDFLARE_CHALLENGE_BODY)),
+            base64: bytesToBase64(utf8Bytes(CLOUDFLARE_CHALLENGE_BODY)),
         }));
 
         await expect(downloadTorrent("https://tracker.org/get/1.torrent", { tabId: 9 })).rejects.toThrow(CloudflareChallengeError);

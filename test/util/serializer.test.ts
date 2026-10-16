@@ -21,8 +21,8 @@ describe("serializeObject / deserializeObject", () => {
         expect(restored.plain).toBe("x");
     });
 
-    it("returns null when deserializing an empty string", () => {
-        expect(deserializeObject("")).toBeNull();
+    it("refuses to deserialize an empty string", () => {
+        expect(() => deserializeObject("")).toThrow("Cannot deserialize an empty string.");
     });
 
     it("round-trips nested plain objects", () => {
@@ -49,8 +49,8 @@ describe("serializeSettings / deserializeSettings", () => {
         expect(at(restored.linkCatchingRegexes, 1).source).toBe("action=download");
     });
 
-    it("returns null for empty input", () => {
-        expect(deserializeSettings("")).toBeNull();
+    it("refuses empty input", () => {
+        expect(() => deserializeSettings("")).toThrow("Cannot deserialize an empty string.");
     });
 });
 

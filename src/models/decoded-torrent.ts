@@ -49,9 +49,9 @@ export function isDecodedTorrent(value: unknown): value is DecodedTorrent {
     return isBencodeDictionary(value as BencodeValue) && isBencodeDictionary((value as DecodedTorrent).info);
 }
 
-/** Decodes a bencoded byte string to text, or null if it was not a byte string. */
-export function toText(value: BencodeValue | undefined): string | null {
-    return isBytes(value) ? new TextDecoder().decode(value) : null;
+/** Decodes a bencoded byte string to text, or undefined if it was not a byte string. */
+export function toText(value: BencodeValue | undefined): string | undefined {
+    return isBytes(value) ? new TextDecoder().decode(value) : undefined;
 }
 
 /** Narrows to a bencoded list, or an empty list for anything else. */
@@ -59,12 +59,12 @@ export function toList(value: BencodeValue | undefined): BencodeValue[] {
     return Array.isArray(value) ? value : [];
 }
 
-/** Narrows to a bencoded integer, or null for anything else. */
-export function toInteger(value: BencodeValue | undefined): number | null {
-    return typeof value === "number" ? value : null;
+/** Narrows to a bencoded integer, or undefined for anything else. */
+export function toInteger(value: BencodeValue | undefined): number | undefined {
+    return typeof value === "number" ? value : undefined;
 }
 
-/** Reads the info dictionary, or null when it is missing or malformed. */
-export function toInfo(torrent: DecodedTorrent | null | undefined): DecodedTorrentInfo | null {
-    return isBencodeDictionary(torrent?.info) ? torrent.info : null;
+/** Reads the info dictionary, or undefined when it is missing or malformed. */
+export function toInfo(torrent: DecodedTorrent | null | undefined): DecodedTorrentInfo | undefined {
+    return isBencodeDictionary(torrent?.info) ? torrent.info : undefined;
 }

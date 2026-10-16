@@ -1,23 +1,16 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
+import { createJsonPostOptions, fetchOrThrow, toFailureResult } from "../models/webui-http";
 
-export class FloodWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.createBaseUrl() + "/api/auth/authenticate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json; charset=UTF-8" },
-                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
-            });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(json.success === true, response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+export class FloodWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createBaseUrl() + "/api/auth/authenticate";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return answer["success"] === true;
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -25,8 +18,8 @@ export class FloodWebUI extends TorrentWebUI {
             const url = this.createBaseUrl() + (torrent.isMagnet ? "/api/torrents/add-urls" : "/api/torrents/add-files");
 
             await this.authenticate();
-            const fetchOpts = await this.createTorrentFetchOptions(torrent, config);
-            const response = await this.fetch(url, fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(torrent, config);
+            const response = await fetchOrThrow(url, fetchOptions);
 
             const success = response.status === 200 || response.status === 202;
             return {
@@ -35,48 +28,16 @@ export class FloodWebUI extends TorrentWebUI {
                 httpResponseBody: success ? null : await response.text(),
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
-    private authenticate(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const authenticationUrl = this.createBaseUrl() + "/api/auth/authenticate";
-            this.fetch(authenticationUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                },
-                body: JSON.stringify({
-                    username: this._settings.username,
-                    password: this._settings.password
-                })
-            }).then(response =>
-                response.json()
-            ).then((json) => {
-                if (json.success) {
-                    resolve();
-                } else {
-                    reject(new Error("Authentication failed"));
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
-    }
-
     private async createTorrentFetchOptions(torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        const body = torrent.isMagnet
-            ? JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config))
-            : JSON.stringify(await this.createPayloadForTorrent(torrent, config));
+        const payload = torrent.isMagnet
+            ? this.createPayloadForMagnet(torrent.data as string, config)
+            : await this.createPayloadForTorrent(torrent, config);
 
-        return {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8"
-            },
-            body
-        };
+        return createJsonPostOptions(payload);
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {

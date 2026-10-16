@@ -6,12 +6,8 @@ import Notice from './Notice';
 import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
 import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
-
-type LoadState =
-  | { status: 'loading' }
-  | { status: 'empty' }
-  | { status: 'failed'; message: string }
-  | { status: 'ready'; data: PopupData };
+import { type ClientSpecificSettingDescriptor } from '../../models/webui';
+import { messageOf } from '../../models/error-message';
 
 export default function Home() {
   const mode = new URLSearchParams(window.location.search).get('mode');
@@ -25,20 +21,26 @@ export default function Home() {
   return <BufferedTorrentForm />;
 }
 
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'empty' }
+  | { status: 'failed'; message: string }
+  | { status: 'ready'; data: PopupData };
+
 function BufferedTorrentForm() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   useEffect(() => {
     let cancelled = false;
-    loadPopupData()
-      .then(data => {
+    loadState()
+      .then(loaded => {
         if (cancelled) return;
-        setState(data ? { status: 'ready', data } : { status: 'empty' });
+        setState(loaded);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         console.error('Failed loading the pending torrent', error);
-        setState({ status: 'failed', message: errorMessage(error) });
+        setState({ status: 'failed', message: messageOf(error) });
       });
     return () => {
       cancelled = true;
@@ -57,119 +59,184 @@ function BufferedTorrentForm() {
   return <AddTorrentForm data={state.data} />;
 }
 
+async function loadState(): Promise<LoadState> {
+  const data = await loadPopupData();
+  return data ? { status: 'ready', data } : { status: 'empty' };
+}
+
 // The form only mounts once the data exists, so every field can be initialised
 // straight from it and no value is ever asserted non-null.
 function AddTorrentForm({ data }: { data: PopupData }) {
-  const [label, setLabel] = useState(data.initial.label);
-  const [directory, setDirectory] = useState(data.initial.directory);
+  const label = useRemovableChoice(data.initial.label, data.labelOptions);
+  const directory = useRemovableChoice(data.initial.directory, data.directoryOptions);
   const [paused, setPaused] = useState(data.initial.paused);
   const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
-  const [labelOptions, setLabelOptions] = useState(data.labelOptions);
-  const [directoryOptions, setDirectoryOptions] = useState(data.directoryOptions);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submission = useSubmission(() => submitTorrent({
+    webUiId: data.webUiSettings.id,
+    label: label.value,
+    directory: directory.value,
+    paused,
+    clientSpecific,
+    // Whatever was just used moves to the front, so it is offered first next time.
+    labelOptions: moveToFront(label.value, label.options),
+    directoryOptions: moveToFront(directory.value, directory.options),
+  }));
 
-  const handleSubmit = async () => {
+  return (
+    <FormFrame torrentName={data.torrent.name}>
+      <ChoiceFields data={data} label={label} directory={directory} />
+      {data.supports.paused && (
+        <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
+      )}
+      <ClientSpecificToggles descriptors={data.clientSpecific.descriptors} values={clientSpecific} onChange={setClientSpecific} />
+      <SubmitControls submission={submission} />
+    </FormFrame>
+  );
+}
+
+interface RemovableChoice {
+  value: string;
+  setValue: (value: string) => void;
+  options: string[];
+  removeOption: (option: string) => void;
+}
+
+interface ChoiceFieldsProps {
+  data: PopupData;
+  label: RemovableChoice;
+  directory: RemovableChoice;
+}
+
+function ChoiceFields({ data, label, directory }: ChoiceFieldsProps) {
+  return (
+    <>
+      {data.supports.label && (
+        <ChoiceField label="Label" choice={label} highlighted={data.auto.label} placeholder="Select or type label..." />
+      )}
+      {data.supports.directory && (
+        <ChoiceField label="Directory" choice={directory} highlighted={data.auto.directory} placeholder="Select or type directory..." />
+      )}
+    </>
+  );
+}
+
+function useRemovableChoice(initialValue: string, initialOptions: string[]): RemovableChoice {
+  const [value, setValue] = useState(initialValue);
+  const [options, setOptions] = useState(initialOptions);
+
+  const removeOption = (option: string) => {
+    setOptions(previous => previous.filter(entry => entry !== option));
+    if (value === option) setValue('');
+  };
+
+  return { value, setValue, options, removeOption };
+}
+
+interface Submission {
+  submitting: boolean;
+  error: string | null;
+  submit: () => Promise<void>;
+}
+
+function useSubmission(send: () => Promise<void>): Submission {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
     setSubmitting(true);
-    setSubmitError(null);
+    setError(null);
     try {
-      await submitTorrent({
-        webUiId: data.webUiSettings.id,
-        label,
-        directory,
-        paused,
-        clientSpecific,
-        // Whatever was just used moves to the front, so it is offered first next time.
-        labelOptions: moveToFront(label, labelOptions),
-        directoryOptions: moveToFront(directory, directoryOptions),
-      });
+      await send();
       window.close();
-    } catch (error: unknown) {
-      console.error('Failed adding the torrent', error);
-      setSubmitError(errorMessage(error));
+    } catch (failure: unknown) {
+      console.error('Failed adding the torrent', failure);
+      setError(messageOf(failure));
       setSubmitting(false);
     }
   };
 
-  const removeLabel = (option: string) => {
-    setLabelOptions(previous => previous.filter(entry => entry !== option));
-    if (label === option) setLabel('');
-  };
-
-  const removeDirectory = (option: string) => {
-    setDirectoryOptions(previous => previous.filter(entry => entry !== option));
-    if (directory === option) setDirectory('');
-  };
-
-  return (
-    <div className="h-full bg-background p-6">
-      <div className="max-w-sm mx-auto space-y-4">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-foreground">Remote Torrent Adder</h1>
-          <p className="text-xs text-muted-foreground mt-1">{data.torrent.name}</p>
-        </div>
-
-        <div className="space-y-3 bg-card p-4 rounded-lg border border-border shadow-sm">
-          {data.supports.label && (
-            <ComboBox
-              label="Label"
-              value={label}
-              onChange={setLabel}
-              onRemoveOption={removeLabel}
-              options={labelOptions}
-              rainbowOutline={data.auto.label}
-              placeholder="Select or type label..."
-            />
-          )}
-
-          {data.supports.directory && (
-            <ComboBox
-              label="Directory"
-              value={directory}
-              onChange={setDirectory}
-              onRemoveOption={removeDirectory}
-              options={directoryOptions}
-              rainbowOutline={data.auto.directory}
-              placeholder="Select or type directory..."
-            />
-          )}
-
-          {data.supports.paused && (
-            <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
-          )}
-
-          {data.clientSpecific.descriptors.map(descriptor => (
-            <Toggle
-              key={descriptor.key}
-              label={descriptor.label}
-              checked={clientSpecific[descriptor.key] ?? descriptor.default}
-              onChange={value => setClientSpecific(previous => ({ ...previous, [descriptor.key]: value }))}
-            />
-          ))}
-
-          {submitError && (
-            <p role="alert" className="text-xs text-destructive">{submitError}</p>
-          )}
-
-          <Button
-            onClick={() => void handleSubmit()}
-            disabled={submitting}
-            className="w-full"
-            variant="default"
-            size="default"
-          >
-            {submitting ? 'Adding…' : 'Add Torrent'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  return { submitting, error, submit };
 }
 
 function moveToFront(value: string, options: string[]): string[] {
   return value ? [value, ...options.filter(option => option !== value)] : options;
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+function FormFrame({ torrentName, children }: { torrentName: string; children: React.ReactNode }) {
+  return (
+    <div className="h-full bg-background p-6">
+      <div className="max-w-sm mx-auto space-y-4">
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-foreground">Remote Torrent Adder</h1>
+          <p className="text-xs text-muted-foreground mt-1">{torrentName}</p>
+        </div>
+
+        <div className="space-y-3 bg-card p-4 rounded-lg border border-border shadow-sm">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ChoiceFieldProps {
+  label: string;
+  choice: RemovableChoice;
+  highlighted: boolean;
+  placeholder: string;
+}
+
+function ChoiceField({ label, choice, highlighted, placeholder }: ChoiceFieldProps) {
+  return (
+    <ComboBox
+      label={label}
+      value={choice.value}
+      onChange={choice.setValue}
+      onRemoveOption={choice.removeOption}
+      options={choice.options}
+      rainbowOutline={highlighted}
+      placeholder={placeholder}
+    />
+  );
+}
+
+interface ClientSpecificTogglesProps {
+  descriptors: ReadonlyArray<ClientSpecificSettingDescriptor>;
+  values: Record<string, boolean>;
+  onChange: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+}
+
+function ClientSpecificToggles({ descriptors, values, onChange }: ClientSpecificTogglesProps) {
+  return (
+    <>
+      {descriptors.map(descriptor => (
+        <Toggle
+          key={descriptor.key}
+          label={descriptor.label}
+          checked={values[descriptor.key] ?? descriptor.default}
+          onChange={checked => onChange(previous => ({ ...previous, [descriptor.key]: checked }))}
+        />
+      ))}
+    </>
+  );
+}
+
+function SubmitControls({ submission }: { submission: Submission }) {
+  return (
+    <>
+      {submission.error && (
+        <p role="alert" className="text-xs text-destructive">{submission.error}</p>
+      )}
+
+      <Button
+        onClick={() => void submission.submit()}
+        disabled={submission.submitting}
+        className="w-full"
+        variant="default"
+        size="default"
+      >
+        {submission.submitting ? 'Adding…' : 'Add Torrent'}
+      </Button>
+    </>
+  );
 }

@@ -41,10 +41,10 @@ For changes in `src/webuis/`:
 - [ ] Class extends `TorrentWebUI` and is registered in **all three** tables in `src/models/clients.ts`: the `Client` enum, `ClientDisplayName`, and `ClientClassByClient`
 - [ ] The `Client` enum value is a stable lowercase slug, not a display string — these values are persisted in user settings and must never change. Renaming an existing one requires a migration entry in `src/util/legacy-client-identifiers.ts`
 - [ ] All three abstract getters implemented: `isLabelSupported`, `isDirSupported`, `isAddPausedSupported`
-- [ ] `sendTorrent()` returns `TorrentAddingResult` with `{ success, httpResponseCode, httpResponseBody }`, and its `catch` uses `this.toFailureResult(error)` rather than hand-building a failure object
+- [ ] `sendTorrent()` returns `TorrentAddingResult` with `{ success, httpResponseCode, httpResponseBody }`, and its `catch` uses `toFailureResult(error)` rather than hand-building a failure object
 - [ ] `testConnection()` is overridden when the client can validate credentials — the base implementation only checks reachability and reports `authenticated: null`. `isConnectionTestSupported` is set to `false` only if there is genuinely nothing to probe
-- [ ] Uses `this.fetch()` (not raw `fetch()`) — base class wrapper throws `HttpError` on non-OK
-- [ ] Uses `this.getLabel()`, `this.getDirectory()`, `this.getAddPaused()` — not direct config access. Note these return `string | null` / `boolean | null`
+- [ ] Uses `fetchOrThrow()` from `src/models/webui-http.ts` (not raw `fetch()`) — the wrapper throws `HttpError` on non-OK
+- [ ] Uses `this.getLabel()`, `this.getDirectory()`, `this.getAddPaused()` — not direct config access. Note these return `string | undefined` / `boolean`
 - [ ] Uses `this.createBaseUrl()` for URL construction — not hardcoded paths
 - [ ] Does **not** manually set `Content-Type: multipart/form-data` when using `FormData` (browser sets boundary)
 - [ ] Branches on `torrent.isMagnet` (NOT on parsing `torrent.data` or a non-existent `torrent.url`). `torrent.data` is `Blob | string` — Blob for files, string (magnet URI) when `isMagnet`

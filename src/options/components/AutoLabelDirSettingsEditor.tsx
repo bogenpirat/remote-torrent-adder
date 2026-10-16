@@ -1,8 +1,53 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { AutoLabelDirSetting, AutoLabelDirCriterion } from "../../models/webui";
 import AutoLabelDirTester from "./AutoLabelDirTester";
 import SettingsGroup from "./SettingsGroup";
 import { CRITERIA_FIELDS, fieldLabel, type CriterionField } from "./auto-label-dir-fields";
+import { ACCENT_BUTTON_STYLE, CHIP_STYLE, FIELD_LABEL_STYLE, MONOSPACE_INPUT_STYLE } from "../shared-styles";
+import { TEXT, MUTED, BORDER, SURFACE, INPUT_BG, SUCCESS, DANGER, ON_FILLED } from "../theme";
+
+const SELECT_STYLE: CSSProperties = {
+  fontSize: 15,
+  borderRadius: 8,
+  padding: "4px 10px",
+  border: `1px solid ${BORDER}`,
+  background: INPUT_BG,
+  color: TEXT,
+};
+
+const PATTERN_INPUT_STYLE: CSSProperties = { ...MONOSPACE_INPUT_STYLE, flex: 1, minWidth: 0 };
+
+const ADD_RULE_BUTTON_STYLE: CSSProperties = {
+  background: SUCCESS,
+  color: ON_FILLED,
+  border: "none",
+  borderRadius: 8,
+  padding: "6px 16px",
+  fontWeight: 500,
+  cursor: "pointer",
+};
+
+const RULE_CARD_STYLE: CSSProperties = {
+  marginBottom: 18,
+  padding: 12,
+  border: `1px solid ${BORDER}`,
+  borderRadius: 8,
+  background: SURFACE,
+  position: "relative",
+};
+
+const REMOVE_RULE_BUTTON_STYLE: CSSProperties = {
+  position: "absolute",
+  top: 8,
+  right: 8,
+  background: DANGER,
+  color: ON_FILLED,
+  border: "none",
+  borderRadius: 8,
+  padding: "4px 10px",
+  fontWeight: 500,
+  cursor: "pointer"
+};
 
 interface AutoLabelDirSettingsEditorProps {
   value: AutoLabelDirSetting[];
@@ -15,151 +60,143 @@ interface AutoLabelDirSettingsEditorProps {
   defaultDir: string | null;
 }
 
-function CriteriaEditor({ criteria, onChange }: { criteria: AutoLabelDirCriterion[]; onChange: (c: AutoLabelDirCriterion[]) => void }) {
-  const [field, setField] = useState<CriterionField>("trackerUrl");
-  const [value, setValue] = useState("");
-
+function AutoLabelDirSettingsEditor(props: AutoLabelDirSettingsEditorProps) {
+  const { value, onChange, showLabel, showDir, defaultLabel, defaultDir } = props;
   const handleAdd = () => {
-    if (value.trim()) {
-      onChange([...criteria, { field, value: value.trim() }]);
-      setValue("");
-    }
+    onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
   };
-  const handleRemove = (idx: number) => {
-    const arr = [...criteria];
-    arr.splice(idx, 1);
-    onChange(arr);
+  const removeAt = (index: number) => onChange(value.filter((_setting, position) => position !== index));
+  const patchAt = (index: number, patch: Partial<AutoLabelDirSetting>) => {
+    onChange(value.map((setting, position) => (position === index ? { ...setting, ...patch } : setting)));
   };
   return (
-    <div style={{ marginBottom: 12 }}>
-      <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Criteria</label>
-      <div style={{ color: "var(--rta-text-muted, #888)", fontSize: 13, marginBottom: 6 }}>
-        All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
-      </div>
-      {criteria.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
-          {criteria.map((c, idx) => (
-            <span key={idx} style={{ display: "inline-flex", alignItems: "center", background: "var(--rta-chip-bg, #eaf5ea)", border: "1px solid var(--rta-chip-border, #b7c9a7)", borderRadius: 16, padding: "4px 12px", fontFamily: "monospace", fontSize: 15 }}>
-              <span style={{ marginRight: 8 }}>{fieldLabel(c.field)}:</span>
-              <span style={{ marginRight: 8 }}>{c.value}</span>
-              <button onClick={() => handleRemove(idx)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
-            </span>
-          ))}
-        </div>
+    <SettingsGroup title="Auto Label/Dir Settings" actions={<button onClick={handleAdd} style={ADD_RULE_BUTTON_STYLE}>Add Rule</button>}>
+      {value.length === 0 && <div style={{ color: MUTED, marginBottom: 8 }}>No rules defined yet.</div>}
+      {value.map((setting, index) => (
+        <RuleCard key={index} setting={setting} choices={props} onPatch={patch => patchAt(index, patch)} onRemove={() => removeAt(index)} />
+      ))}
+      {value.length > 0 && (
+        <AutoLabelDirTester settings={value} defaultLabel={defaultLabel} defaultDir={defaultDir} showLabel={showLabel} showDir={showDir} />
       )}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: criteria.length > 0 ? 8 : 0 }}>
-        <select
-          value={field}
-          onChange={e => setField(e.target.value as CriterionField)}
-          style={{ fontSize: 15, borderRadius: 8, padding: "4px 10px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)" }}>
-          {CRITERIA_FIELDS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-        </select>
-        <input
-          type="text"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          placeholder={CRITERIA_FIELDS.find(f => f.value === field)?.placeholder}
-          style={{ flex: 1, minWidth: 0, fontFamily: "monospace", fontSize: 15, border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", borderRadius: 8, padding: "4px 10px" }}
-        />
-        <button onClick={handleAdd} style={{ background: "var(--rta-accent, #b7c9a7)", color: "var(--rta-green-dark, #4e6a57)", border: "none", borderRadius: 8, padding: "4px 12px", fontWeight: 500, cursor: "pointer" }}>Add</button>
+    </SettingsGroup>
+  );
+}
+
+type RuleChoices = Pick<AutoLabelDirSettingsEditorProps, "showLabel" | "showDir" | "labels" | "dirs">;
+
+interface RuleCardProps {
+  setting: AutoLabelDirSetting;
+  choices: RuleChoices;
+  onPatch: (patch: Partial<AutoLabelDirSetting>) => void;
+  onRemove: () => void;
+}
+
+function RuleCard({ setting, choices, onPatch, onRemove }: RuleCardProps) {
+  return (
+    <div style={RULE_CARD_STYLE}>
+      <button onClick={onRemove} style={REMOVE_RULE_BUTTON_STYLE} title="Remove rule">🗑</button>
+      <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <CriteriaEditor criteria={setting.criteria} onChange={criteria => onPatch({ criteria })} />
+        </div>
+        <div style={{ flex: 1 }}>
+          {choices.showLabel && (
+            <ChoiceSelect title="Label" choice={setting.label} knownChoices={choices.labels} onChange={label => onPatch({ label })} />
+          )}
+          {choices.showDir && (
+            <ChoiceSelect title="Directory" choice={setting.dir} knownChoices={choices.dirs} onChange={dir => onPatch({ dir })} />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function AutoLabelDirSettingsEditor({ value, onChange, showLabel, showDir, labels, dirs, defaultLabel, defaultDir }: AutoLabelDirSettingsEditorProps) {
-  const handleAdd = () => {
-    onChange([...value, { criteria: [], label: showLabel ? "" : null, dir: showDir ? "" : null }]);
-  };
-  const handleRemove = (idx: number) => {
-    const arr = [...value];
-    arr.splice(idx, 1);
-    onChange(arr);
-  };
-  const updateAt = (idx: number, patch: Partial<AutoLabelDirSetting>) => {
-    const existing = value[idx];
-    if (!existing) {
-      return;
-    }
-    const arr = [...value];
-    arr[idx] = { ...existing, ...patch };
-    onChange(arr);
-  };
-  const handleCriteriaChange = (idx: number, criteria: AutoLabelDirCriterion[]) => updateAt(idx, { criteria });
-  const handleLabelChange = (idx: number, label: string | null) => updateAt(idx, { label });
-  const handleDirChange = (idx: number, dir: string | null) => updateAt(idx, { dir });
+interface CriteriaEditorProps {
+  criteria: AutoLabelDirCriterion[];
+  onChange: (c: AutoLabelDirCriterion[]) => void;
+}
+
+function CriteriaEditor({ criteria, onChange }: CriteriaEditorProps) {
   return (
-    <SettingsGroup
-      title="Auto Label/Dir Settings"
-      actions={<button onClick={handleAdd} style={{ background: "var(--rta-success, #228B22)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 16px", fontWeight: 500, cursor: "pointer" }}>Add Rule</button>}
-    >
-      {value.length === 0 && <div style={{ color: "var(--rta-text-muted, #888)", marginBottom: 8 }}>No rules defined yet.</div>}
-      {value.map((setting, idx) => (
-        <div key={idx} style={{ marginBottom: 18, padding: 12, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 8, background: "var(--rta-surface, #fff)", position: "relative" }}>
-          <button
-            onClick={() => handleRemove(idx)}
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              background: "var(--rta-danger, #B22222)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "4px 10px",
-              fontWeight: 500,
-              cursor: "pointer"
-            }}
-            title="Remove rule"
-          >🗑</button>
-          <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
-            <div style={{ flex: 1 }}>
-              <CriteriaEditor criteria={setting.criteria} onChange={c => handleCriteriaChange(idx, c)} />
-            </div>
-            <div style={{ flex: 1 }}>
-              {showLabel && (
-                <div style={{ marginBottom: 10 }}>
-                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Label</label>
-                  <select
-                    value={setting.label ?? ""}
-                    onChange={e => handleLabelChange(idx, e.target.value === "" ? null : e.target.value)}
-                    style={{ fontSize: 15, borderRadius: 8, padding: "4px 10px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }}>
-                    <option value="">(none)</option>
-                    {[...(labels.includes(setting.label ?? "") || !setting.label ? labels : [setting.label, ...labels])]
-                      .filter((l, i, arr) => l && arr.indexOf(l) === i)
-                      .map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </div>
-              )}
-              {showDir && (
-                <div style={{ marginBottom: 10 }}>
-                  <label style={{ fontWeight: 500, marginBottom: 4, display: "block" }}>Directory</label>
-                  <select
-                    value={setting.dir ?? ""}
-                    onChange={e => handleDirChange(idx, e.target.value === "" ? null : e.target.value)}
-                    style={{ fontSize: 15, borderRadius: 8, padding: "4px 10px", border: "1px solid var(--rta-border, #b7c9a7)", background: "var(--rta-input-bg, #fff)", color: "var(--rta-text, #1b241d)", minWidth: 120 }}>
-                    <option value="">(none)</option>
-                    {[...(dirs.includes(setting.dir ?? "") || !setting.dir ? dirs : [setting.dir, ...dirs])]
-                      .filter((d, i, arr) => d && arr.indexOf(d) === i)
-                      .map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ))}
-      {value.length > 0 && (
-        <AutoLabelDirTester
-          settings={value}
-          defaultLabel={defaultLabel}
-          defaultDir={defaultDir}
-          showLabel={showLabel}
-          showDir={showDir}
-        />
-      )}
-    </SettingsGroup>
+    <div style={{ marginBottom: 12 }}>
+      <label style={FIELD_LABEL_STYLE}>Criteria</label>
+      <div style={{ color: MUTED, fontSize: 13, marginBottom: 6 }}>
+        All criteria of a rule must match (AND). For alternatives, create one rule per case — the first matching rule wins.
+      </div>
+      {criteria.length > 0 && <CriterionChips criteria={criteria} onChange={onChange} />}
+      <CriterionForm hasCriteria={criteria.length > 0} onAdd={criterion => onChange([...criteria, criterion])} />
+    </div>
   );
+}
+
+function CriterionChips({ criteria, onChange }: CriteriaEditorProps) {
+  const removeAt = (index: number) => onChange(criteria.filter((_criterion, position) => position !== index));
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minHeight: 32 }}>
+      {criteria.map((criterion, index) => (
+        <span key={index} style={CHIP_STYLE}>
+          <span style={{ marginRight: 8 }}>{fieldLabel(criterion.field)}:</span>
+          <span style={{ marginRight: 8 }}>{criterion.value}</span>
+          <button onClick={() => removeAt(index)} style={{ fontSize: 13, marginLeft: 2 }}>🗑</button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+interface CriterionFormProps {
+  hasCriteria: boolean;
+  onAdd: (criterion: AutoLabelDirCriterion) => void;
+}
+
+function CriterionForm({ hasCriteria, onAdd }: CriterionFormProps) {
+  const [field, setField] = useState<CriterionField>("trackerUrl");
+  const [value, setValue] = useState("");
+
+  const handleAdd = () => {
+    if (value.trim()) {
+      onAdd({ field, value: value.trim() });
+      setValue("");
+    }
+  };
+  const placeholder = CRITERIA_FIELDS.find(f => f.value === field)?.placeholder;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: hasCriteria ? 8 : 0 }}>
+      <select value={field} onChange={e => setField(e.target.value as CriterionField)} style={SELECT_STYLE}>
+        {CRITERIA_FIELDS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+      </select>
+      <input type="text" value={value} onChange={e => setValue(e.target.value)} placeholder={placeholder} style={PATTERN_INPUT_STYLE} />
+      <button onClick={handleAdd} style={ACCENT_BUTTON_STYLE}>Add</button>
+    </div>
+  );
+}
+
+interface ChoiceSelectProps {
+  title: string;
+  choice: string | null;
+  knownChoices: string[];
+  onChange: (choice: string | null) => void;
+}
+
+function ChoiceSelect({ title, choice, knownChoices, onChange }: ChoiceSelectProps) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <label style={FIELD_LABEL_STYLE}>{title}</label>
+      <select
+        value={choice ?? ""}
+        onChange={e => onChange(e.target.value === "" ? null : e.target.value)}
+        style={{ ...SELECT_STYLE, minWidth: 120 }}>
+        <option value="">(none)</option>
+        {selectableChoices(choice, knownChoices).map(candidate => <option key={candidate} value={candidate}>{candidate}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function selectableChoices(choice: string | null, knownChoices: string[]): string[] {
+  const choices = knownChoices.includes(choice ?? "") || !choice ? knownChoices : [choice, ...knownChoices];
+  return choices.filter((candidate, index) => candidate && choices.indexOf(candidate) === index);
 }
 
 export default AutoLabelDirSettingsEditor;

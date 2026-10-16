@@ -1,23 +1,19 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
+export class DelugeWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.jsonRpcUrl;
+    }
 
-export class DelugeWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.createBaseUrl() + "/json", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ method: "auth.login", params: [this._settings.password], id: this.randomId() })
-            });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(json["result"] === true, response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return answer["result"] === true;
+    }
+
+    protected override createLoginFetchOptions(): RequestInit {
+        return this.createJsonRpcFetchOptions("auth.login", [this.settings.password]);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
@@ -37,30 +33,14 @@ export class DelugeWebUI extends TorrentWebUI {
 
             return result;
         } catch (error) {
-            return this.toFailureResult(error);
-        }
-    }
-
-    private async authenticate(): Promise<void> {
-        const payload = {
-            method: "auth.login",
-            params: [this._settings.password],
-            id: this.randomId()
-        };
-        const response = await this.fetch(this.createBaseUrl() + "/json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        if ((await response.json())["result"] !== true) {
-            throw new Error("Authentication failed");
+            return toFailureResult(error);
         }
     }
 
     private async uploadTorrentFile(torrent: Torrent): Promise<string> {
         const payload = new FormData();
         payload.append("file", new Blob([torrent.data], { type: "application/x-bittorrent" }), torrent.name);
-        const response = await this.fetch(this.createBaseUrl() + "/upload", { method: "POST", body: payload });
+        const response = await fetchOrThrow(this.createBaseUrl() + "/upload", { method: "POST", body: payload });
         const responseJson = await response.json();
         if (!(responseJson["success"] === true && responseJson["files"].length > 0)) {
             throw new Error("File upload failed");
@@ -69,32 +49,8 @@ export class DelugeWebUI extends TorrentWebUI {
     }
 
     private async startUploadedTorrent(uploadedFilePathOrMagnetLink: string, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
-        const jsonUrl = this.createBaseUrl() + "/json";
-        const options: Record<string, unknown> = {
-            add_paused: this.getAddPaused(config),
-        };
-        const directory = this.getDirectory(config);
-        if (directory) {
-            options["download_location"] = directory;
-        }
-        const payload = {
-            method: "web.add_torrents",
-            params: [
-                [
-                    {
-                        path: uploadedFilePathOrMagnetLink,
-                        options
-                    }
-                ]
-            ],
-            id: this.randomId()
-        };
-
-        const response = await this.fetch(jsonUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+        const torrentToAdd = { path: uploadedFilePathOrMagnetLink, options: this.createAddOptions(config) };
+        const response = await this.postJsonRpc("web.add_torrents", [[torrentToAdd]]);
         const responseJson = await response.json();
         const responseText = JSON.stringify(responseJson);
         const success = !!(responseJson["result"] && responseJson["result"].length > 0
@@ -102,27 +58,38 @@ export class DelugeWebUI extends TorrentWebUI {
         return { success, httpResponseCode: response.status, httpResponseBody: responseText };
     }
 
+    private createAddOptions(config: TorrentUploadConfig): Record<string, unknown> {
+        const options: Record<string, unknown> = {
+            add_paused: this.getAddPaused(config),
+        };
+        const directory = this.getDirectory(config);
+        if (directory) {
+            options["download_location"] = directory;
+        }
+        return options;
+    }
+
     private async setLabelForUploadedTorrent(startUploadedTorrentResponseJson: string, label: string): Promise<TorrentAddingResult> {
         const startUploadedTorrentResponse = JSON.parse(startUploadedTorrentResponseJson);
-        await this.fetch(this.createBaseUrl() + "/json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                method: "label.add",
-                params: [label],
-                id: this.randomId()
-            })
-        });
-        const response = await this.fetch(this.createBaseUrl() + "/json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                method: "label.set_torrent",
-                params: [startUploadedTorrentResponse["result"][0][1], label],
-                id: this.randomId()
-            })
-        });
+        await this.postJsonRpc("label.add", [label]);
+        const response = await this.postJsonRpc("label.set_torrent", [startUploadedTorrentResponse["result"][0][1], label]);
         return { success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(startUploadedTorrentResponse) };
+    }
+
+    private postJsonRpc(method: string, params: unknown[]): Promise<Response> {
+        return fetchOrThrow(this.jsonRpcUrl, this.createJsonRpcFetchOptions(method, params));
+    }
+
+    private get jsonRpcUrl(): string {
+        return this.createBaseUrl() + "/json";
+    }
+
+    private createJsonRpcFetchOptions(method: string, params: unknown[]): RequestInit {
+        return {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ method, params, id: this.randomId() })
+        };
     }
 
     private randomId(): number {

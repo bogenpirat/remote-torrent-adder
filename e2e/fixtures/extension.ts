@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ConsoleCollector } from "./console-collector";
 import { EXTENSION_DIR } from "./paths";
-import { type RTASettings } from "../../src/models/settings";
-import { serializeSettings } from "../../src/util/serializer";
+import { StoredSettings } from "./stored-settings";
+import { WorkerRecorder } from "./worker-recorder";
+import { queryPageLinks, readSessionRules, readStoredValue, writeStoredValue, type PageLink } from "./worker-scripts";
 import { SETTINGS_KEY } from "../../src/util/settings";
 
 /**
@@ -21,6 +22,11 @@ export class ExtensionHarness {
     context!: BrowserContext;
     worker!: Worker;
     id!: string;
+    readonly recorder = new WorkerRecorder(() => this.worker);
+    readonly settings = new StoredSettings({
+        read: () => this.worker.evaluate(readStoredValue, SETTINGS_KEY),
+        write: serialized => this.worker.evaluate(writeStoredValue, { key: SETTINGS_KEY, value: serialized }),
+    });
 
     constructor(
         private readonly userDataDir: string,
@@ -49,7 +55,7 @@ export class ExtensionHarness {
     private async awaitSettledBoot(): Promise<void> {
         const deadline = Date.now() + 15_000;
         while (Date.now() < deadline) {
-            if (await this.readSettings()) {
+            if (await this.settings.read()) {
                 break;
             }
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -76,122 +82,16 @@ export class ExtensionHarness {
         return page;
     }
 
-    async evaluate<R>(fn: () => R | Promise<R>): Promise<R> {
-        return this.worker.evaluate(fn);
+    async evaluate<R>(workerFunction: () => R | Promise<R>): Promise<R> {
+        return this.worker.evaluate(workerFunction);
     }
 
-    /**
-     * Asks the content script in the given tab which links it caught, over the
-     * extension's real messaging channel.
-     */
-    async pageLinks(tabUrlPattern: string): Promise<{ url: string; label: string }[]> {
-        return this.worker.evaluate(async (pattern) => {
-            const [tab] = await chrome.tabs.query({ url: pattern });
-            if (!tab?.id) {
-                throw new Error(`No tab matched ${pattern}`);
-            }
-            const response = (await chrome.tabs.sendMessage(
-                tab.id,
-                { action: "getPageLinks" },
-                { frameId: 0 },
-            )) as { links?: { url: string; label: string }[] } | undefined;
-            return response?.links ?? [];
-        }, tabUrlPattern);
+    pageLinks(tabUrlPattern: string): Promise<PageLink[]> {
+        return this.worker.evaluate(queryPageLinks, tabUrlPattern);
     }
 
-    async writeRawSettings(serialized: string): Promise<void> {
-        await this.worker.evaluate(
-            ([key, value]) => chrome.storage.local.set({ [key!]: value }),
-            [SETTINGS_KEY, serialized],
-        );
-    }
-
-    async seedSettings(settings: RTASettings): Promise<void> {
-        await this.writeRawSettings(serializeSettings(settings));
-    }
-
-    async readSettings(): Promise<string | undefined> {
-        return this.worker.evaluate(
-            async (key) => (await chrome.storage.local.get([key]))[key] as string | undefined,
-            SETTINGS_KEY,
-        );
-    }
-
-    async sessionRules(): Promise<chrome.declarativeNetRequest.Rule[]> {
-        return this.worker.evaluate(() => chrome.declarativeNetRequest.getSessionRules());
-    }
-
-    /**
-     * chrome.contextMenus has no read API, so the ids are observed by wrapping
-     * create()/removeAll() and then provoking a rebuild.
-     */
-    async watchContextMenus(): Promise<void> {
-        await this.worker.evaluate(() => {
-            const scope = self as unknown as { __rtaE2eMenuIds?: string[] };
-            if (scope.__rtaE2eMenuIds) {
-                return;
-            }
-            scope.__rtaE2eMenuIds = [];
-            const menus = chrome.contextMenus as unknown as {
-                create: (...args: any[]) => unknown;
-                removeAll: (...args: any[]) => unknown;
-            };
-            const create = menus.create.bind(menus);
-            const removeAll = menus.removeAll.bind(menus);
-            menus.create = (properties: { id?: string }, ...rest: any[]) => {
-                scope.__rtaE2eMenuIds!.push(String(properties.id));
-                return create(properties, ...rest);
-            };
-            menus.removeAll = (...args: any[]) => {
-                scope.__rtaE2eMenuIds!.length = 0;
-                return removeAll(...args);
-            };
-        });
-    }
-
-    /**
-     * Rewrites the stored settings with one field nudged, so Chrome actually
-     * fires storage.onChanged - an identical value is a no-op event-wise - and
-     * the worker rebuilds the menu and the CORS rules.
-     */
-    async provokeSettingsChange(): Promise<void> {
-        const stored = await this.readSettings();
-        const settings = JSON.parse(stored ?? "{}") as { notificationsDurationMs?: number };
-        settings.notificationsDurationMs = (settings.notificationsDurationMs ?? 2000) + 1;
-        await this.writeRawSettings(JSON.stringify(settings));
-    }
-
-    async contextMenuIds(): Promise<string[]> {
-        return this.worker.evaluate(
-            () => (self as unknown as { __rtaE2eMenuIds?: string[] }).__rtaE2eMenuIds ?? [],
-        );
-    }
-
-    /** Records every notification the worker raises from this point on. */
-    async watchNotifications(): Promise<void> {
-        await this.worker.evaluate(() => {
-            const scope = self as unknown as { __rtaE2eNotifications?: unknown[] };
-            if (scope.__rtaE2eNotifications) {
-                return;
-            }
-            scope.__rtaE2eNotifications = [];
-            const notifications = chrome.notifications as unknown as { create: (...args: any[]) => unknown };
-            const create = notifications.create.bind(notifications);
-            notifications.create = (...args: any[]) => {
-                scope.__rtaE2eNotifications!.push(args.find(arg => typeof arg === "object" && arg !== null));
-                return create(...args);
-            };
-        });
-    }
-
-    async notifications(): Promise<{ title?: string; message?: string }[]> {
-        return this.worker.evaluate(
-            () =>
-                ((self as unknown as { __rtaE2eNotifications?: unknown[] }).__rtaE2eNotifications ?? []) as {
-                    title?: string;
-                    message?: string;
-                }[],
-        );
+    sessionRules(): Promise<chrome.declarativeNetRequest.Rule[]> {
+        return this.worker.evaluate(readSessionRules);
     }
 }
 

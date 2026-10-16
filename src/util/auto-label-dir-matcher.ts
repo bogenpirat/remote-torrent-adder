@@ -22,12 +22,12 @@ export interface AutoLabelDirExplanation {
     dir: string | null;
 }
 
-export function getAutoLabelResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | null {
-    return explainAutoLabelDir(torrent, autoLabelDirSettings).label;
+export function getAutoLabelResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | undefined {
+    return explainAutoLabelDir(torrent, autoLabelDirSettings).label ?? undefined;
 }
 
-export function getAutoDirResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | null {
-    return explainAutoLabelDir(torrent, autoLabelDirSettings).dir;
+export function getAutoDirResult(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): string | undefined {
+    return explainAutoLabelDir(torrent, autoLabelDirSettings).dir ?? undefined;
 }
 
 export function explainAutoLabelDir(torrent: Torrent, autoLabelDirSettings: Array<AutoLabelDirSetting>): AutoLabelDirExplanation {
@@ -54,11 +54,10 @@ function evaluateSetting(setting: AutoLabelDirSetting, index: number, torrent: T
 }
 
 function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): AutoLabelDirCriterionEvaluation {
-    const candidates = candidatesForField(criterion.field, torrent);
-
-    if (candidates === null) {
+    if (!Object.hasOwn(CANDIDATE_READERS, criterion.field)) {
         return { criterion, matched: false, matchedCandidates: [], invalidPattern: false };
     }
+    const candidates = CANDIDATE_READERS[criterion.field](torrent);
 
     if (!criterion.value) {
         return { criterion, matched: true, matchedCandidates: [], invalidPattern: false };
@@ -67,16 +66,22 @@ function evaluateCriterion(criterion: AutoLabelDirCriterion, torrent: Torrent): 
     return matchCandidates(criterion, candidates.values, candidates.flags);
 }
 
-function candidatesForField(field: AutoLabelDirCriterion["field"], torrent: Torrent): { values: string[] | undefined; flags: string } | null {
-    switch (field) {
-        case "trackerUrl": return { values: torrent.trackers, flags: "" };
-        case "filePath": return { values: torrent.files, flags: "i" };
-        case "torrentName": return { values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" };
-        default: return null;
-    }
+interface FieldCandidates {
+    values: string[] | undefined;
+    flags: string;
 }
 
-function matchCandidates(criterion: AutoLabelDirCriterion, candidates: string[] | undefined, flags: string): AutoLabelDirCriterionEvaluation {
+const CANDIDATE_READERS: Record<AutoLabelDirCriterion["field"], (torrent: Torrent) => FieldCandidates> = {
+    trackerUrl: torrent => ({ values: torrent.trackers, flags: "" }),
+    filePath: torrent => ({ values: torrent.files, flags: "i" }),
+    torrentName: torrent => ({ values: torrent.declaredName ? [torrent.declaredName] : [], flags: "i" }),
+};
+
+function matchCandidates(
+    criterion: AutoLabelDirCriterion,
+    candidates: string[] | undefined,
+    flags: string,
+): AutoLabelDirCriterionEvaluation {
     let regex: RegExp;
     try {
         regex = new RegExp(criterion.value, flags);

@@ -39,6 +39,17 @@ describe("FloodWebUI", () => {
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
+    it("judges a login for sending exactly as the connection test does", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200, json: { success: "true" } }));
+
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toEqual({
+            success: false,
+            httpResponseCode: 0,
+            httpResponseBody: "Authentication failed",
+        });
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
     it("reports the real status and body on a non-2xx add response", async () => {
         queueFetch(authOk(), mockResponse({ status: 500, body: "nope" }));
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({

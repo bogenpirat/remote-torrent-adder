@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+import { BORDER, SURFACE_ALT } from "../theme";
 
 interface SettingsGroupProps {
   title: string;
@@ -6,13 +7,18 @@ interface SettingsGroupProps {
   children?: React.ReactNode;
 }
 
+const GROUP_STYLE: React.CSSProperties = {
+  marginBottom: 20,
+  border: `1px solid ${BORDER}`,
+  borderRadius: 10,
+  padding: 16,
+  background: SURFACE_ALT,
+};
+
 const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, actions, children }) => {
   const titleId = useId();
   return (
-    <section
-      aria-labelledby={titleId}
-      style={{ marginBottom: 20, border: "1px solid var(--rta-border, #b7c9a7)", borderRadius: 10, padding: 16, background: "var(--rta-surface-alt, #f7faf7)" }}
-    >
+    <section aria-labelledby={titleId} style={GROUP_STYLE}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
         <span id={titleId} style={{ fontWeight: 600, fontSize: 16 }}>{title}</span>
         {actions}

@@ -36,6 +36,23 @@ describe("PorlaWebUI", () => {
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
+    it("reports the login error as the reason for the failure", async () => {
+        queueFetch(mockResponse({ status: 200, json: { error: "bad creds" } }));
+
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ httpResponseBody: "bad creds" });
+    });
+
+    it("does not send the torrent when the login returns no token", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200, json: {} }));
+
+        await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toEqual({
+            success: false,
+            httpResponseCode: 0,
+            httpResponseBody: "Authentication failed",
+        });
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
     it("reports failure when the jsonrpc response contains an error", async () => {
         queueFetch(tokenOk(), mockResponse({ status: 200, json: { error: { code: -1 } } }));
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });

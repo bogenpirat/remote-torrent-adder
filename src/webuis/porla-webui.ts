@@ -1,30 +1,27 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
 import { blobToBase64 } from "../util/converter";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
+import { createJsonPostOptions, fetchOrThrow, toFailureResult } from "../models/webui-http";
 
-export class PorlaWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const response = await fetch(this.createBaseUrl() + "/api/v1/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json; charset=UTF-8" },
-                body: JSON.stringify({ username: this._settings.username, password: this._settings.password })
-            });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(!json.error && !!json.token, response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+export class PorlaWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createBaseUrl() + "/api/v1/auth/login";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return !answer["error"] && !!answer["token"];
+    }
+
+    protected override describeRejectedLogin(answer: LoginAnswer): string {
+        return answer["error"] ? String(answer["error"]) : super.describeRejectedLogin(answer);
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
             const jsonRpcToken = await this.authenticateForToken();
-            const fetchOpts = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
-            const response = await this.fetch(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOpts);
+            const fetchOptions = await this.createTorrentFetchOptions(jsonRpcToken, torrent, config);
+            const response = await fetchOrThrow(this.createBaseUrl() + "/api/v1/jsonrpc", fetchOptions);
 
             const responseText = await response.text();
             const responseJson = JSON.parse(responseText);
@@ -34,49 +31,21 @@ export class PorlaWebUI extends TorrentWebUI {
                 httpResponseBody: responseText,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
-    private authenticateForToken(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const authenticationUrl = this.createBaseUrl() + "/api/v1/auth/login";
-            this.fetch(authenticationUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json; charset=UTF-8"
-                },
-                body: JSON.stringify({
-                    username: this._settings.username,
-                    password: this._settings.password
-                })
-            }).then(response =>
-                response.json()
-            ).then(json => {
-                if (json.error) {
-                    reject(new Error(json.error));
-                } else {
-                    resolve(json.token);
-                }
-            }).catch(error => {
-                reject(error);
-            });
-        });
+    private async authenticateForToken(): Promise<string> {
+        const answer = await this.authenticate();
+        return answer["token"] as string;
     }
 
     private async createTorrentFetchOptions(jsonRpcToken: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
-        const body = torrent.isMagnet
-            ? JSON.stringify(this.createPayloadForMagnet(torrent.data as string, config))
-            : JSON.stringify(await this.createPayloadForTorrent(torrent, config));
+        const payload = torrent.isMagnet
+            ? this.createPayloadForMagnet(torrent.data as string, config)
+            : await this.createPayloadForTorrent(torrent, config);
 
-        return {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8",
-                "Authorization": "Bearer " + jsonRpcToken
-            },
-            body
-        };
+        return createJsonPostOptions(payload, { "Authorization": "Bearer " + jsonRpcToken });
     }
 
     private createPayloadForMagnet(magnetUri: string, config: TorrentUploadConfig): Record<string, unknown> {

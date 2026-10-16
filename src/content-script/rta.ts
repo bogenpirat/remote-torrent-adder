@@ -13,9 +13,11 @@ import {
     type IPageLinksResponse,
     type IPreAddTorrentMessage,
     type IUpdateActionBadgeTextMessage,
-    UpdateActionBadgeText
+    PreAddTorrentMessage,
+    UpdateActionBadgeText,
+    type ErrorReply,
 } from '../models/messages';
-import { PreAddTorrentMessage } from '../models/messages';
+import { messageOf } from '../models/error-message';
 import { isMatchedByRegexes } from '../util/utils';
 import { fetchTorrentInPage } from './torrent-fetch';
 
@@ -37,7 +39,7 @@ ext.runtime.onMessage.addListener((
     if (message?.action === FetchTorrentInPageMessage.action) {
         fetchTorrentInPage((message as IFetchTorrentInPageMessage).url)
             .then(fetched => sendResponse({ fetched }))
-            .catch((error: unknown) => sendResponse({ error: (error as Error)?.message ?? String(error) }));
+            .catch((error: unknown) => sendResponse({ error: messageOf(error) } satisfies ErrorReply));
         return true;
     }
     return false;

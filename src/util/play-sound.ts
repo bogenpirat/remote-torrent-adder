@@ -1,24 +1,29 @@
 import { ext } from "./browser-api";
-import { getCustomSound, type SoundKind } from "./sound-storage";
+import { type NotificationKind } from "../models/notification-kind";
+import { getCustomSound } from "./sound-storage";
 
-export async function playNotificationSound(isFailed: boolean): Promise<void> {
-    const kind: SoundKind = isFailed ? "failure" : "success";
+export async function playNotificationSound(kind: NotificationKind): Promise<void> {
+    const objectUrl = await createCustomSoundUrl(kind);
+    const freeObjectUrl = () => {
+        if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+        }
+    };
 
-    let source = ext.runtime.getURL(`assets/sounds/${kind}.ogg`);
-    let objectUrl: string | undefined;
+    const audio = new Audio(objectUrl ?? ext.runtime.getURL(`assets/sounds/${kind}.ogg`));
+    audio.addEventListener("ended", freeObjectUrl);
+    audio.play().catch(e => {
+        freeObjectUrl();
+        console.error("Failed to play notification sound", e);
+    });
+}
+
+async function createCustomSoundUrl(kind: NotificationKind): Promise<string | undefined> {
     try {
         const custom = await getCustomSound(kind);
-        if (custom) {
-            objectUrl = URL.createObjectURL(custom.blob);
-            source = objectUrl;
-        }
+        return custom ? URL.createObjectURL(custom.blob) : undefined;
     } catch (e) {
         console.error("Failed to load custom sound, using default", e);
+        return undefined;
     }
-
-    const audio = new Audio(source);
-    if (objectUrl) {
-        audio.addEventListener("ended", () => URL.revokeObjectURL(objectUrl));
-    }
-    audio.play().catch(e => console.error("Failed to play notification sound", e));
 }

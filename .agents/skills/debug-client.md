@@ -118,7 +118,8 @@ Report the failure mode, root cause, and fix in the conversation. A debugging se
 
 - `src/webuis/<clientname>-webui.ts` — client implementation
 - `test/webuis/<clientname>-webui.test.ts` — its tests
-- `src/models/webui.ts` — base class with `fetch()` wrapper, `HttpError`, and helpers
+- `src/models/webui.ts` — base class
+- `src/models/webui-http.ts` — `fetchOrThrow()` wrapper, `HttpError`, and the result helpers
 - `src/util/cors-tricks.ts` — CORS bypass implementation
 - `src/util/browser-api.ts` / `src/util/platform.ts` — the `ext` shim and the build-time browser constant; first stop for a browser-specific failure
 - `src/util/authentication-listener.ts` — auth event handling

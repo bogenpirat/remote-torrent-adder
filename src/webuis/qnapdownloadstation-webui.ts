@@ -1,28 +1,29 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type TorrentAddingResult } from "../models/webui";
+import { fetchOrThrow, toFailureResult } from "../models/webui-http";
+import { JsonLoginWebUI, type LoginAnswer } from "./json-login-webui";
 
-export class QNAPDownloadStationWebUI extends TorrentWebUI {
-    public override async testConnection(): Promise<ConnectionTestResult> {
-        try {
-            const payload = new FormData();
-            payload.append("user", this.settings.username);
-            payload.append("pass", btoa(this.settings.password));
-            const response = await fetch(this.createQNAPDownloadStationBaseUrl() + "/Misc/Login", { method: "POST", body: payload });
-            if (!response.ok) {
-                return this.toReachableResult(false, response.status);
-            }
-            const json = await response.json();
-            return this.toReachableResult(!!json["sid"], response.status);
-        } catch (error) {
-            return this.toUnreachableResult(error);
-        }
+export class QNAPDownloadStationWebUI extends JsonLoginWebUI {
+    protected get loginUrl(): string {
+        return this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
+    }
+
+    protected isLoginAccepted(answer: LoginAnswer): boolean {
+        return !!answer["sid"];
+    }
+
+    protected override createLoginFetchOptions(): RequestInit {
+        const payload = new FormData();
+        payload.append("user", this.settings.username);
+        payload.append("pass", btoa(this.settings.password));
+        return { method: "POST", body: payload };
     }
 
     public override async sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult> {
         try {
-            const sessionId = await this.fetchSessionId();
+            const sessionId = await this.authenticateForSessionId();
             const fetchOptions = await this.createTorrentFetchOptions(sessionId, torrent, config);
-            const response = await this.fetch(this.createAddingUrlForTorrent(torrent), fetchOptions);
+            const response = await fetchOrThrow(this.createAddingUrlForTorrent(torrent), fetchOptions);
 
             const responseText = await response.text();
             const errorCode = JSON.parse(responseText)["error"];
@@ -32,7 +33,7 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
                 httpResponseBody: responseText,
             };
         } catch (error) {
-            return this.toFailureResult(error);
+            return toFailureResult(error);
         }
     }
 
@@ -43,37 +44,30 @@ export class QNAPDownloadStationWebUI extends TorrentWebUI {
         ].join("");
     }
 
-    private createAddingUrlForTorrent(torrent: Torrent): string {
-        return this.createQNAPDownloadStationBaseUrl() + (torrent.isMagnet ? "/Task/AddUrl" : "/Task/AddTorrent");
+    private async authenticateForSessionId(): Promise<string> {
+        const answer = await this.authenticate();
+        return String(answer["sid"]);
     }
 
-    private async fetchSessionId(): Promise<string> {
-        const loginUrl = this.createQNAPDownloadStationBaseUrl() + "/Misc/Login";
-        const payload = new FormData();
-        payload.append("user", this.settings.username);
-        payload.append("pass", btoa(this.settings.password));
-        const response = await this.fetch(loginUrl, { method: 'POST', body: payload });
-        const responseJson = await response.json();
-        if (!responseJson["sid"]) {
-            throw new Error("Authentication failed");
-        }
-        return responseJson["sid"];
+    private createAddingUrlForTorrent(torrent: Torrent): string {
+        return this.createQNAPDownloadStationBaseUrl() + (torrent.isMagnet ? "/Task/AddUrl" : "/Task/AddTorrent");
     }
 
     private async createTorrentFetchOptions(sessionId: string, torrent: Torrent, config: TorrentUploadConfig): Promise<RequestInit> {
         const payload = new FormData();
         payload.append("sid", sessionId);
 
-        const dir = this.getDirectory(config);
-        if (dir) {
-            payload.append("temp", dir);
-            payload.append("move", dir);
+        const directory = this.getDirectory(config);
+        if (directory) {
+            payload.append("temp", directory);
+            payload.append("move", directory);
         }
 
         if (torrent.isMagnet) {
             payload.append("url", torrent.data as string);
         } else {
-            payload.append("file", new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" }), torrent.name);
+            const fileContents = new Blob([await (torrent.data as Blob).arrayBuffer()], { type: "application/octet-stream" });
+            payload.append("file", fileContents, torrent.name);
         }
 
         return {

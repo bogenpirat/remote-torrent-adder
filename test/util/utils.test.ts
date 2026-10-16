@@ -105,8 +105,8 @@ describe("clearDynamicRules", () => {
 });
 
 describe("parsePortInput", () => {
-    it("returns null for an empty field", () => {
-        expect(parsePortInput("")).toBeNull();
+    it("reads no port from an empty field", () => {
+        expect(parsePortInput("")).toBeUndefined();
     });
 
     it("parses a plain port number", () => {
@@ -115,7 +115,7 @@ describe("parsePortInput", () => {
 
     it("drops a leading minus so negative ports cannot be entered", () => {
         expect(parsePortInput("-8080")).toBe(8080);
-        expect(parsePortInput("-")).toBeNull();
+        expect(parsePortInput("-")).toBeUndefined();
     });
 
     it("clamps anything above the maximum port", () => {
@@ -124,12 +124,13 @@ describe("parsePortInput", () => {
     });
 
     it("treats zero and leading zeroes as no port", () => {
-        expect(parsePortInput("0")).toBeNull();
+        expect(parsePortInput("0")).toBeUndefined();
         expect(parsePortInput("00080")).toBe(80);
     });
 
     it("ignores non-digit characters", () => {
         expect(parsePortInput("8e4")).toBe(84);
-        expect(parsePortInput("abc")).toBeNull();
+        expect(parsePortInput("abc")).toBeUndefined();
     });
 });
+

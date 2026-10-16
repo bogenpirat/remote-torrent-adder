@@ -50,7 +50,15 @@ function pageTarget(name: string, entryHtml: string): UserConfig {
  * single self-contained files, so they are built as IIFE bundles rather than as
  * ES modules with shared chunks.
  */
-function scriptTarget(entry: string, globalName: string, outSubDir: string, fileName: string): UserConfig {
+interface ScriptBundle {
+    entry: string;
+    globalName: string;
+    outSubDir: string;
+    fileName: string;
+}
+
+function scriptTarget(bundle: ScriptBundle): UserConfig {
+    const { entry, globalName, outSubDir, fileName } = bundle;
     return {
         ...shared,
         root: rootDir,
@@ -73,8 +81,13 @@ const targets: Record<string, UserConfig> = {
     popup: pageTarget('popup', 'popup.html'),
     options: pageTarget('options', 'options.html'),
     notifications: pageTarget('notifications', 'offscreen.html'),
-    worker: scriptTarget('src/service_worker.ts', 'RTAServiceWorker', '.', 'service_worker.js'),
-    'content-script': scriptTarget('src/content-script/rta.ts', 'RTAContentScript', 'content-script', 'rta.js'),
+    worker: scriptTarget({ entry: 'src/service_worker.ts', globalName: 'RTAServiceWorker', outSubDir: '.', fileName: 'service_worker.js' }),
+    'content-script': scriptTarget({
+        entry: 'src/content-script/rta.ts',
+        globalName: 'RTAContentScript',
+        outSubDir: 'content-script',
+        fileName: 'rta.js',
+    }),
 };
 
 export default defineConfig(() => {
