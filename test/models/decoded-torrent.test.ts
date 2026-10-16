@@ -8,7 +8,6 @@ import {
     toList,
     toText,
 } from "../../src/models/decoded-torrent";
-
 import { utf8Bytes } from "../helpers/fixtures";
 
 describe("isBytes", () => {

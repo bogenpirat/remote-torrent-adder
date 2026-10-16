@@ -9,7 +9,6 @@ import {
     parseFilesFromDecodedTorrentData,
     parsePrivateFlagFromDecodedTorrentData,
 } from "../../src/util/parsers";
-
 import { utf8Bytes } from "../helpers/fixtures";
 
 describe("getTorrentNameFromMagnetLink", () => {
