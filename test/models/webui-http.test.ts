@@ -8,6 +8,7 @@ import {
     toAuthenticatedResult,
     toRejectedResult,
     toUnreachableResult,
+    unreachableResultWithMessage,
 } from "../../src/models/webui-http";
 import { callArgs } from "../helpers/assert";
 import { mockResponse, queueFetch } from "../helpers/fetch-mock";
@@ -77,6 +78,17 @@ describe("toRejectedResult", () => {
             authenticated: false,
             httpResponseCode: 401,
             message: "Reachable, but authentication failed",
+        });
+    });
+});
+
+describe("unreachableResultWithMessage", () => {
+    it("reports an unreachable server with the given message and no status", () => {
+        expect(unreachableResultWithMessage("No client selected")).toEqual({
+            reachable: false,
+            authenticated: null,
+            httpResponseCode: 0,
+            message: "No client selected",
         });
     });
 });

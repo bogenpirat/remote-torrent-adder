@@ -3,6 +3,7 @@ import { ext } from "../../util/browser-api";
 import { TestConnectionMessage, type ITestConnectionMessage, isErrorReply } from "../../models/messages";
 import type { ConnectionTestResult, WebUISettings } from "../../models/webui";
 import { messageOf } from "../../models/error-message";
+import { unreachableResultWithMessage } from "../../models/webui-http";
 import { SUCCESS, WARNING, DANGER, INFO, ON_FILLED } from "../theme";
 
 const UNREACHABLE = { color: DANGER, icon: "❌" };
@@ -69,16 +70,12 @@ async function requestConnectionTest(webUiSettings: WebUISettings): Promise<Conn
       webUiSettings,
     } as ITestConnectionMessage);
     if (isErrorReply(response)) {
-      return failedTestResult(response.error);
+      return unreachableResultWithMessage(response.error);
     }
     return response as ConnectionTestResult;
   } catch (error) {
-    return failedTestResult(messageOf(error));
+    return unreachableResultWithMessage(messageOf(error));
   }
-}
-
-function failedTestResult(message: string): ConnectionTestResult {
-  return { reachable: false, authenticated: null, httpResponseCode: 0, message };
 }
 
 function TestOutcome({ result }: { result: ConnectionTestResult }) {

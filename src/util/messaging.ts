@@ -22,6 +22,7 @@ import {
 import { type ConnectionTestResult, type WebUISettings } from "../models/webui";
 import { messageOf } from "../models/error-message";
 import { WebUIFactory } from "../models/clients";
+import { unreachableResultWithMessage } from "../models/webui-http";
 import { resolveWindowId, updateBadgeText } from "./action";
 import { addBufferedTorrent, addTorrentToWebUiById, dispatchPreAddTorrent } from "./add-torrent";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
@@ -133,7 +134,7 @@ async function testConnection({ message }: MessageRequest): Promise<ConnectionTe
 
 async function testConnectionForWebUiSettings(webUiSettings: WebUISettings): Promise<ConnectionTestResult> {
     if (!WebUIFactory.supports(webUiSettings.client)) {
-        return { reachable: false, authenticated: null, httpResponseCode: 0, message: "No client selected for this WebUI." };
+        return unreachableResultWithMessage("No client selected for this WebUI.");
     }
     const webUi = WebUIFactory.createWebUI(webUiSettings);
     return executeMethodWrappedWithOriginStripped(() => webUi.testConnection(), webUi.createBaseUrl());

@@ -50,12 +50,14 @@ export function toRejectedResult(httpResponseCode: number): ConnectionTestResult
     return { reachable: true, authenticated: false, httpResponseCode, message: "Reachable, but authentication failed" };
 }
 
+export function unreachableResultWithMessage(message: string): ConnectionTestResult {
+    return { reachable: false, authenticated: null, httpResponseCode: 0, message };
+}
+
 export function toUnreachableResult(error: unknown): ConnectionTestResult {
     return {
-        reachable: false,
-        authenticated: null,
+        ...unreachableResultWithMessage(`Could not reach server: ${messageOf(error)}`),
         httpResponseCode: error instanceof HttpError ? error.status : 0,
-        message: `Could not reach server: ${messageOf(error)}`,
     };
 }
 
