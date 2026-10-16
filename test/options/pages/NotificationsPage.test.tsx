@@ -5,6 +5,7 @@ import { TestNotificationMessage } from "../../../src/models/messages";
 import { type RTASettings } from "../../../src/models/settings";
 import { IDBObjectStore } from "fake-indexeddb";
 import { getCustomSound, saveCustomSound } from "../../../src/util/sound-storage";
+import { extensionUrl } from "../../helpers/chrome-mock";
 import { lastSavedSettings, renderWithSettings, respondWithSettings, sentMessages } from "../../helpers/options";
 
 const playedSources: string[] = [];
@@ -207,7 +208,7 @@ describe("NotificationsPage custom sounds", () => {
 
         fireEvent.click(buttonIn(await soundRow("Failure sound"), "▶")!);
 
-        await waitFor(() => expect(playedSources).toEqual(["chrome-extension://rta-test-id/assets/sounds/failure.ogg"]));
+        await waitFor(() => expect(playedSources).toEqual([extensionUrl("assets/sounds/failure.ogg")]));
     });
 
     it("previews the stored sound when there is one", async () => {

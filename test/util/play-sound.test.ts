@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { extensionUrl } from "../helpers/chrome-mock";
 
 const { getCustomSound } = vi.hoisted(() => ({ getCustomSound: vi.fn() }));
 vi.mock("../../src/util/sound-storage", () => ({ getCustomSound }));
@@ -6,7 +7,7 @@ vi.mock("../../src/util/sound-storage", () => ({ getCustomSound }));
 const { playNotificationSound } = await import("../../src/util/play-sound");
 
 const CUSTOM_SOUND_URL = "blob:custom-sound";
-const DEFAULT_SOUND_URL = "chrome-extension://rta-test-id/assets/sounds/success.ogg";
+const DEFAULT_SOUND_URL = extensionUrl("assets/sounds/success.ogg");
 
 interface AudioStub {
     Audio: ReturnType<typeof vi.fn>;

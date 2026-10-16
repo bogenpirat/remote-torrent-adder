@@ -4,6 +4,13 @@ type StoredItems = Record<string, any>;
 type StorageListener = (changes: StoredItems, areaName: string) => void;
 type RuntimeMock = ReturnType<typeof createRuntimeMock>;
 
+const EXTENSION_ORIGIN = "chrome-extension://rta-test-id";
+
+/** The URL the mocked `runtime.getURL` returns for a packaged file. */
+export function extensionUrl(path: string): string {
+    return `${EXTENSION_ORIGIN}/${path.replace(/^\//, "")}`;
+}
+
 /**
  * Builds a fresh, fully-stubbed `chrome` namespace covering every API the
  * extension touches. Each call returns an independent object so tests never
@@ -37,7 +44,7 @@ function createRuntimeMock() {
         onInstalled: { addListener: vi.fn() },
         onStartup: { addListener: vi.fn() },
         lastError: undefined as { message: string } | undefined,
-        getURL: vi.fn((path: string) => `chrome-extension://rta-test-id/${path.replace(/^\//, "")}`),
+        getURL: vi.fn(extensionUrl),
     };
 }
 
