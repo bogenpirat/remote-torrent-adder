@@ -1,0 +1,64 @@
+x-linuxserver-env: &linuxserver-env
+  PUID: "1000"
+  PGID: "1000"
+  TZ: Etc/UTC
+
+services:
+  qbittorrent:
+    profiles: [qbittorrent]
+    image: lscr.io/linuxserver/qbittorrent:5.3.0
+    environment:
+      <<: *linuxserver-env
+      WEBUI_PORT: "18080"
+    ports:
+      - "127.0.0.1:18080:18080"
+
+  transmission:
+    profiles: [transmission]
+    image: lscr.io/linuxserver/transmission:4.1.3
+    environment:
+      <<: *linuxserver-env
+      USER: rta
+      PASS: rta-it-pass
+    ports:
+      - "127.0.0.1:18091:9091"
+
+  deluge:
+    profiles: [deluge]
+    image: lscr.io/linuxserver/deluge:2.2.0
+    environment:
+      <<: *linuxserver-env
+    ports:
+      - "127.0.0.1:18112:8112"
+
+  rutorrent:
+    profiles: [rutorrent]
+    image: crazymax/rtorrent-rutorrent:5.3.16-0.16.25
+    ports:
+      - "127.0.0.1:18081:8080"
+
+  flood:
+    profiles: [flood]
+    image: jesec/flood:4.16.3
+    command: ["--host", "0.0.0.0", "--port", "3000"]
+    depends_on: [flood-transmission]
+    ports:
+      - "127.0.0.1:18300:3000"
+
+  flood-transmission:
+    profiles: [flood]
+    image: lscr.io/linuxserver/transmission:4.1.3
+    environment:
+      <<: *linuxserver-env
+      USER: rta
+      PASS: rta-it-pass
+
+  rqbit:
+    profiles: [rqbit]
+    image: ikatson/rqbit:9.0.1
+    environment:
+      RQBIT_HTTP_BASIC_AUTH_USERPASS: "rta:rta-it-pass"
+      RQBIT_DHT_DISABLE: "true"
+      RQBIT_UPNP_PORT_FORWARD_DISABLE: "true"
+    ports:
+      - "127.0.0.1:18030:3030"
