@@ -140,11 +140,9 @@ Each `test/it/<client>.it.spec.ts` calls `defineClientSuite(probe)` (`fixtures/c
 | Deluge | `linuxserver/deluge` | `prepare()` connects the web UI to the daemon (RTA never calls `web.connect`) and enables the Label plugin |
 | ruTorrent | `crazymax/rtorrent-rutorrent` | Runs without auth. A fresh ruTorrent rejects every add until `php/getplugins.php` has been requested once. |
 | flood | `jesec/flood` + Transmission | `prepare()` registers the first user and its backend |
-| rqbit | `ikatson/rqbit` | Adding a magnet blocks until metadata resolves, so magnet cases are skipped. `addPaused` is a known issue: the add endpoint has no `paused` parameter. |
+| rqbit | `ikatson/rqbit` | Adding a magnet blocks until metadata resolves, so magnet cases are skipped. The add endpoint has no `paused` parameter; RTA pauses through `/torrents/{id}/pause` afterwards. |
 
 Not covered, and left to the smoke test matrix: Porla (dormant project, user setup not scriptable), BiglyBT and Tixati (the web interface has to be enabled in the desktop GUI), Elementum (Kodi add-on), tTorrent (Android app), QNAP and Synology Download Station (NAS firmware).
-
-A known client-side defect is recorded in the probe's `knownIssues` and turns the affected test into `test.fail`, so it goes red the moment the defect is fixed.
 
 ## Manual testing in a real browser
 

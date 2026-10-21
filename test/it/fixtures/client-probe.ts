@@ -18,7 +18,6 @@ export interface ClientProbe {
     dir: string;
     addsUnresolvedMagnets?: boolean;
     requiresAuth?: boolean;
-    knownIssues?: { addPaused?: string };
     prepare(): Promise<void>;
     find(infoHash: string): Promise<TorrentState | null>;
 }

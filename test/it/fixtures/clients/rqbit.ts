@@ -19,9 +19,6 @@ export const rqbit: ClientProbe = {
     label: "rta-it-label",
     dir: "/home/rqbit/downloads/rta-it",
     addsUnresolvedMagnets: false,
-    knownIssues: {
-        addPaused: "rqbit's add endpoint has no paused parameter, so the paused=true RTA sends is ignored",
-    },
 
     async prepare() {
         await waitFor("rqbit to answer", async () => ((await get("/torrents")).ok ? true : null));
