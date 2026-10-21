@@ -17,8 +17,18 @@ export async function compose(profile: string, ...args: string[]): Promise<strin
     return stdout;
 }
 
-export async function composeUp(profile: string): Promise<void> {
-    await compose(profile, "up", "-d");
+export async function composeUp(profile: string, attempts = 3): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await compose(profile, "up", "-d", "--pull", "always");
+            return;
+        } catch (error) {
+            if (attempt >= attempts) {
+                throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 5_000));
+        }
+    }
 }
 
 export async function composeDown(profile: string): Promise<void> {
