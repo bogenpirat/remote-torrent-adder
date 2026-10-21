@@ -104,7 +104,6 @@ export function defineClientSuite(probe: ClientProbe): ClientSuite {
     });
 
     test("reports a failure for wrong credentials", async ({ extension }) => {
-        test.skip(probe.requiresAuth === false, `${probe.profile} runs without authentication here`);
         await configureExtension(extension, webUiSettingsFor(probe, { password: "definitely-wrong" }));
         const notification = await addViaExtension(extension, torrentServer.createTorrent().url);
         expect(notification.title).toBe("Torrent adding failed");

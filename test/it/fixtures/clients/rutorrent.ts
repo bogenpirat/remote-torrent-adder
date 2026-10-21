@@ -1,8 +1,10 @@
 import { Client } from "../../../../src/models/clients";
-import { type ClientProbe, trimTrailingSlash } from "../client-probe";
+import { basicAuth, type ClientProbe, trimTrailingSlash } from "../client-probe";
 import { waitFor } from "../docker";
 
 const BASE_URL = "http://127.0.0.1:18081";
+const USERNAME = "rta";
+const PASSWORD = "rta-it-pass";
 
 const STATE = 3;
 const LABEL = 14;
@@ -12,15 +14,14 @@ export const rutorrent: ClientProbe = {
     profile: "rutorrent",
     client: Client.RuTorrentWebUI,
     port: 18081,
-    username: "",
-    password: "",
-    requiresAuth: false,
+    username: USERNAME,
+    password: PASSWORD,
     label: "rta-it-label",
     dir: "/downloads/complete/rta-it",
 
     async prepare() {
         await waitFor("ruTorrent to load its settings", async () => {
-            const response = await fetch(`${BASE_URL}/php/getplugins.php`);
+            const response = await fetch(`${BASE_URL}/php/getplugins.php`, { headers: basicAuth(USERNAME, PASSWORD) });
             return response.ok ? true : null;
         });
     },
@@ -28,6 +29,7 @@ export const rutorrent: ClientProbe = {
     async find(infoHash) {
         const response = await fetch(`${BASE_URL}/plugins/httprpc/action.php`, {
             method: "POST",
+            headers: basicAuth(USERNAME, PASSWORD),
             body: new URLSearchParams({ mode: "list", cmd: "d.directory=" }),
         });
         const list = (await response.json()) as { t?: Record<string, string[]> };

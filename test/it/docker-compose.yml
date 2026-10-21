@@ -34,6 +34,9 @@ services:
   rutorrent:
     profiles: [rutorrent]
     image: crazymax/rtorrent-rutorrent:5.3.16-0.16.25
+    configs:
+      - source: rutorrent-htpasswd
+        target: /passwd/rutorrent.htpasswd
     ports:
       - "127.0.0.1:18081:8080"
 
@@ -62,3 +65,7 @@ services:
       RQBIT_UPNP_PORT_FORWARD_DISABLE: "true"
     ports:
       - "127.0.0.1:18030:3030"
+
+configs:
+  rutorrent-htpasswd:
+    content: "rta:$$2y$$05$$omYaZSplSD7QYfihAPsj0O74DrqQO0NyJgntq2GbldXqMhvuuYvpu"

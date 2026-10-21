@@ -138,7 +138,7 @@ Each `test/it/<client>.it.spec.ts` calls `defineClientSuite(probe)` (`fixtures/c
 | qBittorrent | `linuxserver/qbittorrent` | Web UI port must equal the host port, or qBittorrent's host header validation answers 401. `prepare()` reads the temporary password from the logs and sets fixed credentials. |
 | Transmission | `linuxserver/transmission` | Basic auth, answered by the extension's `onAuthRequired` listener |
 | Deluge | `linuxserver/deluge` | `prepare()` connects the web UI to the daemon (RTA never calls `web.connect`) and enables the Label plugin |
-| ruTorrent | `crazymax/rtorrent-rutorrent` | Runs without auth. A fresh ruTorrent rejects every add until `php/getplugins.php` has been requested once. |
+| ruTorrent | `crazymax/rtorrent-rutorrent` | Basic auth from an htpasswd entry inlined as a compose `config`, answered by the extension's `onAuthRequired` listener. A fresh ruTorrent rejects every add until `php/getplugins.php` has been requested once. |
 | flood | `jesec/flood` + Transmission | `prepare()` registers the first user and its backend |
 | rqbit | `ikatson/rqbit` | Adding a magnet blocks until metadata resolves, so magnet cases are skipped. The add endpoint has no `paused` parameter; RTA pauses through `/torrents/{id}/pause` afterwards. |
 
