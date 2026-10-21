@@ -15,14 +15,37 @@ export class TransmissionWebUI extends TorrentWebUI {
 
             const responseText = await response.text();
             const responseData = JSON.parse(responseText);
+            const success = responseData["result"] === "success";
+            const label = this.getLabel(config);
+            if (success && label) {
+                return await this.setLabel(responseData["arguments"], label, sessionId, responseText);
+            }
             return {
-                success: responseData["result"] === "success",
+                success,
                 httpResponseCode: response.status,
                 httpResponseBody: responseText,
             };
         } catch (error) {
             return this.toFailureResult(error);
         }
+    }
+
+    private async setLabel(addedArguments: Record<string, { hashString?: string }>, label: string, sessionId: string, addResponseText: string): Promise<TorrentAddingResult> {
+        const hashString = (addedArguments["torrent-added"] ?? addedArguments["torrent-duplicate"])?.hashString;
+        const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=UTF-8",
+                "X-Transmission-Session-Id": sessionId
+            },
+            body: JSON.stringify({ method: "torrent-set", arguments: { ids: [hashString], labels: [label] } })
+        });
+        const responseData = await response.json();
+        return {
+            success: responseData["result"] === "success",
+            httpResponseCode: response.status,
+            httpResponseBody: addResponseText,
+        };
     }
 
     private fetchTransmissionSessionId(): Promise<string> {
@@ -80,7 +103,7 @@ export class TransmissionWebUI extends TorrentWebUI {
     }
 
     get isLabelSupported(): boolean {
-        return false;
+        return true;
     }
 
     get isDirSupported(): boolean {
