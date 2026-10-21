@@ -49,9 +49,65 @@ describe("TransmissionWebUI", () => {
         await expect(build().sendTorrent(makeMagnetTorrent(), {})).resolves.toMatchObject({ success: false });
     });
 
-    it("supports dir and add-paused but not labels", () => {
+    it("sets the label with torrent-set on the added torrent's hash, since torrent-add ignores labels before Transmission 4", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 409, headers: { "X-Transmission-Session-Id": "sess-123" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: { "torrent-added": { hashString: "abc", id: 1 } } } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: {} } }),
+        );
+        const result = await build().sendTorrent(makeFileTorrent(), { label: "movies" });
+
+        expect(result.success).toBe(true);
+        const [setUrl, setOpts] = callArgs(fetch, 2);
+        expect(setUrl).toBe("http://h:9091/transmission/rpc");
+        expect((setOpts.headers as any)["X-Transmission-Session-Id"]).toBe("sess-123");
+        expect(JSON.parse(setOpts.body as string)).toEqual({ method: "torrent-set", arguments: { ids: ["abc"], labels: ["movies"] } });
+    });
+
+    it("labels a torrent that was already present", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: { "torrent-duplicate": { hashString: "dup", id: 1 } } } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: {} } }),
+        );
+        await build().sendTorrent(makeMagnetTorrent(), { label: "movies" });
+
+        expect(JSON.parse(callArgs(fetch, 2)[1].body as string).arguments.ids).toEqual(["dup"]);
+    });
+
+    it("falls back to the default label", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: { "torrent-added": { hashString: "abc", id: 1 } } } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: {} } }),
+        );
+        await build({ defaultLabel: "tv" }).sendTorrent(makeMagnetTorrent(), {});
+
+        expect(JSON.parse(callArgs(fetch, 2)[1].body as string).arguments.labels).toEqual(["tv"]);
+    });
+
+    it("does not call torrent-set without a label", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: { "torrent-added": { hashString: "abc", id: 1 } } } }),
+        );
+        await build().sendTorrent(makeMagnetTorrent(), {});
+
+        expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("reports failure when setting the label fails", async () => {
+        queueFetch(
+            mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: { "torrent-added": { hashString: "abc", id: 1 } } } }),
+            mockResponse({ status: 200, json: { result: "invalid argument" } }),
+        );
+        await expect(build().sendTorrent(makeMagnetTorrent(), { label: "movies" })).resolves.toMatchObject({ success: false });
+    });
+
+    it("supports labels, dir and add-paused", () => {
         const ui = build();
-        expect(ui.isLabelSupported).toBe(false);
+        expect(ui.isLabelSupported).toBe(true);
         expect(ui.isDirSupported).toBe(true);
         expect(ui.isAddPausedSupported).toBe(true);
     });
