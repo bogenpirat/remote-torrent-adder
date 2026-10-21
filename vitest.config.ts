@@ -4,6 +4,7 @@ export default defineConfig({
     define: { __RTA_BROWSER__: JSON.stringify(process.env.RTA_BROWSER ?? "chrome") },
     test: {
         environment: "jsdom",
+        pool: "vmThreads",
         globals: true,
         // Spies created with vi.spyOn are undone after each test, so call counts
         // cannot leak into the next one.
