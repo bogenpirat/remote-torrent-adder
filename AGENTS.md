@@ -15,6 +15,7 @@ npm run build          # Chrome dev build → dist/chrome/
 npm run build:prod     # Chrome prod build → dist-prod/chrome/
 npm run build:firefox  # Firefox dev build → dist/firefox/
 npm run build:all      # every bundle, incl. the self-hosted Firefox one, verified once
+npm run test:it        # manual only: real clients in Docker, needs a built dist/chrome/
 npm run dev            # watch mode
 ```
 
