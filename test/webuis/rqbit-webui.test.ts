@@ -8,13 +8,13 @@ const build = (over = {}) => new RqbitWebUI(makeWebUISettings({ host: "h", port:
 const addOk = () => mockResponse({ status: 200, json: { id: 0 } });
 
 describe("RqbitWebUI", () => {
-    it("posts a magnet body to /torrents with output_folder/paused and Basic auth", async () => {
+    it("posts a magnet body to /torrents with output_folder and Basic auth", async () => {
         const fetch = queueFetch(addOk());
-        const result = await build().sendTorrent(makeMagnetTorrent(), { dir: "/movies", addPaused: true });
+        const result = await build().sendTorrent(makeMagnetTorrent(), { dir: "/movies" });
 
         expect(result.success).toBe(true);
         const [url, opts] = callArgs(fetch, 0);
-        expect(url).toBe("http://h:1337/torrents?output_folder=%2Fmovies&paused=true");
+        expect(url).toBe("http://h:1337/torrents?output_folder=%2Fmovies");
         expect(opts.method).toBe("POST");
         expect(opts.body).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
         expect((opts.headers as any).Authorization).toBe("Basic " + btoa("user:pass"));
@@ -29,11 +29,38 @@ describe("RqbitWebUI", () => {
         expect(opts.body).toBe(torrent.data);
     });
 
-    it("omits output_folder when no directory is set but always sends paused", async () => {
+    it("sends no query string when no directory is set", async () => {
         const fetch = queueFetch(addOk());
         await build().sendTorrent(makeMagnetTorrent(), {});
 
-        expect(callArgs(fetch, 0)[0]).toBe("http://h:1337/torrents?paused=false");
+        expect(callArgs(fetch, 0)[0]).toBe("http://h:1337/torrents");
+    });
+
+    it("pauses the added torrent by its id when adding paused, since the add endpoint has no paused parameter", async () => {
+        const fetch = queueFetch(mockResponse({ status: 200, json: { id: 7 } }), mockResponse({ status: 200 }));
+        const result = await build().sendTorrent(makeMagnetTorrent(), { addPaused: true });
+
+        expect(result.success).toBe(true);
+        expect(callArgs(fetch, 0)[0]).toBe("http://h:1337/torrents");
+        const [url, opts] = callArgs(fetch, 1);
+        expect(url).toBe("http://h:1337/torrents/7/pause");
+        expect(opts.method).toBe("POST");
+        expect((opts.headers as any).Authorization).toBe("Basic " + btoa("user:pass"));
+    });
+
+    it("does not pause when adding unpaused", async () => {
+        const fetch = queueFetch(addOk());
+        await build().sendTorrent(makeMagnetTorrent(), { addPaused: false });
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports a failed pause as a failure", async () => {
+        queueFetch(mockResponse({ status: 200, json: { id: 7 } }), mockResponse({ status: 404, body: "not found" }));
+        await expect(build().sendTorrent(makeMagnetTorrent(), { addPaused: true })).resolves.toMatchObject({
+            success: false,
+            httpResponseCode: 404,
+        });
     });
 
     it("omits the Authorization header when no credentials are configured", async () => {

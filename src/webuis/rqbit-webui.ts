@@ -10,7 +10,11 @@ export class RqbitWebUI extends TorrentWebUI {
         try {
             const url = this.createBaseUrl() + "/torrents" + this.createQueryString(config);
             const response = await this.fetch(url, this.createTorrentFetchOptions(torrent));
-            return {success: true, httpResponseCode: response.status, httpResponseBody: await response.text()};
+            const responseBody = await response.text();
+            if (this.getAddPaused(config)) {
+                await this.pauseTorrent(JSON.parse(responseBody).id);
+            }
+            return {success: true, httpResponseCode: response.status, httpResponseBody: responseBody};
         } catch (error) {
             return this.toFailureResult(error);
         }
@@ -24,13 +28,15 @@ export class RqbitWebUI extends TorrentWebUI {
             params.append("output_folder", dir);
         }
 
-        const addPaused = this.getAddPaused(config);
-        if (addPaused !== null) {
-            params.append("paused", addPaused.toString());
-        }
-
         const query = params.toString();
         return query ? `?${query}` : "";
+    }
+
+    private async pauseTorrent(id: number): Promise<void> {
+        await this.fetch(this.createBaseUrl() + `/torrents/${id}/pause`, {
+            method: "POST",
+            headers: this.createAuthHeaders(),
+        });
     }
 
     private createTorrentFetchOptions(torrent: Torrent): RequestInit {
