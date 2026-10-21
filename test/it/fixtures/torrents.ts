@@ -48,13 +48,15 @@ export class TorrentServer {
         await new Promise<void>(resolve => this.server.close(() => resolve()));
     }
 
-    createTorrent(): GeneratedTorrent {
+    createTorrent({ multiFile = false }: { multiFile?: boolean } = {}): GeneratedTorrent {
         const name = uniqueName();
         const info = {
             name,
             "piece length": 16384,
             pieces: randomBytes(20),
-            length: 1024,
+            ...(multiFile
+                ? { files: [{ length: 512, path: ["a.bin"] }, { length: 512, path: ["b.bin"] }] }
+                : { length: 1024 }),
         };
         const infoHash = createHash("sha1").update(bencode.encode(info)).digest("hex");
         const path = `/files/${name}.torrent`;
