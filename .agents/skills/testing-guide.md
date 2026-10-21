@@ -123,13 +123,13 @@ Two things to know before adding a spec:
 
 ```bash
 npm run build              # the suite loads dist/chrome/
-npm run test:it            # every client, one after another
+npm run test:it            # every client in parallel, one worker per client
 npm run test:it -- deluge  # one client: only its containers start
-npm run test:it:headed
+npm run test:it:headed     # one worker, so the browsers open one at a time
 RTA_IT_KEEP=1 npm run test:it -- qbittorrent   # leave the containers running afterwards to poke at the WebUI
 ```
 
-`test/it/docker-compose.yml` holds one compose profile per client; each spec brings up only its own profile as project `rta-it-<client>` in `beforeAll` and removes it with `down -v` in `afterAll`. No custom images are built — clients are configured through environment variables and API calls in each probe's `prepare()`. Every image runs at its `latest` tag and is pulled again on every run (`up --pull always`), so the suite always checks RTA against each client's newest release; a red run can therefore come from a client update rather than an RTA change, and needs network access to the registries. To test an older release, swap the tag in the compose file for that run. Host ports are fixed in the 18xxx range and bound to 127.0.0.1.
+`test/it/docker-compose.yml` holds one compose profile per client; each spec brings up only its own profile as project `rta-it-<client>` in `beforeAll` and removes it with `down -v` in `afterAll`. No custom images are built — clients are configured through environment variables and API calls in each probe's `prepare()`. Every image runs at its `latest` tag and is pulled again on every run (`up --pull always`), so the suite always checks RTA against each client's newest release; a red run can therefore come from a client update rather than an RTA change, and needs network access to the registries. To test an older release, swap the tag in the compose file for that run. Host ports are fixed in the 18xxx range and bound to 127.0.0.1. `test:it` runs with `--workers=100%`: each spec file owns its compose project and ports, so the clients run side by side while the tests inside one file stay serial on the stack its `beforeAll` started.
 
 Each `test/it/<client>.it.spec.ts` calls `defineClientSuite(probe)` (`fixtures/client-suite.ts`), which derives the matrix from the client's `isLabelSupported` / `isDirSupported` / `isAddPausedSupported`: `.torrent` and magnet without options, label, directory, paused, all three combined, the WebUI defaults (the no-config fallback path), wrong credentials, and the connection test. Each add goes through the worker's real `addTorrent` message; the result is read back from the client's own API by the probe in `fixtures/clients/<client>.ts`. Every test generates a fresh torrent (random pieces, `.invalid` tracker) or a random-hash magnet, so nothing needs cleaning up and nothing is ever downloaded.
 
