@@ -117,6 +117,33 @@ Two things to know before adding a spec:
 - **Seeding races the boot.** On a fresh profile the worker writes its own defaults. `launch()` waits that out, so `seedSettings` is safe, but a seed followed immediately by a browser close can still be overtaken. Use `extension.restart()` (which closes and reopens the same profile) rather than `chrome.runtime.reload()` — a reloaded extension has no pending event, so Chrome leaves its worker dormant and the test hangs.
 - **Only errors fail.** The extension logs plenty at `debug`/`log` level, and a few warnings are normal (a cold worker, the service-worker download fallback). `console-collector.ts` fails on any `error`, any page exception, and any warning not on its allowlist. Adding to that allowlist needs a source reference; a spec that legitimately expects an error passes it to `unexpectedProblems([/pattern/])` instead.
 
+## Integration tests against real clients in Docker
+
+`test/it/` drives the real extension (Playwright + Chrome, the same harness as `e2e/`) against real BitTorrent clients started from public Docker images. It is **manual only** — not part of `npm test`, `verify`, `prebuild` or CI — because it needs a running Docker engine and pulls several images.
+
+```bash
+npm run build              # the suite loads dist/chrome/
+npm run test:it            # every client in parallel, one worker per client
+npm run test:it -- deluge  # one client: only its containers start
+npm run test:it:headed     # one worker, so the browsers open one at a time
+RTA_IT_KEEP=1 npm run test:it -- qbittorrent   # leave the containers running afterwards to poke at the WebUI
+```
+
+`test/it/docker-compose.yml` holds one compose profile per client; each spec brings up only its own profile as project `rta-it-<client>` in `beforeAll` and removes it with `down -v` in `afterAll`. No custom images are built — clients are configured through environment variables and API calls in each probe's `prepare()`. Every image runs at its `latest` tag and is pulled again on every run (`up --pull always`), so the suite always checks RTA against each client's newest release; a red run can therefore come from a client update rather than an RTA change, and needs network access to the registries. To test an older release, swap the tag in the compose file for that run. Host ports are fixed in the 18xxx range and bound to 127.0.0.1. `test:it` runs with `--workers=100%`: each spec file owns its compose project and ports, so the clients run side by side while the tests inside one file stay serial on the stack its `beforeAll` started.
+
+Each `test/it/<client>.it.spec.ts` calls `defineClientSuite(probe)` (`fixtures/client-suite.ts`), which derives the matrix from the client's `isLabelSupported` / `isDirSupported` / `isAddPausedSupported`: `.torrent` and magnet without options, label, directory, paused, all three combined, the WebUI defaults (the no-config fallback path), wrong credentials, and the connection test. Each add goes through the worker's real `addTorrent` message; the result is read back from the client's own API by the probe in `fixtures/clients/<client>.ts`. Every test generates a fresh torrent (random pieces, `.invalid` tracker) or a random-hash magnet, so nothing needs cleaning up and nothing is ever downloaded.
+
+| Client | Image | Notes |
+|---|---|---|
+| qBittorrent | `linuxserver/qbittorrent` | Web UI port must equal the host port, or qBittorrent's host header validation answers 401. `prepare()` reads the temporary password from the logs and sets fixed credentials. |
+| Transmission | `linuxserver/transmission` | Basic auth, answered by the extension's `onAuthRequired` listener |
+| Deluge | `linuxserver/deluge` | `prepare()` connects the web UI to the daemon (RTA never calls `web.connect`) and enables the Label plugin |
+| ruTorrent | `crazymax/rtorrent-rutorrent` | Basic auth from an htpasswd entry inlined as a compose `config`, answered by the extension's `onAuthRequired` listener. A fresh ruTorrent rejects every add until `php/getplugins.php` has been requested once. |
+| flood | `jesec/flood` + Transmission | `prepare()` registers the first user and its backend |
+| rqbit | `ikatson/rqbit` | Adding a magnet blocks until metadata resolves, so magnet cases are skipped. The add endpoint has no `paused` parameter; RTA pauses through `/torrents/{id}/pause` afterwards. |
+
+Not covered, and left to the smoke test matrix: Porla (dormant project, user setup not scriptable), BiglyBT and Tixati (the web interface has to be enabled in the desktop GUI), Elementum (Kodi add-on), tTorrent (Android app), QNAP and Synology Download Station (NAS firmware).
+
 ## Manual testing in a real browser
 
 Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser. Chrome scenarios follow; the Firefox pass is section H of `smoke-test-matrix.md`, and `npm run dev:firefox` launches a scratch profile with the add-on loaded.

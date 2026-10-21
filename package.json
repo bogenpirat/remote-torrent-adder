@@ -14,6 +14,8 @@
         "test:e2e:firefox": "playwright test --config e2e/playwright.config.ts --project=firefox",
         "test:e2e:headed": "playwright test --config e2e/playwright.config.ts --headed",
         "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
+        "test:it": "playwright test --config test/it/playwright.config.ts --workers=100%",
+        "test:it:headed": "playwright test --config test/it/playwright.config.ts --headed",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",

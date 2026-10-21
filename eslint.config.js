@@ -70,6 +70,7 @@ export default tseslint.config(
 
     {
         files: ['test/**/*.{ts,tsx}'],
+        ignores: ['test/it/**'],
         languageOptions: {
             globals: { ...globals.node, ...globals.browser, chrome: 'writable' },
         },
@@ -80,7 +81,7 @@ export default tseslint.config(
     },
 
     {
-        files: ['e2e/**/*.ts'],
+        files: ['e2e/**/*.ts', 'test/it/**/*.ts'],
         languageOptions: {
             globals: { ...globals.node, ...globals.browser, chrome: 'readonly' },
         },
