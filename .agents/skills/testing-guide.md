@@ -119,7 +119,7 @@ Two things to know before adding a spec:
 
 ## Integration tests against real clients in Docker
 
-`test/it/` drives the real extension (Playwright + Chrome, the same harness as `e2e/`) against real BitTorrent clients started from public Docker images. It is **manual only** — not part of `npm test`, `verify`, `prebuild` or CI — because it needs a running Docker engine and pulls several images.
+`test/it/` drives the real extension (Playwright + Chrome, the same harness as `e2e/`) against real BitTorrent clients started from public Docker images. It is not part of `npm test`, `verify` or `prebuild`, because it needs a running Docker engine and pulls several images. In CI it runs as the `integration` job on `master` only, in parallel with `e2e`, with one retry per test and an HTML report uploaded as `playwright-report-it`. The job has `continue-on-error: true`: it runs against each client's latest image, so a red run can come from a client release rather than the merge, and it reports without failing `master` until it has proven stable. When the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a read-only access token) are set, the job logs in to Docker Hub first, so the ruTorrent, flood and rqbit pulls count against that account instead of the runner's shared IP; without them it pulls anonymously.
 
 ```bash
 npm run build              # the suite loads dist/chrome/
