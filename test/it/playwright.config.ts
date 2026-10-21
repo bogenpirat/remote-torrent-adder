@@ -7,10 +7,13 @@ export default defineConfig({
     outputDir: "../../test-results/it",
     fullyParallel: false,
     workers: 1,
-    retries: 0,
+    forbidOnly: !!process.env.CI,
+    retries: process.env.CI ? 1 : 0,
     timeout: 90_000,
     expect: { timeout: 15_000 },
-    reporter: [["list"]],
+    reporter: process.env.CI
+        ? [["list"], ["html", { outputFolder: "../../playwright-report/it", open: "never" }]]
+        : [["list"]],
     use: {
         trace: "retain-on-failure",
     },

@@ -119,6 +119,47 @@ jobs:
           path: playwright-report
           retention-days: 7
 
+  integration:
+    if: github.ref == 'refs/heads/master'
+    needs: build-dev
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Download the built Chrome extension
+        uses: actions/download-artifact@v8
+        with:
+          name: chrome-extension-dist
+          path: dist/chrome
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Log in to Docker Hub
+        if: env.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@v4
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+      - name: Run integration tests
+        run: npm run test:it
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-it
+          path: playwright-report/it
+          retention-days: 7
+
   build-prod:
     if: github.ref == 'refs/heads/master'
     needs: verify
