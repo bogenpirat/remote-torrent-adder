@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/firefox-extension";
+import { test, expect, type FirefoxExtensionHarness } from "../fixtures/firefox-extension";
 import { StaticSite } from "../fixtures/static-site";
 import { makeSettings, makeWebUISettings } from "../fixtures/settings";
 
@@ -113,20 +113,24 @@ test.describe("firefox content script", () => {
     });
 });
 
+const OPTIONS_TABS = [
+    "WebUIs",
+    "Icon Click",
+    "Notifications",
+    "Link Catching",
+    "Import/Export Settings",
+    "About",
+];
+
+function renderedTabs(extension: FirefoxExtensionHarness): Promise<string[]> {
+    return extension.evaluate<string[]>(
+        'return Array.from(document.querySelectorAll("[role=tab]")).map(element => element.textContent);',
+    );
+}
+
 test.describe("firefox options page", () => {
     test("renders every tab", async ({ extension }) => {
-        const tabs = await extension.evaluate<string[]>(
-            'return Array.from(document.querySelectorAll("[role=tab]")).map(element => element.textContent);',
-        );
-
-        expect(tabs).toEqual([
-            "WebUIs",
-            "Icon Click",
-            "Notifications",
-            "Link Catching",
-            "Import/Export Settings",
-            "About",
-        ]);
+        await expect.poll(() => renderedTabs(extension)).toEqual(OPTIONS_TABS);
     });
 
     test("does not warn about host permissions when they are granted", async ({ extension }) => {
@@ -135,6 +139,7 @@ test.describe("firefox options page", () => {
         );
 
         expect(granted).toBe(true);
+        await expect.poll(() => renderedTabs(extension)).toEqual(OPTIONS_TABS);
         const alerts = await extension.evaluate<number>(
             'return document.querySelectorAll("[role=alert]").length;',
         );
