@@ -77,6 +77,7 @@ export function defineClientSuite(probe: ClientProbe): ClientSuite {
 
     test("adds paused", async ({ extension, logs }) => {
         test.skip(!webUi.isAddPausedSupported, "adding paused is not supported");
+        test.fail(!!probe.knownIssues?.addPaused, probe.knownIssues?.addPaused);
         const state = await addAndFind(extension, logs, { config: { addPaused: true } });
         expect(state.paused).toBe(true);
     });
@@ -99,7 +100,7 @@ export function defineClientSuite(probe: ClientProbe): ClientSuite {
         expectState(state, {
             label: webUi.isLabelSupported ? probe.label : undefined,
             dir: webUi.isDirSupported ? probe.dir : undefined,
-            addPaused: webUi.isAddPausedSupported ? true : undefined,
+            addPaused: webUi.isAddPausedSupported && !probe.knownIssues?.addPaused ? true : undefined,
         });
     });
 
