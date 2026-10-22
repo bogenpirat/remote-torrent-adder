@@ -13,8 +13,6 @@
 [![Firefox Add-on](https://img.shields.io/amo/v/remote-torrent-adder%40bogenpirat?label=Firefox%20Add-on&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
 [![Firefox users](https://img.shields.io/amo/users/remote-torrent-adder%40bogenpirat?label=Firefox%20users)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
 [![Firefox rating](https://img.shields.io/amo/rating/remote-torrent-adder%40bogenpirat?label=Firefox%20rating)](https://addons.mozilla.org/en-US/firefox/addon/remote-torrent-adder16/)
-<br />
-[![Latest release](https://img.shields.io/github/v/release/bogenpirat/remote-torrent-adder)](https://github.com/bogenpirat/remote-torrent-adder/releases/latest)
 
 [Install](#-installation) · [Features](#-features) · [Supported clients](#-supported-clients) · [Build from source](#-building-from-source) · [Contributing](#-contributing)
 
