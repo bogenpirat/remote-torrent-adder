@@ -32,7 +32,7 @@ const renderProbe = () => render(<SettingsProvider><Probe /></SettingsProvider>)
 
 describe("SettingsContext", () => {
     it("shows a loading state until settings arrive", () => {
-        (chrome.runtime.sendMessage as any).mockImplementation(() => Promise.resolve());
+        (chrome.runtime.sendMessage as any).mockImplementation(() => new Promise(() => {}));
 
         renderProbe();
 
