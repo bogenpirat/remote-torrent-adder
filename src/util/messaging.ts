@@ -16,7 +16,9 @@ import {
     type ITestConnectionMessage,
     type ISaveSettingsMessage,
     type ITestNotificationMessage,
-    type IMessagable
+    type IMessagable,
+    SetTorrentLabelMessage,
+    type ISetTorrentLabelMessage
 } from "../models/messages";
 import { type RTASettings } from "../models/settings";
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
@@ -26,7 +28,8 @@ import { openActionPopup, openPopupWindow, updateBadgeText } from "./action";
 import { getAutoDirResult, getAutoLabelResult } from "./auto-label-dir-matcher";
 import { executeMethodWrappedWithOriginStripped } from "./cors-tricks";
 import { CloudflareChallengeError, downloadTorrent, type TorrentDownloadContext } from "./download";
-import { showNotification } from "./notifications";
+import { computeInfoHash } from "./info-hash";
+import { type NotificationLabelAction, showNotification } from "./notifications";
 import { serializeSettings, serializeObject, deserializeSettings } from "./serializer";
 import { clearBufferedTorrent, readBufferedTorrent, saveBufferedTorrent } from "./buffered-torrent";
 import { Settings } from "./settings";
@@ -132,6 +135,13 @@ export function registerMessageListener(): void {
                 case AddTorrentMessageWithLabelAndDir.action: {
                     willRespondAsync = true;
                     addBufferedTorrent(message as IAddTorrentMessageWithLabelAndDir, settingsProvider)
+                        .then(() => finish({}))
+                        .catch(respondWithError);
+                    break;
+                }
+                case SetTorrentLabelMessage.action: {
+                    willRespondAsync = true;
+                    setTorrentLabel(message as ISetTorrentLabelMessage, settingsProvider)
                         .then(() => finish({}))
                         .catch(respondWithError);
                     break;
@@ -309,10 +319,46 @@ function updateWebUiSettingsForWebUi(settingsProvider: Settings, webUiId: string
     });
 }
 
+async function setTorrentLabel(message: ISetTorrentLabelMessage, settingsProvider: Settings): Promise<void> {
+    const webUi = await getWebUiById(message.webUiId, settingsProvider);
+    if (!webUi) {
+        throw new Error(`No WebUI found for id ${message.webUiId}`);
+    }
+
+    const result = await webUi.setLabel(message.infoHash, message.label);
+    if (!result.success) {
+        throw new Error(`Setting the label failed (HTTP ${result.httpResponseCode}): ${result.httpResponseBody ?? ""}`);
+    }
+
+    const settings = await settingsProvider.loadSettings();
+    const webUiSettings = settings.webuiSettings.find(candidate => candidate.id === message.webUiId);
+    if (webUiSettings) {
+        webUiSettings.labels = message.labels;
+        await settingsProvider.saveSettings(settings);
+    }
+
+    if (settings.notificationsEnabled) {
+        showNotification("Label set",
+            `${message.torrentName} labelled "${message.label}" in ${webUi.name}`,
+            false,
+            settings.notificationsDurationMs,
+            settings.notificationsSoundEnabled,
+            addTrailingSlash(webUi.createBaseUrl()));
+    }
+}
+
+async function createLabelAction(webUi: TorrentWebUI, torrent: Torrent, settings: RTASettings): Promise<NotificationLabelAction | undefined> {
+    if (!webUi.isLabelSupported || !(settings.notificationsLabelButtonEnabled ?? true)) {
+        return undefined;
+    }
+    const infoHash = await computeInfoHash(torrent);
+    return infoHash ? { webUiId: webUi.settings.id, infoHash, torrentName: torrent.name } : undefined;
+}
+
 function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: TorrentUploadConfig | null) {
     new Settings().loadSettings().then(settings => {
         const webUiUrl = addTrailingSlash(webUi.createBaseUrl());
-        webUi.sendTorrent(torrent, config ?? {}).then((torrentAddingResult: TorrentAddingResult) => {
+        webUi.sendTorrent(torrent, config ?? {}).then(async (torrentAddingResult: TorrentAddingResult) => {
             console.log(`Torrent sent successfully: ${torrent.name} to -> ${webUi.name}`);
             if (settings.notificationsEnabled) {
                 if (torrentAddingResult.success) {
@@ -321,7 +367,8 @@ function sendTorrentToWebUi(webUi: TorrentWebUI, torrent: Torrent, config: Torre
                         false,
                         settings.notificationsDurationMs,
                         settings.notificationsSoundEnabled,
-                        webUiUrl);
+                        webUiUrl,
+                        await createLabelAction(webUi, torrent, settings));
                 } else {
                     showNotification("Torrent adding failed",
                         `HTTP Response code: ${torrentAddingResult.httpResponseCode}\nResponse body: ${torrentAddingResult.httpResponseBody}`,

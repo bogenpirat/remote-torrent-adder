@@ -87,6 +87,8 @@ Tick the client off only if BOTH pass.
 | E2 | With notification sound enabled, add successfully | Sound plays once |
 | E3 | With notifications disabled, add successfully | No notification |
 | E4 | Notification on error | Error notification surfaces the HTTP code or message |
+| E5 | Raise `notificationsDurationMs`, add a torrent to a client with labels, click **Add label** on the success notification | A small window opens with the label field preset to the most recent label; setting one labels the torrent in the client, shows a "Label set" notification, and moves the label to the front of the list. With **Offer an "Add label" button** turned off in Options → Notifications, the success notification has no button |
+| E6 | Same as E5 against BiglyBT | The label shows up as a manual tag on the torrent (the request matches the torrent by its upper-case hash, which only a real BiglyBT confirms) |
 
 ### F. Options page & persistence
 
@@ -124,7 +126,7 @@ below are the ones it *cannot* reach.
 | H1 | Click a `.torrent` link on a client with **Show per-torrent selector** on | The label/dir popup opens. Watch for it closing instantly — `openActionPopup` unregisters the popup right after opening it, which is unverified on Firefox. If it flickers shut, defer the reset or force the window container |
 | H2 | Same, with **Use alternative container** on | A 420x600 popup window opens with the same form |
 | H3 | Add succeeds with notification sound enabled | Sound plays once, from the event page — there is no offscreen document on Firefox |
-| H4 | Add fails (stop the client) | Error notification appears; it carries no buttons, which is expected — Firefox only supports basic notifications |
+| H4 | Add fails, and add succeeds on a client with labels | Both notifications appear without buttons, which is expected — Firefox rejects `buttons`, so the **Add label** button is Chrome-only |
 | H5 | Click the notification | The client WebUI opens in a new tab |
 | H6 | Revoke host access in `about:addons` → Permissions, reopen the options page | The "cannot access websites" banner appears; **Grant access** restores it and the banner disappears |
 | H7 | Right-click a torrent link → context menu → "Send to <client>" | Torrent added directly, no popup |

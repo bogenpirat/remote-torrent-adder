@@ -20,6 +20,7 @@ import {
     PreAddTorrentMessage,
     AddTorrentMessage,
     AddTorrentMessageWithLabelAndDir,
+    SetTorrentLabelMessage,
 } from "../../src/models/messages";
 import { serializeSettings, deserializeSettings } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
@@ -396,5 +397,111 @@ describe("dispatchPreAddTorrent", () => {
         const buffered = await readBufferedTorrent();
         expect(buffered!.torrent.data).toBe("magnet:?xt=urn:btih:abc123&dn=Cool+Torrent");
         expect(buffered!.webUiSettings.id).toBe("w1");
+    });
+});
+
+describe("labelling after the add", () => {
+    const infoHash = "0123456789abcdef0123456789abcdef01234567";
+
+    function seedWebUi(over = {}, globalOver: Partial<ReturnType<typeof getDefaultSettings>> = {}) {
+        const settings = { ...getDefaultSettings(), ...globalOver };
+        settings.webuiSettings = [makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, host: "h", port: 8080, labels: ["old"], ...over })];
+        (chrome as any).__storage.settings = serializeSettings(settings);
+    }
+
+    function respondToEveryFetchWith(ok: boolean, status: number) {
+        (globalThis as any).fetch = vi.fn(() =>
+            Promise.resolve({ ok, status, text: () => Promise.resolve(ok ? "Ok." : "nope") } as any),
+        );
+    }
+
+    async function addMagnet() {
+        downloadTorrent.mockResolvedValue(makeMagnetTorrent({ data: `magnet:?xt=urn:btih:${infoHash}`, name: "Cool Torrent" }));
+        await dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url: "magnet:?x", config: {} });
+        await new Promise((r) => setTimeout(r, 0));
+    }
+
+    it("offers the label action on the success notification of a client with labels", async () => {
+        seedWebUi();
+        respondToEveryFetchWith(true, 200);
+
+        await addMagnet();
+
+        expect(callArgs(showNotification, 0)[6]).toEqual({ webUiId: "w1", infoHash, torrentName: "Cool Torrent" });
+    });
+
+    it("offers no label action when the button is turned off in the options", async () => {
+        seedWebUi({}, { notificationsLabelButtonEnabled: false });
+        respondToEveryFetchWith(true, 200);
+
+        await addMagnet();
+
+        expect(callArgs(showNotification, 0)[0]).toBe("Torrent added successfully");
+        expect(callArgs(showNotification, 0)[6]).toBeUndefined();
+    });
+
+    it("offers no label action for a client without labels", async () => {
+        seedWebUi({ client: Client.RqbitWebUI });
+        (globalThis as any).fetch = vi.fn(() =>
+            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("{}"), json: () => Promise.resolve({}) } as any),
+        );
+
+        await addMagnet();
+
+        expect(callArgs(showNotification, 0)[0]).toBe("Torrent added successfully");
+        expect(callArgs(showNotification, 0)[6]).toBeUndefined();
+    });
+
+    it("sets the label, remembers the label list and confirms with a notification", async () => {
+        seedWebUi();
+        respondToEveryFetchWith(true, 200);
+
+        const response = await dispatch({
+            action: SetTorrentLabelMessage.action,
+            webUiId: "w1",
+            infoHash,
+            torrentName: "Cool Torrent",
+            label: "movies",
+            labels: ["movies", "old"],
+        });
+
+        expect(response).toEqual({});
+        const setCategoryCall = (globalThis as any).fetch.mock.calls.find((call: any[]) => String(call[0]).endsWith("/setCategory"));
+        expect(setCategoryCall[1].body.get("hashes")).toBe(infoHash);
+        expect(at(deserializeSettings((chrome as any).__storage.settings)!.webuiSettings, 0).labels).toEqual(["movies", "old"]);
+        expect(callArgs(showNotification, 0)[0]).toBe("Label set");
+    });
+
+    it("reports the failure to the popup and keeps the label list when the client refuses", async () => {
+        seedWebUi();
+        respondToEveryFetchWith(false, 500);
+
+        const response = await dispatch({
+            action: SetTorrentLabelMessage.action,
+            webUiId: "w1",
+            infoHash,
+            torrentName: "Cool Torrent",
+            label: "movies",
+            labels: ["movies", "old"],
+        });
+
+        expect(response.error).toMatch(/Setting the label failed \(HTTP 500\)/);
+        expect(at(deserializeSettings((chrome as any).__storage.settings)!.webuiSettings, 0).labels).toEqual(["old"]);
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+
+    it("reports an unknown webui", async () => {
+        seedWebUi();
+
+        const response = await dispatch({
+            action: SetTorrentLabelMessage.action,
+            webUiId: "missing",
+            infoHash,
+            torrentName: "Cool Torrent",
+            label: "movies",
+            labels: [],
+        });
+
+        expect(response.error).toBe("No WebUI found for id missing");
     });
 });

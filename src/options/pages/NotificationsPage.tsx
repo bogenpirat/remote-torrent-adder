@@ -4,6 +4,7 @@ import { useSettings } from "../SettingsContext";
 import { type ITestNotificationMessage, TestNotificationMessage } from "../../models/messages";
 import { deleteCustomSound, getCustomSound, saveCustomSound, type SoundKind } from "../../util/sound-storage";
 import Toggle from "../components/Toggle";
+import { isFirefox } from "../../util/platform";
 
 // Custom sounds are kept small; they live in IndexedDB but are still loaded
 // into memory to play, so cap the size to keep things snappy.
@@ -86,6 +87,15 @@ export default function NotificationsPage() {
             label="Play a sound"
           />
         </div>
+        {!isFirefox() && (
+          <div style={rowStyle}>
+            <Toggle
+              checked={settings.notificationsLabelButtonEnabled ?? true}
+              onChange={v => updateSetting("notificationsLabelButtonEnabled", v)}
+              label='Offer an "Add label" button after adding'
+            />
+          </div>
+        )}
         <div style={{ ...rowStyle, marginBottom: 0 }}>
           <label htmlFor="notif-duration">Display duration</label>
           <input

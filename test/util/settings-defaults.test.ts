@@ -7,6 +7,7 @@ describe("getDefaultSettings", () => {
         expect(defaults.notificationsEnabled).toBe(true);
         expect(defaults.notificationsDurationMs).toBe(2000);
         expect(defaults.notificationsSoundEnabled).toBe(false);
+        expect(defaults.notificationsLabelButtonEnabled).toBe(true);
         expect(defaults.linkCatchingEnabled).toBe(true);
     });
 

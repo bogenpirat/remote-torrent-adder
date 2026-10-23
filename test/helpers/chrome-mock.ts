@@ -94,6 +94,10 @@ export function createChromeMock(): any {
                     Object.assign(sessionStorage, items);
                     return Promise.resolve();
                 }),
+                remove: vi.fn((key: string) => {
+                    delete sessionStorage[key];
+                    return Promise.resolve();
+                }),
             },
         },
 
@@ -117,6 +121,9 @@ export function createChromeMock(): any {
                 return Promise.resolve(true);
             }),
             onClicked: {
+                addListener: vi.fn(),
+            },
+            onButtonClicked: {
                 addListener: vi.fn(),
             },
         },

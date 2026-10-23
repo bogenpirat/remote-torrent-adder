@@ -44,6 +44,20 @@ export async function addViaExtension(
     return (await extension.notifications())[before]!;
 }
 
+export async function setLabelViaExtension(
+    extension: ExtensionHarness,
+    infoHash: string,
+    label: string,
+): Promise<{ error?: string }> {
+    const page = await extension.openPage(extension.url("options/options.html"));
+    const response = await page.evaluate(
+        message => chrome.runtime.sendMessage(message) as Promise<{ error?: string }>,
+        { action: "setTorrentLabel", webUiId: WEBUI_ID, infoHash, torrentName: "IT torrent", label, labels: [label] },
+    );
+    await page.close();
+    return response;
+}
+
 export async function testConnectionViaExtension(
     extension: ExtensionHarness,
     settings: WebUISettings,

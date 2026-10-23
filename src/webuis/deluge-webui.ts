@@ -32,10 +32,21 @@ export class DelugeWebUI extends TorrentWebUI {
 
             const label = this.getLabel(config);
             if (result.success && label) {
-                result = await this.setLabelForUploadedTorrent(result.httpResponseBody ?? "", label.toLowerCase());
+                const torrentId: string = JSON.parse(result.httpResponseBody ?? "")["result"][0][1];
+                const labelResult = await this.setLabelOnAuthenticatedSession(torrentId, label);
+                result = { ...labelResult, httpResponseBody: result.httpResponseBody };
             }
 
             return result;
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            await this.authenticate();
+            return await this.setLabelOnAuthenticatedSession(infoHash.toLowerCase(), label);
         } catch (error) {
             return this.toFailureResult(error);
         }
@@ -102,14 +113,14 @@ export class DelugeWebUI extends TorrentWebUI {
         return { success, httpResponseCode: response.status, httpResponseBody: responseText };
     }
 
-    private async setLabelForUploadedTorrent(startUploadedTorrentResponseJson: string, label: string): Promise<TorrentAddingResult> {
-        const startUploadedTorrentResponse = JSON.parse(startUploadedTorrentResponseJson);
+    private async setLabelOnAuthenticatedSession(torrentId: string, label: string): Promise<TorrentAddingResult> {
+        const delugeLabel = label.toLowerCase();
         await this.fetch(this.createBaseUrl() + "/json", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 method: "label.add",
-                params: [label],
+                params: [delugeLabel],
                 id: this.randomId()
             })
         });
@@ -118,11 +129,12 @@ export class DelugeWebUI extends TorrentWebUI {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 method: "label.set_torrent",
-                params: [startUploadedTorrentResponse["result"][0][1], label],
+                params: [torrentId, delugeLabel],
                 id: this.randomId()
             })
         });
-        return { success: true, httpResponseCode: response.status, httpResponseBody: JSON.stringify(startUploadedTorrentResponse) };
+        const responseText = await response.text();
+        return { success: !JSON.parse(responseText || "{}")["error"], httpResponseCode: response.status, httpResponseBody: responseText };
     }
 
     private randomId(): number {

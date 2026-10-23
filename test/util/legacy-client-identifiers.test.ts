@@ -40,6 +40,7 @@ describe("migrateSettingsClientIdentifiers", () => {
         notificationsEnabled: true,
         notificationsDurationMs: 2000,
         notificationsSoundEnabled: false,
+        notificationsLabelButtonEnabled: true,
         linkCatchingEnabled: true,
         linkCatchingRegexes: [],
         iconClickAction: "openPrimaryWebUi",

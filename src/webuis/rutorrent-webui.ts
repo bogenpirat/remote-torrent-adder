@@ -39,6 +39,19 @@ export class RuTorrentWebUI extends TorrentWebUI {
         }
     }
 
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            const response = await this.fetch(this.createBaseUrl() + "/plugins/httprpc/action.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `mode=setlabel&hash=${infoHash.toUpperCase()}&v=${encodeURIComponent(encodeURIComponent(label))}`
+            });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
     createRutorrentBaseUrl(config: TorrentUploadConfig): string {
         const targetDir = this.getDirectory(config);
         const targetLabel = this.getLabel(config);

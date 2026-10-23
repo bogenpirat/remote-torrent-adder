@@ -1,5 +1,6 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
 import { type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { computeInfoHash } from "../util/info-hash";
 
 export class BiglyBTWebUI extends TorrentWebUI {
     public override testConnection(): Promise<ConnectionTestResult> {
@@ -18,10 +19,39 @@ export class BiglyBTWebUI extends TorrentWebUI {
 
             const response = await this.fetch(url, { method: 'POST', body: payload });
             const responseBody = await response.text();
+            const success = this.isSuccessResponse(responseBody);
+            const label = this.getLabel(config);
+            const infoHash = success && label ? await computeInfoHash(torrent) : null;
+            if (label && infoHash) {
+                return { ...await this.setLabel(infoHash, label), httpResponseBody: responseBody };
+            }
             return {
-                success: this.isSuccessResponse(responseBody),
+                success,
                 httpResponseCode: response.status,
                 httpResponseBody: responseBody,
+            };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            const rpcUrl = this.createBaseUrl() + "/transmission/rpc";
+            const sessionResponse = await this.fetchSessionCookie(rpcUrl);
+            const response = await this.fetch(rpcUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "X-Transmission-Session-Id": sessionResponse.headers.get("X-Transmission-Session-Id") ?? ""
+                },
+                body: JSON.stringify({ method: "torrent-set", arguments: { ids: [infoHash.toUpperCase()], labels: [label] } })
+            });
+            const responseText = await response.text();
+            return {
+                success: this.isSuccessResponse(responseText),
+                httpResponseCode: response.status,
+                httpResponseBody: responseText,
             };
         } catch (error) {
             return this.toFailureResult(error);
@@ -78,7 +108,7 @@ export class BiglyBTWebUI extends TorrentWebUI {
 
 
     get isLabelSupported(): boolean {
-        return false;
+        return true;
     }
 
     get isDirSupported(): boolean {

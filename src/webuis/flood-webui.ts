@@ -39,6 +39,20 @@ export class FloodWebUI extends TorrentWebUI {
         }
     }
 
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            await this.authenticate();
+            const response = await this.fetch(this.createBaseUrl() + "/api/torrents/tags", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json; charset=UTF-8" },
+                body: JSON.stringify({ hashes: [infoHash.toUpperCase()], tags: [label] })
+            });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
     private authenticate(): Promise<void> {
         return new Promise((resolve, reject) => {
             const authenticationUrl = this.createBaseUrl() + "/api/auth/authenticate";

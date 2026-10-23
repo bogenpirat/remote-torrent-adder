@@ -66,6 +66,18 @@ services:
     ports:
       - "127.0.0.1:18030:3030"
 
+  porla:
+    profiles: [porla]
+    image: ghcr.io/porla/porla:latest
+    environment:
+      PORLA_STATE_DIR: /var/lib/porla
+      PORLA_HTTP_HOST: 0.0.0.0
+    tmpfs:
+      - /var/lib/porla
+      - /downloads
+    ports:
+      - "127.0.0.1:18337:1337"
+
 configs:
   rutorrent-htpasswd:
     content: "rta:$$2y$$05$$omYaZSplSD7QYfihAPsj0O74DrqQO0NyJgntq2GbldXqMhvuuYvpu"

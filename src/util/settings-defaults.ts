@@ -5,6 +5,7 @@ export function getDefaultSettings(): RTASettings {
         notificationsEnabled: true,
         notificationsDurationMs: 2000,
         notificationsSoundEnabled: false,
+        notificationsLabelButtonEnabled: true,
 
         linkCatchingEnabled: true,
         linkCatchingRegexes: [

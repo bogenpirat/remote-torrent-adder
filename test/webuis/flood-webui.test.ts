@@ -54,4 +54,22 @@ describe("FloodWebUI", () => {
         expect(ui.isDirSupported).toBe(true);
         expect(ui.isAddPausedSupported).toBe(true);
     });
+    it("sets the label as the torrent's tags using the upper-cased hash", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, json: { success: true } }),
+            mockResponse({ status: 200 }),
+        );
+        const result = await build().setLabel("0123456789abcdef0123456789abcdef01234567", "tv");
+
+        expect(result.success).toBe(true);
+        const [url, opts] = callArgs(fetch, 1);
+        expect(url).toBe("http://h:3000/api/torrents/tags");
+        expect(opts.method).toBe("PATCH");
+        expect(JSON.parse(opts.body as string)).toEqual({ hashes: ["0123456789abcdef0123456789abcdef01234567".toUpperCase()], tags: ["tv"] });
+    });
+
+    it("reports failure when setting tags fails", async () => {
+        queueFetch(mockResponse({ status: 200, json: { success: true } }), mockResponse({ status: 500 }));
+        await expect(build().setLabel("0123456789abcdef0123456789abcdef01234567", "tv")).resolves.toMatchObject({ success: false, httpResponseCode: 500 });
+    });
 });
