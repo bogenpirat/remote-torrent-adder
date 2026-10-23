@@ -11,12 +11,14 @@ name: Release
 # commit so the tag always lands on the commit carrying the version, publishes a
 # GitHub Release with the four bundles plus the .xpi attached, uploads the
 # Chrome prod bundle to the Chrome Web Store and submits the Firefox bundle to
-# AMO's listed channel.
+# AMO's listed channel, via the reusable "Publish to stores" workflow.
 #
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
-#   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
+#   CWS_EXTENSION_ID, CWS_PUBLISHER_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET,
+#   CWS_REFRESH_TOKEN
 #     obtained by enabling the Chrome Web Store API in a Google Cloud project
-#     and minting an OAuth refresh token.
+#     and minting an OAuth refresh token. CWS_PUBLISHER_ID is shown under
+#     Publisher -> Settings in the Chrome Web Store Developer Dashboard.
 #   RELEASE_TOKEN
 #     a fine-grained PAT with Contents: read & write, owned by someone with a
 #     bypass entry in the master ruleset, so the bump-commit + tag can be pushed.
@@ -43,6 +45,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
     steps:
       - name: Checkout master
         uses: actions/checkout@v7
@@ -138,11 +142,6 @@ jobs:
           git push origin HEAD:master
           git push origin "${{ steps.ver.outputs.tag }}"
 
-      - name: Package source for AMO review
-        run: >
-          git -c core.autocrlf=false archive --format=zip
-          -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -178,27 +177,11 @@ jobs:
           git commit -m "chore: point self-hosted updates at ${{ steps.ver.outputs.tag }} [skip ci]"
           git push origin HEAD:master
 
-      - name: Upload to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@v7.0.0
-        with:
-          file-path: remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
-          extension-id: ${{ secrets.CWS_EXTENSION_ID }}
-          client-id: ${{ secrets.CWS_CLIENT_ID }}
-          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
-          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
-          # AUTO-PUBLISH TOGGLE
-          #   publish: true  -> upload AND submit for review/publication automatically.
-          #   publish: false -> upload only; the new version sits as a draft and
-          #                     you click "Publish" in the dashboard.
-          publish: true
-
-      - name: Upload to addons.mozilla.org
-        env:
-          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
-          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
-        run: >
-          npx web-ext sign
-          --source-dir dist-prod/firefox
-          --channel listed
-          --upload-source-code "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip"
-          --artifacts-dir web-ext-artifacts
+  # A separate job so a failed store upload can be retried with "Re-run failed
+  # jobs" instead of tripping the tag guard above.
+  stores:
+    needs: release
+    uses: ./.github/workflows/publish-stores.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    secrets: inherit

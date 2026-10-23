@@ -93,14 +93,14 @@ gh workflow run Release -f version=X.Y.Z
 6. Records the signing outcome in the job summary and composes the release body
 7. Zips the four bundles
 8. Commits `chore: release vX.Y.Z`, tags it, and pushes both to `master`
-9. Packages the source with `git archive` (after the bump commit, see below)
-10. Publishes a GitHub Release with `generate_release_notes: true`, the four zips and — when signing succeeded — the `.xpi`. Assets upload in a fixed order via `preserve_order`; `fail_on_unmatched_files: false` is what lets the `.xpi` be absent
-11. Verifies the `.xpi` is actually attached to the release, and **fails the job if it is not**
-12. Only then writes `updates.json`, commits it as `chore: point self-hosted updates at vX.Y.Z [skip ci]`, and pushes it to `master`
-13. Uploads the Chrome prod zip to the Chrome Web Store with `publish: true` — **this submits for review immediately**
-14. Uploads the Firefox prod bundle to addons.mozilla.org with `web-ext sign --channel listed` — **this also submits for review immediately**
+9. Publishes a GitHub Release with `generate_release_notes: true`, the four zips and — when signing succeeded — the `.xpi`. Assets upload in a fixed order via `preserve_order`; `fail_on_unmatched_files: false` is what lets the `.xpi` be absent
+10. Verifies the `.xpi` is actually attached to the release, and **fails the job if it is not**
+11. Only then writes `updates.json`, commits it as `chore: point self-hosted updates at vX.Y.Z [skip ci]`, and pushes it to `master`
+12. Hands off to the separate `stores` job, which runs `.github/workflows/publish-stores.yml` from the tag and the release assets: it packages the source with `git archive`, uploads the Chrome prod zip to the Chrome Web Store with `publish: true` and the Firefox prod bundle to addons.mozilla.org with `web-ext sign --channel listed` — **both submit for review immediately**
 
-Because steps 13 and 14 are irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
+If the `stores` job fails, retry it with "Re-run failed jobs", or with `gh workflow run "Publish to stores" -f version=X.Y.Z` — re-running the whole Release trips the tag guard.
+
+Because step 12 is irreversible, an agent should never trigger this workflow on its own. Prepare the version, confirm `master` is green, and hand the command to a human.
 
 ### The self-hosted Firefox channel
 
@@ -119,19 +119,19 @@ Installed copies poll
 for updates, so two ordering rules matter:
 
 - **`updates.json` is written only after the release asset is verified.** Steps
-  11 and 12 exist so the file can never advertise a version whose `.xpi` is
+  10 and 11 exist so the file can never advertise a version whose `.xpi` is
   missing. Reverse them and a failed release creation strands every install on a
   permanent 404, with the tag guard blocking a same-version retry.
 - **`update_url` points at a mutable branch and is baked into every signed
   build.** Renaming the repo, deleting `master`, or removing that file orphans
   existing installs — Firefox cannot discover a replacement URL on its own.
 
-The unlisted signing runs before the tag is pushed, so a failure in steps 8-14
+The unlisted signing runs before the tag is pushed, so a failure in steps 8-11
 leaves an AMO version consumed with no matching tag or release. Recover by
 bumping; re-running the same version is rejected by AMO (and swallowed by
 `continue-on-error`, yielding a release with no `.xpi`).
 
-Required secrets: `CWS_EXTENSION_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `RELEASE_TOKEN`, `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`.
+Required secrets: `CWS_EXTENSION_ID`, `CWS_PUBLISHER_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `RELEASE_TOKEN`, `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`.
 
 ### addons.mozilla.org
 
@@ -148,14 +148,14 @@ account-wide, not scoped to this add-on.
 
 Two constraints the two steps depend on, neither of them obvious:
 
-- **`git archive` must run after the bump commit.** AMO requires a source
-  archive alongside any minified upload, and running it earlier ships a source
-  zip whose version does not match the bundle.
+- **`git archive` must run on the bump commit.** AMO requires a source
+  archive alongside any minified upload, and archiving an earlier commit ships
+  a source zip whose version does not match the bundle. `publish-stores.yml`
+  checks out the release tag, which is that commit.
 - **`-c core.autocrlf=false` is load-bearing on a Windows checkout.** Without
   it, `git archive` applies the working-tree line-ending conversion and the
   source differs from the repository on every line. CI runs on Linux where
   autocrlf is off anyway, so the flag is insurance rather than a fix.
 
-AMO rejects a version that already exists, so a re-run with an
-already-published version fails at the sign step. The workflow always bumps
-first, so this only bites when re-triggering with a stale version number.
+AMO rejects a version that already exists, so re-running the stores job
+after the AMO upload already succeeded fails at the sign step.

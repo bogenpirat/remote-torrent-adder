@@ -1,0 +1,99 @@
+name: Publish to stores
+
+# Uploads an already-released version to the Chrome Web Store and
+# addons.mozilla.org. Both uploads submit for review immediately.
+#
+# Called by the Release workflow once the tag and GitHub Release exist. It
+# works purely from that tag and the release assets, so a failed upload can be
+# retried with "Re-run failed jobs", or by dispatching this workflow directly
+# (gh workflow run "Publish to stores" -f version=2.0.6).
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Released version to publish, e.g. 2.0.6 (a v-prefix is accepted)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Normalize and validate version
+        id: ver
+        env:
+          RAW_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${RAW_VERSION#v}"
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid version '$RAW_VERSION' (expected x.y.z or vx.y.z)" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.ver.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download release bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          gh release download "$TAG" \
+            -p "remote-torrent-adder-$V-prod.zip" \
+            -p "remote-torrent-adder-$V-firefox-prod.zip"
+          mkdir -p dist-prod/firefox
+          unzip -q "remote-torrent-adder-$V-firefox-prod.zip" -d dist-prod/firefox
+
+      - name: Package source for AMO review
+        run: >
+          git -c core.autocrlf=false archive --format=zip
+          -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
+
+      - name: Upload to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@v7.0.0
+        with:
+          file-path: remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
+          extension-id: ${{ secrets.CWS_EXTENSION_ID }}
+          publisher-id: ${{ secrets.CWS_PUBLISHER_ID }}
+          client-id: ${{ secrets.CWS_CLIENT_ID }}
+          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
+          # AUTO-PUBLISH TOGGLE
+          #   publish: true  -> upload AND submit for review/publication automatically.
+          #   publish: false -> upload only; the new version sits as a draft and
+          #                     you click "Publish" in the dashboard.
+          publish: true
+
+      - name: Upload to addons.mozilla.org
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: >
+          npx web-ext sign
+          --source-dir dist-prod/firefox
+          --channel listed
+          --upload-source-code "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip"
+          --artifacts-dir web-ext-artifacts
