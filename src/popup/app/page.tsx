@@ -5,6 +5,8 @@ import { Toggle } from '../components/ui/toggle';
 import Notice from './Notice';
 import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
+import SetLabelView from './SetLabelView';
+import { errorMessage, moveToFront } from '../lib/utils';
 import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
 
 type LoadState =
@@ -20,6 +22,9 @@ export default function Home() {
   }
   if (mode === 'links') {
     return <PageLinksView />;
+  }
+  if (mode === 'label') {
+    return <SetLabelView />;
   }
 
   return <BufferedTorrentForm />;
@@ -164,12 +169,4 @@ function AddTorrentForm({ data }: { data: PopupData }) {
       </div>
     </div>
   );
-}
-
-function moveToFront(value: string, options: string[]): string[] {
-  return value ? [value, ...options.filter(option => option !== value)] : options;
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

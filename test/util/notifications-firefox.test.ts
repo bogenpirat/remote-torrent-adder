@@ -33,4 +33,12 @@ describe("showNotification without an offscreen API", () => {
         expect(chrome.notifications.create).toHaveBeenCalled();
         expect(playNotificationSound).not.toHaveBeenCalled();
     });
+
+    it("leaves the add-label button off, since firefox rejects notifications with buttons", async () => {
+        showNotification("T", "B", false, 2000, false, "http://h/", { webUiId: "w1", infoHash: "0123456789abcdef0123456789abcdef01234567", torrentName: "Cool" });
+        await Promise.resolve();
+
+        expect((chrome.notifications.create as any).mock.calls[0][1].buttons).toBeUndefined();
+        expect(chrome.storage.session.set).not.toHaveBeenCalled();
+    });
 });

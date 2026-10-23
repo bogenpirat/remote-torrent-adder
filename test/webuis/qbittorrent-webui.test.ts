@@ -98,4 +98,38 @@ describe("QBittorrentWebUI", () => {
         expect(ui.isDirSupported).toBe(true);
         expect(ui.isAddPausedSupported).toBe(true);
     });
+    it("creates the category, then sets it on the torrent's hash", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, body: "Ok." }),
+            mockResponse({ status: 200 }),
+            mockResponse({ status: 200 }),
+        );
+        const result = await build().setLabel("0123456789abcdef0123456789abcdef01234567".toUpperCase(), "movies");
+
+        expect(result.success).toBe(true);
+        expect(callArgs(fetch, 1)[0]).toBe("http://h:8080/api/v2/torrents/createCategory");
+        expect((callArgs(fetch, 1)[1].body as URLSearchParams).get("category")).toBe("movies");
+        const [setUrl, setOpts] = callArgs(fetch, 2);
+        expect(setUrl).toBe("http://h:8080/api/v2/torrents/setCategory");
+        expect((setOpts.body as URLSearchParams).get("hashes")).toBe("0123456789abcdef0123456789abcdef01234567");
+        expect((setOpts.body as URLSearchParams).get("category")).toBe("movies");
+    });
+
+    it("tolerates a category that already exists", async () => {
+        queueFetch(
+            mockResponse({ status: 200, body: "Ok." }),
+            mockResponse({ status: 409 }),
+            mockResponse({ status: 200 }),
+        );
+        await expect(build().setLabel("0123456789abcdef0123456789abcdef01234567", "movies")).resolves.toMatchObject({ success: true });
+    });
+
+    it("reports failure when setCategory is rejected", async () => {
+        queueFetch(
+            mockResponse({ status: 200, body: "Ok." }),
+            mockResponse({ status: 200 }),
+            mockResponse({ status: 409, body: "Category name does not exist" }),
+        );
+        await expect(build().setLabel("0123456789abcdef0123456789abcdef01234567", "movies")).resolves.toMatchObject({ success: false, httpResponseCode: 409 });
+    });
 });

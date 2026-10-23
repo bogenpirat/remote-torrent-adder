@@ -37,6 +37,7 @@ describe("serializeSettings / deserializeSettings", () => {
             notificationsEnabled: true,
             notificationsDurationMs: 2000,
             notificationsSoundEnabled: false,
+            notificationsLabelButtonEnabled: true,
             linkCatchingEnabled: true,
             linkCatchingRegexes: [/\.torrent\b/, /action=download/],
             iconClickAction: "openPrimaryWebUi",

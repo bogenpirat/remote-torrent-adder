@@ -18,7 +18,10 @@ export class TransmissionWebUI extends TorrentWebUI {
             const success = responseData["result"] === "success";
             const label = this.getLabel(config);
             if (success && label) {
-                return await this.setLabel(responseData["arguments"], label, sessionId, responseText);
+                const addedArguments: Record<string, { hashString?: string }> = responseData["arguments"];
+                const hashString = (addedArguments["torrent-added"] ?? addedArguments["torrent-duplicate"])?.hashString;
+                const labelResult = await this.setLabelWithSessionId(hashString, label, sessionId);
+                return { ...labelResult, httpResponseBody: responseText };
             }
             return {
                 success,
@@ -30,8 +33,15 @@ export class TransmissionWebUI extends TorrentWebUI {
         }
     }
 
-    private async setLabel(addedArguments: Record<string, { hashString?: string }>, label: string, sessionId: string, addResponseText: string): Promise<TorrentAddingResult> {
-        const hashString = (addedArguments["torrent-added"] ?? addedArguments["torrent-duplicate"])?.hashString;
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            return await this.setLabelWithSessionId(infoHash, label, await this.fetchTransmissionSessionId());
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
+    private async setLabelWithSessionId(hashString: string | undefined, label: string, sessionId: string): Promise<TorrentAddingResult> {
         const response = await this.fetch(this.createBaseUrl() + "/transmission/rpc", {
             method: "POST",
             headers: {
@@ -40,11 +50,11 @@ export class TransmissionWebUI extends TorrentWebUI {
             },
             body: JSON.stringify({ method: "torrent-set", arguments: { ids: [hashString], labels: [label] } })
         });
-        const responseData = await response.json();
+        const responseText = await response.text();
         return {
-            success: responseData["result"] === "success",
+            success: JSON.parse(responseText)["result"] === "success",
             httpResponseCode: response.status,
-            httpResponseBody: addResponseText,
+            httpResponseBody: responseText,
         };
     }
 

@@ -7,11 +7,12 @@ import { registerActionClickListener } from './util/action';
 import { loadWebUis } from './util/webuis';
 import { clearDynamicRules } from './util/utils';
 import { registerCorsCircumventionForWebUis } from './util/cors-tricks';
-import { registerNotificationClickListener } from './util/notifications';
+import { registerNotificationButtonListener, registerNotificationClickListener } from './util/notifications';
 
 
 registerMessageListener();
 registerNotificationClickListener();
+registerNotificationButtonListener();
 registerActionClickListener();
 registerContextMenuClickListener();
 registerAuthenticationListener();

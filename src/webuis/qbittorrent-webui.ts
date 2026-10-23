@@ -1,5 +1,5 @@
 import { type Torrent, type TorrentUploadConfig } from "../models/torrent";
-import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
+import { type ClientSpecificSettingDescriptor, type ConnectionTestResult, HttpError, type TorrentAddingResult, TorrentWebUI } from "../models/webui";
 
 const CLIENT_SPECIFIC_SETTINGS: ReadonlyArray<ClientSpecificSettingDescriptor> = [
     {
@@ -43,6 +43,40 @@ export class QBittorrentWebUI extends TorrentWebUI {
             };
         } catch (error) {
             return this.toFailureResult(error);
+        }
+    }
+
+    public override async setLabel(infoHash: string, label: string): Promise<TorrentAddingResult> {
+        try {
+            await this.authenticate();
+            await this.createCategory(label);
+            const body = new URLSearchParams();
+            body.append("hashes", infoHash.toLowerCase());
+            body.append("category", label);
+            const response = await this.fetch(this.createBaseUrl() + "/api/v2/torrents/setCategory", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+                body
+            });
+            return { success: true, httpResponseCode: response.status, httpResponseBody: await response.text() };
+        } catch (error) {
+            return this.toFailureResult(error);
+        }
+    }
+
+    private async createCategory(category: string): Promise<void> {
+        const body = new URLSearchParams();
+        body.append("category", category);
+        try {
+            await this.fetch(this.createBaseUrl() + "/api/v2/torrents/createCategory", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+                body
+            });
+        } catch (error) {
+            if (!(error instanceof HttpError && error.status === 409)) {
+                throw error;
+            }
         }
     }
 

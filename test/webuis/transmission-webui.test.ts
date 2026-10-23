@@ -111,4 +111,25 @@ describe("TransmissionWebUI", () => {
         expect(ui.isDirSupported).toBe(true);
         expect(ui.isAddPausedSupported).toBe(true);
     });
+    it("sets a label on an existing torrent by its hash, fetching a session id first", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 409, headers: { "X-Transmission-Session-Id": "sess-1" } }),
+            mockResponse({ status: 200, json: { result: "success", arguments: {} } }),
+        );
+        const result = await build().setLabel("0123456789abcdef0123456789abcdef01234567", "movies");
+
+        expect(result.success).toBe(true);
+        const [url, opts] = callArgs(fetch, 1);
+        expect(url).toBe("http://h:9091/transmission/rpc");
+        expect((opts.headers as any)["X-Transmission-Session-Id"]).toBe("sess-1");
+        expect(JSON.parse(opts.body as string)).toEqual({ method: "torrent-set", arguments: { ids: ["0123456789abcdef0123456789abcdef01234567"], labels: ["movies"] } });
+    });
+
+    it("reports failure when torrent-set does not succeed", async () => {
+        queueFetch(
+            mockResponse({ status: 200, headers: { "X-Transmission-Session-Id": "s" } }),
+            mockResponse({ status: 200, json: { result: "invalid argument" } }),
+        );
+        await expect(build().setLabel("0123456789abcdef0123456789abcdef01234567", "movies")).resolves.toMatchObject({ success: false });
+    });
 });

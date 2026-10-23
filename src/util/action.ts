@@ -6,7 +6,7 @@ import { Settings } from "./settings";
 
 export const POPUP_PAGE = "popup/popup.html";
 
-export type PopupMode = "picker" | "links";
+export type PopupMode = "picker" | "links" | "label";
 
 export function registerActionClickListener(): void {
     ext.action.onClicked.addListener((tab) => {
@@ -65,6 +65,16 @@ export function openPopupWindow(mode?: PopupMode): void {
         type: "popup",
         width: 420,
         height: 600,
+        focused: true
+    });
+}
+
+export function openSetLabelWindow(params: Record<string, string>): void {
+    void ext.windows.create({
+        url: `${POPUP_PAGE}?${new URLSearchParams({ mode: "label", ...params })}`,
+        type: "popup",
+        width: 420,
+        height: 360,
         focused: true
     });
 }

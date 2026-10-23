@@ -46,6 +46,10 @@ export const TestConnectionMessage: IMessagable = {
     action: "testConnection"
 }
 
+export const SetTorrentLabelMessage: IMessagable = {
+    action: "setTorrentLabel"
+}
+
 export const FetchTorrentInPageMessage: IMessagable = {
     action: "fetchTorrentInPage"
 }
@@ -60,6 +64,14 @@ export interface IAddTorrentMessageWithLabelAndDir extends IMessagable {
     config: TorrentUploadConfig;
     labels: string[];
     directories: string[];
+}
+
+export interface ISetTorrentLabelMessage extends IMessagable {
+    webUiId: string;
+    infoHash: string;
+    torrentName: string;
+    label: string;
+    labels: string[];
 }
 
 export interface IPreAddTorrentMessage extends IMessagable {

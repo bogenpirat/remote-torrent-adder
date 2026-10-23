@@ -80,6 +80,10 @@ export abstract class TorrentWebUI {
 
     public abstract sendTorrent(torrent: Torrent, config: TorrentUploadConfig): Promise<TorrentAddingResult>;
 
+    public setLabel(_infoHash: string, _label: string): Promise<TorrentAddingResult> {
+        return Promise.resolve({ success: false, httpResponseCode: 0, httpResponseBody: `${this.client} does not support labels` });
+    }
+
     public async testConnection(): Promise<ConnectionTestResult> {
         try {
             const response = await fetch(this.createBaseUrl(), { method: "GET" });

@@ -91,4 +91,26 @@ describe("DelugeWebUI", () => {
         expect(ui.isDirSupported).toBe(true);
         expect(ui.isAddPausedSupported).toBe(true);
     });
+    it("sets a lower-cased label on an existing torrent after logging in", async () => {
+        const fetch = queueFetch(
+            mockResponse({ status: 200, json: { result: true } }),
+            mockResponse({ status: 200, json: { result: null, error: null } }),
+            mockResponse({ status: 200, json: { result: null, error: null } }),
+        );
+        const result = await build().setLabel("0123456789abcdef0123456789abcdef01234567".toUpperCase(), "Movies");
+
+        expect(result.success).toBe(true);
+        expect(JSON.parse(callArgs(fetch, 0)[1].body as string).method).toBe("auth.login");
+        expect(JSON.parse(callArgs(fetch, 1)[1].body as string)).toMatchObject({ method: "label.add", params: ["movies"] });
+        expect(JSON.parse(callArgs(fetch, 2)[1].body as string)).toMatchObject({ method: "label.set_torrent", params: ["0123456789abcdef0123456789abcdef01234567", "movies"] });
+    });
+
+    it("reports failure when label.set_torrent returns an error", async () => {
+        queueFetch(
+            mockResponse({ status: 200, json: { result: true } }),
+            mockResponse({ status: 200, json: { result: null, error: null } }),
+            mockResponse({ status: 200, json: { result: null, error: { message: "Unknown Torrent" } } }),
+        );
+        await expect(build().setLabel("0123456789abcdef0123456789abcdef01234567", "movies")).resolves.toMatchObject({ success: false });
+    });
 });

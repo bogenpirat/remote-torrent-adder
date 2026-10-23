@@ -3,7 +3,7 @@ import { type ConsoleCollector } from "../../../e2e/fixtures/console-collector";
 import { WebUIFactory } from "../../../src/models/clients";
 import { type TorrentUploadConfig } from "../../../src/models/torrent";
 import { type WebUISettings } from "../../../src/models/webui";
-import { addViaExtension, configureExtension, testConnectionViaExtension, webUiSettingsFor } from "./add-via-extension";
+import { addViaExtension, configureExtension, setLabelViaExtension, testConnectionViaExtension, webUiSettingsFor } from "./add-via-extension";
 import { type ClientProbe, type TorrentState } from "./client-probe";
 import { composeDown, composeUp, keepContainers, waitFor } from "./docker";
 import { randomMagnet, TorrentServer, type GeneratedTorrent } from "./torrents";
@@ -66,6 +66,20 @@ export function defineClientSuite(probe: ClientProbe): ClientSuite {
     test("applies the label", async ({ extension, logs }) => {
         test.skip(!webUi.isLabelSupported, "labels are not supported");
         const state = await addAndFind(extension, logs, { config: { label: probe.label } });
+        expect(state.label).toBe(probe.label);
+    });
+
+    test("sets the label after adding", async ({ extension, logs }) => {
+        test.skip(!webUi.isLabelSupported, "labels are not supported");
+        const torrent = torrentServer.createTorrent();
+        await addAndFind(extension, logs, { torrent });
+
+        expect(await setLabelViaExtension(extension, torrent.infoHash, probe.label)).toEqual({});
+
+        const state = await waitFor(`${torrent.name} to be labelled in ${probe.profile}`, async () => {
+            const current = await probe.find(torrent.infoHash);
+            return current?.label === probe.label ? current : null;
+        }, { timeoutMs: 15_000 });
         expect(state.label).toBe(probe.label);
     });
 

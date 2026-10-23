@@ -96,6 +96,9 @@ export class FakeQBittorrent {
         if (path === "/api/v2/torrents/add") {
             return [this.options.addStatus, this.options.addResponse];
         }
+        if (path === "/api/v2/torrents/createCategory" || path === "/api/v2/torrents/setCategory") {
+            return [200, ""];
+        }
         return [404, "Not Found"];
     }
 }
