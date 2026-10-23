@@ -1,6 +1,6 @@
 {
     "name": "remote-torrent-adder",
-    "version": "2.3.2",
+    "version": "2.4.0",
     "type": "module",
     "engines": {
         "node": ">=24"
