@@ -69,19 +69,26 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
 
 function registerLinks(linkRegexes: RegExp[]): void {
     observe<HTMLAnchorElement>('a', (element) => {
-        if (element.href && (isMatchedByRegexes(element.href, linkRegexes) || isMagnetLink(element.href))) {
-            registerAction(element, element.href);
-        }
+        registerAction(element, () => {
+            if (!element.getAttribute('href')?.trim()) {
+                return null;
+            }
+            return getMatchingUrl(element.href, linkRegexes);
+        });
     });
 }
 
 function registerForms(linkRegexes: RegExp[]): void {
     observe<HTMLInputElement | HTMLButtonElement>('input,button', (element) => {
-        const form = element.form;
-        if (form && form.action && (isMatchedByRegexes(form.action, linkRegexes) || isMagnetLink(form.action))) {
-            registerAction(element, form.action);
-        }
+        registerAction(element, () => getMatchingUrl(element.form?.action, linkRegexes));
     });
+}
+
+function getMatchingUrl(url: string | undefined, linkRegexes: RegExp[]): string | null {
+    if (!url) {
+        return null;
+    }
+    return isMatchedByRegexes(url, linkRegexes) || isMagnetLink(url) ? url : null;
 }
 
 function incrementCounter(): void {
@@ -99,7 +106,11 @@ function recordFoundLink(element: Element, url: string): void {
     foundLinks.push({ url, label: deriveLinkLabel(element, url) });
 }
 
-function registerAction(element: Element, url: string): void {
+function registerAction(element: Element, getCurrentUrl: () => string | null): void {
+    const url = getCurrentUrl();
+    if (!url) {
+        return;
+    }
     incrementCounter();
     recordFoundLink(element, url);
     console.debug(`Registered action for element: ${element.tagName}, URL: ${url}`);
@@ -109,9 +120,13 @@ function registerAction(element: Element, url: string): void {
             console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");
             return;
         }
+        const currentUrl = getCurrentUrl();
+        if (!currentUrl) {
+            return;
+        }
         mouseEvent.preventDefault();
         console.debug("Clicked form input");
 
-        sendMessageAndForget({ action: PreAddTorrentMessage.action, url: url } as IPreAddTorrentMessage);
+        sendMessageAndForget({ action: PreAddTorrentMessage.action, url: currentUrl } as IPreAddTorrentMessage);
     });
 }
