@@ -69,9 +69,9 @@ function loadSettingsAndRegisterActions(attemptNumber: number = 0): void {
 
 function registerLinks(linkRegexes: RegExp[]): void {
     observe<HTMLAnchorElement>('a', (element) => {
-        registerAction(element, () => {
+        checkUrlAndRegisterAction(element, () => {
             if (!element.getAttribute('href')?.trim()) {
-                return null;
+                return undefined;
             }
             return getMatchingUrl(element.href, linkRegexes);
         });
@@ -80,15 +80,17 @@ function registerLinks(linkRegexes: RegExp[]): void {
 
 function registerForms(linkRegexes: RegExp[]): void {
     observe<HTMLInputElement | HTMLButtonElement>('input,button', (element) => {
-        registerAction(element, () => getMatchingUrl(element.form?.action, linkRegexes));
+        checkUrlAndRegisterAction(element, () => {
+            if (!element.form?.getAttribute('action')?.trim()) {
+                return undefined;
+            }
+            return getMatchingUrl(element.form.action, linkRegexes);
+        });
     });
 }
 
-function getMatchingUrl(url: string | undefined, linkRegexes: RegExp[]): string | null {
-    if (!url) {
-        return null;
-    }
-    return isMatchedByRegexes(url, linkRegexes) || isMagnetLink(url) ? url : null;
+function getMatchingUrl(url: string, linkRegexes: RegExp[]): string | undefined {
+    return isMatchedByRegexes(url, linkRegexes) || isMagnetLink(url) ? url : undefined;
 }
 
 function incrementCounter(): void {
@@ -106,7 +108,7 @@ function recordFoundLink(element: Element, url: string): void {
     foundLinks.push({ url, label: deriveLinkLabel(element, url) });
 }
 
-function registerAction(element: Element, getCurrentUrl: () => string | null): void {
+function checkUrlAndRegisterAction(element: Element, getCurrentUrl: () => string | undefined): void {
     const url = getCurrentUrl();
     if (!url) {
         return;

@@ -3,58 +3,60 @@ import { createChromeMock } from "../helpers/chrome-mock";
 import { GetLinkCatchingConfig, PreAddTorrentMessage } from "../../src/models/messages";
 import { serializeObject } from "../../src/util/serializer";
 
-describe("content-script click targets", () => {
-    const RealMutationObserver = globalThis.MutationObserver;
-    let observers: MutationObserver[];
-    let browser: ReturnType<typeof createChromeMock>;
-    let linkRegexes: RegExp[];
+const RealMutationObserver = globalThis.MutationObserver;
+const originalUrl = location.href;
+let observers: MutationObserver[];
+let browser: ReturnType<typeof createChromeMock>;
+let linkRegexes: RegExp[];
 
-    beforeEach(() => {
-        vi.resetModules();
-        document.body.innerHTML = "";
-        browser = createChromeMock();
-        linkRegexes = [/\.torrent$/];
-        vi.stubGlobal("chrome", browser);
-        observers = [];
-        vi.stubGlobal("MutationObserver", class extends RealMutationObserver {
-            constructor(callback: MutationCallback) {
-                super(callback);
-                observers.push(this);
-            }
-        });
-        browser.runtime.sendMessage.mockImplementation(async (message: { action: string }) => {
-            if (message.action === GetLinkCatchingConfig.action) {
-                return serializeObject({
-                    linkCatchingEnabled: true,
-                    linkCatchingRegexes: linkRegexes,
-                });
-            }
-        });
+beforeEach(() => {
+    vi.resetModules();
+    document.body.innerHTML = "";
+    browser = createChromeMock();
+    linkRegexes = [/\.torrent$/];
+    vi.stubGlobal("chrome", browser);
+    observers = [];
+    vi.stubGlobal("MutationObserver", class extends RealMutationObserver {
+        constructor(callback: MutationCallback) {
+            super(callback);
+            observers.push(this);
+        }
     });
-
-    afterEach(() => {
-        observers.forEach(observer => observer.disconnect());
-        vi.unstubAllGlobals();
+    browser.runtime.sendMessage.mockImplementation(async (message: { action: string }) => {
+        if (message.action === GetLinkCatchingConfig.action) {
+            return serializeObject({
+                linkCatchingEnabled: true,
+                linkCatchingRegexes: linkRegexes,
+            });
+        }
     });
+});
 
-    async function start(html: string): Promise<void> {
-        document.body.innerHTML = html;
-        await import("../../src/content-script/rta");
-        await vi.waitFor(() => expect(observers).toHaveLength(2));
-        browser.runtime.sendMessage.mockClear();
-    }
+afterEach(() => {
+    observers.forEach(observer => observer.disconnect());
+    vi.unstubAllGlobals();
+    history.replaceState(null, "", originalUrl);
+});
 
-    function click(element: Element, init: MouseEventInit = {}): boolean {
-        let intercepted = false;
-        // Observe the extension's decision, then suppress jsdom navigation.
-        element.addEventListener("click", event => {
-            intercepted = event.defaultPrevented;
-            event.preventDefault();
-        }, { once: true });
-        element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...init }));
-        return intercepted;
-    }
+async function start(html: string): Promise<void> {
+    document.body.innerHTML = html;
+    await import("../../src/content-script/rta");
+    await vi.waitFor(() => expect(observers).toHaveLength(2));
+    browser.runtime.sendMessage.mockClear();
+}
 
+function click(element: Element, init: MouseEventInit = {}): boolean {
+    let intercepted = false;
+    // Observe the extension's decision, then suppress jsdom navigation.
+    element.addEventListener("click", event => {
+        intercepted = event.defaultPrevented;
+        event.preventDefault();
+    }, { once: true });
+    element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...init }));
+    return intercepted;
+}
+
+describe("content-script link click targets", () => {
     it("sends the current href when a result row reuses its download anchor", async () => {
         await start('<a href="https://tracker.example/download/episode-1.torrent">Episode 1</a>');
         const link = document.querySelector("a")!;
@@ -145,7 +147,9 @@ describe("content-script click targets", () => {
         expect(click(link, { [modifier]: true })).toBe(false);
         expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
     });
+});
 
+describe("content-script form click targets", () => {
     it("sends the current action when a form changes without replacing its button", async () => {
         await start('<form action="https://tracker.example/original.torrent"><button>Download</button></form>');
         const form = document.querySelector("form")!;
@@ -170,6 +174,15 @@ describe("content-script click targets", () => {
             action: PreAddTorrentMessage.action,
             url: "https://tracker.example/second.torrent",
         });
+    });
+
+    it.each(["", "   ", null])("releases normal navigation when the form action is %s", async action => {
+        history.replaceState(null, "", "/download/page.torrent");
+        const formTag = action === null ? "<form>" : `<form action="${action}">`;
+        await start(`${formTag}<button>Search</button></form>`);
+
+        expect(click(document.querySelector("button")!)).toBe(false);
+        expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it("does not send an old form action after the associated form is removed", async () => {
