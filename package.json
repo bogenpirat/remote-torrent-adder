@@ -3,7 +3,7 @@
     "version": "2.4.0",
     "type": "module",
     "engines": {
-        "node": ">=24"
+        "node": ">=26"
     },
     "scripts": {
         "test": "vitest run",
