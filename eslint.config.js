@@ -25,7 +25,12 @@ export default tseslint.config(
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-unused-vars': [
                 'error',
-                { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'all', caughtErrorsIgnorePattern: '^_' },
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrors: 'all',
+                    caughtErrorsIgnorePattern: '^_',
+                },
             ],
             '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
             'no-console': 'off',
@@ -106,7 +111,7 @@ export default tseslint.config(
     },
 
     {
-        files: ['eslint.config.js', 'scripts/**/*.mjs'],
+        files: ['eslint.config.js'],
         languageOptions: {
             globals: globals.node,
             sourceType: 'module',
@@ -114,7 +119,7 @@ export default tseslint.config(
     },
 
     {
-        files: ['*.config.ts'],
+        files: ['*.config.ts', 'scripts/**/*.ts'],
         languageOptions: {
             globals: globals.node,
         },

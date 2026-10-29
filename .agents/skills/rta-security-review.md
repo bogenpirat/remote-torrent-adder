@@ -60,7 +60,7 @@ Several of these properties are already asserted by the test suite — `test/uti
 ### Manifest & permissions
 
 - [ ] No new `host_permissions` beyond `<all_urls>` unless justified (it's already maximally broad — adding more is impossible, but watch for `optional_host_permissions` requests).
-- [ ] A new permission is reflected correctly in **both** manifests. `scripts/generate-manifest.mjs` derives the Firefox one and filters Chrome-only entries — silently dropping a security-relevant permission there, or adding one to Firefox that was never reviewed for Chrome, is a finding.
+- [ ] A new permission is reflected correctly in **both** manifests. `scripts/generate-manifest.ts` derives the Firefox one and filters Chrome-only entries — silently dropping a security-relevant permission there, or adding one to Firefox that was never reviewed for Chrome, is a finding.
 - [ ] No new permissions added without need. Each entry in `permissions:` is a Chrome Web Store review trigger.
 - [ ] CSP not weakened. MV3 default is strict; any `content_security_policy` override is a red flag.
 

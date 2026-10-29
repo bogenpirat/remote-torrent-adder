@@ -35,14 +35,14 @@ For Firefox, `npm run dev:firefox` launches a scratch profile with `dist/firefox
 - **`src/models/webui.ts`** — abstract `TorrentWebUI` base class
 - **`src/util/browser-api.ts`** — the `ext` shim; **all** extension API calls go through it
 - **`src/util/platform.ts`** — build-time browser constant (`isFirefox()`, `canUseOffscreen()`)
-- **`scripts/build.mjs` / `scripts/browsers.mjs` / `scripts/generate-manifest.mjs`** — the build matrix and the derived Firefox manifest
+- **`scripts/build.ts` / `scripts/browsers.ts` / `scripts/generate-manifest.ts`** — the build matrix and the derived Firefox manifest
 - **`test/`** — vitest suite mirroring `src/`; every client has a `test/webuis/<name>-webui.test.ts`
 - **`e2e/`** — Playwright drives Chrome; `e2e/firefox/` drives real Firefox through geckodriver
 
 ## Critical Constraints
 
 - **Never call `chrome.*` directly.** Use `ext` from `src/util/browser-api.ts`; on Firefox the bare `chrome` namespace is callback-only and returns `undefined`, so `.then()` on it throws. An eslint rule enforces this. Type positions (`chrome.tabs.Tab`) are fine.
-- Anything Chrome-only (`ext.offscreen`, …) must be behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`, and a permission only Chrome understands must be filtered out in `scripts/generate-manifest.mjs`.
+- Anything Chrome-only (`ext.offscreen`, …) must be behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`, and a permission only Chrome understands must be filtered out in `scripts/generate-manifest.ts`.
 - Service worker **must be stateless** — no module-level mutable state. Persist to `ext.storage`.
 - Use `this.fetch()` (not raw `fetch()`) — it throws `HttpError` on non-OK responses. Return `this.toFailureResult(error)` from the `catch`.
 - **Never** set `Content-Type: multipart/form-data` manually with FormData — browser sets it with boundary.

@@ -121,7 +121,7 @@ For iterating on the extension, `npm run dev` builds once and then rebuilds on e
 - **TypeScript** throughout, strict mode on
 - **React + Tailwind CSS** for the options page and per-torrent popup
 - **Vite** for all five bundles — the popup, options and notifications pages, plus the service worker and content script as standalone IIFE files
-- **One codebase, two browsers** — `scripts/generate-manifest.mjs` derives the Firefox manifest from the Chrome one, and a build-time constant folds away the branches that do not apply
+- **One codebase, two browsers** — `scripts/generate-manifest.ts` derives the Firefox manifest from the Chrome one, and a build-time constant folds away the branches that do not apply
 - **Vitest** for the unit suite, **Playwright** for Chrome end-to-end tests and **geckodriver** for the Firefox ones
 - Version-driven release pipeline that auto-deploys to the Chrome Web Store and addons.mozilla.org, and attaches a signed `.xpi` to every GitHub release
 

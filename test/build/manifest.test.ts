@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { buildManifest, GECKO, GECKO_UNLISTED, SOURCE_MANIFEST, UPDATE_MANIFEST_URL } from "../../scripts/generate-manifest.mjs";
+import { buildManifest, GECKO, GECKO_UNLISTED, SOURCE_MANIFEST, UPDATE_MANIFEST_URL, type SourceManifest } from "../../scripts/generate-manifest.ts";
 
-const base = JSON.parse(readFileSync(SOURCE_MANIFEST, "utf8")) as Record<string, any>;
+const base = JSON.parse(readFileSync(SOURCE_MANIFEST, "utf8")) as SourceManifest;
 const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
 
 const chrome = buildManifest(base, "chrome") as Record<string, any>;
@@ -15,7 +15,7 @@ describe("generated manifests", () => {
     });
 
     it("carries every Chrome permission except the Chrome-only ones into Firefox", () => {
-        const missing = (base.permissions as string[]).filter(p => !(firefox.permissions as string[]).includes(p));
+        const missing = base.permissions.filter(p => !(firefox.permissions as string[]).includes(p));
         expect(missing).toEqual(["offscreen"]);
     });
 

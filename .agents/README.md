@@ -12,7 +12,7 @@ Supported clients (13): ruTorrent, flood, qBittorrent, BiglyBT, Deluge, Elementu
 
 The file-by-file map and the non-negotiable constraints live in the root [`AGENTS.md`](../AGENTS.md) — they are the always-on context every harness loads, so they are not repeated here. What follows is only what does not fit there.
 
-**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/<browser>/` (dev), `dist-prod/<browser>/` (prod), where `<browser>` is `chrome` or `firefox`. `scripts/build.mjs` drives the whole browser x prod x target matrix; `scripts/browsers.mjs` holds the target list and the Firefox exclusions; `scripts/generate-manifest.mjs` derives the Firefox manifest from `src/manifest.json`. Full detail in [`skills/build.md`](skills/build.md).
+**Build system**: five Vite builds driven by a single `vite.config.ts`, selected through the `RTA_TARGET` environment variable — `worker`, `content-script`, `popup`, `options`, `notifications`. The `worker` and `content-script` targets use Vite's library mode with `formats: ['iife']` because each must be a single standalone file. Output: `dist/<browser>/` (dev), `dist-prod/<browser>/` (prod), where `<browser>` is `chrome` or `firefox`. `scripts/build.ts` drives the whole browser x prod x target matrix; `scripts/browsers.ts` holds the target list and the Firefox exclusions; `scripts/generate-manifest.ts` derives the Firefox manifest from `src/manifest.json`. Full detail in [`skills/build.md`](skills/build.md).
 
 **Conventions not covered by `AGENTS.md`**: React 19 and Tailwind CSS in both UIs; `TorrentWebUI` subclasses named `<Name>WebUI` in `src/webuis/<name>-webui.ts`; the CORS bypass works by having `declarativeNetRequest` remove the `Origin` header and set `Referer` per configured client.
 
@@ -86,7 +86,7 @@ gh workflow run Release -f version=X.Y.Z
 (or use the Actions tab). The workflow then, in order:
 
 1. Validates the version and checks the tag does not already exist
-2. Runs `node scripts/bump-version.mjs X.Y.Z` — `src/manifest.json` is the source of truth; `package.json` and `package-lock.json` are synced from it
+2. Runs `node scripts/bump-version.ts X.Y.Z` — `src/manifest.json` is the source of truth; `package.json` and `package-lock.json` are synced from it
 3. `npm ci`, then `npm run build:all` — the Chrome and Firefox bundles (dev and prod) plus the self-hosted Firefox variant, with the typecheck/lint/test gate run once. A build failure aborts before any ref moves
 4. Runs `web-ext lint` over the Firefox bundle, then again over the self-hosted bundle with `--self-hosted` (that flag is load-bearing: `update_url` is an error under listed rules and legal under self-hosted ones)
 5. Signs the self-hosted bundle with `web-ext sign --channel unlisted` and renames the result to `remote-torrent-adder-X.Y.Z.xpi`. **This step is `continue-on-error`** — unlisted signing is automated and normally returns in about a minute, but if AMO is unreachable or rejects the upload the release still ships, just without the `.xpi`
@@ -138,7 +138,7 @@ Required secrets: `CWS_EXTENSION_ID`, `CWS_PUBLISHER_ID`, `CWS_CLIENT_ID`, `CWS_
 Live. The listing was created by hand for the first submission, because
 `web-ext sign` can upload a new version but cannot *create* a listing. That first
 upload is what permanently claimed `browser_specific_settings.gecko.id`
-(`remote-torrent-adder@bogenpirat`, fixed in `scripts/generate-manifest.mjs` and
+(`remote-torrent-adder@bogenpirat`, fixed in `scripts/generate-manifest.ts` and
 asserted by `test/build/manifest.test.ts`).
 
 Credentials come from addons.mozilla.org -> Tools -> Manage API Keys and are

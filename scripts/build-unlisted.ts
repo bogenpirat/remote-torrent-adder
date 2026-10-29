@@ -2,10 +2,9 @@
 import { access, cp, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { buildManifest, SOURCE_MANIFEST } from './generate-manifest.mjs';
+import { buildManifest, SOURCE_MANIFEST } from './generate-manifest.ts';
 
-const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const rootDir = path.dirname(import.meta.dirname);
 const sourceDir = path.join(rootDir, 'dist-prod', 'firefox');
 const outDir = path.join(rootDir, 'dist-prod', 'firefox-unlisted');
 
