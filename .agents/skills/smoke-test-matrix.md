@@ -112,7 +112,7 @@ Tick the client off only if BOTH pass.
 
 Run these after touching anything under **Firefox port hotspots**: `browser-api.ts`,
 `platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`,
-`authentication-listener.ts`, or `scripts/generate-manifest.mjs`.
+`authentication-listener.ts`, or `scripts/generate-manifest.ts`.
 
 Setup: `npm run dev:firefox` (or `about:debugging#/runtime/this-firefox` → **Load
 Temporary Add-on…** → `dist/firefox/manifest.json`). Needs **Firefox 149+**.

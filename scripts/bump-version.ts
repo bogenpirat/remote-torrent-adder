@@ -2,8 +2,8 @@
 // Sets the extension version across every file that carries it.
 //
 // Usage:
-//   node scripts/bump-version.mjs 2.0.6   # set an explicit version (v-prefix ok)
-//   node scripts/bump-version.mjs         # increment the patch from the manifest
+//   node scripts/bump-version.ts 2.0.6   # set an explicit version (v-prefix ok)
+//   node scripts/bump-version.ts         # increment the patch from the manifest
 //
 // `src/manifest.json` is the source of truth (it is what the Chrome Web Store
 // reads). `package.json` and `package-lock.json` are kept in sync for hygiene.
@@ -15,16 +15,16 @@ import { execSync } from 'node:child_process';
 const manifestPath = 'src/manifest.json';
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
-function parse(version) {
+function parse(version: string) {
     const parts = version.split('.').map(Number);
     if (parts.length !== 3 || parts.some(Number.isNaN)) {
         throw new Error(`Invalid version "${version}" (expected x.y.z)`);
     }
-    return parts;
+    return parts as [number, number, number];
 }
 
 const arg = process.argv[2];
-let newVersion;
+let newVersion: string;
 if (arg) {
     newVersion = arg.replace(/^v/, '');
     parse(newVersion); // validate format

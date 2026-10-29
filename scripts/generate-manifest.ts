@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { distDirFor, parseBrowser } from './browsers.mjs';
+import { devDistDir, parseBrowser, prodDistDir } from './browsers.ts';
 
 export const SOURCE_MANIFEST = 'src/manifest.json';
 
@@ -22,13 +22,17 @@ export const GECKO_UNLISTED = {
     update_url: UPDATE_MANIFEST_URL,
 };
 
-/**
- * @param {Record<string, any>} base
- * @param {string} browser
- * @param {{ unlisted?: boolean }} [options]
- */
-export function buildManifest(base, browser, { unlisted = false } = {}) {
-    const manifest = structuredClone(base);
+type Manifest = Record<string, unknown>;
+
+export interface SourceManifest extends Manifest {
+    name: string;
+    permissions: string[];
+    background: { service_worker: string };
+    options_page: string;
+}
+
+export function buildManifest(base: SourceManifest, browser: string, { unlisted = false } = {}): Manifest {
+    const manifest: Manifest = structuredClone(base);
     if (browser !== 'firefox') {
         return manifest;
     }
@@ -51,7 +55,7 @@ export function buildManifest(base, browser, { unlisted = false } = {}) {
 
 function main() {
     const browser = parseBrowser(process.argv[2]);
-    const outDir = process.argv[3] ?? distDirFor(browser, process.env.PROD === 'true');
+    const outDir = process.argv[3] ?? (process.env.PROD === 'true' ? prodDistDir(browser) : devDistDir(browser));
     const base = JSON.parse(readFileSync(SOURCE_MANIFEST, 'utf8'));
     mkdirSync(outDir, { recursive: true });
     writeFileSync(

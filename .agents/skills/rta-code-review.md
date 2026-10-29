@@ -22,10 +22,10 @@ The same bundle ships to Chrome and Firefox, and this is the newest and most eas
 
 - [ ] **No bare `chrome.*` calls.** Everything goes through `ext` from `src/util/browser-api.ts`. On Firefox the bare `chrome` namespace is callback-only and returns `undefined`, so `.then()` on it throws. `no-restricted-syntax` in `eslint.config.js` enforces this — if a change disables or works around that rule, it is a BLOCKER. Type positions (`chrome.tabs.Tab`) are exempt and fine.
 - [ ] Chrome-only APIs (`ext.offscreen`, and anything else Firefox lacks) are behind `canUseOffscreen()` or `isFirefox()` from `src/util/platform.ts` — never called unguarded.
-- [ ] A permission only Chrome understands is filtered out of the derived Firefox manifest in `scripts/generate-manifest.mjs`, and `test/build/manifest.test.ts` still passes.
+- [ ] A permission only Chrome understands is filtered out of the derived Firefox manifest in `scripts/generate-manifest.ts`, and `test/build/manifest.test.ts` still passes.
 - [ ] Firefox has no offscreen document — its background is an event page that plays sound in-process. A change to `play-sound.ts` or `notifications.ts` must work on both paths.
 - [ ] Firefox notifications are basic only (no buttons), and Firefox match patterns cannot carry a port. A change relying on either needs a Firefox check.
-- [ ] Anything touching `browser-api.ts`, `platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`, `authentication-listener.ts`, or `scripts/generate-manifest.mjs` should say which rows of `smoke-test-matrix.md` section H were run.
+- [ ] Anything touching `browser-api.ts`, `platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`, `authentication-listener.ts`, or `scripts/generate-manifest.ts` should say which rows of `smoke-test-matrix.md` section H were run.
 
 ### MV3 Constraints
 
@@ -85,8 +85,8 @@ For changes in `src/webuis/`:
 ### Build System
 
 - [ ] New source files in `src/webuis/` or `src/util/` don't need to be added to any build config — Vite resolves imports automatically
-- [ ] A new HTML page needs an entry in the `targets` map in `vite.config.ts` **and** its name in `ALL_TARGETS` in `scripts/browsers.mjs` (plus `targetsFor` if it is Chrome-only). No new npm script is needed — `scripts/build.mjs` picks it up
-- [ ] Static assets go in `src/assets/`, which `scripts/build.mjs` copies wholesale into the output directory
+- [ ] A new HTML page needs an entry in the `targets` map in `vite.config.ts` **and** its name in `ALL_TARGETS` in `scripts/browsers.ts` (plus `targetsFor` if it is Chrome-only). No new npm script is needed — `scripts/build.ts` picks it up
+- [ ] Static assets go in `src/assets/`, which `scripts/build.ts` copies wholesale into the output directory
 
 ## Output
 

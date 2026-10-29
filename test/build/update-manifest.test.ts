@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { GECKO_UNLISTED } from "../../scripts/generate-manifest.mjs";
-import { buildUpdateManifest, xpiAssetUrl } from "../../scripts/generate-update-manifest.mjs";
+import { GECKO_UNLISTED } from "../../scripts/generate-manifest.ts";
+import { buildUpdateManifest, xpiAssetUrl } from "../../scripts/generate-update-manifest.ts";
 
 describe("the self-hosted update manifest", () => {
     it("keys off the unlisted add-on id", () => {

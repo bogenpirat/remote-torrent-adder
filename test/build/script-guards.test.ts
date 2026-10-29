@@ -9,7 +9,7 @@ function run(script: string, args: string[] = []) {
 }
 
 describe("generate-update-manifest CLI", () => {
-    const script = "scripts/generate-update-manifest.mjs";
+    const script = "scripts/generate-update-manifest.ts";
 
     it.each(["", "abc", "1.2", "1.2.3.4", "1.2.3-beta", "v1.2"])(
         "refuses to write updates.json for %o",
@@ -34,7 +34,7 @@ describe("build-unlisted guard", () => {
     });
 
     it("fails fast when the production Firefox bundle is missing", () => {
-        const result = run(path.join(sandbox, "scripts", "build-unlisted.mjs"));
+        const result = run(path.join(sandbox, "scripts", "build-unlisted.ts"));
         expect(result.status).not.toBe(0);
         expect(result.stderr).toMatch(/Missing dist-prod[\\/]firefox/);
         expect(result.stderr).toMatch(/build:firefox:prod:run/);

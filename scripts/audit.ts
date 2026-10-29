@@ -1,10 +1,31 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 
-/**
- * @type {{ package: string, ghsa: string, reason: string, reviewed: string }[]}
- */
-const ALLOWLIST = [
+interface Waiver {
+    package: string;
+    ghsa: string;
+    reason: string;
+    reviewed: string;
+}
+
+interface Advisory {
+    url: string;
+    severity: string;
+    title: string;
+}
+
+interface AuditReport {
+    vulnerabilities: Record<string, { via: (string | Advisory)[] }>;
+}
+
+interface Finding {
+    package: string;
+    ghsa: string;
+    severity: string;
+    title: string;
+}
+
+const ALLOWLIST: Waiver[] = [
     {
         package: "node-forge",
         ghsa: "GHSA-86w9-cpqp-85rv",
@@ -28,13 +49,9 @@ if (!result.stdout) {
     process.exit(1);
 }
 
-/**
- * @typedef {{ url: string, severity: string, title: string }} Advisory
- * @type {{ vulnerabilities: Record<string, { via: (string | Advisory)[] }> }}
- */
-const report = JSON.parse(result.stdout);
+const report: AuditReport = JSON.parse(result.stdout);
 
-const found = new Map();
+const found = new Map<string, Finding>();
 for (const [name, vulnerability] of Object.entries(report.vulnerabilities ?? {})) {
     for (const via of vulnerability.via) {
         if (typeof via === "string" || !BLOCKING.has(via.severity)) {
@@ -50,7 +67,7 @@ const blocking = [...found.values()].filter(entry => !waived.has(`${entry.packag
 const stale = [...waived].filter(key => !found.has(key));
 
 for (const key of stale) {
-    console.warn(`Allowlisted advisory no longer reported: ${key} - remove it from scripts/audit.mjs.`);
+    console.warn(`Allowlisted advisory no longer reported: ${key} - remove it from scripts/audit.ts.`);
 }
 
 if (blocking.length > 0) {
@@ -59,7 +76,7 @@ if (blocking.length > 0) {
         console.error(`  ${entry.severity.padEnd(8)} ${entry.package} - ${entry.title}`);
         console.error(`           https://github.com/advisories/${entry.ghsa}`);
     }
-    console.error("\nFix them, or add a reviewed entry to ALLOWLIST in scripts/audit.mjs.\n");
+    console.error("\nFix them, or add a reviewed entry to ALLOWLIST in scripts/audit.ts.\n");
     process.exit(1);
 }
 

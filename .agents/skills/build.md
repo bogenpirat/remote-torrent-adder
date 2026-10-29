@@ -12,9 +12,9 @@
 | `npm run dev` | `dist/chrome/` | Watch mode for development |
 | `npm run dev:firefox` | `dist/firefox/` | Build, then launch Firefox with the add-on loaded |
 | `npm run lint:firefox` | — | `web-ext lint` — AMO's own linter, over `dist/firefox/` |
-| `npm run audit` | — | `npm audit --audit-level=high` minus a reviewed allowlist (`scripts/audit.mjs`) |
+| `npm run audit` | — | `npm audit --audit-level=high` minus a reviewed allowlist (`scripts/audit.ts`) |
 | `npm run clean` | — | Remove `dist/` |
-| `npm run typecheck` | — | Type-check `src/`, `test/`, `scripts/`, configs (`tsc --noEmit`) |
+| `npm run typecheck` | — | Type-check `src/`, `test/`, configs (`tsc --noEmit`), then `scripts/` against `scripts/tsconfig.json` |
 | `npm run lint` | — | ESLint over the repo (`npm run lint:fix` to autofix) |
 | `npm test` | — | Run the vitest suite |
 
@@ -32,16 +32,16 @@ npm test
 
 CI (`.github/workflows/build-extension.yml`) runs the same three plus `npm run audit` in a `verify` job that gates both the dev and prod build jobs.
 
-`npm run audit` is `npm audit --audit-level=high` with a reviewed allowlist, because npm has no way to waive a single advisory and an unfixable one in a build tool would otherwise mean a permanently red CI. A new advisory still fails; waiving one means adding an entry to `ALLOWLIST` in `scripts/audit.mjs` with a reason it cannot be fixed upstream and cannot reach the shipped extension. A waiver that no longer matches anything is reported so it gets removed.
+`npm run audit` is `npm audit --audit-level=high` with a reviewed allowlist, because npm has no way to waive a single advisory and an unfixable one in a build tool would otherwise mean a permanently red CI. A new advisory still fails; waiving one means adding an entry to `ALLOWLIST` in `scripts/audit.ts` with a reason it cannot be fixed upstream and cannot reach the shipped extension. A waiver that no longer matches anything is reported so it gets removed.
 
 ## Build Pipeline (in order)
 
-`scripts/build.mjs` owns the pipeline. It resolves the output directory from
+`scripts/build.ts` owns the pipeline. It resolves the output directory from
 `RTA_BROWSER` (`chrome` or `firefox`) and `PROD`, then:
 
 1. Removes the output directory (skipped for a `--only=` targeted rebuild)
 2. Copies `src/assets/` and writes the generated `manifest.json`
-   (`scripts/generate-manifest.mjs`) into it
+   (`scripts/generate-manifest.ts`) into it
 3. Runs Vite once per target, driven by `RTA_TARGET`, e.g. for Chrome:
    - `RTA_TARGET=worker` → `dist/chrome/service_worker.js` (IIFE, self-contained)
    - `RTA_TARGET=content-script` → `dist/chrome/content-script/rta.js` (IIFE)
@@ -54,7 +54,7 @@ service worker and content script each have to be a single standalone file.
 
 Firefox skips the `notifications` target entirely: its background is an event
 page with a DOM, so it plays notification sounds in-process and never loads the
-offscreen document. `scripts/browsers.mjs` is the single place that rule and the
+offscreen document. `scripts/browsers.ts` is the single place that rule and the
 output-path rule live.
 
 ## Loading in Chrome
@@ -66,7 +66,7 @@ output-path rule live.
 
 ## Adding a new target
 
-A new HTML page needs an entry in the `targets` map in `vite.config.ts` and its name added to `ALL_TARGETS` in `scripts/browsers.mjs` (and to `targetsFor` if it is Chrome-only). `scripts/build.mjs` picks it up from there; no new npm script is needed.
+A new HTML page needs an entry in the `targets` map in `vite.config.ts` and its name added to `ALL_TARGETS` in `scripts/browsers.ts` (and to `targetsFor` if it is Chrome-only). `scripts/build.ts` picks it up from there; no new npm script is needed.
 
 ## Output
 
@@ -78,5 +78,6 @@ Report the outcome in the conversation. A large or categorised error list — a 
 - **Service worker errors**: check `chrome://extensions/` → "Errors" or "service worker" link for logs
 - **Content script not running**: check the extension is enabled and has permissions for the current site
 - **Build fails with TS error**: run `npm run typecheck` to see type errors clearly
+- **TS1294 / TS2835 / TS1484 in `scripts/`**: the scripts run directly on Node's built-in type stripping, so `scripts/tsconfig.json` rejects what Node cannot strip — enums, parameter properties and namespaces (TS1294), relative imports without a `.ts` extension (TS2835), and type-only imports not marked `type` (TS1484)
 - **`Set RTA_TARGET to one of: …`**: a Vite build was invoked without the env var — use the `npm run build:*` scripts, which set it via `cross-env`
 - **Vite build fails**: check that `src/popup/`, `src/options/`, `src/notifications/` each have their entry HTML file
