@@ -25,20 +25,7 @@ interface Finding {
     title: string;
 }
 
-const ALLOWLIST: Waiver[] = [
-    {
-        package: "node-forge",
-        ghsa: "GHSA-86w9-cpqp-85rv",
-        reason:
-            "RSA PKCS#1 v1.5 signature verification flaw, reached through @devicefarmer/adbkit <- web-ext. " +
-            "node-forge 1.4.0 is the newest release and is still vulnerable, so there is nothing " +
-            "to upgrade to; npm's suggested fix downgrades web-ext to 10.3.0. adbkit only verifies " +
-            "signatures in its TCP-USB bridge server (adb/tcpusb/socket.js), which web-ext never " +
-            "starts; this project uses web-ext for lint, sign and desktop run only. " +
-            "web-ext is a devDependency that never ships.",
-        reviewed: "2026-10-12",
-    },
-];
+const ALLOWLIST: Waiver[] = [];
 
 const BLOCKING = new Set(["high", "critical"]);
 
