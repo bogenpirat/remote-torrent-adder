@@ -23,6 +23,10 @@ function respond(setLabelResponse: unknown = {}) {
     });
 }
 
+function setLabelMessage(fields: Record<string, unknown> = {}) {
+    return expect.objectContaining({ action: SetTorrentLabelMessage.action, ...fields });
+}
+
 function openAt(query: string) {
     window.history.pushState({}, "", `/popup/popup.html?${query}`);
 }
@@ -72,7 +76,23 @@ describe("SetLabelView", () => {
 
         await userEvent.type(input, "{Enter}");
 
-        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(expect.objectContaining({ action: SetTorrentLabelMessage.action, label: "movies" }));
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(setLabelMessage({ label: "movies" }));
+    });
+
+    it("removes a label from the list without submitting the form", async () => {
+        respond();
+        render(<SetLabelView />);
+        await userEvent.click(await screen.findByDisplayValue("movies"));
+
+        await userEvent.click(screen.getByRole("button", { name: "Remove tv" }));
+
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalledWith(setLabelMessage());
+        expect(window.close).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole("button", { name: "Set label" }));
+
+        const expected = setLabelMessage({ label: "movies", labels: ["movies"] });
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(expected);
     });
 
     it("stays open and shows the error when the client refuses", async () => {
