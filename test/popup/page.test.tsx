@@ -29,6 +29,17 @@ function popupData(overrides: Partial<PopupData> = {}): PopupData {
     };
 }
 
+function popupDataWithForceStart(): PopupData {
+    const forceStart = {
+        key: "forceStart",
+        label: "Force start",
+        type: "boolean",
+        default: false,
+        perTorrent: true,
+    } as const;
+    return popupData({ clientSpecific: { descriptors: [forceStart], initial: { forceStart: false } } });
+}
+
 beforeEach(() => {
     loadPopupData.mockReset();
     submitTorrent.mockReset();
@@ -129,12 +140,7 @@ describe("control visibility", () => {
     });
 
     it("renders a toggle for each per-torrent client-specific setting", async () => {
-        loadPopupData.mockResolvedValue(popupData({
-            clientSpecific: {
-                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
-                initial: { forceStart: false },
-            },
-        }));
+        loadPopupData.mockResolvedValue(popupDataWithForceStart());
 
         render(<Home />);
         await screen.findByRole("button", { name: "Add Torrent" });
@@ -168,12 +174,7 @@ describe("submitting", () => {
     });
 
     it("sends the toggled client-specific value", async () => {
-        loadPopupData.mockResolvedValue(popupData({
-            clientSpecific: {
-                descriptors: [{ key: "forceStart", label: "Force start", type: "boolean", default: false, perTorrent: true }],
-                initial: { forceStart: false },
-            },
-        }));
+        loadPopupData.mockResolvedValue(popupDataWithForceStart());
         render(<Home />);
 
         await userEvent.click(await screen.findByText("Force start"));
@@ -181,6 +182,23 @@ describe("submitting", () => {
 
         await waitFor(() => expect(submitTorrent).toHaveBeenCalled());
         expect(callArgs(submitTorrent, 0)[0].clientSpecific).toEqual({ forceStart: true });
+    });
+
+    it("sends the label and directory picked from the dropdowns", async () => {
+        loadPopupData.mockResolvedValue(popupData());
+        render(<Home />);
+        await screen.findByRole("button", { name: "Add Torrent" });
+
+        await userEvent.click(screen.getByRole("combobox", { name: "Label" }));
+        await userEvent.click(screen.getByRole("option", { name: /tv/ }));
+        await userEvent.click(screen.getByRole("combobox", { name: "Directory" }));
+        await userEvent.click(screen.getByRole("option", { name: /other/ }));
+        await userEvent.click(screen.getByRole("button", { name: "Add Torrent" }));
+
+        await waitFor(() => expect(submitTorrent).toHaveBeenCalled());
+        const request = callArgs(submitTorrent, 0)[0];
+        expect(request.label).toBe("tv");
+        expect(request.directory).toBe("/other");
     });
 
     it("moves the chosen value to the front so it is offered first next time", async () => {
