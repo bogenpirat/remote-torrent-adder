@@ -46,6 +46,24 @@ describe("downloadTorrent (magnet)", () => {
     });
 });
 
+describe("downloadTorrent (unsupported schemes)", () => {
+    it.each([
+        "file:///etc/passwd",
+        "data:application/x-bittorrent;base64,ZGU=",
+        "ftp://site.com/a.torrent",
+        "javascript:alert(1)",
+    ])(
+        "refuses %s without fetching",
+        async url => {
+            const fetch = queueFetch(mockResponse({ status: 200 }));
+
+            await expect(downloadTorrent(url, { tabId: 9 })).rejects.toThrow(/Only http, https and magnet/);
+            expect(fetch).not.toHaveBeenCalled();
+            expect(chrome.tabs.sendMessage).not.toHaveBeenCalled();
+        },
+    );
+});
+
 describe("downloadTorrent (file)", () => {
     it("fetches, decodes and parses a bencoded torrent", async () => {
         const body = buildBencodedTorrent({

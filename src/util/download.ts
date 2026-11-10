@@ -53,6 +53,9 @@ export async function downloadTorrent(url: string, context: TorrentDownloadConte
     if (url.startsWith("magnet:")) {
         return buildTorrentFromMagnetLink(url);
     }
+    if (!/^https?:\/\//i.test(url)) {
+        throw new Error("Only http, https and magnet links can be added.");
+    }
 
     const fetched = await fetchTorrentFile(url, context);
 
