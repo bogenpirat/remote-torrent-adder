@@ -73,7 +73,7 @@ jobs:
           -o "remote-torrent-adder-${{ steps.ver.outputs.version }}-source.zip" HEAD
 
       - name: Upload to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@v7.0.0
+        uses: mnao305/chrome-extension-upload@f549d5d654694a7722d6abfa64c97409ad5e64c1 # v7.0.0
         with:
           file-path: remote-torrent-adder-${{ steps.ver.outputs.version }}-prod.zip
           extension-id: ${{ secrets.CWS_EXTENSION_ID }}

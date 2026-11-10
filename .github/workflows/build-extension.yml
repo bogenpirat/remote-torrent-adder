@@ -106,7 +106,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Install Firefox
-        uses: browser-actions/setup-firefox@v1
+        uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1.7.2
       - name: Run end-to-end tests
         run: npm run test:e2e
         env:
@@ -146,7 +146,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Log in to Docker Hub
         if: env.DOCKERHUB_TOKEN != ''
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
