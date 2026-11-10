@@ -37,6 +37,16 @@ import { addTrailingSlash } from "./utils";
 import { initiateWebUis } from "./webuis";
 
 
+const CONTENT_SCRIPT_ACTIONS: ReadonlySet<string> = new Set([
+    GetLinkCatchingConfig.action,
+    PreAddTorrentMessage.action,
+    UpdateActionBadgeText.action,
+]);
+
+export function isFromExtensionPage(sender: chrome.runtime.MessageSender): boolean {
+    return sender.id === ext.runtime.id && (sender.url ?? "").startsWith(ext.runtime.getURL(""));
+}
+
 export function registerMessageListener(): void {
     ext.runtime.onMessage.addListener((message: IMessagable, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) => {
         let willRespondAsync = false;
@@ -53,6 +63,10 @@ export function registerMessageListener(): void {
         try {
             if (!message || !message.action) {
                 finish({ error: "missing action" });
+                return false;
+            }
+            if (!CONTENT_SCRIPT_ACTIONS.has(message.action) && !isFromExtensionPage(sender)) {
+                finish({ error: `action not allowed from this sender: ${message.action}` });
                 return false;
             }
 
