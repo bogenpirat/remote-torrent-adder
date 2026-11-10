@@ -1,5 +1,12 @@
 import { ext } from "./browser-api";
 import { type TorrentWebUI } from "../models/webui";
+import { isFirefox } from "./platform";
+
+const NO_TAB_ID = -1;
+
+function ownRequestsOnly(): Partial<chrome.declarativeNetRequest.RuleCondition> {
+    return isFirefox() ? {} : { initiatorDomains: [ext.runtime.id] };
+}
 
 function hasUsableHost(baseUrl: string): boolean {
     if (!baseUrl) {
@@ -34,7 +41,9 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
                 },
                 condition: {
                     urlFilter: `|${webUiBaseUrl}*`,
-                    resourceTypes: ["xmlhttprequest"]
+                    resourceTypes: ["xmlhttprequest"],
+                    tabIds: [NO_TAB_ID],
+                    ...ownRequestsOnly()
                 }
             };
             newRules.push(rule);
@@ -73,7 +82,8 @@ export async function executeMethodWrappedWithOriginStripped<T>(method: () => Pr
                 },
                 condition: {
                     urlFilter: `|${baseUrl}*`,
-                    resourceTypes: ["xmlhttprequest"]
+                    resourceTypes: ["xmlhttprequest"],
+                    ...ownRequestsOnly()
                 }
             }
         ]
@@ -111,7 +121,8 @@ export async function executeMethodWrappedWithReferer<T>(method: () => Promise<T
                 },
                 condition: {
                     urlFilter: `|${url}*`,
-                    resourceTypes: ["xmlhttprequest"]
+                    resourceTypes: ["xmlhttprequest"],
+                    ...ownRequestsOnly()
                 }
             }
         ]

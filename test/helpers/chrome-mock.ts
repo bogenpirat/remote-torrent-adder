@@ -15,6 +15,7 @@ export function createChromeMock(): any {
     const rejectedMenuIds: string[] = [];
 
     const runtime = {
+        id: "rta-test-id",
         onMessage: {
             addListener: vi.fn(),
             removeListener: vi.fn(),
