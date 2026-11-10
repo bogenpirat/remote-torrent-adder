@@ -8,6 +8,10 @@ function ownRequestsOnly(): Partial<chrome.declarativeNetRequest.RuleCondition> 
     return isFirefox() ? {} : { initiatorDomains: [ext.runtime.id] };
 }
 
+function boundedUrlFilter(baseUrl: string): string {
+    return `|${baseUrl.replace(/\/+$/, "")}^`;
+}
+
 function hasUsableHost(baseUrl: string): boolean {
     if (!baseUrl) {
         return false;
@@ -40,7 +44,7 @@ export async function registerCorsCircumventionForWebUis(allWebUis: TorrentWebUI
                     ]
                 },
                 condition: {
-                    urlFilter: `|${webUiBaseUrl}*`,
+                    urlFilter: boundedUrlFilter(webUiBaseUrl),
                     resourceTypes: ["xmlhttprequest"],
                     tabIds: [NO_TAB_ID],
                     ...ownRequestsOnly()
@@ -81,7 +85,7 @@ export async function executeMethodWrappedWithOriginStripped<T>(method: () => Pr
                     ]
                 },
                 condition: {
-                    urlFilter: `|${baseUrl}*`,
+                    urlFilter: boundedUrlFilter(baseUrl),
                     resourceTypes: ["xmlhttprequest"],
                     ...ownRequestsOnly()
                 }
