@@ -8,6 +8,7 @@ const authDetails = (over: Record<string, unknown> = {}): any => ({
     tabId: -1,
     requestId: "req-1",
     url: "http://h:8080/api/v2/auth/login",
+    initiator: "chrome-extension://rta-test-id",
     ...over,
 });
 
@@ -82,6 +83,33 @@ describe("resolveAuthCredentials", () => {
     it("ignores challenges that originate from a real tab", async () => {
         seedWebUISettings([webUiSettings()]);
         expect(await resolveAuthCredentials(authDetails({ requestId: "e", tabId: 5 }))).toEqual({});
+    });
+
+    it.each([
+        ["a website's worker", { initiator: "https://evil.example" }],
+        ["another extension", { initiator: "chrome-extension://other-extension" }],
+        ["an extension id that merely starts the same", { initiator: "chrome-extension://rta-test-id-evil" }],
+        ["an unknown requester", { initiator: undefined }],
+    ])("withholds credentials from %s", async (_name, over) => {
+        seedWebUISettings([webUiSettings({ username: "u", password: "p" })]);
+        expect(await resolveAuthCredentials(authDetails({ requestId: "foreign", ...over }))).toEqual({});
+    });
+
+    it("withholds credentials from a proxy challenge", async () => {
+        seedWebUISettings([webUiSettings({ username: "u", password: "p" })]);
+        expect(await resolveAuthCredentials(authDetails({ requestId: "proxy", isProxy: true }))).toEqual({});
+    });
+
+    it("recognises the background page as the requester on Firefox", async () => {
+        seedWebUISettings([webUiSettings({ username: "u", password: "p" })]);
+        const details = authDetails({
+            requestId: "firefox",
+            initiator: undefined,
+            originUrl: "chrome-extension://rta-test-id/_generated_background_page.html",
+        });
+        expect(await resolveAuthCredentials(details)).toEqual({
+            authCredentials: { username: "u", password: "p" },
+        });
     });
 
     it("returns an empty response on the second challenge for the same request", async () => {

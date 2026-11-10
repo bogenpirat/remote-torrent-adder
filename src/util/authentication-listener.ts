@@ -32,7 +32,7 @@ export function registerAuthenticationListener(): void {
 export async function resolveAuthCredentials(
     details: chrome.webRequest.OnAuthRequiredDetails
 ): Promise<chrome.webRequest.BlockingResponse> {
-    if (details.tabId !== -1) {
+    if (details.tabId !== -1 || details.isProxy || !isOwnRequest(details)) {
         return {};
     }
 
@@ -54,6 +54,15 @@ export async function resolveAuthCredentials(
             password: webUi.settings.password
         }
     };
+}
+
+function isOwnRequest(details: chrome.webRequest.OnAuthRequiredDetails): boolean {
+    const { initiator, originUrl, documentUrl } = details as chrome.webRequest.OnAuthRequiredDetails & {
+        originUrl?: string;
+        documentUrl?: string;
+    };
+    const requester = initiator ?? originUrl ?? documentUrl;
+    return !!requester && `${requester}/`.startsWith(ext.runtime.getURL(""));
 }
 
 function isRequestForWebUi(url: string, webUi: TorrentWebUI): boolean {
