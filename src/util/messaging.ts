@@ -70,7 +70,7 @@ export function registerMessageListener(): void {
                 return false;
             }
 
-            console.debug(`Received message of type ${message.action}:`, message, sender);
+            console.debug(`Received message of type ${message.action} from ${sender.url ?? "unknown"}`);
             const settingsProvider = new Settings();
 
             switch (message.action) {

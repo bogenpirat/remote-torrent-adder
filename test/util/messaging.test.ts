@@ -117,6 +117,19 @@ describe("registerMessageListener routing", () => {
         expect(showNotification).not.toHaveBeenCalled();
     });
 
+    it("does not write a saved password to the console", async () => {
+        const spies = (["log", "debug", "info", "warn", "error"] as const).map(level =>
+            vi.spyOn(console, level).mockImplementation(() => undefined),
+        );
+        const toSave = getDefaultSettings();
+        toSave.webuiSettings = [makeWebUISettings({ password: "s3cret-pass" })];
+
+        await dispatch({ action: SaveSettingsMessage.action, settings: serializeSettings(toSave) });
+
+        expect(JSON.stringify(spies.flatMap(spy => spy.mock.calls))).not.toContain("s3cret-pass");
+        spies.forEach(spy => spy.mockRestore());
+    });
+
     it("refuses a privileged action from another extension", async () => {
         const foreignSender = { id: "other-extension", url: "chrome-extension://other-extension/page.html" };
 

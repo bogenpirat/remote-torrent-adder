@@ -21,7 +21,6 @@ export class Settings {
 
     public async loadSettings(): Promise<RTASettings> {
         const response = await ext.storage.local.get([SETTINGS_KEY]) as Record<string, string>;
-        console.debug("Loaded serialized RTAv2 settings:", response);
         if (!response[SETTINGS_KEY]) {
             console.log("Initializing with default settings.");
             const defaults = getDefaultSettings();
@@ -45,7 +44,7 @@ export class Settings {
 
     public async saveSettings(settings: RTASettings): Promise<void> {
         await ext.storage.local.set({ [SETTINGS_KEY]: serializeSettings(settings) });
-        console.log("Settings saved: ", settings);
+        console.log("Settings saved.");
     }
 
     public serialize(): string {
