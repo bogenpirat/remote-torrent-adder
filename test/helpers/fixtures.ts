@@ -1,5 +1,5 @@
 import bencode from "bencode";
-import { Buffer } from "buffer";
+import { Buffer } from "node:buffer";
 import { Client } from "../../src/models/clients";
 import { type Torrent } from "../../src/models/torrent";
 import { type WebUISettings } from "../../src/models/webui";
@@ -18,27 +18,31 @@ export function seedWebUISettings(webuiSettings: WebUISettings[]): void {
     (chrome as any).__storage[SETTINGS_KEY] = serializeSettings(settings);
 }
 
+const WEBUI_SCALAR_DEFAULTS = {
+    id: "webui-1",
+    client: Client.QBittorrentWebUI,
+    name: "My Client",
+    host: "example.com",
+    port: 8080,
+    secure: false,
+    relativePath: null,
+    username: "user",
+    password: "pass",
+    showPerTorrentConfigSelector: false,
+    defaultLabel: null,
+    defaultDir: null,
+    addPaused: false,
+} satisfies Partial<WebUISettings>;
+
 /**
  * Produces a WebUISettings object with sensible defaults that individual tests
  * can selectively override.
  */
 export function makeWebUISettings(overrides: Partial<WebUISettings> = {}): WebUISettings {
     return {
-        id: "webui-1",
-        client: Client.QBittorrentWebUI,
-        name: "My Client",
-        host: "example.com",
-        port: 8080,
-        secure: false,
-        relativePath: null,
-        username: "user",
-        password: "pass",
-        showPerTorrentConfigSelector: false,
-        defaultLabel: null,
-        defaultDir: null,
+        ...WEBUI_SCALAR_DEFAULTS,
         labels: [],
         dirs: [],
-        addPaused: false,
         autoLabelDirSettings: [],
         clientSpecificSettings: {},
         ...overrides,

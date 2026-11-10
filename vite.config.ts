@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin, type UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { devDistDir, parseBrowser, prodDistDir, targetsFor } from './scripts/browsers.ts';
@@ -29,7 +30,7 @@ function pageTarget(name: string, entryHtml: string): UserConfig {
         ...shared,
         root: path.resolve(rootDir, 'src', name),
         base: './',
-        plugins: [react(), removeCrossOrigin],
+        plugins: [react(), tailwindcss(), removeCrossOrigin],
         resolve: {
             alias: { '@': path.resolve(rootDir, 'src', name) },
         },

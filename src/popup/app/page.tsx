@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ComboBox } from '../components/ui/combobox';
 import { Button } from '../components/ui/button';
 import { Toggle } from '../components/ui/toggle';
 import Notice from './Notice';
 import WebUiPickerView from './WebUiPickerView';
 import PageLinksView from './PageLinksView';
 import SetLabelView from './SetLabelView';
+import { EditableComboBox, FormFrame, SubmitError } from './FormFrame';
 import { errorMessage, moveToFront } from '../lib/utils';
-import { loadPopupData, submitTorrent, type PopupData } from '../popup-data';
+import { useEditableOptions, useSubmission } from '../lib/form-hooks';
+import { loadPopupData, submitTorrent, type AddTorrentRequest, type PopupData } from '../popup-data';
 
 type LoadState =
   | { status: 'loading' }
@@ -65,108 +66,78 @@ function BufferedTorrentForm() {
 // The form only mounts once the data exists, so every field can be initialised
 // straight from it and no value is ever asserted non-null.
 function AddTorrentForm({ data }: { data: PopupData }) {
-  const [label, setLabel] = useState(data.initial.label);
-  const [directory, setDirectory] = useState(data.initial.directory);
-  const [paused, setPaused] = useState(data.initial.paused);
-  const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
-  const [labelOptions, setLabelOptions] = useState(data.labelOptions);
-  const [directoryOptions, setDirectoryOptions] = useState(data.directoryOptions);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      await submitTorrent({
-        webUiId: data.webUiSettings.id,
-        label,
-        directory,
-        paused,
-        clientSpecific,
-        // Whatever was just used moves to the front, so it is offered first next time.
-        labelOptions: moveToFront(label, labelOptions),
-        directoryOptions: moveToFront(directory, directoryOptions),
-      });
-      window.close();
-    } catch (error: unknown) {
-      console.error('Failed adding the torrent', error);
-      setSubmitError(errorMessage(error));
-      setSubmitting(false);
-    }
-  };
-
-  const removeLabel = (option: string) => {
-    setLabelOptions(previous => previous.filter(entry => entry !== option));
-    if (label === option) setLabel('');
-  };
-
-  const removeDirectory = (option: string) => {
-    setDirectoryOptions(previous => previous.filter(entry => entry !== option));
-    if (directory === option) setDirectory('');
-  };
+  const options = useTorrentOptions(data);
+  const { submitting, submitError, submit } = useSubmission(
+    'Failed adding the torrent',
+    () => submitTorrent(options.toRequest()),
+  );
 
   return (
-    <div className="h-full bg-background p-6">
-      <div className="max-w-sm mx-auto space-y-4">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-foreground">Remote Torrent Adder</h1>
-          <p className="text-xs text-muted-foreground mt-1">{data.torrent.name}</p>
-        </div>
+    <FormFrame title="Remote Torrent Adder" subtitle={data.torrent.name}>
+      <ComboBoxFields data={data} options={options} />
+      <ToggleFields data={data} options={options} />
+      <SubmitError message={submitError} />
+      <Button onClick={() => void submit()} disabled={submitting} className="w-full">
+        {submitting ? 'Adding…' : 'Add Torrent'}
+      </Button>
+    </FormFrame>
+  );
+}
 
-        <div className="space-y-3 bg-card p-4 rounded-lg border border-border shadow-sm">
-          {data.supports.label && (
-            <ComboBox
-              label="Label"
-              value={label}
-              onChange={setLabel}
-              onRemoveOption={removeLabel}
-              options={labelOptions}
-              rainbowOutline={data.auto.label}
-              placeholder="Select or type label..."
-            />
-          )}
+type TorrentOptions = ReturnType<typeof useTorrentOptions>;
 
-          {data.supports.directory && (
-            <ComboBox
-              label="Directory"
-              value={directory}
-              onChange={setDirectory}
-              onRemoveOption={removeDirectory}
-              options={directoryOptions}
-              rainbowOutline={data.auto.directory}
-              placeholder="Select or type directory..."
-            />
-          )}
+function useTorrentOptions(data: PopupData) {
+  const labels = useEditableOptions(data.initial.label, data.labelOptions);
+  const directories = useEditableOptions(data.initial.directory, data.directoryOptions);
+  const [paused, setPaused] = useState(data.initial.paused);
+  const [clientSpecific, setClientSpecific] = useState(data.clientSpecific.initial);
+  const toRequest = (): AddTorrentRequest => ({
+    webUiId: data.webUiSettings.id,
+    label: labels.value,
+    directory: directories.value,
+    paused,
+    clientSpecific,
+    // Whatever was just used moves to the front, so it is offered first next time.
+    labelOptions: moveToFront(labels.value, labels.options),
+    directoryOptions: moveToFront(directories.value, directories.options),
+  });
+  return { labels, directories, paused, setPaused, clientSpecific, setClientSpecific, toRequest };
+}
 
-          {data.supports.paused && (
-            <Toggle label="Start Paused" checked={paused} onChange={setPaused} />
-          )}
+interface FieldsProps {
+  data: PopupData;
+  options: TorrentOptions;
+}
 
-          {data.clientSpecific.descriptors.map(descriptor => (
-            <Toggle
-              key={descriptor.key}
-              label={descriptor.label}
-              checked={clientSpecific[descriptor.key] ?? descriptor.default}
-              onChange={value => setClientSpecific(previous => ({ ...previous, [descriptor.key]: value }))}
-            />
-          ))}
+function ComboBoxFields({ data, options }: FieldsProps) {
+  return (
+    <>
+      {data.supports.label && (
+        <EditableComboBox label="Label" field={options.labels} rainbowOutline={data.auto.label}
+          placeholder="Select or type label..." />
+      )}
+      {data.supports.directory && (
+        <EditableComboBox label="Directory" field={options.directories} rainbowOutline={data.auto.directory}
+          placeholder="Select or type directory..." />
+      )}
+    </>
+  );
+}
 
-          {submitError && (
-            <p role="alert" className="text-xs text-destructive">{submitError}</p>
-          )}
-
-          <Button
-            onClick={() => void handleSubmit()}
-            disabled={submitting}
-            className="w-full"
-            variant="default"
-            size="default"
-          >
-            {submitting ? 'Adding…' : 'Add Torrent'}
-          </Button>
-        </div>
-      </div>
-    </div>
+function ToggleFields({ data, options }: FieldsProps) {
+  return (
+    <>
+      {data.supports.paused && (
+        <Toggle label="Start Paused" checked={options.paused} onChange={options.setPaused} />
+      )}
+      {data.clientSpecific.descriptors.map(descriptor => (
+        <Toggle
+          key={descriptor.key}
+          label={descriptor.label}
+          checked={options.clientSpecific[descriptor.key] ?? descriptor.default}
+          onChange={value => options.setClientSpecific(previous => ({ ...previous, [descriptor.key]: value }))}
+        />
+      ))}
+    </>
   );
 }
