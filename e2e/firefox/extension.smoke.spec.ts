@@ -52,8 +52,8 @@ test.describe("firefox event page", () => {
         const stripped = rules.map(rule => rule.action.requestHeaders?.[0]);
         expect(stripped.every(header => header?.header === "origin" && header.operation === "remove")).toBe(true);
         expect(rules.map(rule => rule.condition.urlFilter).sort()).toEqual([
-            "|http://alpha.invalid:8080*",
-            "|http://beta.invalid:9090*",
+            "|http://alpha.invalid:8080^",
+            "|http://beta.invalid:9090^",
         ]);
     });
 

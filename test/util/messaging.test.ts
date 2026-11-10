@@ -15,14 +15,16 @@ vi.mock("../../src/util/download", async (importOriginal) => ({
 import { registerMessageListener, dispatchPreAddTorrent } from "../../src/util/messaging";
 import {
     GetSettingsMessage,
+    GetLinkCatchingConfig,
     SaveSettingsMessage,
+    TestConnectionMessage,
     TestNotificationMessage,
     PreAddTorrentMessage,
     AddTorrentMessage,
     AddTorrentMessageWithLabelAndDir,
     SetTorrentLabelMessage,
 } from "../../src/models/messages";
-import { serializeSettings, deserializeSettings } from "../../src/util/serializer";
+import { serializeSettings, deserializeSettings, deserializeObject } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { makeWebUISettings, makeMagnetTorrent, makeFileTorrent } from "../helpers/fixtures";
@@ -37,7 +39,10 @@ function getListener() {
 }
 
 /** Invokes the listener and resolves with the value passed to sendResponse. */
-function dispatch(message: any, sender: any = {}): Promise<any> {
+const EXTENSION_PAGE_SENDER = { id: "rta-test-id", url: "chrome-extension://rta-test-id/options/options.html" };
+const CONTENT_SCRIPT_SENDER = { id: "rta-test-id", url: "https://tracker.example/browse", tab: { id: 7, windowId: 3 } };
+
+function dispatch(message: any, sender: any = EXTENSION_PAGE_SENDER): Promise<any> {
     const listener = getListener();
     return new Promise((resolve) => {
         const willRespondAsync = listener(message, sender, resolve);
@@ -93,6 +98,52 @@ describe("registerMessageListener routing", () => {
         expect(showNotification).toHaveBeenCalledWith("T", "M", false, 1000, false);
     });
 
+    it.each([
+        { action: GetSettingsMessage.action },
+        { action: SaveSettingsMessage.action, settings: serializeSettings(getDefaultSettings()) },
+        { action: TestConnectionMessage.action, webUiSettings: makeWebUISettings({ host: "evil.example" }) },
+        { action: AddTorrentMessage.action, webUiId: "w1", url: "magnet:?x", config: {} },
+        { action: SetTorrentLabelMessage.action, webUiId: "w1", infoHash: "a".repeat(40), label: "l", labels: [] },
+        { action: TestNotificationMessage.action, title: "T", message: "M" },
+    ])("refuses $action from a content script", async message => {
+        (globalThis as any).fetch = vi.fn();
+
+        expect(await dispatch(message, CONTENT_SCRIPT_SENDER)).toEqual({
+            error: `action not allowed from this sender: ${message.action}`,
+        });
+        expect(chrome.storage.local.get).not.toHaveBeenCalled();
+        expect(chrome.storage.local.set).not.toHaveBeenCalled();
+        expect(fetch).not.toHaveBeenCalled();
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+
+    it("does not write a saved password to the console", async () => {
+        const spies = (["log", "debug", "info", "warn", "error"] as const).map(level =>
+            vi.spyOn(console, level).mockImplementation(() => undefined),
+        );
+        const toSave = getDefaultSettings();
+        toSave.webuiSettings = [makeWebUISettings({ password: "s3cret-pass" })];
+
+        await dispatch({ action: SaveSettingsMessage.action, settings: serializeSettings(toSave) });
+
+        expect(JSON.stringify(spies.flatMap(spy => spy.mock.calls))).not.toContain("s3cret-pass");
+        spies.forEach(spy => spy.mockRestore());
+    });
+
+    it("refuses a privileged action from another extension", async () => {
+        const foreignSender = { id: "other-extension", url: "chrome-extension://other-extension/page.html" };
+
+        expect(await dispatch({ action: GetSettingsMessage.action }, foreignSender)).toEqual({
+            error: `action not allowed from this sender: ${GetSettingsMessage.action}`,
+        });
+    });
+
+    it("still answers the link-catching config for a content script", async () => {
+        const response = await dispatch({ action: GetLinkCatchingConfig.action }, CONTENT_SCRIPT_SENDER);
+
+        expect(deserializeObject<{ linkCatchingEnabled: boolean }>(response)!.linkCatchingEnabled).toBe(true);
+    });
+
 });
 
 describe("AddTorrent flow", () => {
@@ -137,8 +188,8 @@ describe("AddTorrent flow", () => {
         );
 
         await dispatch(
-            { action: AddTorrentMessage.action, webUiId: "w1", url: "https://tracker.org/get/1.torrent", config: {} },
-            { tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 },
+            { action: PreAddTorrentMessage.action, webUiId: "w1", url: "https://tracker.org/get/1.torrent" },
+            { id: "rta-test-id", tab: { id: 9, windowId: 1, url: "https://tracker.org/browse" }, frameId: 3 },
         );
         await new Promise((r) => setTimeout(r, 0));
 

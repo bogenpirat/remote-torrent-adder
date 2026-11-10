@@ -38,8 +38,8 @@ test.describe("service worker", () => {
 
         const rules = await extension.sessionRules();
         expect(rules.map(rule => rule.condition.urlFilter)).toEqual([
-            "|http://127.0.0.1:8080*",
-            "|http://10.0.0.5:9091*",
+            "|http://127.0.0.1:8080^",
+            "|http://10.0.0.5:9091^",
         ]);
         expect(rules[0]!.action.requestHeaders).toEqual([{ header: "origin", operation: "remove" }]);
 
@@ -86,7 +86,7 @@ test.describe("service worker", () => {
         expect(
             rules.map(rule => rule.condition.urlFilter),
             "the blank-host draft must be skipped without taking its valid sibling down with it",
-        ).toEqual(["|http://127.0.0.1:8080*"]);
+        ).toEqual(["|http://127.0.0.1:8080^"]);
 
         const problems = logs.unexpectedProblems();
         expect(problems, logs.report(problems)).toEqual([]);

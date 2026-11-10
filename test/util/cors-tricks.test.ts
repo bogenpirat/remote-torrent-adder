@@ -20,7 +20,32 @@ describe("registerCorsCircumventionForWebUis", () => {
         expect(arg.removeRuleIds).toEqual([7, 8]);
         expect(arg.addRules).toHaveLength(2);
         expect(arg.addRules[0].action.requestHeaders[0]).toEqual({ header: "origin", operation: "remove" });
-        expect(arg.addRules[0].condition.urlFilter).toBe("|http://a*");
+        expect(arg.addRules[0].condition.urlFilter).toBe("|http://a^");
+    });
+
+    it("ends the filter on a boundary so look-alike hosts and paths do not match", async () => {
+        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
+        await registerCorsCircumventionForWebUis([
+            webUi({ host: "192.168.1.1", port: 80 }),
+            webUi({ host: "nas/", port: null }),
+            webUi({ host: "nas", port: 8080, relativePath: "/qbt/" }),
+        ]);
+
+        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
+        expect(arg.addRules.map((rule: any) => rule.condition.urlFilter)).toEqual([
+            "|http://192.168.1.1^",
+            "|http://nas^",
+            "|http://nas:8080/qbt^",
+        ]);
+    });
+
+    it("applies only to requests the extension itself makes outside any tab", async () => {
+        (chrome.declarativeNetRequest.getSessionRules as any).mockResolvedValue([]);
+        await registerCorsCircumventionForWebUis([webUi({ host: "a", port: 8080 })]);
+
+        const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
+        expect(arg.addRules[0].condition.tabIds).toEqual([-1]);
+        expect(arg.addRules[0].condition.initiatorDomains).toEqual(["rta-test-id"]);
     });
 
     it("skips webuis that produce an empty base url", async () => {
@@ -51,7 +76,7 @@ describe("registerCorsCircumventionForWebUis", () => {
 
         const arg = (chrome.declarativeNetRequest.updateSessionRules as any).mock.calls[0][0];
         expect(arg.addRules).toHaveLength(1);
-        expect(arg.addRules[0].condition.urlFilter).toBe("|http://127.0.0.1:8080*");
+        expect(arg.addRules[0].condition.urlFilter).toBe("|http://127.0.0.1:8080^");
     });
 });
 
@@ -88,6 +113,15 @@ describe("executeMethodWrappedWithReferer", () => {
 
         const addArg = (chrome.declarativeNetRequest.updateDynamicRules as any).mock.calls[0][0];
         expect(addArg.addRules[0].action.requestHeaders[1]).toEqual({ header: "Origin", operation: "remove" });
+    });
+
+    it("limits the rule to requests the extension itself initiates", async () => {
+        (chrome.declarativeNetRequest.getDynamicRules as any).mockResolvedValue([]);
+
+        await executeMethodWrappedWithReferer(async () => "result", "http://t/file", "http://t/page");
+
+        const addArg = (chrome.declarativeNetRequest.updateDynamicRules as any).mock.calls[0][0];
+        expect(addArg.addRules[0].condition.initiatorDomains).toEqual(["rta-test-id"]);
     });
 
     it("removes the referer rule even when the method throws", async () => {

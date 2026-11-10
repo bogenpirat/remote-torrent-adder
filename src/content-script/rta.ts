@@ -18,6 +18,7 @@ import {
 import { PreAddTorrentMessage } from '../models/messages';
 import { isMatchedByRegexes } from '../util/utils';
 import { fetchTorrentInPage } from './torrent-fetch';
+import { isUserInitiated } from './user-intent';
 
 
 let numFoundLinks: number;
@@ -117,6 +118,9 @@ function checkUrlAndRegisterAction(element: Element, getCurrentUrl: () => string
     recordFoundLink(element, url);
     console.debug(`Registered action for element: ${element.tagName}, URL: ${url}`);
     element.addEventListener('click', (event: Event) => {
+        if (!isUserInitiated(event)) {
+            return;
+        }
         const mouseEvent = event as MouseEvent;
         if (mouseEvent.ctrlKey || mouseEvent.shiftKey || mouseEvent.altKey) {
             console.log("Clicked a recognized link, but RTA action was prevented due to pressed modifier keys.");

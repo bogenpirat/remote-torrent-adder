@@ -9,8 +9,14 @@ let observers: MutationObserver[];
 let browser: ReturnType<typeof createChromeMock>;
 let linkRegexes: RegExp[];
 
+const userIntent = vi.hoisted(() => ({ trusted: true }));
+vi.mock("../../src/content-script/user-intent", () => ({
+    isUserInitiated: () => userIntent.trusted,
+}));
+
 beforeEach(() => {
     vi.resetModules();
+    userIntent.trusted = true;
     document.body.innerHTML = "";
     browser = createChromeMock();
     linkRegexes = [/\.torrent$/];
@@ -138,6 +144,14 @@ describe("content-script link click targets", () => {
             expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
         },
     );
+
+    it("ignores a click the page synthesised itself", async () => {
+        await start('<a href="magnet:?xt=urn:btih:0123456789012345678901234567890123456789">Magnet</a>');
+        userIntent.trusted = false;
+
+        expect(click(document.querySelector("a")!)).toBe(false);
+        expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
+    });
 
     it.each(["ctrlKey", "shiftKey", "altKey"])("preserves the %s bypass", async modifier => {
         await start('<a href="https://tracker.example/original.torrent">Original</a>');

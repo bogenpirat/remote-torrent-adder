@@ -1,10 +1,29 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Settings } from "../../src/util/settings";
 import { serializeSettings } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { makeWebUISettings } from "../helpers/fixtures";
 import { at } from "../helpers/assert";
+
+describe("Settings logging", () => {
+    it("never writes stored credentials to the console", async () => {
+        const spies = (["log", "debug", "info", "warn", "error"] as const).map(level =>
+            vi.spyOn(console, level).mockImplementation(() => undefined),
+        );
+        const toSave = getDefaultSettings();
+        toSave.webuiSettings = [makeWebUISettings({ username: "admin-user", password: "s3cret-pass" })];
+
+        const settings = new Settings();
+        await settings.saveSettings(toSave);
+        await settings.loadSettings();
+
+        const logged = JSON.stringify(spies.flatMap(spy => spy.mock.calls));
+        expect(logged).not.toContain("s3cret-pass");
+        expect(logged).not.toContain("admin-user");
+        spies.forEach(spy => spy.mockRestore());
+    });
+});
 
 describe("Settings.loadSettings", () => {
     it("initializes with defaults and persists them when storage is empty", async () => {
