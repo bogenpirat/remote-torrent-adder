@@ -12,6 +12,13 @@ function bencodedTorrent(name = "ubuntu.iso"): string {
     return buildBencodedTorrent({ announce: "http://tracker.one/announce", info: { name } });
 }
 
+async function expectNonTorrentRejection(contentType: string, message: RegExp) {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    queueFetch(mockResponse({ status: 200, body: "<html>nope</html>", headers: { "Content-Type": contentType } }));
+    await expect(downloadTorrent("https://site.com/fake.torrent")).rejects.toThrow(message);
+    expect(consoleError).toHaveBeenCalledWith("Invalid torrent data received", expect.any(Uint8Array));
+}
+
 function pageResponse(body: string, over: Record<string, unknown> = {}) {
     return {
         fetched: {
@@ -99,15 +106,11 @@ describe("downloadTorrent (file)", () => {
         await expect(downloadTorrent("https://site.com/missing.torrent")).rejects.toThrow(/Status not OK/);
     });
 
-    it("rejects with a helpful message when the body is not a torrent", async () => {
-        queueFetch(mockResponse({ status: 200, body: "<html>nope</html>", headers: { "Content-Type": "text/html; charset=utf-8" } }));
-        await expect(downloadTorrent("https://site.com/fake.torrent")).rejects.toThrow(/text\/html instead of a torrent/);
-    });
+    it("rejects with a helpful message when the body is not a torrent", () =>
+        expectNonTorrentRejection("text/html; charset=utf-8", /text\/html instead of a torrent/));
 
-    it("keeps the whole content type when it carries no parameters", async () => {
-        queueFetch(mockResponse({ status: 200, body: "<html>nope</html>", headers: { "Content-Type": "text/html" } }));
-        await expect(downloadTorrent("https://site.com/fake.torrent")).rejects.toThrow(/Received text\/html instead/);
-    });
+    it("keeps the whole content type when it carries no parameters", () =>
+        expectNonTorrentRejection("text/html", /Received text\/html instead/));
 
     it("sends cookies and a page referer with the worker request", async () => {
         const fetch = queueFetch(mockResponse({ status: 200, body: bencodedTorrent() }));

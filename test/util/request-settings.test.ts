@@ -20,6 +20,7 @@ describe("requestSerializedSettings", () => {
     });
 
     it("retries when the service worker rejects because it is asleep", async () => {
+        const consoleDebug = vi.spyOn(console, "debug").mockImplementation(() => undefined);
         let attempts = 0;
         (chrome.runtime.sendMessage as any).mockImplementation(() => {
             attempts += 1;
@@ -33,6 +34,11 @@ describe("requestSerializedSettings", () => {
 
         await expect(pending).resolves.toBe("late");
         expect(attempts).toBe(3);
+        expect(consoleDebug).toHaveBeenCalledTimes(2);
+        expect(consoleDebug).toHaveBeenCalledWith(
+            "Message send failed; the background script may be asleep.",
+            expect.any(Error),
+        );
     });
 
     it("retries a sleeping service worker with a backoff and resolves once it answers", async () => {

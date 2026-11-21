@@ -1,4 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
+import { Blob as NodeBlob } from "node:buffer";
+import { createHash, webcrypto } from "node:crypto";
+import bencode from "bencode";
 import { at, callArgs } from "../helpers/assert";
 
 // Mock the heavy collaborators so the dispatcher can be exercised in isolation.
@@ -52,9 +55,15 @@ function dispatch(message: any, sender: any = EXTENSION_PAGE_SENDER): Promise<an
     });
 }
 
+function expectHandlingErrorLogged(consoleError: MockInstance, action: string, message: string) {
+    expect(consoleError).toHaveBeenCalledWith("Message handling error", action, expect.objectContaining({ message }));
+}
+
 beforeEach(() => {
     showNotification.mockClear();
     downloadTorrent.mockReset();
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(console, "debug").mockImplementation(() => undefined);
 });
 
 describe("registerMessageListener routing", () => {
@@ -153,6 +162,37 @@ describe("AddTorrent flow", () => {
         (chrome as any).__storage.settings = serializeSettings(settings);
     }
 
+    function stubOkFetch() {
+        const fetchMock = vi.fn(() =>
+            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
+        );
+        (globalThis as any).fetch = fetchMock;
+        return fetchMock;
+    }
+
+    function buildRealTorrent() {
+        const info = { length: 1024, name: "file.bin", "piece length": 16384, pieces: new Uint8Array(20) };
+        return {
+            bytes: bencode.encode({ announce: "http://tracker.invalid/announce", info }) as Uint8Array<ArrayBuffer>,
+            infoHash: createHash("sha1").update(bencode.encode(info)).digest("hex"),
+        };
+    }
+
+    function parkFileTorrent(name: string, bytes: Uint8Array<ArrayBuffer>) {
+        return saveBufferedTorrent({
+            torrent: makeFileTorrent({ name, data: new NodeBlob([bytes]) as Blob }),
+            webUiSettings: makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI }),
+        });
+    }
+
+    function findUploadedForm(fetchMock: ReturnType<typeof stubOkFetch>): Promise<FormData> {
+        return vi.waitFor(() => {
+            const call = (fetchMock.mock.calls as any[][]).find(c => String(c[0]).includes("/torrents/add"));
+            expect(call).toBeDefined();
+            return call![1].body as FormData;
+        });
+    }
+
     it("downloads and sends the torrent, then shows a success notification", async () => {
         seedWebUi();
         downloadTorrent.mockResolvedValue(makeMagnetTorrent());
@@ -170,14 +210,17 @@ describe("AddTorrent flow", () => {
     });
 
     it("notifies the user when downloading the torrent fails", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const failure = new Error("network down");
         seedWebUi();
-        downloadTorrent.mockRejectedValue(new Error("network down"));
+        downloadTorrent.mockRejectedValue(failure);
 
         await dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url: "magnet:?x", config: {} });
         await new Promise((r) => setTimeout(r, 0));
 
         expect(showNotification).toHaveBeenCalled();
         expect(callArgs(showNotification, 0)[0]).toBe("Error downloading torrent");
+        expect(consoleError).toHaveBeenCalledWith("Error downloading torrent:", failure);
     });
 
     it("hands the download over to the tab the link was clicked in", async () => {
@@ -201,14 +244,17 @@ describe("AddTorrent flow", () => {
     });
 
     it("points the notification at the tracker when Cloudflare challenges the download", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const challenge = new CloudflareChallengeError("https://tracker.org/get/1.torrent");
         seedWebUi();
-        downloadTorrent.mockRejectedValue(new CloudflareChallengeError("https://tracker.org/get/1.torrent"));
+        downloadTorrent.mockRejectedValue(challenge);
 
         await dispatch({ action: AddTorrentMessage.action, webUiId: "w1", url: "https://tracker.org/get/1.torrent", config: {} });
         await new Promise((r) => setTimeout(r, 0));
 
         expect(callArgs(showNotification, 0)[0]).toBe("Cloudflare is blocking this download");
         expect(callArgs(showNotification, 0)[5]).toBe("https://tracker.org/get/1.torrent");
+        expect(consoleError).toHaveBeenCalledWith("Error downloading torrent:", challenge);
     });
 
     it("persists updated labels and dirs for AddTorrentMessageWithLabelAndDir", async () => {
@@ -237,14 +283,10 @@ describe("AddTorrent flow", () => {
 
     it("takes the torrent from IndexedDB rather than from the message", async () => {
         seedWebUi();
-        const fetchMock = vi.fn(() =>
-            Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("Ok.") } as any),
-        );
-        (globalThis as any).fetch = fetchMock;
-        await saveBufferedTorrent({
-            torrent: makeFileTorrent({ name: "parked.torrent" }),
-            webUiSettings: makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI }),
-        });
+        const fetchMock = stubOkFetch();
+        vi.stubGlobal("crypto", webcrypto);
+        const { bytes, infoHash } = buildRealTorrent();
+        await parkFileTorrent("parked.torrent", bytes);
 
         await dispatch({
             action: AddTorrentMessageWithLabelAndDir.action,
@@ -253,14 +295,13 @@ describe("AddTorrent flow", () => {
             labels: [],
             directories: [],
         });
-        const uploadCall = await vi.waitFor(() => {
-            const call = (fetchMock.mock.calls as any[][]).find(c => String(c[0]).includes("/torrents/add"));
-            expect(call).toBeDefined();
-            return call!;
-        });
-        const body = uploadCall[1].body as FormData;
-        expect((body.get("torrents") as File).name).toBe("parked.torrent");
+        const body = await findUploadedForm(fetchMock);
+        const uploaded = body.get("torrents") as File;
+        expect(uploaded.name).toBe("parked.torrent");
+        expect(Array.from(new Uint8Array(await uploaded.arrayBuffer()))).toEqual(Array.from(bytes));
         expect(body.get("category")).toBe("movies");
+        await vi.waitFor(() => expect(showNotification).toHaveBeenCalled());
+        expect(callArgs(showNotification, 0)[6]).toEqual({ webUiId: "w1", infoHash, torrentName: "parked.torrent" });
     });
 
     it("clears the buffered torrent once it has been handed to the client", async () => {
@@ -286,6 +327,7 @@ describe("AddTorrent flow", () => {
     });
 
     it("reports an error when the popup adds with nothing buffered", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedWebUi();
 
         const response = await dispatch({
@@ -297,6 +339,7 @@ describe("AddTorrent flow", () => {
         });
 
         expect(response.error).toMatch(/No buffered torrent/i);
+        expectHandlingErrorLogged(consoleError, AddTorrentMessageWithLabelAndDir.action, response.error);
     });
 });
 
@@ -352,12 +395,14 @@ describe("dispatchPreAddTorrent", () => {
     });
 
     it("notifies instead of opening the popup when the download fails", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const challenge = new CloudflareChallengeError("https://tracker.org/get/1.torrent");
         const settings = getDefaultSettings();
         settings.webuiSettings = [
             makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
         ];
         (chrome as any).__storage.settings = serializeSettings(settings);
-        downloadTorrent.mockRejectedValue(new CloudflareChallengeError("https://tracker.org/get/1.torrent"));
+        downloadTorrent.mockRejectedValue(challenge);
 
         await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "https://tracker.org/get/1.torrent", webUiId: "w1" }, 7);
         await new Promise((r) => setTimeout(r, 0));
@@ -365,6 +410,7 @@ describe("dispatchPreAddTorrent", () => {
         expect(callArgs(showNotification, 0)[0]).toBe("Cloudflare is blocking this download");
         expect(chrome.action.openPopup).not.toHaveBeenCalled();
         expect(await readBufferedTorrent()).toBeNull();
+        expect(consoleError).toHaveBeenCalledWith("Error downloading torrent:", challenge);
     });
 
     it("buffers the torrent and opens the popup when the selector is enabled", async () => {
@@ -383,13 +429,15 @@ describe("dispatchPreAddTorrent", () => {
     });
 
     it("falls back to a popup window when the action popup cannot be opened", async () => {
+        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const refusal = new Error("openPopup requires a user gesture");
         const settings = getDefaultSettings();
         settings.webuiSettings = [
             makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
         ];
         (chrome as any).__storage.settings = serializeSettings(settings);
         downloadTorrent.mockResolvedValue(makeMagnetTorrent());
-        (chrome.action.openPopup as any).mockRejectedValue(new Error("openPopup requires a user gesture"));
+        (chrome.action.openPopup as any).mockRejectedValue(refusal);
 
         await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
         await new Promise((r) => setTimeout(r, 0));
@@ -397,21 +445,25 @@ describe("dispatchPreAddTorrent", () => {
         expect(chrome.windows.create).toHaveBeenCalledWith(
             expect.objectContaining({ url: "popup/popup.html", type: "popup" })
         );
+        expect(consoleWarn).toHaveBeenCalledWith("Could not open the action popup; falling back to a window.", refusal);
     });
 
     it("clears the registered popup even when opening it fails", async () => {
+        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        const refusal = new Error("nope");
         const settings = getDefaultSettings();
         settings.webuiSettings = [
             makeWebUISettings({ id: "w1", client: Client.QBittorrentWebUI, showPerTorrentConfigSelector: true }),
         ];
         (chrome as any).__storage.settings = serializeSettings(settings);
         downloadTorrent.mockResolvedValue(makeMagnetTorrent());
-        (chrome.action.openPopup as any).mockRejectedValue(new Error("nope"));
+        (chrome.action.openPopup as any).mockRejectedValue(refusal);
 
         await dispatchPreAddTorrent({ action: PreAddTorrentMessage.action, url: "magnet:?x", webUiId: "w1" }, 7);
         await new Promise((r) => setTimeout(r, 0));
 
         expect(chrome.action.setPopup).toHaveBeenLastCalledWith({ popup: "" });
+        expect(consoleWarn).toHaveBeenCalledWith("Could not open the action popup; falling back to a window.", refusal);
     });
 
     it("uses a popup window directly when the alternative chooser is enabled", async () => {
@@ -524,6 +576,7 @@ describe("labelling after the add", () => {
     });
 
     it("reports the failure to the popup and keeps the label list when the client refuses", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedWebUi();
         respondToEveryFetchWith(false, 500);
 
@@ -539,9 +592,11 @@ describe("labelling after the add", () => {
         expect(response.error).toMatch(/Setting the label failed \(HTTP 500\)/);
         expect(at(deserializeSettings((chrome as any).__storage.settings)!.webuiSettings, 0).labels).toEqual(["old"]);
         expect(showNotification).not.toHaveBeenCalled();
+        expectHandlingErrorLogged(consoleError, SetTorrentLabelMessage.action, response.error);
     });
 
     it("reports an unknown webui", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         seedWebUi();
 
         const response = await dispatch({
@@ -554,5 +609,6 @@ describe("labelling after the add", () => {
         });
 
         expect(response.error).toBe("No WebUI found for id missing");
+        expectHandlingErrorLogged(consoleError, SetTorrentLabelMessage.action, "No WebUI found for id missing");
     });
 });
