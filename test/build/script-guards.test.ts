@@ -37,6 +37,6 @@ describe("build-unlisted guard", () => {
         const result = run(path.join(sandbox, "scripts", "build-unlisted.ts"));
         expect(result.status).not.toBe(0);
         expect(result.stderr).toMatch(/Missing dist-prod[\\/]firefox/);
-        expect(result.stderr).toMatch(/build:firefox:prod:run/);
+        expect(result.stderr).toMatch(/bundle --browser=firefox --prod/);
     });
 });

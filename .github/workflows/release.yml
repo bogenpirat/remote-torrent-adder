@@ -57,11 +57,14 @@ jobs:
           # the release PAT. The push steps below pass it explicitly.
           persist-credentials: false
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Normalize and validate version
         id: ver
@@ -87,18 +90,18 @@ jobs:
         run: node scripts/bump-version.ts "${{ steps.ver.outputs.version }}"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # Build every bundle BEFORE moving any git refs, so a build failure aborts
       # the release without leaving a dangling commit or tag behind.
       - name: Build all bundles
-        run: npm run build:all
+        run: pnpm build --all
 
       - name: Lint the Firefox bundle
-        run: npm run lint:firefox
+        run: pnpm lint:firefox
 
       - name: Lint the self-hosted Firefox bundle
-        run: npm run lint:firefox:unlisted
+        run: pnpm exec web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted
 
       - name: Sign the unlisted Firefox bundle
         id: sign_unlisted
@@ -108,7 +111,7 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
-          npx web-ext sign --source-dir dist-prod/firefox-unlisted --channel unlisted --approval-timeout 600000 --artifacts-dir web-ext-artifacts-unlisted
+          pnpm exec web-ext sign --source-dir dist-prod/firefox-unlisted --channel unlisted --approval-timeout 600000 --artifacts-dir web-ext-artifacts-unlisted
           XPI="$(find web-ext-artifacts-unlisted -maxdepth 1 -name '*.xpi' -print -quit)"
           [ -n "$XPI" ] || { echo 'web-ext produced no .xpi' >&2; exit 1; }
           mv "$XPI" "remote-torrent-adder-$VERSION.xpi"
@@ -141,7 +144,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/manifest.json package.json package-lock.json
+          git add src/manifest.json package.json
           git commit -m "chore: release ${{ steps.ver.outputs.tag }} [skip ci]"
           git tag "${{ steps.ver.outputs.tag }}"
           git push "$PUSH_URL" HEAD:master

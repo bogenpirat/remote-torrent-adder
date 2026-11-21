@@ -22,26 +22,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Type check
-        run: npm run typecheck
+        run: pnpm typecheck
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
       - name: Test
-        run: npm run test:coverage
+        run: pnpm test --coverage
       - name: Upload coverage
         uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage
       - name: Audit dependencies
-        run: npm run audit
+        run: pnpm audit
 
   build-dev:
     needs: verify
@@ -49,23 +51,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Build Chrome extension
-        run: npm run build:run
+        run: pnpm bundle
       - name: Build Firefox extension
-        run: npm run build:firefox:run
+        run: pnpm bundle --browser=firefox
       - name: Lint the Firefox bundle
-        run: npm run lint:firefox
+        run: pnpm lint:firefox
       - name: Build the self-hosted Firefox extension
-        run: npm run build:firefox:prod:run && npm run build:firefox:unlisted:run
+        run: pnpm bundle --browser=firefox --prod && node scripts/build-unlisted.ts
       - name: Lint the self-hosted Firefox bundle
-        run: npm run lint:firefox:unlisted
+        run: pnpm exec web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted
       - name: Upload Chrome build artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -86,13 +90,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Download the built Chrome extension
         uses: actions/download-artifact@v8
         with:
@@ -104,11 +110,11 @@ jobs:
           name: firefox-extension-dist
           path: dist/firefox
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
       - name: Install Firefox
         uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1.7.2
       - name: Run end-to-end tests
-        run: npm run test:e2e
+        run: pnpm test:e2e
         env:
           MOZ_HEADLESS: '1'
       - name: Upload Playwright report
@@ -130,20 +136,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Download the built Chrome extension
         uses: actions/download-artifact@v8
         with:
           name: chrome-extension-dist
           path: dist/chrome
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
       - name: Log in to Docker Hub
         if: env.DOCKERHUB_TOKEN != ''
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -151,7 +159,7 @@ jobs:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
       - name: Run integration tests
-        run: npm run test:it
+        run: pnpm test:it
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v7
@@ -167,17 +175,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Build Chrome extension (production)
-        run: npm run build:prod:run
+        run: pnpm bundle --prod
       - name: Build Firefox extension (production)
-        run: npm run build:firefox:prod:run
+        run: pnpm bundle --browser=firefox --prod
       - name: Upload Chrome production build artifacts
         uses: actions/upload-artifact@v7
         with:

@@ -7,10 +7,10 @@ Testing happens at three levels: an automated vitest suite that covers logic and
 The suite lives in `test/`, mirroring the `src/` layout. Every client in `src/webuis/` has a matching `test/webuis/<name>-webui.test.ts`.
 
 ```bash
-npm test              # run once
-npm run test:watch    # watch mode
-npm run test:coverage # with coverage report → coverage/
-npx vitest run test/webuis/qbittorrent-webui.test.ts   # a single file
+pnpm test                # run once
+pnpm exec vitest         # watch mode
+pnpm test --coverage     # with coverage report → coverage/
+pnpm exec vitest run test/webuis/qbittorrent-webui.test.ts   # a single file
 ```
 
 Stack: vitest + jsdom, `@testing-library/react` for components, `fake-indexeddb` for `src/util/idb.ts`. Global setup is `test/setup.ts`; config is `vitest.config.ts`.
@@ -39,29 +39,29 @@ A new required field on `WebUISettings` or `RTASettings` must be added to `fixtu
 ### Gates
 
 ```bash
-npm run typecheck
-npm run lint
-npm test
+pnpm typecheck
+pnpm lint
+pnpm test
 ```
 
-`npm run build` and `npm run build:prod` run all three first via `prebuild`, so a build can fail on a lint or test error. CI runs the same three (as `test:coverage`) plus `npm run audit` in a `verify` job gating both build jobs. `npm run test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
+`pnpm build` runs all three first via `verify`, whatever flags it gets, so a build can fail on a lint or test error. CI runs the same three (with `pnpm test --coverage`) plus `pnpm audit` in a `verify` job gating both build jobs. `pnpm test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
 
 ## End-to-end tests in headless browsers
 
 The suite lives in `e2e/` and runs on Playwright, separately from vitest, as two
 projects: `chrome` (everything outside `e2e/firefox/`) and `firefox`
-(`e2e/firefox/**`). `npm run test:e2e` runs both; `test:e2e:chrome` and
-`test:e2e:firefox` run one.
+(`e2e/firefox/**`). `pnpm test:e2e` runs both; `pnpm test:e2e --project=chrome` or
+`--project=firefox` runs one.
 
 ```bash
-npm run build         # required first: the suite loads dist/chrome/ as an unpacked extension
-npm run build:firefox # required too: the firefox project loads dist/firefox/
-npm run test:e2e
-npm run test:e2e:headed   # watch it happen
-npm run test:e2e:ui       # Playwright's UI mode
+pnpm build         # required first: the suite loads dist/chrome/ as an unpacked extension
+pnpm build --browser=firefox   # required too: the firefox project loads dist/firefox/
+pnpm test:e2e
+pnpm test:e2e --headed   # watch it happen
+pnpm test:e2e --ui       # Playwright's UI mode
 ```
 
-First-time setup needs `npx playwright install chromium`. Extensions only load in headless mode under `channel: 'chromium'` (the default headless shell cannot load them), which the fixture already sets.
+First-time setup needs `pnpm exec playwright install chromium`. Extensions only load in headless mode under `channel: 'chromium'` (the default headless shell cannot load them), which the fixture already sets.
 
 What it covers: the service worker booting on an empty, a configured, a corrupt and a half-configured profile; the options page and every tab; the popup in all three modes; content-script link catching on a real page; and a full add-torrent round-trip against a stub qBittorrent server.
 
@@ -119,14 +119,14 @@ Two things to know before adding a spec:
 
 ## Integration tests against real clients in Docker
 
-`test/it/` drives the real extension (Playwright + Chrome, the same harness as `e2e/`) against real BitTorrent clients started from public Docker images. It is not part of `npm test`, `verify` or `prebuild`, because it needs a running Docker engine and pulls several images. In CI it runs as the `integration` job on `master` only, in parallel with `e2e`, with one retry per test and an HTML report uploaded as `playwright-report-it`. The job has `continue-on-error: true`: it runs against each client's latest image, so a red run can come from a client release rather than the merge, and it reports without failing `master` until it has proven stable. When the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a read-only access token) are set, the job logs in to Docker Hub first, so the ruTorrent, flood and rqbit pulls count against that account instead of the runner's shared IP; without them it pulls anonymously.
+`test/it/` drives the real extension (Playwright + Chrome, the same harness as `e2e/`) against real BitTorrent clients started from public Docker images. It is not part of `pnpm test` or `verify`, because it needs a running Docker engine and pulls several images. In CI it runs as the `integration` job on `master` only, in parallel with `e2e`, with one retry per test and an HTML report uploaded as `playwright-report-it`. The job has `continue-on-error: true`: it runs against each client's latest image, so a red run can come from a client release rather than the merge, and it reports without failing `master` until it has proven stable. When the repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a read-only access token) are set, the job logs in to Docker Hub first, so the ruTorrent, flood and rqbit pulls count against that account instead of the runner's shared IP; without them it pulls anonymously.
 
 ```bash
-npm run build              # the suite loads dist/chrome/
-npm run test:it            # every client in parallel, one worker per client
-npm run test:it -- deluge  # one client: only its containers start
-npm run test:it:headed     # one worker, so the browsers open one at a time
-RTA_IT_KEEP=1 npm run test:it -- qbittorrent   # leave the containers running afterwards to poke at the WebUI
+pnpm build              # the suite loads dist/chrome/
+pnpm test:it            # every client in parallel, one worker per client
+pnpm test:it -- deluge  # one client: only its containers start
+pnpm test:it --headed --workers=1   # one worker, so the browsers open one at a time
+RTA_IT_KEEP=1 pnpm test:it -- qbittorrent   # leave the containers running afterwards to poke at the WebUI
 ```
 
 `test/it/docker-compose.yml` holds one compose profile per client; each spec brings up only its own profile as project `rta-it-<client>` in `beforeAll` and removes it with `down -v` in `afterAll`. No custom images are built — clients are configured through environment variables and API calls in each probe's `prepare()`. Every image runs at its `latest` tag and is pulled again on every run (`up --pull always`), so the suite always checks RTA against each client's newest release; a red run can therefore come from a client update rather than an RTA change, and needs network access to the registries. To test an older release, swap the tag in the compose file for that run. Host ports are fixed in the 18xxx range and bound to 127.0.0.1. `test:it` runs with `--workers=100%`: each spec file owns its compose project and ports, so the clients run side by side while the tests inside one file stay serial on the stack its `beforeAll` started.
@@ -147,13 +147,13 @@ Not covered, and left to the smoke test matrix: BiglyBT and Tixati (the web inte
 
 ## Manual testing in a real browser
 
-Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser. Chrome scenarios follow; the Firefox pass is section H of `smoke-test-matrix.md`, and `npm run dev:firefox` launches a scratch profile with the add-on loaded.
+Desktop notifications actually appearing, real clients, Cloudflare-protected trackers, and cross-browser behaviour still need hands on a browser. Chrome scenarios follow; the Firefox pass is section H of `smoke-test-matrix.md`, and `pnpm dev:firefox` launches a scratch profile with the add-on loaded.
 
 For a structured pre-release or post-refactor pass, use `smoke-test-matrix.md`. The scenarios below are the quick version.
 
 ### Setup
 
-1. `npm run build`
+1. `pnpm build`
 2. Load unpacked extension from `dist/chrome/` in `chrome://extensions/` (Developer mode on)
 3. Have at least one torrent client configured in the extension options
 

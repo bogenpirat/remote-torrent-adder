@@ -13,7 +13,7 @@ Use when a user reports that adding a torrent to a specific client is failing �
 Client implementations are in `src/webuis/<clientname>-webui.ts`. Read the relevant file first, then run its existing test file — it encodes what the request is *supposed* to look like, and is the fastest way to see whether the bug is in our request construction or in the client's behaviour:
 
 ```bash
-npx vitest run test/webuis/<clientname>-webui.test.ts
+pnpm exec vitest run test/webuis/<clientname>-webui.test.ts
 ```
 
 If the tests pass but the real client rejects the request, the bug is a mismatch between our model of the API and the real one — the test is asserting the wrong thing, and it needs updating alongside the fix.
@@ -45,13 +45,13 @@ Common failure modes and their causes:
 
 Before digging into the client's API, rule out the port. In rough order of likelihood:
 
-- **A bare `chrome.*` call.** On Firefox the bare namespace is callback-only and returns `undefined`, so `.then()` on it throws — often surfacing as a generic failure far from the call site. `npm run lint` catches these (`no-restricted-syntax`), so run it first. Everything must go through `ext` from `src/util/browser-api.ts`.
+- **A bare `chrome.*` call.** On Firefox the bare namespace is callback-only and returns `undefined`, so `.then()` on it throws — often surfacing as a generic failure far from the call site. `pnpm lint` catches these (`no-restricted-syntax`), so run it first. Everything must go through `ext` from `src/util/browser-api.ts`.
 - **An unguarded Chrome-only API.** `ext.offscreen` and friends must sit behind `canUseOffscreen()` / `isFirefox()` from `src/util/platform.ts`.
-- **A missing permission in the derived manifest.** `scripts/generate-manifest.ts` builds the Firefox manifest and filters Chrome-only entries; check the generated `dist/firefox/manifest.json`, and run `npm run lint:firefox` (`web-ext lint`).
+- **A missing permission in the derived manifest.** `scripts/generate-manifest.ts` builds the Firefox manifest and filters Chrome-only entries; check the generated `dist/firefox/manifest.json`, and run `pnpm lint:firefox` (`web-ext lint`).
 - **Host access revoked.** Firefox lets the user turn off host permissions per add-on in `about:addons` → Permissions. The options page shows a "cannot access websites" banner when this happens; a user reporting "every client suddenly fails" on Firefox should check there first.
 - **Match patterns with a port.** Firefox rejects `http://127.0.0.1:1234/*` where Chrome tolerates it.
 
-`npm run test:e2e:firefox` exercises boot, link catching, the CORS session rules, the Origin strip, and an add round-trip against a stub client — if it passes but a real client still fails, the bug is in the client integration, not the port.
+`pnpm test:e2e --project=firefox` exercises boot, link catching, the CORS session rules, the Origin strip, and an add round-trip against a stub client — if it passes but a real client still fails, the bug is in the client integration, not the port.
 
 ### 3. CORS issues
 

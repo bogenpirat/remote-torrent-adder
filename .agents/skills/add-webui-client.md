@@ -168,12 +168,12 @@ Cover at minimum:
 ### Step 4: Verify
 
 ```bash
-npm run typecheck
-npm test
-npm run lint
+pnpm typecheck
+pnpm test
+pnpm lint
 ```
 
-`npm run build` runs all three first via `prebuild`, so run them directly while iterating — the errors are easier to read.
+`pnpm build` runs all three first via `verify`, so run them directly while iterating — the errors are easier to read.
 
 ## Common Authentication Patterns
 

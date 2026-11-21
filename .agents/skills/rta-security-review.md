@@ -2,7 +2,7 @@
 
 Project-specific security checklist for Remote Torrent Adder. The built-in `/security-review` is generic; this one targets the surfaces this extension actually has. Use alongside `rta-code-review.md`.
 
-Several of these properties are already asserted by the test suite — `test/util/cors-tricks.test.ts` covers rule scoping and cleanup, `test/util/settings.test.ts` covers credential storage round-trips, and `test/util/parsers.test.ts` / `test/util/download.test.ts` cover malformed torrent input. Run `npm test` first, and when you find a gap here, close it with a test rather than only a note.
+Several of these properties are already asserted by the test suite — `test/util/cors-tricks.test.ts` covers rule scoping and cleanup, `test/util/settings.test.ts` covers credential storage round-trips, and `test/util/parsers.test.ts` / `test/util/download.test.ts` cover malformed torrent input. Run `pnpm test` first, and when you find a gap here, close it with a test rather than only a note.
 
 ## Attack surfaces in this extension
 
