@@ -1,0 +1,6 @@
+auditLevel: high
+
+minimumReleaseAge: 20160
+
+overrides:
+  fx-runner>shell-quote: 1.12.0
