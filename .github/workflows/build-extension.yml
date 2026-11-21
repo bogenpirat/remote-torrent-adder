@@ -84,7 +84,6 @@ jobs:
   e2e:
     # Launching a real browser is slow and flakier than the unit suite, so it
     # guards master rather than every push.
-    if: github.ref == 'refs/heads/master'
     needs: build-dev
     runs-on: ubuntu-latest
     steps:
@@ -126,7 +125,6 @@ jobs:
           retention-days: 7
 
   integration:
-    if: github.ref == 'refs/heads/master'
     needs: build-dev
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -169,7 +167,6 @@ jobs:
           retention-days: 7
 
   build-prod:
-    if: github.ref == 'refs/heads/master'
     needs: verify
     runs-on: ubuntu-latest
     steps:
