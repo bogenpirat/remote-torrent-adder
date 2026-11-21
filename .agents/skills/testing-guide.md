@@ -7,9 +7,9 @@ Testing happens at three levels: an automated vitest suite that covers logic and
 The suite lives in `test/`, mirroring the `src/` layout. Every client in `src/webuis/` has a matching `test/webuis/<name>-webui.test.ts`.
 
 ```bash
-pnpm test              # run once
-pnpm test:watch    # watch mode
-pnpm test:coverage # with coverage report → coverage/
+pnpm test                # run once
+pnpm exec vitest         # watch mode
+pnpm test --coverage     # with coverage report → coverage/
 pnpm exec vitest run test/webuis/qbittorrent-webui.test.ts   # a single file
 ```
 
@@ -44,21 +44,21 @@ pnpm lint
 pnpm test
 ```
 
-`pnpm build` and `pnpm build:prod` run all three first via `verify`, so a build can fail on a lint or test error. CI runs the same three (as `test:coverage`) plus `pnpm audit` in a `verify` job gating both build jobs. `pnpm test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
+`pnpm build` runs all three first via `verify`, whatever flags it gets, so a build can fail on a lint or test error. CI runs the same three (with `pnpm test --coverage`) plus `pnpm audit` in a `verify` job gating both build jobs. `pnpm test:e2e` runs in its own job on `master` only, against the artifact `build-dev` produces.
 
 ## End-to-end tests in headless browsers
 
 The suite lives in `e2e/` and runs on Playwright, separately from vitest, as two
 projects: `chrome` (everything outside `e2e/firefox/`) and `firefox`
-(`e2e/firefox/**`). `pnpm test:e2e` runs both; `test:e2e:chrome` and
-`test:e2e:firefox` run one.
+(`e2e/firefox/**`). `pnpm test:e2e` runs both; `pnpm test:e2e --project=chrome` or
+`--project=firefox` runs one.
 
 ```bash
 pnpm build         # required first: the suite loads dist/chrome/ as an unpacked extension
-pnpm build:firefox # required too: the firefox project loads dist/firefox/
+pnpm build --browser=firefox   # required too: the firefox project loads dist/firefox/
 pnpm test:e2e
-pnpm test:e2e:headed   # watch it happen
-pnpm test:e2e:ui       # Playwright's UI mode
+pnpm test:e2e --headed   # watch it happen
+pnpm test:e2e --ui       # Playwright's UI mode
 ```
 
 First-time setup needs `pnpm exec playwright install chromium`. Extensions only load in headless mode under `channel: 'chromium'` (the default headless shell cannot load them), which the fixture already sets.
@@ -125,7 +125,7 @@ Two things to know before adding a spec:
 pnpm build              # the suite loads dist/chrome/
 pnpm test:it            # every client in parallel, one worker per client
 pnpm test:it -- deluge  # one client: only its containers start
-pnpm test:it:headed     # one worker, so the browsers open one at a time
+pnpm test:it --headed --workers=1   # one worker, so the browsers open one at a time
 RTA_IT_KEEP=1 pnpm test:it -- qbittorrent   # leave the containers running afterwards to poke at the WebUI
 ```
 

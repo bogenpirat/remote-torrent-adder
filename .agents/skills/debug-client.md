@@ -51,7 +51,7 @@ Before digging into the client's API, rule out the port. In rough order of likel
 - **Host access revoked.** Firefox lets the user turn off host permissions per add-on in `about:addons` → Permissions. The options page shows a "cannot access websites" banner when this happens; a user reporting "every client suddenly fails" on Firefox should check there first.
 - **Match patterns with a port.** Firefox rejects `http://127.0.0.1:1234/*` where Chrome tolerates it.
 
-`pnpm test:e2e:firefox` exercises boot, link catching, the CORS session rules, the Origin strip, and an add round-trip against a stub client — if it passes but a real client still fails, the bug is in the client integration, not the port.
+`pnpm test:e2e --project=firefox` exercises boot, link catching, the CORS session rules, the Origin strip, and an add round-trip against a stub client — if it passes but a real client still fails, the bug is in the client integration, not the port.
 
 ### 3. CORS issues
 

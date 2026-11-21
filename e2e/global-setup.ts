@@ -5,7 +5,7 @@ import { FIREFOX_EXTENSION_DIR } from "./fixtures/firefox-paths";
 
 const BUNDLES = [
     { dir: EXTENSION_DIR, script: "pnpm build" },
-    { dir: FIREFOX_EXTENSION_DIR, script: "pnpm build:firefox" },
+    { dir: FIREFOX_EXTENSION_DIR, script: "pnpm build --browser=firefox" },
 ];
 
 export default async function globalSetup(): Promise<void> {

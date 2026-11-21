@@ -5,22 +5,23 @@
 | Command | Output | Use Case |
 |---|---|---|
 | `pnpm build` | `dist/chrome/` | Chrome development build, unminified |
-| `pnpm build:prod` | `dist-prod/chrome/` | Chrome production build, minified |
-| `pnpm build:firefox` | `dist/firefox/` | Firefox development build |
-| `pnpm build:firefox:prod` | `dist-prod/firefox/` | Firefox production build |
-| `pnpm build:all` | all five | Every bundle incl. `dist-prod/firefox-unlisted/`, with the gate run once |
-| `pnpm dev` | `dist/chrome/` | Watch mode for development |
+| `pnpm build --prod` | `dist-prod/chrome/` | Chrome production build, minified |
+| `pnpm build --browser=firefox` | `dist/firefox/` | Firefox development build |
+| `pnpm build --browser=firefox --prod` | `dist-prod/firefox/` | Firefox production build |
+| `pnpm build --all` | all five | Every bundle incl. `dist-prod/firefox-unlisted/`, with the gate run once |
+| `pnpm bundle [flags]` | as above | The same builds without the verify gate (CI, after its own `verify` job) |
+| `pnpm dev` | `dist/chrome/` | One full build, then watches assets, the manifest, the worker and the content script |
 | `pnpm dev:firefox` | `dist/firefox/` | Build, then launch Firefox with the add-on loaded |
 | `pnpm lint:firefox` | — | `web-ext lint` — AMO's own linter, over `dist/firefox/` |
 | `pnpm audit` | — | Fails on high/critical advisories (`auditLevel` in `pnpm-workspace.yaml`) |
-| `pnpm clean` | — | Remove `dist/` |
+| `pnpm clean` | — | Remove `dist/` and `dist-prod/` |
 | `pnpm typecheck` | — | Type-check `src/`, `test/`, configs (`tsc --noEmit`), then `scripts/` against `scripts/tsconfig.json` |
-| `pnpm lint` | — | ESLint over the repo (`pnpm lint:fix` to autofix) |
-| `pnpm test` | — | Run the vitest suite |
+| `pnpm lint` | — | ESLint over the repo (`pnpm lint --fix` to autofix) |
+| `pnpm test` | — | Run the vitest suite (`pnpm test --coverage` for a report in `coverage/`) |
 
 ## The verify gate
 
-Both `pnpm build` and `pnpm build:prod` run **`typecheck && lint && test`** first, via the `verify` script chained in front of each build script. A "build failure" is therefore often a type, lint, or test failure that never reached Vite at all.
+`pnpm build` runs **`typecheck && lint && test`** first, via the `verify` script, whatever flags it gets; `pnpm bundle` takes the same flags and skips the gate. A "build failure" is therefore often a type, lint, or test failure that never reached Vite at all.
 
 While iterating, run the three directly — the output is easier to read than through the build:
 
@@ -79,5 +80,5 @@ Report the outcome in the conversation. A large or categorised error list — a 
 - **Content script not running**: check the extension is enabled and has permissions for the current site
 - **Build fails with TS error**: run `pnpm typecheck` to see type errors clearly
 - **TS1294 / TS2835 / TS1484 in `scripts/`**: the scripts run directly on Node's built-in type stripping, so `scripts/tsconfig.json` rejects what Node cannot strip — enums, parameter properties and namespaces (TS1294), relative imports without a `.ts` extension (TS2835), and type-only imports not marked `type` (TS1484)
-- **`Set RTA_TARGET to one of: …`**: a Vite build was invoked without the env var — use the `pnpm build:*` scripts, which set it via `cross-env`
+- **`Set RTA_TARGET to one of: …`**: a Vite build was invoked without the env var — use `pnpm build` or `pnpm bundle`, which go through `scripts/build.ts` and set it per target
 - **Vite build fails**: check that `src/popup/`, `src/options/`, `src/notifications/` each have their entry HTML file

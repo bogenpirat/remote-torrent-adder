@@ -95,13 +95,13 @@ jobs:
       # Build every bundle BEFORE moving any git refs, so a build failure aborts
       # the release without leaving a dangling commit or tag behind.
       - name: Build all bundles
-        run: pnpm build:all
+        run: pnpm build --all
 
       - name: Lint the Firefox bundle
         run: pnpm lint:firefox
 
       - name: Lint the self-hosted Firefox bundle
-        run: pnpm lint:firefox:unlisted
+        run: pnpm exec web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted
 
       - name: Sign the unlisted Firefox bundle
         id: sign_unlisted

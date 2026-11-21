@@ -83,18 +83,19 @@ git clone https://github.com/bogenpirat/remote-torrent-adder.git
 cd remote-torrent-adder
 pnpm install
 
-pnpm build            # development build  → dist/chrome/
-pnpm build:prod       # production build   → dist-prod/chrome/
-pnpm build:firefox    # Firefox dev build   → dist/firefox/
-pnpm build:all        # every bundle, incl. the self-hosted Firefox one
+pnpm build                          # development build  → dist/chrome/
+pnpm build --prod                   # production build   → dist-prod/chrome/
+pnpm build --browser=firefox        # Firefox dev build  → dist/firefox/
+pnpm build --browser=firefox --prod # Firefox prod build → dist-prod/firefox/
+pnpm build --all                    # every bundle, incl. the self-hosted Firefox one
 ```
 
 Tests run automatically before every build; you can also run them directly:
 
 ```bash
-pnpm test             # run the test suite once
-pnpm test:watch   # watch mode
-pnpm test:coverage
+pnpm test               # run the test suite once
+pnpm exec vitest        # watch mode
+pnpm test --coverage    # with a coverage report in coverage/
 ```
 
 To load your build into Chrome:
@@ -114,7 +115,7 @@ unsigned `.xpi` permanently, so a persistent local install needs Firefox
 Developer Edition or Nightly with `xpinstall.signatures.required` set to `false` —
 or the signed `.xpi` from the [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest).
 
-For iterating on the extension, `pnpm dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
+For iterating on the extension, `pnpm dev` builds once and then rebuilds whenever the service worker, content script, assets or manifest change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
 
 ## 🏗️ Tech stack
 

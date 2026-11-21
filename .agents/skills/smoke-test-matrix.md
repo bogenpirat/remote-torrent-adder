@@ -105,8 +105,8 @@ Tick the client off only if BOTH pass.
 |---|---|---|
 | G1 | Service-worker idles for >30s, then add a torrent | Worker wakes, add succeeds (catches stateful bugs) |
 | G2 | Open the popup, close it without acting, reopen on a different link | Second popup shows the new torrent, not stale state |
-| G3 | Build prod (`pnpm build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
-| G4 | Build prod for Firefox (`pnpm build:firefox:prod`), then `pnpm lint:firefox` | `web-ext lint` is clean — AMO rejects the upload otherwise |
+| G3 | Build prod (`pnpm build --prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
+| G4 | Build prod for Firefox (`pnpm build --browser=firefox --prod`), then `pnpm lint:firefox` | `web-ext lint` is clean — AMO rejects the upload otherwise |
 
 ### H. Firefox
 
@@ -117,7 +117,7 @@ Run these after touching anything under **Firefox port hotspots**: `browser-api.
 Setup: `pnpm dev:firefox` (or `about:debugging#/runtime/this-firefox` → **Load
 Temporary Add-on…** → `dist/firefox/manifest.json`). Needs **Firefox 149+**.
 
-`pnpm test:e2e:firefox` already covers boot, link catching, the CORS session
+`pnpm test:e2e --project=firefox` already covers boot, link catching, the CORS session
 rules, the Origin strip and the add round-trip against a fake client. The rows
 below are the ones it *cannot* reach.
 

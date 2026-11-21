@@ -36,7 +36,7 @@ jobs:
       - name: Lint
         run: pnpm lint
       - name: Test
-        run: pnpm test:coverage
+        run: pnpm test --coverage
       - name: Upload coverage
         uses: actions/upload-artifact@v7
         with:
@@ -61,15 +61,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Chrome extension
-        run: pnpm build:run
+        run: pnpm bundle
       - name: Build Firefox extension
-        run: pnpm build:firefox:run
+        run: pnpm bundle --browser=firefox
       - name: Lint the Firefox bundle
         run: pnpm lint:firefox
       - name: Build the self-hosted Firefox extension
-        run: pnpm build:firefox:prod:run && pnpm build:firefox:unlisted:run
+        run: pnpm bundle --browser=firefox --prod && node scripts/build-unlisted.ts
       - name: Lint the self-hosted Firefox bundle
-        run: pnpm lint:firefox:unlisted
+        run: pnpm exec web-ext lint --source-dir dist-prod/firefox-unlisted --self-hosted
       - name: Upload Chrome build artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -185,9 +185,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Chrome extension (production)
-        run: pnpm build:prod:run
+        run: pnpm bundle --prod
       - name: Build Firefox extension (production)
-        run: pnpm build:firefox:prod:run
+        run: pnpm bundle --browser=firefox --prod
       - name: Upload Chrome production build artifacts
         uses: actions/upload-artifact@v7
         with:
