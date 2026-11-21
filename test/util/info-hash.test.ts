@@ -47,6 +47,8 @@ describe("computeInfoHash", () => {
     });
 
     it("returns null when the file is not a torrent", async () => {
+        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
         expect(await computeInfoHash(makeFileTorrent())).toBeNull();
+        expect(consoleWarn).toHaveBeenCalledWith("Could not compute the info hash", expect.any(Error));
     });
 });

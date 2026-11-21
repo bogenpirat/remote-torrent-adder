@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { registerActionClickListener, openPrimaryWebUi, updateBadgeText } from "../../src/util/action";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { serializeSettings } from "../../src/util/serializer";
@@ -91,9 +91,11 @@ describe("openPrimaryWebUi", () => {
     });
 
     it("does nothing when no webui is configured", async () => {
+        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
         seedWebUISettings([]);
         await openPrimaryWebUi();
         expect(chrome.tabs.create).not.toHaveBeenCalled();
+        expect(consoleWarn).toHaveBeenCalledWith("Action icon clicked, but no WebUI is configured.");
     });
 });
 

@@ -196,8 +196,13 @@ describe("registerContextMenuClickListener", () => {
     });
 
     it("ignores a per-server click whose index no longer exists", async () => {
+        const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
         await click("server-7", [settingsFor("a", "A")]);
         expect(dispatchPreAddTorrent).not.toHaveBeenCalled();
         expect(addTorrentToWebUiById).not.toHaveBeenCalled();
+        expect(consoleWarn).toHaveBeenCalledWith(
+            "Context menu clicked, but no matching WebUI is configured.",
+            "server-7",
+        );
     });
 });

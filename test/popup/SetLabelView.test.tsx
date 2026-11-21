@@ -96,6 +96,7 @@ describe("SetLabelView", () => {
     });
 
     it("stays open and shows the error when the client refuses", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         respond({ error: "Setting the label failed (HTTP 409): nope" });
         render(<SetLabelView />);
         await screen.findByDisplayValue("movies");
@@ -104,6 +105,10 @@ describe("SetLabelView", () => {
 
         expect(await screen.findByRole("alert")).toHaveTextContent("Setting the label failed (HTTP 409): nope");
         expect(window.close).not.toHaveBeenCalled();
+        expect(consoleError).toHaveBeenCalledWith(
+            "Failed setting the label",
+            expect.objectContaining({ message: "Setting the label failed (HTTP 409): nope" }),
+        );
     });
 
     it("explains when the WebUI is gone", async () => {

@@ -1,10 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Settings } from "../../src/util/settings";
 import { serializeSettings } from "../../src/util/serializer";
 import { getDefaultSettings } from "../../src/util/settings-defaults";
 import { Client } from "../../src/models/clients";
 import { makeWebUISettings } from "../helpers/fixtures";
 import { at } from "../helpers/assert";
+
+beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+});
 
 describe("Settings logging", () => {
     it("never writes stored credentials to the console", async () => {
@@ -58,9 +62,14 @@ describe("Settings.loadSettings", () => {
     });
 
     it("falls back to defaults when stored data cannot be parsed", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
         (chrome as any).__storage.settings = "{not valid json";
         const loaded = await new Settings().loadSettings();
         expect(loaded).toEqual(getDefaultSettings());
+        expect(consoleError).toHaveBeenCalledWith(
+            "Failed to deserialize settings, resetting to defaults",
+            expect.any(SyntaxError),
+        );
     });
 });
 

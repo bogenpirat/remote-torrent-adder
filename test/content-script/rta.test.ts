@@ -15,6 +15,8 @@ vi.mock("../../src/content-script/user-intent", () => ({
 }));
 
 beforeEach(() => {
+    vi.spyOn(console, "debug").mockImplementation(() => undefined);
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.resetModules();
     userIntent.trusted = true;
     document.body.innerHTML = "";
