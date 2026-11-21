@@ -2,14 +2,14 @@
 
 This file is the **defined manual test pass** to run before a release, after touching a client class, or as a regression check after refactoring `TorrentWebUI`, `cors-tricks.ts`, `download.ts`, or messaging. Rows A–G are Chrome; **section H is the Firefox pass**, and has its own trigger list.
 
-It complements the automated suites rather than replacing them. `npm test` covers request construction, parsing, settings, and components; `npm run test:e2e` covers boot, link catching, the CORS rules and an add round-trip against stub clients, in both headless Chrome and real Firefox. What is left — a round-trip to a *real* client, desktop notifications actually appearing, permission prompts, service-worker lifecycle — is what the rows below are for. A change whose risk is purely in code should get a test, not a matrix run.
+It complements the automated suites rather than replacing them. `pnpm test` covers request construction, parsing, settings, and components; `pnpm test:e2e` covers boot, link catching, the CORS rules and an add round-trip against stub clients, in both headless Chrome and real Firefox. What is left — a round-trip to a *real* client, desktop notifications actually appearing, permission prompts, service-worker lifecycle — is what the rows below are for. A change whose risk is purely in code should get a test, not a matrix run.
 
 Reviewers should ask "which rows did you run?" instead of "did you test it?".
 
 ## Setup
 
-0. `npm test` passes. Do not start a manual pass on a red suite — you will chase failures the runner already explained.
-1. `npm run build` and load `dist/chrome/` unpacked in `chrome://extensions/` (Developer mode on).
+0. `pnpm test` passes. Do not start a manual pass on a red suite — you will chase failures the runner already explained.
+1. `pnpm build` and load `dist/chrome/` unpacked in `chrome://extensions/` (Developer mode on).
 2. Have at least two clients configured: one **happy path** client you know works (e.g. local qBittorrent) and one **target** client for the change.
 3. Open the service-worker console (`chrome://extensions/` → "service worker" link) before each case.
 4. Keep a `.torrent` file and a `magnet:?xt=urn:btih:...` URL handy — any public test tracker works.
@@ -105,8 +105,8 @@ Tick the client off only if BOTH pass.
 |---|---|---|
 | G1 | Service-worker idles for >30s, then add a torrent | Worker wakes, add succeeds (catches stateful bugs) |
 | G2 | Open the popup, close it without acting, reopen on a different link | Second popup shows the new torrent, not stale state |
-| G3 | Build prod (`npm run build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
-| G4 | Build prod for Firefox (`npm run build:firefox:prod`), then `npm run lint:firefox` | `web-ext lint` is clean — AMO rejects the upload otherwise |
+| G3 | Build prod (`pnpm build:prod`) and load `dist-prod/chrome/` | Same matrix passes on the minified bundle |
+| G4 | Build prod for Firefox (`pnpm build:firefox:prod`), then `pnpm lint:firefox` | `web-ext lint` is clean — AMO rejects the upload otherwise |
 
 ### H. Firefox
 
@@ -114,10 +114,10 @@ Run these after touching anything under **Firefox port hotspots**: `browser-api.
 `platform.ts`, `play-sound.ts`, `notifications.ts`, `action.ts`, `cors-tricks.ts`,
 `authentication-listener.ts`, or `scripts/generate-manifest.ts`.
 
-Setup: `npm run dev:firefox` (or `about:debugging#/runtime/this-firefox` → **Load
+Setup: `pnpm dev:firefox` (or `about:debugging#/runtime/this-firefox` → **Load
 Temporary Add-on…** → `dist/firefox/manifest.json`). Needs **Firefox 149+**.
 
-`npm run test:e2e:firefox` already covers boot, link catching, the CORS session
+`pnpm test:e2e:firefox` already covers boot, link catching, the CORS session
 rules, the Origin strip and the add round-trip against a fake client. The rows
 below are the ones it *cannot* reach.
 

@@ -205,17 +205,17 @@ Add cases to `test/popup/page.test.tsx` (the control renders and its value reach
 ## Verification
 
 ```bash
-npm run typecheck   # catches interface mismatches across all files
-npm test
-npm run lint
+pnpm typecheck   # catches interface mismatches across all files
+pnpm test
+pnpm lint
 ```
 
-`npm run build` runs all three first via `prebuild`. Then load the unpacked `dist/chrome/` in Chrome and verify:
+`pnpm build` runs all three first via `verify`. Then load the unpacked `dist/chrome/` in Chrome and verify:
 - New field appears correctly in Options
 - Default value is applied to configs saved before the change
 - If per-torrent: popup shows the control and the chosen value reaches the client
 
-A setting that changes anything the two browsers implement differently (notifications, sound, the toolbar action, permissions) also needs a Firefox pass — `npm run dev:firefox`, and see section H of `smoke-test-matrix.md`.
+A setting that changes anything the two browsers implement differently (notifications, sound, the toolbar action, permissions) also needs a Firefox pass — `pnpm dev:firefox`, and see section H of `smoke-test-matrix.md`.
 
 ## Output
 

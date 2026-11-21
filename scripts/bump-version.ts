@@ -6,11 +6,10 @@
 //   node scripts/bump-version.ts         # increment the patch from the manifest
 //
 // `src/manifest.json` is the source of truth (it is what the Chrome Web Store
-// reads). `package.json` and `package-lock.json` are kept in sync for hygiene.
+// reads). `package.json` is kept in sync for hygiene.
 // Prints the resulting version to stdout so callers (CI) can capture it.
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
 
 const manifestPath = 'src/manifest.json';
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
@@ -36,10 +35,9 @@ if (arg) {
 manifest.version = newVersion;
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 4) + '\n');
 
-// Sync package.json + package-lock.json. Suppress npm's own stdout so the only
-// thing this script writes to stdout is the new version number.
-execSync(`npm version ${newVersion} --no-git-tag-version --allow-same-version`, {
-    stdio: ['ignore', 'ignore', 'inherit'],
-});
+const packagePath = 'package.json';
+const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
+pkg.version = newVersion;
+writeFileSync(packagePath, JSON.stringify(pkg, null, 4) + '\n');
 
 console.log(newVersion);

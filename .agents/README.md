@@ -26,7 +26,7 @@ There **is** an automated test suite, and it has three layers:
 
 Commands are listed once, in [`skills/build.md`](skills/build.md). How to write and run the tests: [`skills/testing-guide.md`](skills/testing-guide.md); the manual matrix: [`skills/smoke-test-matrix.md`](skills/smoke-test-matrix.md).
 
-CI (`.github/workflows/build-extension.yml`) runs `typecheck`, `lint`, `test:coverage` and `npm run audit` in a `verify` job that gates both build jobs. The e2e suite runs in its own job, on `master` only, against the artifact `build-dev` produces.
+CI (`.github/workflows/build-extension.yml`) runs `typecheck`, `lint`, `test:coverage` and `pnpm audit` in a `verify` job that gates both build jobs. The e2e suite runs in its own job, on `master` only, against the artifact `build-dev` produces.
 
 ## Intermediate Documentation (`/.tmp/`)
 
@@ -86,8 +86,8 @@ gh workflow run Release -f version=X.Y.Z
 (or use the Actions tab). The workflow then, in order:
 
 1. Validates the version and checks the tag does not already exist
-2. Runs `node scripts/bump-version.ts X.Y.Z` — `src/manifest.json` is the source of truth; `package.json` and `package-lock.json` are synced from it
-3. `npm ci`, then `npm run build:all` — the Chrome and Firefox bundles (dev and prod) plus the self-hosted Firefox variant, with the typecheck/lint/test gate run once. A build failure aborts before any ref moves
+2. Runs `node scripts/bump-version.ts X.Y.Z` — `src/manifest.json` is the source of truth; `package.json` is synced from it
+3. `pnpm install --frozen-lockfile`, then `pnpm build:all` — the Chrome and Firefox bundles (dev and prod) plus the self-hosted Firefox variant, with the typecheck/lint/test gate run once. A build failure aborts before any ref moves
 4. Runs `web-ext lint` over the Firefox bundle, then again over the self-hosted bundle with `--self-hosted` (that flag is load-bearing: `update_url` is an error under listed rules and legal under self-hosted ones)
 5. Signs the self-hosted bundle with `web-ext sign --channel unlisted` and renames the result to `remote-torrent-adder-X.Y.Z.xpi`. **This step is `continue-on-error`** — unlisted signing is automated and normally returns in about a minute, but if AMO is unreachable or rejects the upload the release still ships, just without the `.xpi`
 6. Records the signing outcome in the job summary and composes the release body

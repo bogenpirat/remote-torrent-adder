@@ -11,7 +11,7 @@ const outDir = path.join(rootDir, 'dist-prod', 'firefox-unlisted');
 try {
     await access(sourceDir);
 } catch {
-    console.error(`Missing ${path.relative(rootDir, sourceDir)} — run "npm run build:firefox:prod:run" first.`);
+    console.error(`Missing ${path.relative(rootDir, sourceDir)} — run "pnpm build:firefox:prod:run" first.`);
     process.exit(1);
 }
 

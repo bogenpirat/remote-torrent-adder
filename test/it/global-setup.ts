@@ -8,7 +8,7 @@ export default async function globalSetup(): Promise<void> {
     try {
         await access(join(EXTENSION_DIR, "manifest.json"));
     } catch {
-        throw new Error(`No built extension at ${EXTENSION_DIR}. Run \`npm run build\` before \`npm run test:it\`.`);
+        throw new Error(`No built extension at ${EXTENSION_DIR}. Run \`pnpm build\` before \`pnpm test:it\`.`);
     }
     try {
         await promisify(execFile)("docker", ["compose", "version"]);

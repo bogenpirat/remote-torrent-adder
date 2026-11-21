@@ -76,25 +76,25 @@ Missing your client? [Open an issue](https://github.com/bogenpirat/remote-torren
 
 ## 🛠️ Building from source
 
-You'll need a recent version of [Node.js](https://nodejs.org/) and npm.
+You'll need a recent version of [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/installation) (the version pinned in `packageManager` in `package.json`).
 
 ```bash
 git clone https://github.com/bogenpirat/remote-torrent-adder.git
 cd remote-torrent-adder
-npm install
+pnpm install
 
-npm run build            # development build  → dist/chrome/
-npm run build:prod       # production build   → dist-prod/chrome/
-npm run build:firefox    # Firefox dev build   → dist/firefox/
-npm run build:all        # every bundle, incl. the self-hosted Firefox one
+pnpm build            # development build  → dist/chrome/
+pnpm build:prod       # production build   → dist-prod/chrome/
+pnpm build:firefox    # Firefox dev build   → dist/firefox/
+pnpm build:all        # every bundle, incl. the self-hosted Firefox one
 ```
 
 Tests run automatically before every build; you can also run them directly:
 
 ```bash
-npm test             # run the test suite once
-npm run test:watch   # watch mode
-npm run test:coverage
+pnpm test             # run the test suite once
+pnpm test:watch   # watch mode
+pnpm test:coverage
 ```
 
 To load your build into Chrome:
@@ -103,7 +103,7 @@ To load your build into Chrome:
 2. Enable **Developer mode** (top right)
 3. Click **Load unpacked** and select the `dist/chrome/` (or `dist-prod/chrome/`) folder
 
-To load your build into Firefox, either run `npm run dev:firefox`, which launches a
+To load your build into Firefox, either run `pnpm dev:firefox`, which launches a
 scratch Firefox profile with the add-on already installed, or load it by hand:
 
 1. Open `about:debugging#/runtime/this-firefox`
@@ -114,7 +114,7 @@ unsigned `.xpi` permanently, so a persistent local install needs Firefox
 Developer Edition or Nightly with `xpinstall.signatures.required` set to `false` —
 or the signed `.xpi` from the [latest release](https://github.com/bogenpirat/remote-torrent-adder/releases/latest).
 
-For iterating on the extension, `npm run dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
+For iterating on the extension, `pnpm dev` builds once and then rebuilds on every source change — just hit the reload button on the extension card in `chrome://extensions/` to pick up changes.
 
 ## 🏗️ Tech stack
 

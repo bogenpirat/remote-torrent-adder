@@ -4,8 +4,8 @@ import { EXTENSION_DIR } from "./fixtures/paths";
 import { FIREFOX_EXTENSION_DIR } from "./fixtures/firefox-paths";
 
 const BUNDLES = [
-    { dir: EXTENSION_DIR, script: "npm run build" },
-    { dir: FIREFOX_EXTENSION_DIR, script: "npm run build:firefox" },
+    { dir: EXTENSION_DIR, script: "pnpm build" },
+    { dir: FIREFOX_EXTENSION_DIR, script: "pnpm build:firefox" },
 ];
 
 export default async function globalSetup(): Promise<void> {
@@ -14,7 +14,7 @@ export default async function globalSetup(): Promise<void> {
             await access(join(dir, "manifest.json"));
         } catch {
             throw new Error(
-                `No built extension at ${dir}. Run \`${script}\` before \`npm run test:e2e\`.`
+                `No built extension at ${dir}. Run \`${script}\` before \`pnpm test:e2e\`.`
             );
         }
     }
