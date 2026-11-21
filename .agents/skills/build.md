@@ -35,6 +35,8 @@ CI (`.github/workflows/build-extension.yml`) runs the same three plus `pnpm audi
 
 `pnpm audit` is pnpm's built-in audit with `auditLevel: high` set in `pnpm-workspace.yaml`, so a high or critical advisory fails CI. An unfixable one in a build tool can be waived by adding its GHSA id to `auditConfig.ignoreGhsas` in `pnpm-workspace.yaml`, with a reason it cannot be fixed upstream and cannot reach the shipped extension. Remove the waiver once the advisory is fixed. Do not test waivers with `pnpm audit --ignore`: it writes the id into `pnpm-workspace.yaml`.
 
+`minimumReleaseAge` in `pnpm-workspace.yaml` keeps out any version published in the last 14 days. When a fix cannot wait, list the exact versions under `minimumReleaseAgeExclude` (`name@version`, never a bare name or `@scope/*`), including the young transitive ones `pnpm add` names when it refuses. `minimumReleaseAgeExcludePrune` drops an entry once a later `pnpm add`, `update` or `remove` no longer resolves that version.
+
 ## Build Pipeline (in order)
 
 `scripts/build.ts` owns the pipeline. It resolves the output directory from
